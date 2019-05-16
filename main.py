@@ -1,7 +1,8 @@
 import click
 from readsettings import ReadSettings
+from cli.helper import login_required
 from cli.config import CONFIG_FILEPATH
-from cli.core import login_user, get_node_info
+from cli.core import login_user, get_node_info, logout_user
 
 config = ReadSettings(CONFIG_FILEPATH)
 
@@ -42,8 +43,14 @@ def login(username, password):
     login_user(config, username, password)
 
 
+@cli.command('logout', help="Logout from SKALE node")
+def logout():
+    logout_user(config)
+
+
 @node.command('info', help="Get info about SKALE node")
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
+@login_required
 def node(format):
     get_node_info(config, format)
 

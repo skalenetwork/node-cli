@@ -3,3 +3,6 @@ node:
   base: "SKALE node commands"
   info: "Info about SKALE node"
 setHost: "Set SKALE node endpoint"
+
+service:
+  unauthorized: 'You should login first'

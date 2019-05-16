@@ -4,9 +4,10 @@ import requests
 import pickle
 import urllib.parse
 from cli.config import URLS, LONG_LINE
-from cli.helper import safe_get_config
+from cli.helper import safe_get_config, safe_load_texts
 
 NODE_STATUSES = ['Not created', 'Requested', 'Active']
+TEXTS = safe_load_texts()
 
 
 def login_user(config, username, password):
@@ -27,20 +28,30 @@ def login_user(config, username, password):
     print('Success, cookies saved.')
 
 
-def logout(config):
-    pass
+def logout_user(config):
+    # todo: logout request
+    clean_cookies(config)
+
+
+def clean_cookies(config):
+    if safe_get_config(config, 'cookies'):
+        del config["cookies"]
 
 
 def get_node_info(config, format):
     host = safe_get_config(config, 'host')
     cookies_text = safe_get_config(config, 'cookies')
     if not host or not cookies_text:
-        return
+        raise Exception('aaaa')
 
     cookies = pickle.loads(cookies_text)
 
     url = urllib.parse.urljoin(host, URLS['node_info'])
     response = requests.get(url, cookies=cookies)
+
+    if response.status_code == requests.codes.unauthorized:
+        clean_cookies(config)
+        print(TEXTS['service']['unauthorized'])
 
     if response.status_code == requests.codes.ok:
         node_info = json.loads(response.text)
