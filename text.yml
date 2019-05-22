@@ -6,3 +6,6 @@ setHost: "Set SKALE node endpoint"
 
 service:
   unauthorized: 'You should login first'
+  no_node_host: 'You should set host first'
+  node_host_not_valid: 'Provided SKALE node host is not valid'
+  node_not_registered: 'This SKALE node is not registered on SKALE Manager yet'

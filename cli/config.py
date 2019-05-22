@@ -13,7 +13,9 @@ TEXT_FILE = os.path.join(PARDIR, 'text.yml')
 
 URLS = {
     'login': '/login',
-    'node_info': '/node-info'
+    'logout': '/logout',
+    'node_info': '/node-info',
+    'test_host': '/test-host'
 }
 
 LONG_LINE = '-' * 50

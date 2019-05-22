@@ -1,10 +1,11 @@
 import click
 from readsettings import ReadSettings
-from cli.helper import login_required
+from cli.helper import login_required, safe_load_texts
 from cli.config import CONFIG_FILEPATH
-from cli.core import login_user, get_node_info, logout_user
+from cli.core import login_user, get_node_info, logout_user, test_host
 
 config = ReadSettings(CONFIG_FILEPATH)
+TEXTS = safe_load_texts()
 
 
 @click.group()
@@ -15,10 +16,11 @@ def cli():
 @cli.command('setHost', help="Set SKALE node endpoint")
 @click.argument('host')
 def set_host(host):
-    # todo: test connection to the skale node
-    # validate_node_host(host)
-    config['host'] = host
-    print(f'SKALE host: {host}')
+    if test_host(host):
+        config['host'] = host
+        print(f'SKALE host: {host}')
+    else:
+        print(TEXTS['service']['node_host_not_valid'])
 
 
 @cli.group('node', help="SKALE node commands")
@@ -36,8 +38,7 @@ def node():
     '--password', '-p',
     prompt="Enter password",
     help='SKALE node password',
-    hide_input=True,
-    # confirmation_prompt=True
+    hide_input=True
 )
 def login(username, password):
     login_user(config, username, password)
