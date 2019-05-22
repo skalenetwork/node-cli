@@ -1,10 +1,10 @@
 # SKALE node CLI
 
 
-Build executable
+Build executable:
 
 ```bash
- pyinstaller --onefile main.py
+ pyinstaller --onefile main.spec
 ```
 
 
@@ -53,6 +53,10 @@ Get base info about SKALE node
 skale node info
 ```
 
+Options:
+
+`-f/--format json/text` - optional
+
 ### Wallet commands
 
 > Prefix: `skale wallet`
@@ -66,6 +70,10 @@ Commands related to Ethereum wallet associated with SKALE node
 ```bash
 skale wallet info
 ```
+
+Options:
+
+`-f/--format json/text` - optional
 
 ### sChain commands
 

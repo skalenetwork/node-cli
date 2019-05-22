@@ -2,9 +2,8 @@ import json
 import inspect
 import requests
 import pickle
-import urllib.parse
 from cli.config import URLS, LONG_LINE
-from cli.helper import safe_get_config, safe_load_texts
+from cli.helper import safe_get_config, safe_load_texts, get_node_creds, construct_url, get_response_data
 
 NODE_STATUSES = ['Not created', 'Requested', 'Active']
 TEXTS = safe_load_texts()
@@ -19,7 +18,7 @@ def login_user(config, username, password):
         'username': username,
         'password': password
     }
-    url = urllib.parse.urljoin(host, URLS['login'])
+    url = construct_url(host, URLS['login'])
     response = requests.post(url, json=data)
 
     if response.status_code == requests.codes.ok:
@@ -32,7 +31,7 @@ def login_user(config, username, password):
 
 def logout_user(config):
     host = safe_get_config(config, 'host')
-    url = urllib.parse.urljoin(host, URLS['logout'])
+    url = construct_url(host, URLS['logout'])
     response = requests.get(url)
 
     if response.status_code == requests.codes.ok:
@@ -49,29 +48,20 @@ def clean_cookies(config):
 
 
 def test_host(host):
-    url = urllib.parse.urljoin(host, URLS['test_host'])
+    url = construct_url(host, URLS['test_host'])
     response = requests.get(url)
     return response.status_code == requests.codes.ok
 
 
-def get_node_creds(config):
-    host = safe_get_config(config, 'host')
-    cookies_text = safe_get_config(config, 'cookies')
-    if not host or not cookies_text:
-        raise Exception(TEXTS['service']['no_node_host'])
-    return host, cookies_text
-
-
 def get_node_info(config, format):
-    host, cookies_text = get_node_creds(config)
-    cookies = pickle.loads(cookies_text)
-
-    url = urllib.parse.urljoin(host, URLS['node_info'])
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, URLS['node_info'])
     response = requests.get(url, cookies=cookies)
 
     if response.status_code == requests.codes.unauthorized:
         clean_cookies(config)
         print(TEXTS['service']['unauthorized'])
+        return
 
     if response.status_code == requests.codes.ok:
         node_info = json.loads(response.text)
@@ -82,6 +72,27 @@ def get_node_info(config, format):
                 print(node_info)
             else:
                 print_node_info(node_info)
+
+
+def get_node_about(config, format):
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, URLS['node_about'])
+    response = requests.get(url, cookies=cookies)
+
+    if response.status_code == requests.codes.unauthorized:
+        clean_cookies(config)
+        print(TEXTS['service']['unauthorized'])
+        return
+
+    if response.status_code == requests.codes.ok:
+        node_about = get_response_data(response)
+        print(node_about)
+
+        # todo
+        # if format == 'json':
+        #     print(node_info)
+        # else:
+        #     print_node_info(node_info)
 
 
 def get_node_status(status):
