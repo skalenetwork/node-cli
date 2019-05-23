@@ -17,8 +17,9 @@ def cli():
 
 @cli.command('setHost', help="Set SKALE node endpoint")
 @click.argument('host')
-def set_host(host):
-    if test_host(host):
+@click.option('--skip-check', is_flag=True)
+def set_host(host, skip_check):
+    if test_host(host) or skip_check:
         config['host'] = host
         print(f'SKALE host: {host}')
     else:
