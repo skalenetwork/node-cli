@@ -7,6 +7,12 @@ Build executable:
  pyinstaller --onefile main.spec
 ```
 
+Run in dev mode:
+
+```bash
+ENV=dev python main.py YOUR_COMMAND
+```
+
 
 # Base commands
 
@@ -18,6 +24,8 @@ Build executable:
 ```bash
 skale setHost http://127.0.0.1:3007
 ```
+
+> For old nodes use `--skip-check` option
 
 ##### login
 

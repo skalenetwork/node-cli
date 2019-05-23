@@ -64,8 +64,8 @@ def get_node_info(config, format):
         return
 
     if response.status_code == requests.codes.ok:
-        node_info = json.loads(response.text)
-        if node_info['data']['status'] == 0:
+        node_info = get_response_data(response)
+        if node_info['status'] == 0:
             print(TEXTS['service']['node_not_registered'])
         else:
             if format == 'json':
