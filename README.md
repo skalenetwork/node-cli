@@ -73,6 +73,17 @@ skale user logout
 
 > Prefix: `skale node`
 
+
+##### node register
+
+Register SKALE node on SKALE Manager contracts
+
+- Login required
+
+```bash
+skale node register
+```
+
  
 ##### node info 
 
@@ -106,7 +117,7 @@ Options:
 
 `-f/--format json/text` - optional
 
-### sChain commands
+### sChain commands (not implemented yet)
 
 > Prefix: `skale schains`
 
@@ -122,9 +133,9 @@ skale schains list
 skale schains config schain_name
 ```
 
-### Validator commands
+### Validator commands (not implemented yet)
 
-> Prefix: `skale schains`
+> Prefix: `skale validator`
 
 
 ##### validator list
@@ -134,7 +145,7 @@ skale validator list
 ```
 
 
-### Logs commands
+### Logs commands (not implemented yet)
 
 > Prefix: `skale log`
 
