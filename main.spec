@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['/Users/dmytro/projects/skalenetwork/node-cli'],
+             pathex=['.'],
              binaries=[],
              datas=[("./text.yml", "texts")],
              hiddenimports=[],
