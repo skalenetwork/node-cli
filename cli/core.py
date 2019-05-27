@@ -49,7 +49,14 @@ def clean_cookies(config):
 
 def test_host(host):
     url = construct_url(host, URLS['test_host'])
-    response = requests.get(url)
+
+    try:
+        response = requests.get(url)
+    except requests.exceptions.ConnectionError:
+        return False  # todo: return different error messages
+    except requests.exceptions.InvalidURL:
+        return False  # todo: return different error messages
+
     return response.status_code == requests.codes.ok
 
 
