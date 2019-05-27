@@ -55,3 +55,8 @@ def construct_url(host, url):
 def get_response_data(response):
     json = response.json()
     return json['data']
+
+
+def clean_cookies(config):
+    if safe_get_config(config, 'cookies'):
+        del config["cookies"]

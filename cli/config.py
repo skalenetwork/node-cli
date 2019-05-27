@@ -21,8 +21,10 @@ else:
 URLS = {
     'login': '/login',
     'logout': '/logout',
+    'register': '/join',
     'node_info': '/node-info',
     'node_about': '/about-node',
+    'create_node': '/create-node',
     'test_host': '/test-host',
 
     'wallet_info': '/load-wallet'

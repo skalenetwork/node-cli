@@ -19,6 +19,14 @@ ENV=dev python main.py YOUR_COMMAND
 
 ### Top level commands
 
+##### host
+
+Prints current SKALE node host
+
+```bash
+skale host
+```
+
 ##### setHost 
 
 ```bash
@@ -27,22 +35,37 @@ skale setHost http://127.0.0.1:3007
 
 > For old nodes use `--skip-check` option
 
-##### login
+
+### User commands
+
+##### register
 
 Interactive:
 ```bash
-skale login
+skale user register
 ```
 
 Non-interactive:
 ```bash
-skale login -u/--username user -p/--password pass
+skale user register -u/--username USERNAME -p/--password PASSWORD -t/--token TOKEN
+```
+
+##### login
+
+Interactive:
+```bash
+skale user login
+```
+
+Non-interactive:
+```bash
+skale user login -u/--username user -p/--password pass
 ```
 
 ##### logout
 
 ```bash
-skale logout
+skale user logout
 ```
 
 

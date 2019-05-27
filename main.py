@@ -2,9 +2,10 @@ import click
 from readsettings import ReadSettings
 from cli.helper import login_required, safe_load_texts
 from cli.config import CONFIG_FILEPATH
-from cli.core import login_user, get_node_info, logout_user, test_host, get_node_about
+from cli.core import get_node_info, test_host, get_node_about, show_host
 from cli.wallet import get_wallet_info
 from cli.node import create_node
+from cli.user import register_user, login_user, logout_user
 
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
@@ -26,12 +27,44 @@ def set_host(host, skip_check):
         print(TEXTS['service']['node_host_not_valid'])
 
 
+@cli.command('host', help="Get SKALE node endpoint")
+def host():
+    show_host(config)
+
+
 @cli.group('node', help="SKALE node commands")
 def node():
     pass
 
 
-@cli.command('login', help="Login user in a SKALE node")
+@cli.group('user', help="SKALE node user commands")
+def user():
+    pass
+
+
+@user.command('register', help="Create new user for SKALE node")
+@click.option(
+    '--username', '-u',
+    prompt="Enter username",
+    help='SKALE node username'
+)
+@click.option(
+    '--password', '-p',
+    prompt="Enter password",
+    help='SKALE node password',
+    hide_input=True
+)
+@click.option(
+    '--token', '-t',
+    prompt="Enter one-time token",
+    help='One-time token',
+    hide_input=True
+)
+def register(username, password, token):
+    register_user(config, username, password, token)
+
+
+@user.command('login', help="Login user in a SKALE node")
 @click.option(
     '--username', '-u',
     prompt="Enter username",
@@ -46,8 +79,7 @@ def node():
 def login(username, password):
     login_user(config, username, password)
 
-
-@cli.command('logout', help="Logout from SKALE node")
+@user.command('logout', help="Logout from SKALE node")
 def logout():
     logout_user(config)
 
@@ -87,6 +119,7 @@ def node_about(format):
     prompt="Enter node base port",
     help='Base port for node sChains'
 )
+@login_required
 def register_node(name, p2p_ip, public_ip, port):
     create_node(config, name, p2p_ip, public_ip, port)
 
