@@ -4,7 +4,7 @@ from cli.helper import login_required, safe_load_texts
 from cli.config import CONFIG_FILEPATH
 from cli.core import get_node_info, test_host, get_node_about, show_host
 from cli.wallet import get_wallet_info
-from cli.node import create_node
+from cli.node import create_node, init_node
 from cli.user import register_user, login_user, logout_user
 
 config = ReadSettings(CONFIG_FILEPATH)
@@ -79,6 +79,7 @@ def register(username, password, token):
 def login(username, password):
     login_user(config, username, password)
 
+
 @user.command('logout', help="Logout from SKALE node")
 def logout():
     logout_user(config)
@@ -122,6 +123,70 @@ def node_about(format):
 @login_required
 def register_node(name, p2p_ip, public_ip, port):
     create_node(config, name, p2p_ip, public_ip, port)
+
+
+@node.command('init', help="Initialize SKALE node")
+@click.option(
+    '--ip',
+    prompt="Enter IP address of the machine",
+    help='IP address of the remote machine to provision'
+)
+@click.option(
+    '--ssh-username',
+    #prompt="Enter username",
+    help='Username that will be used for SSH',
+    default='root'
+)
+# @click.option(
+#     '--ssh-port',
+#     #prompt="Enter SSH port of the machine",
+#     help='SSH port of the remote machine to provision',
+#     default=22
+# )
+@click.option(
+    '--git-branch',
+    prompt="Enter Git branch to clone",
+    help='Branch that will be used for SKALE node setup'
+)
+@click.option(  # todo: tmp option - remove after open source
+    '--github-token',
+    prompt="Enter GitHub access token",
+    help='GitHub access token to clone the repo'
+)
+@click.option(  # todo: tmp option - remove after open source
+    '--docker-username',
+    prompt="Enter DockerHub username",
+    help='DockerHub username to pull images'
+)
+@click.option(  # todo: tmp option - remove after open source
+    '--docker-password',
+    prompt="Enter DockerHub password",
+    help='DockerHub password to pull images'
+)
+@click.option(  # todo: tmp option - remove after mainnet deploy
+    '--rpc-ip',
+    prompt="Enter Mainnet RPC IP",
+    help='IP of the node in the network where SKALE manager is deployed'
+)
+@click.option(  # todo: tmp option - remove after mainnet deploy
+    '--rpc-port',
+    prompt="Enter Mainnet RPC port",
+    help='WS RPC port of the node in the network where SKALE manager is deployed'
+)
+@click.option(
+    '--db-user',
+    prompt="Enter username for node DB",
+    help='Username for node internal database'
+)
+@click.option(
+    '--db-password',
+    prompt="Enter password for node DB",
+    help='Password for node internal database'
+)
+def init_node(ip, ssh_username, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+              db_password):
+    init_node(ip, ssh_username, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+              db_password)
 
 
 @cli.group('wallet', help="Node wallet commands")
