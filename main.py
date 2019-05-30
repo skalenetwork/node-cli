@@ -4,8 +4,9 @@ from cli.helper import login_required, safe_load_texts
 from cli.config import CONFIG_FILEPATH
 from cli.core import get_node_info, test_host, get_node_about, show_host
 from cli.wallet import get_wallet_info
-from cli.node import create_node, init_node
+from cli.node import create_node, init
 from cli.user import register_user, login_user, logout_user
+from cli.host import install_host_dependencies
 
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
@@ -126,24 +127,8 @@ def register_node(name, p2p_ip, public_ip, port):
 
 
 @node.command('init', help="Initialize SKALE node")
-@click.option(
-    '--ip',
-    prompt="Enter IP address of the machine",
-    help='IP address of the remote machine to provision'
-)
-@click.option(
-    '--ssh-username',
-    #prompt="Enter username",
-    help='Username that will be used for SSH',
-    default='root'
-)
-# @click.option(
-#     '--ssh-port',
-#     #prompt="Enter SSH port of the machine",
-#     help='SSH port of the remote machine to provision',
-#     default=22
-# )
-@click.option(
+@click.option('--install-deps', is_flag=True)
+@click.option(  # todo: tmp option - after stable release branch
     '--git-branch',
     prompt="Enter Git branch to clone",
     help='Branch that will be used for SKALE node setup'
@@ -183,10 +168,11 @@ def register_node(name, p2p_ip, public_ip, port):
     prompt="Enter password for node DB",
     help='Password for node internal database'
 )
-def init_node(ip, ssh_username, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+def init_node(install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
               db_password):
-    init_node(ip, ssh_username, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
-              db_password)
+    if install_deps:
+        install_host_dependencies()
+    init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password)
 
 
 @cli.group('wallet', help="Node wallet commands")
