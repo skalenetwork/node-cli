@@ -4,7 +4,7 @@
 Build executable:
 
 ```bash
- pyinstaller --onefile main.spec
+pyinstaller --onefile main.spec
 ```
 
 Run in dev mode:
