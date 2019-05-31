@@ -41,3 +41,10 @@ LONG_LINE = '-' * 50
 
 SKALE_NODE_UI_PORT = 3007
 SKALE_NODE_UI_LOCALHOST = 'http://0.0.0.0'
+
+SKALE_PROJECT_PATH = os.path.join('/skale', 'skale-node')
+UNINSTALL_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'uninstall.sh')
+
+NODE_DATA_PATH = '/skale_node_data'
+TOKENS_FILENAME = 'tokens.json'
+TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, TOKENS_FILENAME)

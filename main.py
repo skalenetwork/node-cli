@@ -1,11 +1,11 @@
 import click
 from readsettings import ReadSettings
-from cli.helper import login_required, safe_load_texts
+from cli.helper import login_required, safe_load_texts, abort_if_false, server_only
 from cli.config import CONFIG_FILEPATH
 from cli.core import get_node_info, test_host, get_node_about, show_host
 from cli.wallet import get_wallet_info
-from cli.node import create_node, init
-from cli.user import register_user, login_user, logout_user
+from cli.node import create_node, init, purge
+from cli.user import register_user, login_user, logout_user, show_registration_token
 from cli.host import install_host_dependencies
 
 config = ReadSettings(CONFIG_FILEPATH)
@@ -41,6 +41,12 @@ def node():
 @cli.group('user', help="SKALE node user commands")
 def user():
     pass
+
+
+@user.command('token', help="Show registration token if avaliable. Server-only command.")
+@server_only
+def user_token():
+    show_registration_token()
 
 
 @user.command('register', help="Create new user for SKALE node")
@@ -168,11 +174,21 @@ def register_node(name, p2p_ip, public_ip, port):
     prompt="Enter password for node DB",
     help='Password for node internal database'
 )
-def init_node(install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+def init_node(install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip,
+              rpc_port, db_user,
               db_password):
     if install_deps:
         install_host_dependencies()
-    init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password)
+    init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+         db_password)
+
+
+@node.command('purge', help="Uninstall SKALE node software from the machine")
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to uninstall SKALE node?')
+def purge_node():
+    purge()
 
 
 @cli.group('wallet', help="Node wallet commands")
