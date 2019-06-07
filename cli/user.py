@@ -1,14 +1,14 @@
 import requests
 import pickle
-from cli.config import URLS
-from cli.helper import safe_get_config, construct_url, clean_cookies
+import json
+from cli.config import URLS, TOKENS_FILEPATH
+from cli.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint
 
 
 def register_user(config, username, password, token):
     host = safe_get_config(config, 'host')
     if not host:
-        return
-
+        host = get_localhost_endpoint()
     data = {
         'username': username,
         'password': password,
@@ -56,3 +56,12 @@ def logout_user(config):
     else:
         print('Logout failed')
         print(response.text)
+
+
+def show_registration_token():
+    try:
+        with open(TOKENS_FILEPATH, encoding='utf-8') as data_file:
+            config = json.loads(data_file.read())
+        print(f'User registration token: {config["token"]}')
+    except FileNotFoundError as e:
+        print("Couldn't find registration tokens file. Check that node inited on this machine.")

@@ -1,4 +1,7 @@
+import os
 import requests
+import subprocess
+from cli.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT
 from cli.config import URLS
 from cli.helper import get_node_creds, construct_url
 
@@ -15,4 +18,30 @@ def create_node(config, name, p2p_ip, public_ip, port):
     url = construct_url(host, URLS['create_node'])
     response = requests.post(url, json=data, cookies=cookies)
 
-    print(response.text)
+    if response.status_code == requests.codes.created:
+        print('Node registered in SKALE manager. For more info run: skale node info')
+    else:
+        print(f'Something went wrong: {response.text}')
+
+
+
+def init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password):
+    # todo: show localhost message
+    env = {
+        **os.environ,
+        'GIT_BRANCH': git_branch,
+        'GITHUB_TOKEN': github_token,
+        'DOCKER_USERNAME': docker_username,
+        'DOCKER_PASSWORD': docker_password,
+        'RPC_IP': rpc_ip,
+        'RPC_PORT': rpc_port,
+        'DB_USERNAME': db_user,
+        'DB_PASSWORD': db_password,
+    }
+    res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
+    # todo: check execution result
+
+def purge():
+    # todo: check that node is installed
+    res = subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
+    # todo: check execution result
