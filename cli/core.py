@@ -2,7 +2,7 @@ import inspect
 import requests
 from cli.config import URLS, LONG_LINE
 from cli.helper import safe_get_config, safe_load_texts, get_node_creds, construct_url, \
-    get_response_data, clean_cookies
+    get_response_data, clean_cookies, get_request
 
 NODE_STATUSES = ['Not created', 'Requested', 'Active']
 TEXTS = safe_load_texts()
@@ -32,7 +32,9 @@ def test_host(host):
 def get_node_info(config, format):
     host, cookies = get_node_creds(config)
     url = construct_url(host, URLS['node_info'])
-    response = requests.get(url, cookies=cookies)
+    response = get_request(url, cookies)
+    if not response:
+        return None
 
     if response.status_code == requests.codes.unauthorized:
         clean_cookies(config)
@@ -53,7 +55,10 @@ def get_node_info(config, format):
 def get_node_about(config, format):
     host, cookies = get_node_creds(config)
     url = construct_url(host, URLS['node_about'])
-    response = requests.get(url, cookies=cookies)
+
+    response = get_request(url, cookies)
+    if not response:
+        return None
 
     if response.status_code == requests.codes.unauthorized:
         clean_cookies(config)

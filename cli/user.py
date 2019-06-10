@@ -2,7 +2,8 @@ import requests
 import pickle
 import json
 from cli.config import URLS, TOKENS_FILEPATH
-from cli.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint
+from cli.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint, \
+    get_request
 
 
 def register_user(config, username, password, token):
@@ -24,6 +25,7 @@ def register_user(config, username, password, token):
         print('Success, cookies saved.')
     else:
         print('Registration failed: ' + response.text)
+
 
 def login_user(config, username, password):
     host = safe_get_config(config, 'host')
@@ -48,7 +50,9 @@ def login_user(config, username, password):
 def logout_user(config):
     host = safe_get_config(config, 'host')
     url = construct_url(host, URLS['logout'])
-    response = requests.get(url)
+    response = get_request(url)
+    if not response:
+        return None
 
     if response.status_code == requests.codes.ok:
         clean_cookies(config)
