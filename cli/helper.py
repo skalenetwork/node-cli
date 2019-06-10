@@ -1,5 +1,6 @@
 import pickle
 import yaml
+import requests
 from functools import wraps
 import urllib.parse
 
@@ -79,3 +80,12 @@ def server_only(f):
 
 def get_localhost_endpoint():
     return f'{SKALE_NODE_UI_LOCALHOST}:{SKALE_NODE_UI_PORT}'
+
+
+def get_request(url, cookies=None):
+    try:
+        return requests.get(url, cookies=cookies)
+    except requests.exceptions.ConnectionError as e:
+        # todo: log error
+        print(f'Could not connect to {url}')
+        return None
