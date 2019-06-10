@@ -8,7 +8,7 @@ def get_wallet_info(config, format):
     url = construct_url(host, URLS['wallet_info'])
 
     response = get_request(url, cookies)
-    if not response:
+    if response is None:
         return None
 
     json = response.json()
@@ -24,7 +24,7 @@ def print_wallet_info(wallet):
     print(inspect.cleandoc(f'''
         {LONG_LINE}
         Address: {wallet['address'].lower()}
-        ETH balance: {wallet['eth_balance']} wei
-        SKALE balance: {wallet['skale_balance']} wei
+        ETH balance: {wallet['eth_balance']} ETH
+        SKALE balance: {wallet['skale_balance']} SKALE
         {LONG_LINE}
     '''))

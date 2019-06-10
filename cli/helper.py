@@ -5,7 +5,8 @@ from functools import wraps
 import urllib.parse
 
 from readsettings import ReadSettings
-from cli.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT
+from cli.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
+    LONG_LINE
 
 config = ReadSettings(CONFIG_FILEPATH)
 
@@ -14,7 +15,7 @@ def safe_get_config(config, key):
     try:
         return config[key]
     except KeyError as e:
-        #print(f'No such key in config: {key}')
+        # print(f'No such key in config: {key}')
         return None
 
 
@@ -75,6 +76,7 @@ def server_only(f):
     def inner(*args, **kwargs):
         # todo: implement check that local node exists
         return f(*args, **kwargs)
+
     return inner
 
 
@@ -89,3 +91,19 @@ def get_request(url, cookies=None):
         # todo: log error
         print(f'Could not connect to {url}')
         return None
+
+
+def post_request(url, json, cookies=None):
+    try:
+        return requests.post(url, json=json, cookies=cookies)
+    except requests.exceptions.ConnectionError as e:
+        # todo: log error
+        print(f'Could not connect to {url}')
+        return None
+
+
+def print_err_response(err_response):
+    print(LONG_LINE)
+    for error in err_response['errors']:
+        print(error)
+    print(LONG_LINE)

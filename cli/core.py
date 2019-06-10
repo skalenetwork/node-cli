@@ -33,7 +33,7 @@ def get_node_info(config, format):
     host, cookies = get_node_creds(config)
     url = construct_url(host, URLS['node_info'])
     response = get_request(url, cookies)
-    if not response:
+    if response is None:
         return None
 
     if response.status_code == requests.codes.unauthorized:
@@ -57,7 +57,7 @@ def get_node_about(config, format):
     url = construct_url(host, URLS['node_about'])
 
     response = get_request(url, cookies)
-    if not response:
+    if response is None:
         return None
 
     if response.status_code == requests.codes.unauthorized:
