@@ -1,20 +1,33 @@
 # SKALE node CLI
 
+SKALE Node CLI, part of the SKALE suite of validator tools, is the command line to setup, register and maintain your SKALE node.
 
-Build executable:
+## Installation
 
+- Download executable
 ```bash
-pyinstaller --onefile main.spec
+curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-VERSION_NUM-`uname -s`-`uname -m` > /usr/local/bin/skale
 ```
 
-Run in dev mode:
+With `sudo`:
 
 ```bash
-ENV=dev python main.py YOUR_COMMAND
+sudo bash -c "curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
 ```
 
+- Apply executable permissions to the binary:
 
-# Base commands
+```bash
+chmod +x /usr/local/bin/skale
+```
+
+- Test the installation
+
+```bash
+skale --help
+```
+
+## Base commands
 
 
 ### Top level commands
@@ -160,4 +173,20 @@ skale log list
 
 ```bash
 skale log download /url/
+```
+
+
+
+## Development
+
+Build executable:
+
+```bash
+pyinstaller --onefile main.spec
+```
+
+Run in dev mode:
+
+```bash
+ENV=dev python main.py YOUR_COMMAND
 ```
