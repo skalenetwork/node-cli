@@ -1,9 +1,9 @@
 import os
 import requests
 import subprocess
-from cli.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT
-from cli.config import URLS
-from cli.helper import get_node_creds, construct_url, post_request, print_err_response
+from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT
+from core.config import URLS
+from core.helper import get_node_creds, construct_url, post_request, print_err_response
 
 
 def create_node(config, name, p2p_ip, public_ip, port):

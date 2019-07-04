@@ -1,8 +1,8 @@
 import requests
 import pickle
 import json
-from cli.config import URLS, TOKENS_FILEPATH
-from cli.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint, \
+from core.config import URLS, TOKENS_FILEPATH
+from core.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint, \
     get_request, post_request
 
 

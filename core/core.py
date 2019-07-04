@@ -1,32 +1,11 @@
 import inspect
 import requests
-from cli.config import URLS, LONG_LINE
-from cli.helper import safe_get_config, safe_load_texts, get_node_creds, construct_url, \
+from core.config import URLS, LONG_LINE
+from core.helper import safe_get_config, safe_load_texts, get_node_creds, construct_url, \
     get_response_data, clean_cookies, get_request
 
 NODE_STATUSES = ['Not created', 'Requested', 'Active']
 TEXTS = safe_load_texts()
-
-
-def show_host(config):
-    host = safe_get_config(config, 'host')
-    if host:
-        print(f'SKALE node host: {host}')
-    else:
-        print(TEXTS['service']['no_node_host'])
-
-
-def test_host(host):
-    url = construct_url(host, URLS['test_host'])
-
-    try:
-        response = requests.get(url)
-    except requests.exceptions.ConnectionError:
-        return False  # todo: return different error messages
-    except requests.exceptions.InvalidURL:
-        return False  # todo: return different error messages
-
-    return response.status_code == requests.codes.ok
 
 
 def get_node_info(config, format):

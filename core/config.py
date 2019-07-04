@@ -34,7 +34,11 @@ URLS = {
     'create_node': '/create-node',
     'test_host': '/test-host',
 
-    'wallet_info': '/load-wallet'
+    'wallet_info': '/load-wallet',
+    'validators_info': '/validators-info',
+
+    'schains_containers': '/containers/schains/list',
+    'node_schains': '/schains/list'
 }
 
 LONG_LINE = '-' * 50
@@ -48,3 +52,8 @@ UNINSTALL_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'uninstall.s
 NODE_DATA_PATH = '/skale_node_data'
 TOKENS_FILENAME = 'tokens.json'
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, TOKENS_FILENAME)
+
+DEFAULT_NODE_GIT_BRANCH = 'develop'
+DEFAULT_RPC_IP = '134.209.56.46'
+DEFAULT_RPC_PORT = 1920
+DEFAULT_DB_USER = 'root'

@@ -5,8 +5,8 @@ from functools import wraps
 import urllib.parse
 
 from readsettings import ReadSettings
-from cli.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
-    LONG_LINE
+from core.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
+    LONG_LINE, URLS
 
 config = ReadSettings(CONFIG_FILEPATH)
 
@@ -107,3 +107,23 @@ def print_err_response(err_response):
     for error in err_response['errors']:
         print(error)
     print(LONG_LINE)
+
+
+def get(url_name):
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, URLS[url_name])
+
+    response = get_request(url, cookies)
+    if response is None:
+        return None
+
+    if response.status_code != requests.codes.ok:
+        print('Request failed, status code:', response.status_code)
+        return None
+
+    json = response.json()
+    if json['res'] != 1:
+        print_err_response(response.json())
+        return None
+    else:
+        return json['data']

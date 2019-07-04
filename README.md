@@ -2,17 +2,29 @@
 
 SKALE Node CLI, part of the SKALE suite of validator tools, is the command line to setup, register and maintain your SKALE node.
 
+## Table of Contents
+1. [Installation](#installation)
+2. [CLI usage](#cli-usage)  
+    2.1 [Top level commands](#top-level-commands)   
+    2.2 [User commands](#user-commands)   
+    2.3 [Node commands](#node-commands)  
+    2.4 [Wallet commands](#wallet-commands)  
+    2.5 [sChain commands](#schain-commands)  
+3. [Development](#development)
+
+
+
 ## Installation
 
 - Download executable
 ```bash
-curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-VERSION_NUM-`uname -s`-`uname -m` > /usr/local/bin/skale
+VERSION_NUM=0.0.0 && curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` > /usr/local/bin/skale
 ```
 
 With `sudo`:
 
 ```bash
-sudo bash -c "curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
+VERSION_NUM=0.0.0 && sudo -E bash -c "curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
 ```
 
 - Apply executable permissions to the binary:
@@ -27,8 +39,7 @@ chmod +x /usr/local/bin/skale
 skale --help
 ```
 
-## Base commands
-
+## CLI usage
 
 ### Top level commands
 
@@ -50,6 +61,16 @@ skale setHost http://127.0.0.1:3007
 
 
 ### User commands
+
+##### token
+
+Show user registration token
+
+> Local-only
+
+```bash
+skale user token
+```
 
 ##### register
 
@@ -87,6 +108,28 @@ skale user logout
 > Prefix: `skale node`
 
 
+##### node init
+
+Init SKALE node on current machine
+
+> Local-only
+
+```bash
+skale node init
+```
+
+Required arguments:
+- `--github-token` - token for accessing `skale-node` repo
+- `--docker-username` - username for DockerHub
+- `--docker-password` - password for DockerHub
+- `--db-password` - MySQL password for local node database
+
+Optional arguments:
+- `--git-branch` - git branch of `skale-node` to use
+- `--rpc-ip` - RPC IP of the network with SKALE Manager
+- `--rpc-port` - RPC port of the network with SKALE Manager
+- `--db-user` - MySQL user for local node database 
+
 ##### node register
 
 Register SKALE node on SKALE Manager contracts
@@ -97,6 +140,10 @@ Register SKALE node on SKALE Manager contracts
 skale node register
 ```
 
+Required arguments:
+- `--name` - SKALE node name
+- `--ip` - public IP for RPC connections & consensus
+- `--port` - base port for node sChains
  
 ##### node info 
 
@@ -130,7 +177,7 @@ Options:
 
 `-f/--format json/text` - optional
 
-### sChain commands (not implemented yet)
+### sChain commands
 
 > Prefix: `skale schains`
 
