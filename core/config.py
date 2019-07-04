@@ -38,7 +38,8 @@ URLS = {
     'validators_info': '/validators-info',
 
     'schains_containers': '/containers/schains/list',
-    'node_schains': '/schains/list'
+    'node_schains': '/schains/list',
+    'schain_config': '/schain-config'
 }
 
 LONG_LINE = '-' * 50

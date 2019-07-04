@@ -84,9 +84,9 @@ def get_localhost_endpoint():
     return f'{SKALE_NODE_UI_LOCALHOST}:{SKALE_NODE_UI_PORT}'
 
 
-def get_request(url, cookies=None):
+def get_request(url, cookies=None, params=None):
     try:
-        return requests.get(url, cookies=cookies)
+        return requests.get(url, cookies=cookies, params=params)
     except requests.exceptions.ConnectionError as e:
         # todo: log error
         print(f'Could not connect to {url}')
@@ -109,11 +109,11 @@ def print_err_response(err_response):
     print(LONG_LINE)
 
 
-def get(url_name):
+def get(url_name, params=None):
     host, cookies = get_node_creds(config)
     url = construct_url(host, URLS[url_name])
 
-    response = get_request(url, cookies)
+    response = get_request(url, cookies, params)
     if response is None:
         return None
 
