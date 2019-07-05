@@ -26,18 +26,21 @@ def create_node(config, name, p2p_ip, public_ip, port):
 
 
 def init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
-         db_password):
+         db_password, db_root_password, db_port):
     # todo: show localhost message
     env = {
         **os.environ,
         'GIT_BRANCH': git_branch,
         'GITHUB_TOKEN': github_token,
         'DOCKER_USERNAME': docker_username,
-        'DOCKER_PASSWORD': docker_password,
+        'DOCKER_PASSWORD': str(docker_password),
         'RPC_IP': rpc_ip,
-        'RPC_PORT': rpc_port,
+        'RPC_PORT': str(rpc_port),
         'DB_USERNAME': db_user,
         'DB_PASSWORD': db_password,
+        'DB_ROOT_PASSWORD': db_root_password,
+        'DB_PORT': str(db_port),
+        'DISK_MOUNTPOINT': '/'
     }
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
     # todo: check execution result

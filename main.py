@@ -6,7 +6,7 @@ from cli.logs import logs_cli
 from readsettings import ReadSettings
 from core.helper import login_required, safe_load_texts, abort_if_false, server_only
 from core.config import CONFIG_FILEPATH, DEFAULT_NODE_GIT_BRANCH, DEFAULT_RPC_IP, DEFAULT_RPC_PORT, \
-    DEFAULT_DB_USER
+    DEFAULT_DB_USER, DEFAULT_DB_PORT
 from core.core import get_node_info, get_node_about
 from core.wallet import get_wallet_info
 from core.node import create_node, init, purge
@@ -190,13 +190,24 @@ def register_node(name, ip, port):
     prompt="Enter password for node DB",
     help='Password for node internal database'
 )
+@click.option(
+    '--db-root-password',
+    #prompt="Enter root password for node DB",
+    help='Password for root user of node internal database'
+)
+@click.option(
+    '--db-port',
+    help='Port for of node internal database',
+    default=DEFAULT_DB_PORT
+)
 def init_node(install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip,
-              rpc_port, db_user,
-              db_password):
+              rpc_port, db_user, db_password, db_root_password, db_port):
     if install_deps:
         install_host_dependencies()
+    if not db_root_password:
+        db_root_password = db_password
     init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
-         db_password)
+         db_password, db_root_password, db_port)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -219,16 +230,16 @@ def wallet_info(format):
     get_wallet_info(config, format)
 
 
-@cli.group('validators', help="Node validators commands")
-def validators():
-    pass
-
-
-@validators.command('info', help="Get info about node validators")
-@click.option('--format', '-f', type=click.Choice(['json', 'text']))
-@login_required
-def validators_info(format):
-    get_validators_info(config, format)
+# @cli.group('validators', help="Node validators commands")
+# def validators():
+#     pass
+#
+#
+# @validators.command('info', help="Get info about node validators")
+# @click.option('--format', '-f', type=click.Choice(['json', 'text']))
+# @login_required
+# def validators_info(format):
+#     get_validators_info(config, format)
 
 
 cmd_collection = click.CommandCollection(sources=[cli, schains_cli, containers_cli, logs_cli])
