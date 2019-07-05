@@ -4,11 +4,11 @@ from core.print_formatters import print_containers
 
 
 @click.group()
-def containers_cmd():
+def containers_cli():
     pass
 
 
-@containers_cmd.group('containers', help="Node containers commands")
+@containers_cli.group('containers', help="Node containers commands")
 def containers():
     pass
 

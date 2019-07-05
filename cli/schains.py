@@ -5,18 +5,18 @@ from core.print_formatters import print_containers, print_schains
 
 
 @click.group()
-def schains_cmd():
+def schains_cli():
     pass
 
 
-@schains_cmd.group('schains', help="Node sChains commands")
+@schains_cli.group('schains', help="Node sChains commands")
 def schains():
     pass
 
 
 @schains.command(help="List of sChains served by connected node")
 @login_required
-def list():
+def ls():
     schains_list = get('node_schains')
     if not schains_list:
         return

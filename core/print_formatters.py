@@ -3,6 +3,9 @@ import datetime
 import texttable
 from dateutil import parser
 
+from core.config import LONG_LINE
+
+
 def get_tty_width():
     tty_size = os.popen('stty size 2> /dev/null', 'r').read().split()
     if len(tty_size) != 2:
@@ -21,8 +24,10 @@ class Formatter(object):
 
         return table.draw()
 
+
 def format_date(date):
     return date.strftime("%b %d %Y %H:%M:%S")
+
 
 def print_containers(containers):
     headers = [
@@ -66,7 +71,38 @@ def print_schains(schains):
             schain['owner'],
             schain['partOfNode'],
             schain['lifetime'],
-            date.strftime("%b %d %Y %H:%M:%S"),
+            format_date(date),
             schain['deposit'],
+        ])
+    print(Formatter().table(headers, rows))
+
+
+def print_logs(logs):
+    print('Base logs\n')
+    print_log_list(logs['base'])
+    print(f'\n{LONG_LINE}')
+    print('\nsChains logs\n')
+    print_schains_logs(logs['schains'])
+
+
+def print_schains_logs(schains_logs):
+    for name in schains_logs:
+        print(f'\n{name} \n')
+        print_log_list(schains_logs[name]['logs'])
+
+
+def print_log_list(logs):
+    headers = [
+        'Name',
+        'Size',
+        'Created At'
+    ]
+    rows = []
+    for log in logs:
+        date = datetime.datetime.fromtimestamp(log['created_at'])
+        rows.append([
+            log['name'],
+            log['size'],
+            format_date(date)
         ])
     print(Formatter().table(headers, rows))

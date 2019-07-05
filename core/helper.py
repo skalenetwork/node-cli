@@ -1,6 +1,7 @@
 import pickle
 import yaml
 import requests
+import shutil
 from functools import wraps
 import urllib.parse
 
@@ -127,3 +128,25 @@ def get(url_name, params=None):
         return None
     else:
         return json['data']
+
+def download_log_file(name, type, schain):
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, URLS['log_download'])
+    params = {
+        'filename': name,
+        'type': type,
+        'schain_name': schain
+    }
+
+    local_filename = f'{schain}_{name}' if schain else name
+    with requests.get(url, params=params, cookies=cookies, stream=True) as r:
+        if r is None:
+            return None
+        if r.status_code != requests.codes.ok:
+            print('Request failed, status code:', r.status_code)
+            return None
+        with open(local_filename, 'wb') as f:
+            shutil.copyfileobj(r.raw, f)
+    return local_filename
+
+

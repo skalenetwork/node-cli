@@ -6,11 +6,12 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 1. [Installation](#installation)
 2. [CLI usage](#cli-usage)  
     2.1 [Top level commands](#top-level-commands)  
-    2.2 [User commands](#user-commands)   
-    2.3 [Node commands](#node-commands)  
-    2.4 [Wallet commands](#wallet-commands)  
-    2.5 [sChain commands](#schain-commands)  
-    2.5 [Containers commands](#containers-commands)  
+    2.2 [User](#user-commands)   
+    2.3 [Node](#node-commands)  
+    2.4 [Wallet](#wallet-commands)  
+    2.5 [sChains](#schain-commands)  
+    2.6 [Containers](#containers-commands)  
+    2.7 [Logs](#logs-commands)  
 3. [Development](#development)
 
 
@@ -182,12 +183,12 @@ Options:
 
 > Prefix: `skale schains`
 
-##### schains list
+##### sChains list
 
 List of sChains served by connected node
 
 ```bash
-skale schains list
+skale schains ls
 ```
 
 ##### schains config
@@ -197,6 +198,11 @@ skale schains config SCHAIN_NAME
 ```
 
 ### Containers commands
+
+Node containers commands
+
+> Prefix: `skale containers`
+
 
 ##### SKALE containers 
 
@@ -223,6 +229,30 @@ Options:
 - `-a/--all` - list all sChain containers (by default - only running)
 
 
+### Logs commands 
+
+> Prefix: `skale logs`
+
+
+##### Logs list
+
+```bash
+skale logs ls
+```
+
+##### Download log file
+
+Base logs:
+
+```bash
+skale logs download `filename`
+```
+
+sChain logs 
+
+```bash
+skale logs download --schain/-s `schain_name` `filename`
+```
 
 
 ### Validator commands (not implemented yet)
@@ -235,25 +265,6 @@ Options:
 ```bash
 skale validator list
 ```
-
-
-### Logs commands (not implemented yet)
-
-> Prefix: `skale log`
-
-
-##### log list
-
-```bash
-skale log list
-```
-
-##### log download
-
-```bash
-skale log download /url/
-```
-
 
 
 ## Development
