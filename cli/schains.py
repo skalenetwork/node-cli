@@ -14,15 +14,6 @@ def schains():
     pass
 
 
-@schains.command(help="List of sChain containers running on connected node")
-@login_required
-def containers():
-    schain_containers = get('schains_containers')
-    if not schain_containers:
-        return
-    print_containers(schain_containers)
-
-
 @schains.command(help="List of sChains served by connected node")
 @login_required
 def list():

@@ -1,5 +1,6 @@
 import click
 from cli.schains import schains_cmd
+from cli.containers import containers_cmd
 
 from readsettings import ReadSettings
 from core.helper import login_required, safe_load_texts, abort_if_false, server_only
@@ -229,7 +230,7 @@ def validators_info(format):
     get_validators_info(config, format)
 
 
-cmd_collection = click.CommandCollection(sources=[cli, schains_cmd])
+cmd_collection = click.CommandCollection(sources=[cli, schains_cmd, containers_cmd])
 
 if __name__ == '__main__':
     cmd_collection()

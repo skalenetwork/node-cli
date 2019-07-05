@@ -21,6 +21,9 @@ class Formatter(object):
 
         return table.draw()
 
+def format_date(date):
+    return date.strftime("%b %d %Y %H:%M:%S")
+
 def print_containers(containers):
     headers = [
         'Name',
@@ -32,10 +35,15 @@ def print_containers(containers):
     for container in containers:
         date = parser.parse(container["state"]["StartedAt"])
         status = container["state"]["Status"].capitalize()
+
+        if not container['state']['Running']:
+            finished_date = parser.parse(container["state"]["FinishedAt"])
+            status = f'{status} ({format_date(finished_date)})'
+
         rows.append([
             container['name'],
             status,
-            date.strftime("%b %d %Y %H:%M:%S"),
+            format_date(date),
             container['image']
         ])
     print(Formatter().table(headers, rows))

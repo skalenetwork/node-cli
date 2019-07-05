@@ -10,6 +10,7 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     2.3 [Node commands](#node-commands)  
     2.4 [Wallet commands](#wallet-commands)  
     2.5 [sChain commands](#schain-commands)  
+    2.5 [Containers commands](#containers-commands)  
 3. [Development](#development)
 
 
@@ -189,20 +190,40 @@ List of sChains served by connected node
 skale schains list
 ```
 
-##### schains containers 
-
-List of sChain containers running on connected node
-
-```bash
-skale schains containers
-```
-
-
 ##### schains config
 
 ```bash
 skale schains config SCHAIN_NAME
 ```
+
+### Containers commands
+
+##### SKALE containers 
+
+List of SKALE containers running on connected node
+
+```bash
+skale containers ls
+```
+
+Options:
+
+- `-a/--all` - list all containers (by default - only running) 
+
+##### sChain containers 
+
+List of sChain containers running on connected node
+
+```bash
+skale containers schains
+```
+
+Options:
+
+- `-a/--all` - list all sChain containers (by default - only running)
+
+
+
 
 ### Validator commands (not implemented yet)
 

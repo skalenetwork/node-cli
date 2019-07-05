@@ -39,7 +39,8 @@ URLS = {
 
     'schains_containers': '/containers/schains/list',
     'node_schains': '/schains/list',
-    'schain_config': '/schain-config'
+    'schain_config': '/schain-config',
+    'skale_containers': '/containers/list'
 }
 
 LONG_LINE = '-' * 50
