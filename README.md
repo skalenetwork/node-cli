@@ -53,10 +53,10 @@ Prints current SKALE node host
 skale host
 ```
 
-##### setHost 
+##### Attach 
 
 ```bash
-skale setHost http://127.0.0.1:3007
+skale attach http://127.0.0.1:3007
 ```
 
 > For old nodes use `--skip-check` option
@@ -272,13 +272,19 @@ skale validator list
 
 ## Development
 
+Create release:
+
+```bash
+bash build.sh patch/minor/major
+```
+
 Build executable:
 
 ```bash
 pyinstaller --onefile main.spec
 ```
 
-Run in dev mode:
+Run commands in dev mode:
 
 ```bash
 ENV=dev python main.py YOUR_COMMAND

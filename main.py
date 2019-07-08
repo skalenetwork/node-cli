@@ -14,6 +14,8 @@ from core.user import register_user, login_user, logout_user, show_registration_
 from core.host import install_host_dependencies, test_host, show_host
 from core.validators import get_validators_info
 
+from cli import __version__
+
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
 
@@ -23,10 +25,19 @@ def cli():
     pass
 
 
-@cli.command('setHost', help="Set SKALE node endpoint")
+@cli.command('version', help="Show SKALE node CLI version")
+@click.option('--short', is_flag=True)
+def attach(short):
+    if short:
+        print(__version__)
+    else:
+        print(f'SKALE Node CLI version: {__version__}')
+
+
+@cli.command('attach', help="Attach to remote SKALE node")
 @click.argument('host')
 @click.option('--skip-check', is_flag=True)
-def set_host(host, skip_check):
+def attach(host, skip_check):
     if test_host(host) or skip_check:
         config['host'] = host
         print(f'SKALE host: {host}')
@@ -192,7 +203,7 @@ def register_node(name, ip, port):
 )
 @click.option(
     '--db-root-password',
-    #prompt="Enter root password for node DB",
+    # prompt="Enter root password for node DB",
     help='Password for root user of node internal database'
 )
 @click.option(
