@@ -133,7 +133,7 @@ Optional arguments:
 - `--db-user` - MySQL user for local node database 
 - `--db-root-password` - Password for root user of node internal database 
 (equal to user password by default)  
-- `--db-root-password` - Port for of node internal database (default is `3306`)
+- `--db-port` - Port for of node internal database (default is `3306`)
 
 ##### node register
 

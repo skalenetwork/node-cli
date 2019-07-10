@@ -36,7 +36,7 @@ def init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc
         'DOCKER_PASSWORD': str(docker_password),
         'RPC_IP': rpc_ip,
         'RPC_PORT': str(rpc_port),
-        'DB_USERNAME': db_user,
+        'DB_USER': db_user,
         'DB_PASSWORD': db_password,
         'DB_ROOT_PASSWORD': db_root_password,
         'DB_PORT': str(db_port),
