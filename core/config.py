@@ -23,7 +23,7 @@ DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
-
+UPDATE_NODE_PROJECT_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update_node_project.sh')
 
 URLS = {
     'login': '/login',
@@ -54,6 +54,7 @@ DEFAULT_URL_SCHEME = 'http://'
 
 SKALE_PROJECT_PATH = os.path.join('/skale', 'skale-node')
 UNINSTALL_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'uninstall.sh')
+UPDATE_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'update.sh')
 
 NODE_DATA_PATH = '/skale_node_data'
 TOKENS_FILENAME = 'tokens.json'

@@ -65,6 +65,10 @@ Prints current SKALE node host
 skale host
 ```
 
+Options:
+
+- `--reset` - Reset SKALE node host and remove saved cookies
+
 ##### Attach 
 
 Attach `skale-node-cli` to the remote node
@@ -179,6 +183,21 @@ skale node info
 Options:
 
 `-f/--format json/text` - optional
+
+
+#### node purge
+
+Remove SKALE node software from the machine.
+
+> Local-only
+
+```bash
+skale node purge
+```
+
+Options:
+
+- `--yes` - remove without additional confirmation
 
 ### Wallet commands
 

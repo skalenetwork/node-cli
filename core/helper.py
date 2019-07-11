@@ -33,6 +33,18 @@ def login_required(f):
     return inner
 
 
+def local_only(f):
+    @wraps(f)
+    def inner(*args, **kwargs):
+        host = safe_get_config(config, 'host')
+        if host:
+            print('This command couldn\'t be executed on the remote SKALE host.')
+        else:
+            return f(*args, **kwargs)
+
+    return inner
+
+
 def safe_load_texts():
     with open(TEXT_FILE, 'r') as stream:
         try:
@@ -67,18 +79,14 @@ def clean_cookies(config):
         del config["cookies"]
 
 
+def clean_host(config):
+    if safe_get_config(config, 'host'):
+        del config['host']
+
+
 def abort_if_false(ctx, param, value):
     if not value:
         ctx.abort()
-
-
-def server_only(f):
-    @wraps(f)
-    def inner(*args, **kwargs):
-        # todo: implement check that local node exists
-        return f(*args, **kwargs)
-
-    return inner
 
 
 def get_localhost_endpoint():
@@ -129,6 +137,7 @@ def get(url_name, params=None):
     else:
         return json['data']
 
+
 def download_log_file(name, type, schain):
     host, cookies = get_node_creds(config)
     url = construct_url(host, URLS['log_download'])
@@ -148,5 +157,3 @@ def download_log_file(name, type, schain):
         with open(local_filename, 'wb') as f:
             shutil.copyfileobj(r.raw, f)
     return local_filename
-
-

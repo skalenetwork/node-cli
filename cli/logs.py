@@ -2,8 +2,6 @@ import click
 from core.helper import login_required, get, download_log_file
 from core.print_formatters import print_logs
 
-import requests
-import shutil
 
 @click.group()
 def logs_cli():

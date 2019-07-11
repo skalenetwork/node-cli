@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- `@local_only` decorator for commands that could be executed only locally
+- Ability to reset SKALE node host and clean cookies (`skale host --reset`)
+
 ### Changed
 
 - `skale attach` now supports different options (with or without port and schema)

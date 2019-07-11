@@ -16,11 +16,11 @@ then
     exit 1
 fi
 
-pyinstaller --onefile main.spec
-
 RES=`bumpversion --allow-dirty --current-version $CURRENT_VERSION $1 $VERSION_FILE`
 VERSION="$(python setup.py --version)"
 EXECUTABLE_NAME=skale-$VERSION-$OS
+
+pyinstaller --onefile main.spec
 
 mv $DIR/dist/main $DIR/dist/$EXECUTABLE_NAME
 

@@ -3,7 +3,7 @@ import subprocess
 import requests
 from urllib.parse import urlparse
 from core.config import DEPENDENCIES_SCRIPT, URLS, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME
-from core.helper import safe_get_config, safe_load_texts, construct_url
+from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, clean_host
 
 TEXTS = safe_load_texts()
 
@@ -25,6 +25,12 @@ def show_host(config):
         print(TEXTS['service']['no_node_host'])
 
 
+def reset_host(config):
+    clean_cookies(config)
+    clean_host(config)
+    print('Host removed, cookies cleaned.')
+
+
 def test_host(host):
     url = construct_url(host, URLS['test_host'])
 
@@ -36,6 +42,7 @@ def test_host(host):
         return False  # todo: return different error messages
 
     return response.status_code == requests.codes.ok
+
 
 def fix_url(url):
     try:

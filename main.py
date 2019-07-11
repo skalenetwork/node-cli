@@ -1,20 +1,18 @@
 import click
+from readsettings import ReadSettings
+
+from cli import __version__
 from cli.schains import schains_cli
 from cli.containers import containers_cli
 from cli.logs import logs_cli
+from cli.node import node_cli
 
-from readsettings import ReadSettings
-from core.helper import login_required, safe_load_texts, abort_if_false, server_only
-from core.config import CONFIG_FILEPATH, DEFAULT_NODE_GIT_BRANCH, DEFAULT_RPC_IP, DEFAULT_RPC_PORT, \
-    DEFAULT_DB_USER, DEFAULT_DB_PORT
-from core.core import get_node_info, get_node_about
+from core.helper import login_required, safe_load_texts, local_only
+from core.config import CONFIG_FILEPATH
 from core.wallet import get_wallet_info
-from core.node import create_node, init, purge
 from core.user import register_user, login_user, logout_user, show_registration_token
-from core.host import install_host_dependencies, test_host, show_host, fix_url
-from core.validators import get_validators_info
+from core.host import test_host, show_host, fix_url, reset_host
 
-from cli import __version__
 
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
@@ -48,13 +46,12 @@ def attach(host, skip_check):
 
 
 @cli.command('host', help="Get SKALE node endpoint")
-def host():
+@click.option('--reset', is_flag=True)
+def host(reset):
+    if reset:
+        reset_host(config)
+        return
     show_host(config)
-
-
-@cli.group('node', help="SKALE node commands")
-def node():
-    pass
 
 
 @cli.group('user', help="SKALE node user commands")
@@ -63,7 +60,7 @@ def user():
 
 
 @user.command('token', help="Show registration token if avaliable. Server-only command.")
-@server_only
+@local_only
 def user_token():
     show_registration_token()
 
@@ -111,126 +108,6 @@ def logout():
     logout_user(config)
 
 
-@node.command('info', help="Get info about SKALE node")
-@click.option('--format', '-f', type=click.Choice(['json', 'text']))
-@login_required
-def node_info(format):
-    get_node_info(config, format)
-
-
-@node.command('about', help="Get service info about SKALE node")
-@click.option('--format', '-f', type=click.Choice(['json', 'text']))
-@login_required
-def node_about(format):
-    get_node_about(config, format)
-
-
-@node.command('register', help="Register current node in the SKALE Manager")
-@click.option(
-    '--name', '-n',
-    prompt="Enter node name",
-    help='SKALE node name'
-)
-# @click.option(
-#     '--p2p-ip',
-#     prompt="Enter node p2p IP",
-#     help='p2p IP for communication between nodes'
-# )
-# @click.option(
-#     '--public-ip',
-#     prompt="Enter node public IP",
-#     help='Public IP for RPC connections'
-# )
-@click.option(
-    '--ip',
-    prompt="Enter node public IP",
-    help='Public IP for RPC connections & consensus'
-)
-@click.option(
-    '--port', '-p',
-    prompt="Enter node base port",
-    help='Base port for node sChains'
-)
-@login_required
-# def register_node(name, p2p_ip, public_ip, port):
-def register_node(name, ip, port):
-    create_node(config, name, ip, ip, port)
-
-
-@node.command('init', help="Initialize SKALE node")
-@click.option('--install-deps', is_flag=True)
-@click.option(  # todo: tmp option - after stable release branch
-    '--git-branch',
-    # prompt="Enter Git branch to clone",
-    help='Branch that will be used for SKALE node setup',
-    default=DEFAULT_NODE_GIT_BRANCH
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--github-token',
-    prompt="Enter GitHub access token",
-    help='GitHub access token to clone the repo'
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--docker-username',
-    prompt="Enter DockerHub username",
-    help='DockerHub username to pull images'
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--docker-password',
-    prompt="Enter DockerHub password",
-    help='DockerHub password to pull images'
-)
-@click.option(  # todo: tmp option - remove after mainnet deploy
-    '--rpc-ip',
-    # prompt="Enter Mainnet RPC IP",
-    help='IP of the node in the network where SKALE manager is deployed',
-    default=DEFAULT_RPC_IP
-)
-@click.option(  # todo: tmp option - remove after mainnet deploy
-    '--rpc-port',
-    # prompt="Enter Mainnet RPC port",
-    help='WS RPC port of the node in the network where SKALE manager is deployed',
-    default=DEFAULT_RPC_PORT
-)
-@click.option(
-    '--db-user',
-    # prompt="Enter username for node DB",
-    help='Username for node internal database',
-    default=DEFAULT_DB_USER
-)
-@click.option(
-    '--db-password',
-    prompt="Enter password for node DB",
-    help='Password for node internal database'
-)
-@click.option(
-    '--db-root-password',
-    # prompt="Enter root password for node DB",
-    help='Password for root user of node internal database'
-)
-@click.option(
-    '--db-port',
-    help='Port for of node internal database',
-    default=DEFAULT_DB_PORT
-)
-def init_node(install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip,
-              rpc_port, db_user, db_password, db_root_password, db_port):
-    if install_deps:
-        install_host_dependencies()
-    if not db_root_password:
-        db_root_password = db_password
-    init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
-         db_password, db_root_password, db_port)
-
-
-@node.command('purge', help="Uninstall SKALE node software from the machine")
-@click.option('--yes', is_flag=True, callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure you want to uninstall SKALE node?')
-def purge_node():
-    purge()
-
-
 @cli.group('wallet', help="Node wallet commands")
 def wallet():
     pass
@@ -243,19 +120,7 @@ def wallet_info(format):
     get_wallet_info(config, format)
 
 
-# @cli.group('validators', help="Node validators commands")
-# def validators():
-#     pass
-#
-#
-# @validators.command('info', help="Get info about node validators")
-# @click.option('--format', '-f', type=click.Choice(['json', 'text']))
-# @login_required
-# def validators_info(format):
-#     get_validators_info(config, format)
-
-
-cmd_collection = click.CommandCollection(sources=[cli, schains_cli, containers_cli, logs_cli])
-
 if __name__ == '__main__':
+    cmd_collection = click.CommandCollection(
+        sources=[cli, schains_cli, containers_cli, logs_cli, node_cli])
     cmd_collection()
