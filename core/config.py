@@ -34,13 +34,23 @@ URLS = {
     'create_node': '/create-node',
     'test_host': '/test-host',
 
-    'wallet_info': '/load-wallet'
+    'wallet_info': '/load-wallet',
+    'validators_info': '/validators-info',
+
+    'schains_containers': '/containers/schains/list',
+    'node_schains': '/schains/list',
+    'schain_config': '/schain-config',
+    'skale_containers': '/containers/list',
+
+    'logs': '/logs',
+    'log_download': '/download-log-file'
 }
 
 LONG_LINE = '-' * 50
 
 SKALE_NODE_UI_PORT = 3007
 SKALE_NODE_UI_LOCALHOST = 'http://0.0.0.0'
+DEFAULT_URL_SCHEME = 'http://'
 
 SKALE_PROJECT_PATH = os.path.join('/skale', 'skale-node')
 UNINSTALL_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'uninstall.sh')
@@ -48,3 +58,9 @@ UNINSTALL_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'uninstall.s
 NODE_DATA_PATH = '/skale_node_data'
 TOKENS_FILENAME = 'tokens.json'
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, TOKENS_FILENAME)
+
+DEFAULT_NODE_GIT_BRANCH = 'alpine'
+DEFAULT_RPC_IP = '134.209.56.46'
+DEFAULT_RPC_PORT = 1920
+DEFAULT_DB_USER = 'root'
+DEFAULT_DB_PORT = '3306'

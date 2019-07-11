@@ -1,12 +1,20 @@
 import click
+from cli.schains import schains_cli
+from cli.containers import containers_cli
+from cli.logs import logs_cli
+
 from readsettings import ReadSettings
-from cli.helper import login_required, safe_load_texts, abort_if_false, server_only
-from cli.config import CONFIG_FILEPATH
-from cli.core import get_node_info, test_host, get_node_about, show_host
-from cli.wallet import get_wallet_info
-from cli.node import create_node, init, purge
-from cli.user import register_user, login_user, logout_user, show_registration_token
-from cli.host import install_host_dependencies
+from core.helper import login_required, safe_load_texts, abort_if_false, server_only
+from core.config import CONFIG_FILEPATH, DEFAULT_NODE_GIT_BRANCH, DEFAULT_RPC_IP, DEFAULT_RPC_PORT, \
+    DEFAULT_DB_USER, DEFAULT_DB_PORT
+from core.core import get_node_info, get_node_about
+from core.wallet import get_wallet_info
+from core.node import create_node, init, purge
+from core.user import register_user, login_user, logout_user, show_registration_token
+from core.host import install_host_dependencies, test_host, show_host, fix_url
+from core.validators import get_validators_info
+
+from cli import __version__
 
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
@@ -17,10 +25,21 @@ def cli():
     pass
 
 
-@cli.command('setHost', help="Set SKALE node endpoint")
+@cli.command('version', help="Show SKALE node CLI version")
+@click.option('--short', is_flag=True)
+def version(short):
+    if short:
+        print(__version__)
+    else:
+        print(f'SKALE Node CLI version: {__version__}')
+
+
+@cli.command('attach', help="Attach to remote SKALE node")
 @click.argument('host')
 @click.option('--skip-check', is_flag=True)
-def set_host(host, skip_check):
+def attach(host, skip_check):
+    host = fix_url(host)
+    if not host: return
     if test_host(host) or skip_check:
         config['host'] = host
         print(f'SKALE host: {host}')
@@ -112,15 +131,20 @@ def node_about(format):
     prompt="Enter node name",
     help='SKALE node name'
 )
+# @click.option(
+#     '--p2p-ip',
+#     prompt="Enter node p2p IP",
+#     help='p2p IP for communication between nodes'
+# )
+# @click.option(
+#     '--public-ip',
+#     prompt="Enter node public IP",
+#     help='Public IP for RPC connections'
+# )
 @click.option(
-    '--p2p-ip',
-    prompt="Enter node p2p IP",
-    help='p2p IP for communication between nodes'
-)
-@click.option(
-    '--public-ip',
+    '--ip',
     prompt="Enter node public IP",
-    help='Public IP for RPC connections'
+    help='Public IP for RPC connections & consensus'
 )
 @click.option(
     '--port', '-p',
@@ -128,16 +152,18 @@ def node_about(format):
     help='Base port for node sChains'
 )
 @login_required
-def register_node(name, p2p_ip, public_ip, port):
-    create_node(config, name, p2p_ip, public_ip, port)
+# def register_node(name, p2p_ip, public_ip, port):
+def register_node(name, ip, port):
+    create_node(config, name, ip, ip, port)
 
 
 @node.command('init', help="Initialize SKALE node")
 @click.option('--install-deps', is_flag=True)
 @click.option(  # todo: tmp option - after stable release branch
     '--git-branch',
-    prompt="Enter Git branch to clone",
-    help='Branch that will be used for SKALE node setup'
+    # prompt="Enter Git branch to clone",
+    help='Branch that will be used for SKALE node setup',
+    default=DEFAULT_NODE_GIT_BRANCH
 )
 @click.option(  # todo: tmp option - remove after open source
     '--github-token',
@@ -156,31 +182,45 @@ def register_node(name, p2p_ip, public_ip, port):
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--rpc-ip',
-    prompt="Enter Mainnet RPC IP",
-    help='IP of the node in the network where SKALE manager is deployed'
+    # prompt="Enter Mainnet RPC IP",
+    help='IP of the node in the network where SKALE manager is deployed',
+    default=DEFAULT_RPC_IP
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--rpc-port',
-    prompt="Enter Mainnet RPC port",
-    help='WS RPC port of the node in the network where SKALE manager is deployed'
+    # prompt="Enter Mainnet RPC port",
+    help='WS RPC port of the node in the network where SKALE manager is deployed',
+    default=DEFAULT_RPC_PORT
 )
 @click.option(
     '--db-user',
-    prompt="Enter username for node DB",
-    help='Username for node internal database'
+    # prompt="Enter username for node DB",
+    help='Username for node internal database',
+    default=DEFAULT_DB_USER
 )
 @click.option(
     '--db-password',
     prompt="Enter password for node DB",
     help='Password for node internal database'
 )
+@click.option(
+    '--db-root-password',
+    # prompt="Enter root password for node DB",
+    help='Password for root user of node internal database'
+)
+@click.option(
+    '--db-port',
+    help='Port for of node internal database',
+    default=DEFAULT_DB_PORT
+)
 def init_node(install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip,
-              rpc_port, db_user,
-              db_password):
+              rpc_port, db_user, db_password, db_root_password, db_port):
     if install_deps:
         install_host_dependencies()
+    if not db_root_password:
+        db_root_password = db_password
     init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
-         db_password)
+         db_password, db_root_password, db_port)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -203,5 +243,19 @@ def wallet_info(format):
     get_wallet_info(config, format)
 
 
+# @cli.group('validators', help="Node validators commands")
+# def validators():
+#     pass
+#
+#
+# @validators.command('info', help="Get info about node validators")
+# @click.option('--format', '-f', type=click.Choice(['json', 'text']))
+# @login_required
+# def validators_info(format):
+#     get_validators_info(config, format)
+
+
+cmd_collection = click.CommandCollection(sources=[cli, schains_cli, containers_cli, logs_cli])
+
 if __name__ == '__main__':
-    cli()
+    cmd_collection()

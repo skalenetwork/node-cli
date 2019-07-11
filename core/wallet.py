@@ -1,6 +1,6 @@
 import inspect
-from cli.config import URLS, LONG_LINE
-from cli.helper import get_node_creds, construct_url, get_request
+from core.config import URLS, LONG_LINE
+from core.helper import get_node_creds, construct_url, get_request
 
 
 def get_wallet_info(config, format):

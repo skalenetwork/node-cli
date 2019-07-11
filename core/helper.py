@@ -1,12 +1,13 @@
 import pickle
 import yaml
 import requests
+import shutil
 from functools import wraps
 import urllib.parse
 
 from readsettings import ReadSettings
-from cli.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
-    LONG_LINE
+from core.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
+    LONG_LINE, URLS
 
 config = ReadSettings(CONFIG_FILEPATH)
 
@@ -84,9 +85,9 @@ def get_localhost_endpoint():
     return f'{SKALE_NODE_UI_LOCALHOST}:{SKALE_NODE_UI_PORT}'
 
 
-def get_request(url, cookies=None):
+def get_request(url, cookies=None, params=None):
     try:
-        return requests.get(url, cookies=cookies)
+        return requests.get(url, cookies=cookies, params=params)
     except requests.exceptions.ConnectionError as e:
         # todo: log error
         print(f'Could not connect to {url}')
@@ -107,3 +108,45 @@ def print_err_response(err_response):
     for error in err_response['errors']:
         print(error)
     print(LONG_LINE)
+
+
+def get(url_name, params=None):
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, URLS[url_name])
+
+    response = get_request(url, cookies, params)
+    if response is None:
+        return None
+
+    if response.status_code != requests.codes.ok:
+        print('Request failed, status code:', response.status_code)
+        return None
+
+    json = response.json()
+    if json['res'] != 1:
+        print_err_response(response.json())
+        return None
+    else:
+        return json['data']
+
+def download_log_file(name, type, schain):
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, URLS['log_download'])
+    params = {
+        'filename': name,
+        'type': type,
+        'schain_name': schain
+    }
+
+    local_filename = f'{schain}_{name}' if schain else name
+    with requests.get(url, params=params, cookies=cookies, stream=True) as r:
+        if r is None:
+            return None
+        if r.status_code != requests.codes.ok:
+            print('Request failed, status code:', r.status_code)
+            return None
+        with open(local_filename, 'wb') as f:
+            shutil.copyfileobj(r.raw, f)
+    return local_filename
+
+
