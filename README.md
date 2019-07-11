@@ -45,6 +45,18 @@ skale --help
 
 ### Top level commands
 
+##### version
+
+Prints version of the `skale-node-cli` tool
+
+```bash
+skale version
+```
+
+Options:
+
+- `--short` - prints version only, without additional text.
+
 ##### host
 
 Prints current SKALE node host
