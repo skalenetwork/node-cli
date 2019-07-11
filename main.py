@@ -11,7 +11,7 @@ from core.core import get_node_info, get_node_about
 from core.wallet import get_wallet_info
 from core.node import create_node, init, purge
 from core.user import register_user, login_user, logout_user, show_registration_token
-from core.host import install_host_dependencies, test_host, show_host
+from core.host import install_host_dependencies, test_host, show_host, fix_url
 from core.validators import get_validators_info
 
 from cli import __version__
@@ -27,7 +27,7 @@ def cli():
 
 @cli.command('version', help="Show SKALE node CLI version")
 @click.option('--short', is_flag=True)
-def attach(short):
+def version(short):
     if short:
         print(__version__)
     else:
@@ -38,6 +38,8 @@ def attach(short):
 @click.argument('host')
 @click.option('--skip-check', is_flag=True)
 def attach(host, skip_check):
+    host = fix_url(host)
+    if not host: return
     if test_host(host) or skip_check:
         config['host'] = host
         print(f'SKALE host: {host}')

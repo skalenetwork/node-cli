@@ -19,6 +19,7 @@ def schains():
 def ls():
     schains_list = get('node_schains')
     if not schains_list:
+        print('No sChains found')
         return
     print_schains(schains_list)
 

@@ -1,7 +1,8 @@
 import os
 import subprocess
 import requests
-from core.config import DEPENDENCIES_SCRIPT, URLS
+from urllib.parse import urlparse
+from core.config import DEPENDENCIES_SCRIPT, URLS, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME
 from core.helper import safe_get_config, safe_load_texts, construct_url
 
 TEXTS = safe_load_texts()
@@ -35,3 +36,14 @@ def test_host(host):
         return False  # todo: return different error messages
 
     return response.status_code == requests.codes.ok
+
+def fix_url(url):
+    try:
+        result = urlparse(url)
+        if not result.scheme:
+            url = f'{DEFAULT_URL_SCHEME}{url}'
+        if not url.endswith(str(SKALE_NODE_UI_PORT)):
+            return f'{url}:{SKALE_NODE_UI_PORT}'
+        return url
+    except ValueError:
+        return False

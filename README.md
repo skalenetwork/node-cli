@@ -67,12 +67,16 @@ skale host
 
 ##### Attach 
 
+Attach `skale-node-cli` to the remote node
+
 ```bash
-skale attach http://127.0.0.1:3007
+skale attach $REMOTE_NODE_URL
 ```
 
-> For old nodes use `--skip-check` option
-
+Possible `REMOTE_NODE_URL` formats:
+- `http://NODE_IP:NODE_PORT`
+- `NODE_IP:NODE_PORT` - default schema is `http://`
+- `NODE_IP` - default port is `3007`
 
 ### User commands
 
