@@ -224,6 +224,16 @@ Optional arguments:
 (equal to user password by default)  
 - `--db-port` - Port for of node internal database (default is `3306`)
 
+
+###### Updating from v0.0.14 or earlier
+
+```bash
+cd /skale_vol/config
+docker-compose down
+docker rm -f skale_events
+skale node update [OPTIONS]
+```
+
 ### Wallet commands
 
 > Prefix: `skale wallet`
