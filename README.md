@@ -199,6 +199,31 @@ Options:
 
 - `--yes` - remove without additional confirmation
 
+
+##### node update
+
+Update SKALE node on current machine
+
+> Local-only
+
+```bash
+skale node update
+```
+
+Required arguments:
+- `--github-token` - token for accessing `skale-node` repo
+- `--docker-username` - username for DockerHub
+- `--docker-password` - password for DockerHub
+- `--db-password` - MySQL password for local node database
+
+Optional arguments:
+- `--rpc-ip` - RPC IP of the network with SKALE Manager
+- `--rpc-port` - RPC port of the network with SKALE Manager
+- `--db-user` - MySQL user for local node database 
+- `--db-root-password` - Password for root user of node internal database 
+(equal to user password by default)  
+- `--db-port` - Port for of node internal database (default is `3306`)
+
 ### Wallet commands
 
 > Prefix: `skale wallet`
