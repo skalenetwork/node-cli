@@ -41,7 +41,7 @@ def local_only(f):
             print('This command couldn\'t be executed on the remote SKALE host.')
         else:
             if HOST_OS == MAC_OS_SYSTEM_NAME:
-                print('Sorry, local-only commands couldn\'t be exetuted on current OS.')
+                print('Sorry, local-only commands couldn\'t be executed on current OS.')
             else:        
                 return f(*args, **kwargs)
 
