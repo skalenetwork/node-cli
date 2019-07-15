@@ -7,7 +7,7 @@ import urllib.parse
 
 from readsettings import ReadSettings
 from core.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
-    LONG_LINE, URLS
+    LONG_LINE, URLS, HOST_OS, MAC_OS_SYSTEM_NAME
 
 config = ReadSettings(CONFIG_FILEPATH)
 
@@ -40,7 +40,10 @@ def local_only(f):
         if host:
             print('This command couldn\'t be executed on the remote SKALE host.')
         else:
-            return f(*args, **kwargs)
+            if HOST_OS == MAC_OS_SYSTEM_NAME:
+                print('Sorry, local-only commands couldn\'t be exetuted on current OS.')
+            else:        
+                return f(*args, **kwargs)
 
     return inner
 

@@ -1,5 +1,6 @@
 import sys
 import os
+import platform
 from pathlib import Path
 
 ENV = os.environ.get('ENV')
@@ -65,3 +66,6 @@ DEFAULT_RPC_IP = '134.209.56.46'
 DEFAULT_RPC_PORT = 1920
 DEFAULT_DB_USER = 'root'
 DEFAULT_DB_PORT = '3306'
+
+HOST_OS = platform.system()
+MAC_OS_SYSTEM_NAME = 'Darwin'
