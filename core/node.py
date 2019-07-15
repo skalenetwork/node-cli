@@ -1,7 +1,7 @@
 import os
 import requests
 import subprocess
-from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT
+from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
 from core.config import URLS
 from core.helper import get_node_creds, construct_url, post_request, print_err_response
 
@@ -49,4 +49,29 @@ def init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc
 def purge():
     # todo: check that node is installed
     res = subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
+    # todo: check execution result
+
+
+def deregister():
+    pass
+
+
+def update(github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password,
+           db_root_password, db_port):
+    env = {
+        **os.environ,
+        'GITHUB_TOKEN': github_token,
+        'DOCKER_USERNAME': docker_username,
+        'DOCKER_PASSWORD': str(docker_password),
+        'RPC_IP': rpc_ip,
+        'RPC_PORT': str(rpc_port),
+        'DB_USER': db_user,
+        'DB_PASSWORD': db_password,
+        'DB_ROOT_PASSWORD': db_root_password,
+        'DB_PORT': str(db_port),
+        'DISK_MOUNTPOINT': '/',
+        'RUN_MODE': 'prod'
+    }
+    res_update_project = subprocess.run(['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT], env=env)
+    res_update_node = subprocess.run(['sudo', '-E', 'bash', UPDATE_SCRIPT], env=env)
     # todo: check execution result

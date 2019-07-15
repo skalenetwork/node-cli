@@ -65,6 +65,10 @@ Prints current SKALE node host
 skale host
 ```
 
+Options:
+
+- `--reset` - Reset SKALE node host and remove saved cookies
+
 ##### Attach 
 
 Attach `skale-node-cli` to the remote node
@@ -180,6 +184,56 @@ Options:
 
 `-f/--format json/text` - optional
 
+
+#### node purge
+
+Remove SKALE node software from the machine.
+
+> Local-only
+
+```bash
+skale node purge
+```
+
+Options:
+
+- `--yes` - remove without additional confirmation
+
+
+##### node update
+
+Update SKALE node on current machine
+
+> Local-only
+
+```bash
+skale node update
+```
+
+Required arguments:
+- `--github-token` - token for accessing `skale-node` repo
+- `--docker-username` - username for DockerHub
+- `--docker-password` - password for DockerHub
+- `--db-password` - MySQL password for local node database
+
+Optional arguments:
+- `--rpc-ip` - RPC IP of the network with SKALE Manager
+- `--rpc-port` - RPC port of the network with SKALE Manager
+- `--db-user` - MySQL user for local node database 
+- `--db-root-password` - Password for root user of node internal database 
+(equal to user password by default)  
+- `--db-port` - Port for of node internal database (default is `3306`)
+
+
+###### Updating from v0.0.14 or earlier
+
+```bash
+cd /skale_vol/config
+docker-compose down
+docker rm -f skale_events
+skale node update [OPTIONS]
+```
+
 ### Wallet commands
 
 > Prefix: `skale wallet`
@@ -291,7 +345,7 @@ skale validator list
 Create release:
 
 ```bash
-bash build.sh patch/minor/major
+bash build.sh patch/minor/major/keep
 ```
 
 Build executable:

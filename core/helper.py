@@ -7,7 +7,7 @@ import urllib.parse
 
 from readsettings import ReadSettings
 from core.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
-    LONG_LINE, URLS
+    LONG_LINE, URLS, HOST_OS, MAC_OS_SYSTEM_NAME
 
 config = ReadSettings(CONFIG_FILEPATH)
 
@@ -29,6 +29,21 @@ def login_required(f):
             print(TEXTS['service']['unauthorized'])
         else:
             return f(*args, **kwargs)
+
+    return inner
+
+
+def local_only(f):
+    @wraps(f)
+    def inner(*args, **kwargs):
+        host = safe_get_config(config, 'host')
+        if host:
+            print('This command couldn\'t be executed on the remote SKALE host.')
+        else:
+            if HOST_OS == MAC_OS_SYSTEM_NAME:
+                print('Sorry, local-only commands couldn\'t be exetuted on current OS.')
+            else:        
+                return f(*args, **kwargs)
 
     return inner
 
@@ -67,18 +82,14 @@ def clean_cookies(config):
         del config["cookies"]
 
 
+def clean_host(config):
+    if safe_get_config(config, 'host'):
+        del config['host']
+
+
 def abort_if_false(ctx, param, value):
     if not value:
         ctx.abort()
-
-
-def server_only(f):
-    @wraps(f)
-    def inner(*args, **kwargs):
-        # todo: implement check that local node exists
-        return f(*args, **kwargs)
-
-    return inner
 
 
 def get_localhost_endpoint():
@@ -129,6 +140,7 @@ def get(url_name, params=None):
     else:
         return json['data']
 
+
 def download_log_file(name, type, schain):
     host, cookies = get_node_creds(config)
     url = construct_url(host, URLS['log_download'])
@@ -148,5 +160,3 @@ def download_log_file(name, type, schain):
         with open(local_filename, 'wb') as f:
             shutil.copyfileobj(r.raw, f)
     return local_filename
-
-

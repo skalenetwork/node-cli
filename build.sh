@@ -8,7 +8,7 @@ VERSION_FILE=$DIR/cli/__init__.py
 OS=`uname -s`-`uname -m`
 
 
-NOT_VALID_BUMP_LEVEL_TEXT="Please provide bump level: major/minor/patch"
+NOT_VALID_BUMP_LEVEL_TEXT="Please provide bump level: major/minor/patch/keep"
 
 if [ -z "$1" ]
 then
@@ -16,13 +16,17 @@ then
     exit 1
 fi
 
-pyinstaller --onefile main.spec
+if [ "$1" != "keep" ]
+then
+    RES=`bumpversion --allow-dirty --current-version $CURRENT_VERSION $1 $VERSION_FILE`
+fi
 
-RES=`bumpversion --allow-dirty --current-version $CURRENT_VERSION $1 $VERSION_FILE`
 VERSION="$(python setup.py --version)"
 EXECUTABLE_NAME=skale-$VERSION-$OS
 
+pyinstaller --onefile main.spec
+
 mv $DIR/dist/main $DIR/dist/$EXECUTABLE_NAME
 
-echo "'Bumped $CURRENT_VERSION → $VERSION ($1 release)"
+echo "Bumped $CURRENT_VERSION → $VERSION ($1 release)"
 echo "Executable: $EXECUTABLE_NAME"

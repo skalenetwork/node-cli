@@ -1,7 +1,7 @@
 import click
 import pprint
 from core.helper import login_required, get
-from core.print_formatters import print_containers, print_schains
+from core.print_formatters import print_schains
 
 
 @click.group()

@@ -1,5 +1,6 @@
 import sys
 import os
+import platform
 from pathlib import Path
 
 ENV = os.environ.get('ENV')
@@ -23,7 +24,7 @@ DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
-
+UPDATE_NODE_PROJECT_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update_node_project.sh')
 
 URLS = {
     'login': '/login',
@@ -54,13 +55,17 @@ DEFAULT_URL_SCHEME = 'http://'
 
 SKALE_PROJECT_PATH = os.path.join('/skale', 'skale-node')
 UNINSTALL_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'uninstall.sh')
+UPDATE_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'update.sh')
 
 NODE_DATA_PATH = '/skale_node_data'
 TOKENS_FILENAME = 'tokens.json'
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, TOKENS_FILENAME)
 
-DEFAULT_NODE_GIT_BRANCH = 'alpine'
+DEFAULT_NODE_GIT_BRANCH = 'develop'
 DEFAULT_RPC_IP = '134.209.56.46'
 DEFAULT_RPC_PORT = 1920
 DEFAULT_DB_USER = 'root'
 DEFAULT_DB_PORT = '3306'
+
+HOST_OS = platform.system()
+MAC_OS_SYSTEM_NAME = 'Darwin'
