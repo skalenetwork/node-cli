@@ -345,7 +345,7 @@ skale validator list
 Create release:
 
 ```bash
-bash build.sh patch/minor/major
+bash build.sh patch/minor/major/keep
 ```
 
 Build executable:
