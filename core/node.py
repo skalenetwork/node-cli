@@ -25,11 +25,12 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
          db_password, db_root_password, db_port):
     # todo: show localhost message
     env = {
         **os.environ,
+        'MTA_ENDPOINT': mta_endpoint,
         'GIT_BRANCH': git_branch,
         'GITHUB_TOKEN': github_token,
         'DOCKER_USERNAME': docker_username,
@@ -56,10 +57,11 @@ def deregister():
     pass
 
 
-def update(github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password,
+def update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password,
            db_root_password, db_port):
     env = {
         **os.environ,
+        'MTA_ENDPOINT': mta_endpoint,
         'GITHUB_TOKEN': github_token,
         'DOCKER_USERNAME': docker_username,
         'DOCKER_PASSWORD': str(docker_password),

@@ -147,6 +147,7 @@ Required arguments:
 - `--db-password` - MySQL password for local node database
 
 Optional arguments:
+- `--mta-endpoint` - MTA endpoint to connect
 - `--git-branch` - git branch of `skale-node` to use
 - `--rpc-ip` - RPC IP of the network with SKALE Manager
 - `--rpc-port` - RPC port of the network with SKALE Manager
@@ -211,6 +212,7 @@ skale node update
 ```
 
 Required arguments:
+- `--mta-endpoint` - MTA endpoint to connect
 - `--github-token` - token for accessing `skale-node` repo
 - `--docker-username` - username for DockerHub
 - `--docker-password` - password for DockerHub

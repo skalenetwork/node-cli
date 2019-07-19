@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update `build.sh` script to support `keep` version
 - Update info messages
 - Check OS during local-only commands (restrict macOS users from running stuff locally)
+- Add `--mta-endpoint` option to `node install` and `node update` commands
 
 ## [0.0.16] - 2019-07-12
 

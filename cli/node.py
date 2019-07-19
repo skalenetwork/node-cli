@@ -6,7 +6,7 @@ from core.node import create_node, init, purge, deregister, update
 from core.host import install_host_dependencies
 from core.helper import abort_if_false, local_only, login_required, safe_load_texts
 from core.config import CONFIG_FILEPATH, DEFAULT_NODE_GIT_BRANCH, DEFAULT_RPC_IP, DEFAULT_RPC_PORT, \
-    DEFAULT_DB_USER, DEFAULT_DB_PORT
+    DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_MTA_ENDPOINT
 
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
@@ -71,6 +71,12 @@ def register_node(name, ip, port):
 @node.command('init', help="Initialize SKALE node")
 @click.option('--install-deps', is_flag=True)
 @click.option(  # todo: tmp option - after stable release branch
+    '--mta-endpoint',
+    # prompt="Enter Git branch to clone",
+    help='MTA endpoint to connect',
+    default=DEFAULT_MTA_ENDPOINT
+)
+@click.option(  # todo: tmp option - after stable release branch
     '--git-branch',
     # prompt="Enter Git branch to clone",
     help='Branch that will be used for SKALE node setup',
@@ -125,13 +131,13 @@ def register_node(name, ip, port):
     default=DEFAULT_DB_PORT
 )
 @local_only
-def init_node(install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip,
+def init_node(mta_endpoint, install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip,
               rpc_port, db_user, db_password, db_root_password, db_port):
     if install_deps:
         install_host_dependencies()
     if not db_root_password:
         db_root_password = db_password
-    init(git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+    init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
          db_password, db_root_password, db_port)
 
 
@@ -157,6 +163,12 @@ def purge_node():
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
+@click.option(  # todo: tmp option - after stable release branch
+    '--mta-endpoint',
+    # prompt="Enter Git branch to clone",
+    help='MTA endpoint to connect',
+    default=DEFAULT_MTA_ENDPOINT
+)
 @click.option(  # todo: tmp option - remove after open source
     '--github-token',
     prompt="Enter GitHub access token",
@@ -206,7 +218,7 @@ def purge_node():
     default=DEFAULT_DB_PORT
 )
 @local_only
-def update_node(github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password, db_root_password, db_port):
+def update_node(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password, db_root_password, db_port):
     if not db_root_password:
         db_root_password = db_password
-    update(github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password, db_root_password, db_port)
+    update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password, db_root_password, db_port)
