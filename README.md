@@ -212,13 +212,13 @@ skale node update
 ```
 
 Required arguments:
-- `--mta-endpoint` - MTA endpoint to connect
 - `--github-token` - token for accessing `skale-node` repo
 - `--docker-username` - username for DockerHub
 - `--docker-password` - password for DockerHub
 - `--db-password` - MySQL password for local node database
 
 Optional arguments:
+- `--mta-endpoint` - MTA endpoint to connect
 - `--rpc-ip` - RPC IP of the network with SKALE Manager
 - `--rpc-port` - RPC port of the network with SKALE Manager
 - `--db-user` - MySQL user for local node database 
