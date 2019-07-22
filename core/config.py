@@ -22,8 +22,12 @@ else:
 TEXT_FILE = os.path.join(PARDIR, 'text.yml')
 DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
+THIRD_PARTIES_FOLDER_NAME = 'third_parties'
+THIRD_PARTIES_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, THIRD_PARTIES_FOLDER_NAME)
+
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
+INSTALL_CONVOY_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install_convoy.sh')
 UPDATE_NODE_PROJECT_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update_node_project.sh')
 
 URLS = {
