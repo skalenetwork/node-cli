@@ -145,6 +145,7 @@ Required arguments:
 - `--docker-username` - username for DockerHub
 - `--docker-password` - password for DockerHub
 - `--db-password` - MySQL password for local node database
+- `--disk-mountpoint` - Mount point of the disk to be used for storing sChains data
 
 Optional arguments:
 - `--mta-endpoint` - MTA endpoint to connect

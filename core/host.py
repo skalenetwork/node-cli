@@ -71,8 +71,6 @@ def prepare_host(test_mode, disk_mountpoint):
     save_resource_allocation_config()
     if not test_mode:
         init_convoy(disk_mountpoint)
-    exit(1)
-
 
 def init_convoy(disk_mountpoint):
     print(f'Installing convoy...')
