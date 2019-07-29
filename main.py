@@ -7,9 +7,9 @@ from cli.containers import containers_cli
 from cli.logs import logs_cli
 from cli.node import node_cli
 
-from core.helper import login_required, safe_load_texts, local_only
+from core.helper import login_required, safe_load_texts, local_only, no_node
 from core.config import CONFIG_FILEPATH
-from core.wallet import get_wallet_info
+from core.wallet import get_wallet_info, set_wallet_by_pk
 from core.user import register_user, login_user, logout_user, show_registration_token
 from core.host import test_host, show_host, fix_url, reset_host
 
@@ -60,9 +60,10 @@ def user():
 
 
 @user.command('token', help="Show registration token if avaliable. Server-only command.")
+@click.option('--short', is_flag=True)
 @local_only
-def user_token():
-    show_registration_token()
+def user_token(short):
+    show_registration_token(short)
 
 
 @user.command('register', help="Create new user for SKALE node")
@@ -118,6 +119,19 @@ def wallet():
 @login_required
 def wallet_info(format):
     get_wallet_info(config, format)
+
+@wallet.command('set', help="Set local wallet for the SKALE node")
+@click.option(
+    '--private-key', '-p',
+    prompt="Enter private key",
+    help='Private key to be used as local wallet',
+    hide_input=True
+)
+@login_required
+@local_only
+@no_node
+def set_wallet(private_key):
+    set_wallet_by_pk(private_key)
 
 
 if __name__ == '__main__':

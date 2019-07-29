@@ -24,7 +24,7 @@ fi
 VERSION="$(python setup.py --version)"
 EXECUTABLE_NAME=skale-$VERSION-$OS
 
-pyinstaller --onefile main.spec
+pyinstaller --onefile main.spec --hidden-import=eth_hash.backends.pysha3
 
 mv $DIR/dist/main $DIR/dist/$EXECUTABLE_NAME
 

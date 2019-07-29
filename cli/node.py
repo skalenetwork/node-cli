@@ -130,15 +130,24 @@ def register_node(name, ip, port):
     help='Port for of node internal database',
     default=DEFAULT_DB_PORT
 )
+@click.option(
+    '--disk-mountpoint',
+    prompt="Enter data disk mount point",
+    help='Mount point of the disk to be used for storing sChains data'
+)
+@click.option(
+    '--test-mode',
+    is_flag=True
+)
 @local_only
 def init_node(mta_endpoint, install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip,
-              rpc_port, db_user, db_password, db_root_password, db_port):
+              rpc_port, db_user, db_password, db_root_password, db_port, disk_mountpoint, test_mode):
     if install_deps:
         install_host_dependencies()
     if not db_root_password:
         db_root_password = db_password
     init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
-         db_password, db_root_password, db_port)
+         db_password, db_root_password, db_port, disk_mountpoint, test_mode)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")

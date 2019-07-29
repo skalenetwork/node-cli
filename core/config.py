@@ -22,8 +22,12 @@ else:
 TEXT_FILE = os.path.join(PARDIR, 'text.yml')
 DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
+THIRDPARTY_FOLDER_NAME = 'thirdparty'
+THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, THIRDPARTY_FOLDER_NAME)
+
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
+INSTALL_CONVOY_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install_convoy.sh')
 UPDATE_NODE_PROJECT_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update_node_project.sh')
 
 URLS = {
@@ -62,7 +66,7 @@ TOKENS_FILENAME = 'tokens.json'
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, TOKENS_FILENAME)
 
 DEFAULT_MTA_ENDPOINT = 'http://134.209.56.46:1919'
-DEFAULT_NODE_GIT_BRANCH = 'alpine'
+DEFAULT_NODE_GIT_BRANCH = 'devnet'
 DEFAULT_RPC_IP = '134.209.56.46'
 DEFAULT_RPC_PORT = 1920
 DEFAULT_DB_USER = 'root'

@@ -4,7 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## Unreleased, [0.1.0.dev.0]
+
+> Breaking changes, no backward compatibility with 0.0.x releases!
+
+### Added
+
+- Install `convoy` plugin during `node init`
+- Creation of the `/skale_node_data` directory during `node init`
+- Generation of the `resource_allocation.json` file during `node init`
+- Required `--disk-mountpoint` option for `node init`
+- Processing and running `systemd` service for `convoy`
+- Script for disk preparation (`dm_dev_partition.sh`)
+- Other disk allocation stuff
+- `--short` option for `user token` command
+- `wallet set` command for setting custom local wallet
+- Support for 4 nodes test sChains
+- 
+
 
 ### Changed
 

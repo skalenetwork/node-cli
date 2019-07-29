@@ -42,8 +42,17 @@ def local_only(f):
         else:
             if HOST_OS == MAC_OS_SYSTEM_NAME:
                 print('Sorry, local-only commands couldn\'t be executed on current OS.')
-            else:        
+            else:
                 return f(*args, **kwargs)
+
+    return inner
+
+
+def no_node(f):
+    @wraps(f)
+    def inner(*args, **kwargs):
+        # todo: check that node is not installed yet!
+        return f(*args, **kwargs)
 
     return inner
 

@@ -4,6 +4,7 @@ import subprocess
 from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
 from core.config import URLS
 from core.helper import get_node_creds, construct_url, post_request, print_err_response
+from core.host import prepare_host
 
 
 def create_node(config, name, p2p_ip, public_ip, port):
@@ -26,8 +27,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
 
 
 def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
-         db_password, db_root_password, db_port):
-    # todo: show localhost message
+         db_password, db_root_password, db_port, disk_mountpoint, test_mode):
     env = {
         **os.environ,
         'MTA_ENDPOINT': mta_endpoint,
@@ -41,8 +41,10 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'DB_PASSWORD': db_password,
         'DB_ROOT_PASSWORD': db_root_password,
         'DB_PORT': str(db_port),
-        'DISK_MOUNTPOINT': '/'
+        'DISK_MOUNTPOINT': disk_mountpoint
     }
+
+    prepare_host(test_mode, disk_mountpoint)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
     # todo: check execution result
 

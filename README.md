@@ -145,6 +145,7 @@ Required arguments:
 - `--docker-username` - username for DockerHub
 - `--docker-password` - password for DockerHub
 - `--db-password` - MySQL password for local node database
+- `--disk-mountpoint` - Mount point of the disk to be used for storing sChains data
 
 Optional arguments:
 - `--mta-endpoint` - MTA endpoint to connect
@@ -254,6 +255,20 @@ Options:
 
 `-f/--format json/text` - optional
 
+
+##### wallet set
+
+Set local wallet for the SKALE node
+
+- Login required
+- Local only
+- No node ony
+
+```bash
+skale wallet set --private-key $ETH_PRIVATE_KEY
+```
+
+
 ### sChain commands
 
 > Prefix: `skale schains`
@@ -343,6 +358,9 @@ skale validator list
 
 
 ## Development
+
+Requirements:
+- PyInstaller 3.5+
 
 Create release:
 
