@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Processing and running `systemd` service for `convoy`
 - Script for disk preparation (`dm_dev_partition.sh`)
 - Other disk allocation stuff
+- `--short` option for `user token` command
+- `wallet set` command for setting custom local wallet
+- Support for 4 nodes test sChains
+- 
+
 
 ### Changed
 

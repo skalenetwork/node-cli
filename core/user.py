@@ -66,10 +66,13 @@ def logout_user(config):
         print(response.text)
 
 
-def show_registration_token():
+def show_registration_token(short):
     try:
         with open(TOKENS_FILEPATH, encoding='utf-8') as data_file:
             config = json.loads(data_file.read())
-        print(f'User registration token: {config["token"]}')
+        if short:
+            print(config["token"])
+        else:
+            print(f'User registration token: {config["token"]}')
     except FileNotFoundError as e:
         print("Couldn't find registration tokens file. Check that node inited on this machine.")

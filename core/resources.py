@@ -1,6 +1,7 @@
 import os
 import logging
 import psutil
+import subprocess
 from time import sleep
 
 from tools.schain_types import SchainTypes
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 class ResourceAlloc():
     def __init__(self, value, fractional=False):
         self.values = {
+            'part_test4': value / SMALL_DIVIDER,
             'part_test': value / SMALL_DIVIDER,
             'part_small': value / TINY_DIVIDER,
             'part_medium': value / SMALL_DIVIDER,
@@ -73,10 +75,10 @@ def get_cpu_alloc():
 
 
 def get_disk_alloc(disk_path):
-    # todo: wrong results - investigate
-    # disk_usage = psutil.disk_usage(disk_path)
-    # free_space = disk_usage.free * DISK_FACTOR
-    disk_size = get_disk_size(disk_path)
+    try:
+        disk_size = get_disk_size(disk_path)
+    except subprocess.CalledProcessError:
+        raise Exception("Couldn't get disk size, check disk mountpoint option.")
     free_space = disk_size * DISK_FACTOR
     return ResourceAlloc(free_space)
 

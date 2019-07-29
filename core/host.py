@@ -96,7 +96,7 @@ def convoy_prepare_disk(disk_mountpoint):
 
 
 def save_disk_mountpoint(disk_mountpoint):
-    with open(DISK_MOUNTPOINT_FILEPATH, 'a') as f:
+    with open(DISK_MOUNTPOINT_FILEPATH, 'w') as f:
         f.write(disk_mountpoint)
 
 
