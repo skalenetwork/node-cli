@@ -79,6 +79,8 @@ def get_disk_alloc(disk_path):
         disk_size = get_disk_size(disk_path)
     except subprocess.CalledProcessError:
         raise Exception("Couldn't get disk size, check disk mountpoint option.")
+    if check_is_partition(disk_path):
+        raise Exception("You provided partition path instead of disk mountpoint.")
     free_space = disk_size * DISK_FACTOR
     return ResourceAlloc(free_space)
 
@@ -94,6 +96,11 @@ def construct_disk_size_cmd(disk_path):
     return f'sudo blockdev --getsize64 {disk_path}'
     # return f'fdisk -l  {disk_path} | sed -n \'1p\' | grep -oP \', \K[^,]+\' | sed -n \'1p\'' # alternate version
 
+def check_is_partition(disk_path):
+    res = run_cmd(['blkid', disk_path])
+    output = str(res.stdout)
+    if 'PARTUUID' in output: return True
+    return False
 
 def get_allocation_option_name(schain):
     part_of_node = int(schain['partOfNode'])

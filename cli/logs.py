@@ -1,5 +1,5 @@
 import click
-from core.helper import login_required, get, download_log_file
+from core.helper import login_required, get, download_log_file, local_only
 from core.print_formatters import print_logs
 
 from configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
@@ -38,7 +38,7 @@ def download(name, schain):
 
 @logs.command(help="Fetch the logs of the node-cli")
 @click.option('--debug', is_flag=True)
-@login_required
+@local_only
 def cli(debug):
     filepath = DEBUG_LOG_FILEPATH if debug else LOG_FILEPATH
     with open(filepath, 'r') as fin:

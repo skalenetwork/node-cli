@@ -71,7 +71,6 @@ def fix_url(url):
 
 def prepare_host(test_mode, disk_mountpoint):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
-    init_data_dir()
     save_disk_mountpoint(disk_mountpoint)
     save_resource_allocation_config()
     if not test_mode:
@@ -87,12 +86,13 @@ def init_convoy(disk_mountpoint):
 
 def start_convoy_daemon(disk_mountpoint):
     template_data = {
-        'user': get_username(),
+        #'user': get_username(),
         'cmd': f'/usr/local/bin/convoy daemon --drivers devicemapper --driver-opts dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
     }
     msg = f'Starting convoy daemon, template data: {template_data}'
     logger.info(msg), print(msg)
     process_template(CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH, template_data)
+    run_cmd(['systemctl', 'enable', 'convoy'], shell=False)
     run_cmd(['systemctl', 'start', 'convoy'], shell=False)
 
 
@@ -110,6 +110,8 @@ def save_disk_mountpoint(disk_mountpoint):
 
 
 def init_data_dir():
+    if os.path.exists(LOG_DATA_PATH):
+        return
     msg = f'Creating {NODE_DATA_PATH} directory...'
     logger.info(msg), print(msg)
     os.makedirs(NODE_DATA_PATH, exist_ok=True)

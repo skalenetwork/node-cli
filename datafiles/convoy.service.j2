@@ -6,6 +6,8 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 Restart=always
-RestartSec=1
-User={{ user }}
+RestartSec=5
 ExecStart={{ cmd }}
+
+[Install]
+WantedBy=multi-user.target

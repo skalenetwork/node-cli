@@ -13,7 +13,7 @@ from core.helper import login_required, safe_load_texts, local_only, no_node, in
 from core.config import CONFIG_FILEPATH
 from core.wallet import get_wallet_info, set_wallet_by_pk
 from core.user import register_user, login_user, logout_user, show_registration_token
-from core.host import test_host, show_host, fix_url, reset_host
+from core.host import test_host, show_host, fix_url, reset_host, init_data_dir
 
 
 config = ReadSettings(CONFIG_FILEPATH)
@@ -139,6 +139,7 @@ def set_wallet(private_key):
 
 
 if __name__ == '__main__':
+    init_data_dir()
     init_default_logger()
     args = sys.argv
     logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}') # todo: hide secret variables (passwords, private keys)

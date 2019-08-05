@@ -6,6 +6,7 @@ from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_
 from core.config import URLS
 from core.helper import get_node_creds, construct_url, post_request, print_err_response
 from core.host import prepare_host
+from core.resources import check_is_partition
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,9 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'DB_PORT': str(db_port),
         'DISK_MOUNTPOINT': disk_mountpoint
     }
+
+    if check_is_partition(disk_mountpoint):
+        raise Exception("You provided partition path instead of disk mountpoint.")
 
     prepare_host(test_mode, disk_mountpoint)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
