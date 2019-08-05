@@ -1,10 +1,13 @@
 import os
+import logging
 import requests
 import subprocess
 from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
 from core.config import URLS
 from core.helper import get_node_creds, construct_url, post_request, print_err_response
 from core.host import prepare_host
+
+logger = logging.getLogger(__name__)
 
 
 def create_node(config, name, p2p_ip, public_ip, port):
@@ -21,12 +24,16 @@ def create_node(config, name, p2p_ip, public_ip, port):
     if response is None:
         return None
     if response.status_code == requests.codes.created:
-        print('Node registered in SKALE manager. For more info run: skale node info')
+        msg = 'Node registered in SKALE manager. For more info run: skale node info'
+        logging.info(msg)
+        print(msg)
     else:
+        logging.info(response.json())
         print_err_response(response.json())
 
 
-def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port,
+         db_user,
          db_password, db_root_password, db_port, disk_mountpoint, test_mode):
     env = {
         **os.environ,
@@ -46,6 +53,7 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
 
     prepare_host(test_mode, disk_mountpoint)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
+    logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
 
 
@@ -59,7 +67,8 @@ def deregister():
     pass
 
 
-def update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password,
+def update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+           db_password,
            db_root_password, db_port):
     env = {
         **os.environ,
@@ -77,5 +86,9 @@ def update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip,
         'RUN_MODE': 'prod'
     }
     res_update_project = subprocess.run(['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT], env=env)
+    logging.info(
+        f'Update node project script result: {res_update_project.stderr}, {res_update_project.stdout}')
     res_update_node = subprocess.run(['sudo', '-E', 'bash', UPDATE_SCRIPT], env=env)
+    logging.info(
+        f'Update node script result: {res_update_node.stderr}, {res_update_node.stdout}')
     # todo: check execution result

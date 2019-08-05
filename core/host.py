@@ -1,4 +1,5 @@
 import os
+import logging
 import subprocess
 import requests
 from urllib.parse import urlparse
@@ -8,14 +9,16 @@ from core.resources import save_resource_allocation_config
 from core.config import DEPENDENCIES_SCRIPT, URLS, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME, \
     INSTALL_CONVOY_SCRIPT
 from configs.node import NODE_DATA_PATH
+from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, \
     CONVOY_HELPER_SCRIPT_FILEPATH, CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH
 
-from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, clean_host
+from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, clean_host, get_localhost_endpoint
 from tools.helper import run_cmd, process_template, get_username
 
 TEXTS = safe_load_texts()
 
+logger = logging.getLogger(__name__)
 
 def install_host_dependencies():
     env = {
@@ -37,6 +40,7 @@ def show_host(config):
 def reset_host(config):
     clean_cookies(config)
     clean_host(config)
+    logging.info(f'Resetting host to defaut: {get_localhost_endpoint()}')
     print('Host removed, cookies cleaned.')
 
 
@@ -66,6 +70,7 @@ def fix_url(url):
 
 
 def prepare_host(test_mode, disk_mountpoint):
+    logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
     init_data_dir()
     save_disk_mountpoint(disk_mountpoint)
     save_resource_allocation_config()
@@ -85,21 +90,27 @@ def start_convoy_daemon(disk_mountpoint):
         'user': get_username(),
         'cmd': f'/usr/local/bin/convoy daemon --drivers devicemapper --driver-opts dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
     }
+    msg = f'Starting convoy daemon, template data: {template_data}'
+    logger.info(msg), print(msg)
     process_template(CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH, template_data)
     run_cmd(['systemctl', 'start', 'convoy'], shell=False)
 
 
 def convoy_prepare_disk(disk_mountpoint):
-    print(f'Applying disk partitioning...')
+    msg = 'Applying disk partitioning...'
+    logger.info(msg), print(msg)
     run_cmd(['bash', CONVOY_HELPER_SCRIPT_FILEPATH, '--write-to-disk', f'{disk_mountpoint}'],
             shell=False)
 
 
 def save_disk_mountpoint(disk_mountpoint):
+    logger.info(f'Saving disk_mountpoint option to {DISK_MOUNTPOINT_FILEPATH}')
     with open(DISK_MOUNTPOINT_FILEPATH, 'w') as f:
         f.write(disk_mountpoint)
 
 
 def init_data_dir():
-    print(f'Creating {NODE_DATA_PATH} directory...')
+    msg = f'Creating {NODE_DATA_PATH} directory...'
+    logger.info(msg), print(msg)
     os.makedirs(NODE_DATA_PATH, exist_ok=True)
+    os.makedirs(LOG_DATA_PATH, exist_ok=True)
