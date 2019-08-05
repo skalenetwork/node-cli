@@ -345,6 +345,20 @@ skale logs download --schain/-s `schain_name` `filename`
 ```
 
 
+##### CLI Logs
+
+Fetch node CLI logs:
+
+```bash
+skale logs cli
+```
+
+Options:
+
+- `--debug` - show debug logs; more detailed output
+
+
+
 ### Validator commands (not implemented yet)
 
 > Prefix: `skale validator`

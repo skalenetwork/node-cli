@@ -5,9 +5,15 @@ import shutil
 from functools import wraps
 import urllib.parse
 
+import logging
+import logging.handlers as py_handlers
+from logging import Formatter
+
 from readsettings import ReadSettings
 from core.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
     LONG_LINE, URLS, HOST_OS, MAC_OS_SYSTEM_NAME
+from configs.cli_logger import LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, LOG_FILEPATH, \
+    DEBUG_LOG_FILEPATH
 
 config = ReadSettings(CONFIG_FILEPATH)
 
@@ -169,3 +175,19 @@ def download_log_file(name, type, schain):
         with open(local_filename, 'wb') as f:
             shutil.copyfileobj(r.raw, f)
     return local_filename
+
+
+def init_default_logger():
+    f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
+    debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, handlers=[f_handler, debug_f_handler])
+
+
+def get_file_handler(log_filepath, log_level):
+    formatter = Formatter(LOG_FORMAT)
+    f_handler = py_handlers.RotatingFileHandler(log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
+                                                backupCount=LOG_BACKUP_COUNT)
+    f_handler.setFormatter(formatter)
+    f_handler.setLevel(log_level)
+
+    return f_handler

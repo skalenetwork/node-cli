@@ -1,9 +1,12 @@
 import requests
+import logging
 import pickle
 import json
 from core.config import URLS, TOKENS_FILEPATH
 from core.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint, \
     get_request, post_request
+
+logger = logging.getLogger(__name__)
 
 
 def register_user(config, username, password, token):
@@ -75,4 +78,6 @@ def show_registration_token(short):
         else:
             print(f'User registration token: {config["token"]}')
     except FileNotFoundError as e:
-        print("Couldn't find registration tokens file. Check that node inited on this machine.")
+        err_msg = "Couldn't find registration tokens file. Check that node inited on this machine."
+        logger.error(err_msg)
+        print(err_msg)

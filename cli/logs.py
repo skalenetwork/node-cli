@@ -2,6 +2,7 @@ import click
 from core.helper import login_required, get, download_log_file
 from core.print_formatters import print_logs
 
+from configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
 
 @click.group()
 def logs_cli():
@@ -33,3 +34,12 @@ def download(name, schain):
         print(f'File {res} downloaded')
     else:
         print('Something went wrong, couldn\'t download log file')
+
+
+@logs.command(help="Fetch the logs of the node-cli")
+@click.option('--debug', is_flag=True)
+@login_required
+def cli(debug):
+    filepath = DEBUG_LOG_FILEPATH if debug else LOG_FILEPATH
+    with open(filepath, 'r') as fin:
+        print(fin.read())
