@@ -52,8 +52,8 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'DISK_MOUNTPOINT': disk_mountpoint
     }
 
-    if check_is_partition(disk_mountpoint):
-        raise Exception("You provided partition path instead of disk mountpoint.")
+    #if check_is_partition(disk_mountpoint):
+    #    raise Exception("You provided partition path instead of disk mountpoint.")
 
     prepare_host(test_mode, disk_mountpoint)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)

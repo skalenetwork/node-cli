@@ -79,8 +79,8 @@ def get_disk_alloc(disk_path):
         disk_size = get_disk_size(disk_path)
     except subprocess.CalledProcessError:
         raise Exception("Couldn't get disk size, check disk mountpoint option.")
-    if check_is_partition(disk_path):
-        raise Exception("You provided partition path instead of disk mountpoint.")
+    #if check_is_partition(disk_path):
+    #    raise Exception("You provided partition path instead of disk mountpoint.")
     free_space = disk_size * DISK_FACTOR
     return ResourceAlloc(free_space)
 
