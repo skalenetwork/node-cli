@@ -1,12 +1,15 @@
 import click
 from readsettings import ReadSettings
 
+from skale.utils.random_names.generator import generate_random_node_name
+
 from core.core import get_node_info, get_node_about
 from core.node import create_node, init, purge, deregister, update
 from core.host import install_host_dependencies
 from core.helper import abort_if_false, local_only, login_required, safe_load_texts
-from core.config import CONFIG_FILEPATH, DEFAULT_NODE_GIT_BRANCH, DEFAULT_RPC_IP, DEFAULT_RPC_PORT, \
+from core.config import CONFIG_FILEPATH, DEFAULT_RPC_IP, DEFAULT_RPC_PORT, \
     DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_MTA_ENDPOINT
+from configs.node import DEFAULT_NODE_BASE_PORT
 
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
@@ -39,7 +42,8 @@ def node_about(format):
 @node.command('register', help="Register current node in the SKALE Manager")
 @click.option(
     '--name', '-n',
-    prompt="Enter node name",
+    #prompt="Enter node name",
+    default=generate_random_node_name(),
     help='SKALE node name'
 )
 # @click.option(
@@ -55,11 +59,12 @@ def node_about(format):
 @click.option(
     '--ip',
     prompt="Enter node public IP",
-    help='Public IP for RPC connections & consensus'
+    help='Public IP for RPC connections & consensus (required)'
 )
 @click.option(
     '--port', '-p',
-    prompt="Enter node base port",
+    default=DEFAULT_NODE_BASE_PORT,
+    #prompt="Enter node base port",
     help='Base port for node sChains'
 )
 @login_required
@@ -77,25 +82,24 @@ def register_node(name, ip, port):
     default=DEFAULT_MTA_ENDPOINT
 )
 @click.option(  # todo: tmp option - after stable release branch
-    '--git-branch',
-    # prompt="Enter Git branch to clone",
-    help='Branch that will be used for SKALE node setup',
-    default=DEFAULT_NODE_GIT_BRANCH
+    '--stream',
+    prompt="Enter stream for the SKALE node",
+    help='Stream that will be used for SKALE node setup (required)'
 )
 @click.option(  # todo: tmp option - remove after open source
     '--github-token',
     prompt="Enter GitHub access token",
-    help='GitHub access token to clone the repo'
+    help='GitHub access token to clone the repo (required)'
 )
 @click.option(  # todo: tmp option - remove after open source
     '--docker-username',
     prompt="Enter DockerHub username",
-    help='DockerHub username to pull images'
+    help='DockerHub username to pull images (required)'
 )
 @click.option(  # todo: tmp option - remove after open source
     '--docker-password',
     prompt="Enter DockerHub password",
-    help='DockerHub password to pull images'
+    help='DockerHub password to pull images (required)'
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--rpc-ip',
@@ -118,7 +122,7 @@ def register_node(name, ip, port):
 @click.option(
     '--db-password',
     prompt="Enter password for node DB",
-    help='Password for node internal database'
+    help='Password for node internal database (required)'
 )
 @click.option(
     '--db-root-password',
@@ -133,19 +137,21 @@ def register_node(name, ip, port):
 @click.option(
     '--disk-mountpoint',
     prompt="Enter data disk mount point",
-    help='Mount point of the disk to be used for storing sChains data'
+    help='Mount point of the disk to be used for storing sChains data (required)'
 )
 @click.option(
     '--test-mode',
     is_flag=True
 )
 @local_only
-def init_node(mta_endpoint, install_deps, git_branch, github_token, docker_username, docker_password, rpc_ip,
+def init_node(mta_endpoint, install_deps, stream, github_token, docker_username, docker_password, rpc_ip,
               rpc_port, db_user, db_password, db_root_password, db_port, disk_mountpoint, test_mode):
     if install_deps:
         install_host_dependencies()
     if not db_root_password:
         db_root_password = db_password
+
+    git_branch = stream
     init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
          db_password, db_root_password, db_port, disk_mountpoint, test_mode)
 

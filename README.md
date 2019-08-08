@@ -146,10 +146,10 @@ Required arguments:
 - `--docker-password` - password for DockerHub
 - `--db-password` - MySQL password for local node database
 - `--disk-mountpoint` - Mount point of the disk to be used for storing sChains data
+- `--stream` - stream of `skale-node` to use
 
 Optional arguments:
 - `--mta-endpoint` - MTA endpoint to connect
-- `--git-branch` - git branch of `skale-node` to use
 - `--rpc-ip` - RPC IP of the network with SKALE Manager
 - `--rpc-port` - RPC port of the network with SKALE Manager
 - `--db-user` - MySQL user for local node database 
@@ -168,9 +168,11 @@ skale node register
 ```
 
 Required arguments:
-- `--name` - SKALE node name
 - `--ip` - public IP for RPC connections & consensus
-- `--port` - base port for node sChains
+ 
+Optional arguments:
+- `--name` - SKALE node name
+- `--port` - base port for node sChains (default: `10000`)
  
 ##### node info 
 
