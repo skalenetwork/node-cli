@@ -87,7 +87,7 @@ def init_convoy(disk_mountpoint):
 def start_convoy_daemon(disk_mountpoint):
     template_data = {
         #'user': get_username(),
-        'cmd': f'umount {disk_mountpoint} || /usr/local/bin/convoy daemon --drivers devicemapper --driver-opts dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
+        'cmd': f'/bin/umount {disk_mountpoint} || /usr/local/bin/convoy daemon --drivers devicemapper --driver-opts dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
     }
     msg = f'Starting convoy daemon, template data: {template_data}'
     logger.info(msg), print(msg)
