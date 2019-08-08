@@ -21,7 +21,12 @@ def create_node(config, name, p2p_ip, public_ip, port):
         'port': port
     }
     url = construct_url(host, URLS['create_node'])
-    response = post_request(url, data, cookies)
+
+    try: # todo: tmp fix!
+        response = post_request(url, data, cookies)
+    except:
+        response = post_request(url, data, cookies)
+
     if response is None:
         return None
     if response.status_code == requests.codes.created:
