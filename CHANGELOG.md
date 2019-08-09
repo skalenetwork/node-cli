@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+
+### Added 
+- Exception handler now logs error stacktrace
+- `--endpoint` option for `node init` and `node update` commands
+
 ### Changed
 
 - `--git-branch` option for `skale node init` command replaced with `--stream` and it's now required

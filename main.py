@@ -15,11 +15,11 @@ from core.wallet import get_wallet_info, set_wallet_by_pk
 from core.user import register_user, login_user, logout_user, show_registration_token
 from core.host import test_host, show_host, fix_url, reset_host, init_data_dir
 
-
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
 
 logger = logging.getLogger(__name__)
+
 
 @click.group()
 def cli():
@@ -124,6 +124,7 @@ def wallet():
 def wallet_info(format):
     get_wallet_info(config, format)
 
+
 @wallet.command('set', help="Set local wallet for the SKALE node")
 @click.option(
     '--private-key', '-p',
@@ -138,11 +139,20 @@ def set_wallet(private_key):
     set_wallet_by_pk(private_key)
 
 
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+sys.excepthook = handle_exception
+
 if __name__ == '__main__':
     init_data_dir()
     init_default_logger()
     args = sys.argv
-    logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}') # todo: hide secret variables (passwords, private keys)
+    logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')  # todo: hide secret variables (passwords, private keys)
 
     cmd_collection = click.CommandCollection(
         sources=[cli, schains_cli, containers_cli, logs_cli, node_cli])

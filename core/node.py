@@ -38,7 +38,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port,
+def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port,
          db_user,
          db_password, db_root_password, db_port, disk_mountpoint, test_mode):
     env = {
@@ -48,6 +48,7 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'GITHUB_TOKEN': github_token,
         'DOCKER_USERNAME': docker_username,
         'DOCKER_PASSWORD': str(docker_password),
+        'ENDPOINT': endpoint,
         'RPC_IP': rpc_ip,
         'RPC_PORT': str(rpc_port),
         'DB_USER': db_user,
@@ -76,7 +77,7 @@ def deregister():
     pass
 
 
-def update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+def update(mta_endpoint, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port, db_user,
            db_password,
            db_root_password, db_port):
     env = {
@@ -85,6 +86,7 @@ def update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip,
         'GITHUB_TOKEN': github_token,
         'DOCKER_USERNAME': docker_username,
         'DOCKER_PASSWORD': str(docker_password),
+        'ENDPOINT': endpoint,
         'RPC_IP': rpc_ip,
         'RPC_PORT': str(rpc_port),
         'DB_USER': db_user,

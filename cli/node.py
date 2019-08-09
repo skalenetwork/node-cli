@@ -8,7 +8,7 @@ from core.node import create_node, init, purge, deregister, update
 from core.host import install_host_dependencies
 from core.helper import abort_if_false, local_only, login_required, safe_load_texts
 from core.config import CONFIG_FILEPATH, DEFAULT_RPC_IP, DEFAULT_RPC_PORT, \
-    DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_MTA_ENDPOINT
+    DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_MTA_ENDPOINT, DEFAULT_ENDPOINT
 from configs.node import DEFAULT_NODE_BASE_PORT
 
 config = ReadSettings(CONFIG_FILEPATH)
@@ -102,6 +102,12 @@ def register_node(name, ip, port):
     help='DockerHub password to pull images (required)'
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
+    '--endpoint',
+    # prompt="Enter Mainnet RPC port",
+    help='RPC endpoint of the node in the network where SKALE manager is deployed',
+    default=DEFAULT_ENDPOINT
+)
+@click.option(  # todo: tmp option - remove after mainnet deploy
     '--rpc-ip',
     # prompt="Enter Mainnet RPC IP",
     help='IP of the node in the network where SKALE manager is deployed',
@@ -144,7 +150,7 @@ def register_node(name, ip, port):
     is_flag=True
 )
 @local_only
-def init_node(mta_endpoint, install_deps, stream, github_token, docker_username, docker_password, rpc_ip,
+def init_node(mta_endpoint, install_deps, stream, github_token, docker_username, docker_password, endpoint, rpc_ip,
               rpc_port, db_user, db_password, db_root_password, db_port, disk_mountpoint, test_mode):
     if install_deps:
         install_host_dependencies()
@@ -152,7 +158,7 @@ def init_node(mta_endpoint, install_deps, stream, github_token, docker_username,
         db_root_password = db_password
 
     git_branch = stream
-    init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
+    init(mta_endpoint, git_branch, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port, db_user,
          db_password, db_root_password, db_port, disk_mountpoint, test_mode)
 
 
@@ -200,6 +206,12 @@ def purge_node():
     help='DockerHub password to pull images'
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
+    '--endpoint',
+    # prompt="Enter Mainnet RPC port",
+    help='RPC endpoint of the node in the network where SKALE manager is deployed',
+    default=DEFAULT_ENDPOINT
+)
+@click.option(  # todo: tmp option - remove after mainnet deploy
     '--rpc-ip',
     # prompt="Enter Mainnet RPC IP",
     help='IP of the node in the network where SKALE manager is deployed',
@@ -233,7 +245,7 @@ def purge_node():
     default=DEFAULT_DB_PORT
 )
 @local_only
-def update_node(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password, db_root_password, db_port):
+def update_node(mta_endpoint, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port, db_user, db_password, db_root_password, db_port):
     if not db_root_password:
         db_root_password = db_password
-    update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user, db_password, db_root_password, db_port)
+    update(mta_endpoint, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port, db_user, db_password, db_root_password, db_port)

@@ -150,6 +150,7 @@ Required arguments:
 
 Optional arguments:
 - `--mta-endpoint` - MTA endpoint to connect
+- `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
 - `--rpc-ip` - RPC IP of the network with SKALE Manager
 - `--rpc-port` - RPC port of the network with SKALE Manager
 - `--db-user` - MySQL user for local node database 
@@ -222,6 +223,7 @@ Required arguments:
 
 Optional arguments:
 - `--mta-endpoint` - MTA endpoint to connect
+- `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
 - `--rpc-ip` - RPC IP of the network with SKALE Manager
 - `--rpc-port` - RPC port of the network with SKALE Manager
 - `--db-user` - MySQL user for local node database 
