@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added 
 - Exception handler now logs error stacktrace
 - `--endpoint` option for `node init` and `node update` commands
+- `skale info` command with information about current build
 
 ### Changed
 
 - `--git-branch` option for `skale node init` command replaced with `--stream` and it's now required
 - `name` and `port` params are no longer required
+- build script updates info.py file
 
 ## [0.1.1] - 2019-08-06
 

@@ -1,16 +1,18 @@
 import click
 import sys
 import logging
+import inspect
 from readsettings import ReadSettings
 
 from cli import __version__
+from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
 from cli.schains import schains_cli
 from cli.containers import containers_cli
 from cli.logs import logs_cli
 from cli.node import node_cli
 
 from core.helper import login_required, safe_load_texts, local_only, no_node, init_default_logger
-from core.config import CONFIG_FILEPATH
+from core.config import CONFIG_FILEPATH, LONG_LINE
 from core.wallet import get_wallet_info, set_wallet_by_pk
 from core.user import register_user, login_user, logout_user, show_registration_token
 from core.host import test_host, show_host, fix_url, reset_host, init_data_dir
@@ -33,6 +35,20 @@ def version(short):
         print(__version__)
     else:
         print(f'SKALE Node CLI version: {__version__}')
+
+
+@cli.command('info', help="Show SKALE node CLI info")
+def info():
+    print(inspect.cleandoc(f'''
+            {LONG_LINE}
+            Version: {__version__}
+            Full version: {VERSION}
+            Build time: {BUILD_DATETIME}
+            Build OS: {OS}
+            Commit: {COMMIT}
+            Git branch: {BRANCH}
+            {LONG_LINE}
+        '''))
 
 
 @cli.command('attach', help="Attach to remote SKALE node")

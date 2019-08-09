@@ -45,6 +45,14 @@ skale --help
 
 ### Top level commands
 
+##### info
+
+Prints build info 
+
+```bash
+skale info
+```
+
 ##### version
 
 Prints version of the `skale-node-cli` tool
