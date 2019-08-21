@@ -48,7 +48,8 @@ URLS = {
     'skale_containers': '/containers/list',
 
     'logs': '/logs',
-    'log_download': '/download-log-file'
+    'log_download': '/download-log-file',
+    'first-bounties': '/first-bounties'
 }
 
 LONG_LINE = '-' * 50
