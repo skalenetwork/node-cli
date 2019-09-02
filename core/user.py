@@ -35,7 +35,7 @@ def register_user(config, username, password, token):
 def login_user(config, username, password):
     host = safe_get_config(config, 'host')
     if not host:
-        return
+        host = get_localhost_endpoint()
 
     data = {
         'username': username,

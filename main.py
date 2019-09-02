@@ -10,6 +10,7 @@ from cli.schains import schains_cli
 from cli.containers import containers_cli
 from cli.logs import logs_cli
 from cli.node import node_cli
+from cli.metrics import metrics_cli
 
 from core.helper import login_required, safe_load_texts, local_only, no_node, init_default_logger
 from core.config import CONFIG_FILEPATH, LONG_LINE
@@ -171,5 +172,5 @@ if __name__ == '__main__':
     logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')  # todo: hide secret variables (passwords, private keys)
 
     cmd_collection = click.CommandCollection(
-        sources=[cli, schains_cli, containers_cli, logs_cli, node_cli])
+        sources=[cli, schains_cli, containers_cli, logs_cli, node_cli, metrics_cli])
     cmd_collection()
