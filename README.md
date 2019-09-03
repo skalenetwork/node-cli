@@ -370,6 +370,18 @@ Options:
 - `--debug` - show debug logs; more detailed output
 
 
+##### Container Logs
+
+Fetch logs from one of the node containers:
+
+```bash
+skale logs container [NAME]
+```
+
+Optional arguments:
+
+- `--lines`, `-l` - Output specified number of lines at the end of logs
+
 
 ### Validator commands (not implemented yet)
 

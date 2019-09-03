@@ -48,6 +48,7 @@ URLS = {
     'skale_containers': '/containers/list',
 
     'logs': '/logs',
+    'container_logs': '/container-logs',
     'log_download': '/download-log-file',
     'first-bounties': '/first-bounties',
     'last-bounties': '/last-bounties'
