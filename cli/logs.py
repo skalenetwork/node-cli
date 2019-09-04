@@ -1,8 +1,9 @@
 import click
-from core.helper import login_required, get, download_log_file, local_only
+from core.helper import login_required, get, download_log_file, local_only, download_dump
 from core.print_formatters import print_logs
 
 from configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
+
 
 @click.group()
 def logs_cli():
@@ -55,7 +56,23 @@ def cli(debug):
 )
 @login_required
 def container(name, lines):
-    params = {'container_name': name }
+    params = {'container_name': name}
     if lines: params['lines'] = lines
     container_logs = get('container_logs', params)
     print(container_logs)
+
+
+
+@logs.command(help="Dump all logs from the connected node")
+@click.option(
+    '--container',
+    '-c',
+    help='Dump logs only from specified container',
+    default=None
+)
+@click.argument('path')
+@login_required
+def dump(container, path):
+    res = download_dump(path, container)
+    if res:
+        print(f'File {res} downloaded')

@@ -1,5 +1,7 @@
 import pickle
 import yaml
+import os
+import re
 import requests
 import shutil
 from functools import wraps
@@ -175,6 +177,27 @@ def download_log_file(name, type, schain):
         with open(local_filename, 'wb') as f:
             shutil.copyfileobj(r.raw, f)
     return local_filename
+
+
+def download_dump(path, container_name=None):
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, URLS['logs_dump'])
+    params = { }
+    if container_name: params['container_name'] = container_name
+    with requests.get(url, params=params, cookies=cookies, stream=True) as r:
+        if r is None:
+            return None
+        if r.status_code != requests.codes.ok:
+            print('Request failed, status code:', r.status_code)
+            print_err_response(r.json())
+            return None
+        d = r.headers['Content-Disposition']
+        fname_q = re.findall("filename=(.+)", d)[0]
+        fname = fname_q.replace('"', '')
+        filepath = os.path.join(path, fname)
+        with open(filepath, 'wb') as f:
+            shutil.copyfileobj(r.raw, f)
+    return fname
 
 
 def init_default_logger():
