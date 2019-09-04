@@ -16,7 +16,7 @@ from core.helper import login_required, safe_load_texts, local_only, no_node, in
 from core.config import CONFIG_FILEPATH, LONG_LINE
 from core.wallet import get_wallet_info, set_wallet_by_pk
 from core.user import register_user, login_user, logout_user, show_registration_token
-from core.host import test_host, show_host, fix_url, reset_host, init_data_dir
+from core.host import test_host, show_host, fix_url, reset_host, init_logs_dir
 
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
@@ -166,7 +166,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 if __name__ == '__main__':
-    init_data_dir()
+    init_logs_dir()
     init_default_logger()
     args = sys.argv
     logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')  # todo: hide secret variables (passwords, private keys)
