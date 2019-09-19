@@ -18,7 +18,7 @@ for (( NUMBER=0; ; NUMBER++ ))
 do
     FULL_VERSION="$VERSION-$BRANCH.$NUMBER"
     if ! [ $(git tag -l ?$FULL_VERSION) ]; then
-        echo $FULL_VERSION
+        echo "$FULL_VERSION" | tr / -
         break
     fi
 done
