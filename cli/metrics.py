@@ -1,5 +1,4 @@
 import click
-import pprint
 from core.helper import login_required, get
 from core.print_formatters import print_metrics
 
