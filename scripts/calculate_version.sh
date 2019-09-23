@@ -7,7 +7,7 @@ if [ -z $VERSION ]; then
       exit 1
 fi
 
-if [ $BRANCH == 'stable' ]; then
+if [[ $BRANCH == 'stable' ]]; then
     echo $VERSION
     exit 1
 fi
