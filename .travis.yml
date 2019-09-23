@@ -11,7 +11,7 @@ jobs:
   include:
     #- stage: test
     - stage: deploy
-      if: branch IN (develop, beta, stable, master)
+      if: branch IN (develop, beta, stable, master, enhancement/add-badges-update-version)
       script:
         - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
         - echo "Version $VERSION"
