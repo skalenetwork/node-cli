@@ -57,5 +57,6 @@ def read_file(path):
     file.close()
     return text
 
+
 def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')

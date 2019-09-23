@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exception handler now logs error stacktrace
 - `--endpoint` option for `node init` and `node update` commands
 - `skale info` command with information about current build
+- `skale logs container` command that fetches logs from one of the node containers
+- `skale logs dump` command that dumps all logs from the connected node
+
 
 ### Changed
 

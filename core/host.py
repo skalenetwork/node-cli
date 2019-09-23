@@ -13,19 +13,21 @@ from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, \
     CONVOY_HELPER_SCRIPT_FILEPATH, CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH
 
-from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, clean_host, get_localhost_endpoint
-from tools.helper import run_cmd, process_template, get_username
+from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, \
+    clean_host, get_localhost_endpoint
+from tools.helper import run_cmd, process_template
 
 TEXTS = safe_load_texts()
 
 logger = logging.getLogger(__name__)
+
 
 def install_host_dependencies():
     env = {
         **os.environ,
         'SKALE_CMD': 'host_deps'
     }
-    res = subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
+    subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
     # todo: check execution status
 
 
@@ -76,6 +78,7 @@ def prepare_host(test_mode, disk_mountpoint):
     if not test_mode:
         init_convoy(disk_mountpoint)
 
+
 def init_convoy(disk_mountpoint):
     print(f'Installing convoy...')
     run_cmd(['bash', INSTALL_CONVOY_SCRIPT], shell=False)
@@ -86,8 +89,9 @@ def init_convoy(disk_mountpoint):
 
 def start_convoy_daemon(disk_mountpoint):
     template_data = {
-        #'user': get_username(),
-        'cmd': f'/usr/local/bin/convoy daemon --drivers devicemapper --driver-opts dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
+        # 'user': get_username(),
+        'cmd': f'/usr/local/bin/convoy daemon --drivers devicemapper --driver-opts \
+        dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
     }
     msg = f'Starting convoy daemon, template data: {template_data}'
     logger.info(msg), print(msg)
@@ -109,10 +113,17 @@ def save_disk_mountpoint(disk_mountpoint):
         f.write(disk_mountpoint)
 
 
+def init_logs_dir():
+    safe_mk_dirs(LOG_DATA_PATH)
+
+
 def init_data_dir():
-    if os.path.exists(LOG_DATA_PATH):
+    safe_mk_dirs(NODE_DATA_PATH)
+
+
+def safe_mk_dirs(path):
+    if os.path.exists(path):
         return
-    msg = f'Creating {NODE_DATA_PATH} directory...'
+    msg = f'Creating {path} directory...'
     logger.info(msg), print(msg)
-    os.makedirs(NODE_DATA_PATH, exist_ok=True)
-    os.makedirs(LOG_DATA_PATH, exist_ok=True)
+    os.makedirs(path, exist_ok=True)

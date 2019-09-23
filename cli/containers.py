@@ -28,5 +28,6 @@ def schains(all):
 @login_required
 def ls(all):
     containers_list = get('skale_containers', {'all': all})
-    if not containers_list: return
+    if not containers_list:
+        return
     print_containers(containers_list)

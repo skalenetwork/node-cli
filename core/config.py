@@ -12,12 +12,10 @@ CONFIG_FILEPATH = os.path.join(home, CONFIG_FILENAME)
 
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 
-
 if ENV == 'dev':
     PARDIR = os.path.join(CURRENT_FILE_LOCATION, os.pardir)
 else:
     PARDIR = os.path.join(sys._MEIPASS, 'data')
-
 
 TEXT_FILE = os.path.join(PARDIR, 'text.yml')
 DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
@@ -48,7 +46,11 @@ URLS = {
     'skale_containers': '/containers/list',
 
     'logs': '/logs',
-    'log_download': '/download-log-file'
+    'logs_dump': '/logs/dump',
+    'container_logs': '/container-logs',
+    'log_download': '/download-log-file',
+    'first-bounties': '/first-bounties',
+    'last-bounties': '/last-bounties'
 }
 
 LONG_LINE = '-' * 50

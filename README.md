@@ -1,5 +1,8 @@
 # SKALE node CLI
 
+[![Build Status](https://travis-ci.com/skalenetwork/skale-node-cli.svg?token=tLesVRTSHvWZxoyqXdoA&branch=develop)](https://travis-ci.com/skalenetwork/skale-node-cli)
+[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
+
 SKALE Node CLI, part of the SKALE suite of validator tools, is the command line to setup, register and maintain your SKALE node.
 
 ## Table of Contents
@@ -370,6 +373,31 @@ Options:
 - `--debug` - show debug logs; more detailed output
 
 
+##### Container Logs (from 0.2.1)
+
+Fetch logs from one of the node containers:
+
+```bash
+skale logs container [NAME]
+```
+
+Optional arguments:
+
+- `--lines`, `-l` - Output specified number of lines at the end of logs
+
+
+##### Dump Logs (from 0.2.2)
+
+Dump all logs from the connected node:
+
+```bash
+skale logs dump [PATH]
+```
+
+Optional arguments:
+
+- `--container`, `-c` - Dump logs only from specified container
+
 
 ### Validator commands (not implemented yet)
 
@@ -385,23 +413,37 @@ skale validator list
 
 ## Development
 
-Requirements:
-- PyInstaller 3.5+
+### Setup repo
 
-Create release:
-
-```bash
-bash build.sh patch/minor/major/keep
-```
-
-Build executable:
+##### Install development dependencies
 
 ```bash
-pyinstaller --onefile main.spec
+pip install -r requirements-dev.txt
 ```
+
+##### Add flake8 git hook
+
+In file `.git/hooks/pre-commit` add:
+
+```bash
+#!/bin/sh
+flake8 .
+```
+
+### Debugging
 
 Run commands in dev mode:
 
 ```bash
 ENV=dev python main.py YOUR_COMMAND
 ```
+
+### Setting up Travis 
+
+Required environment variables:
+
+- `ACCESS_KEY_ID` - DO Spaces/AWS S3 API Key ID
+- `SECRET_ACCESS_KEY` - DO Spaces/AWS S3 Secret access key
+- `GITHUB_EMAIL` - Email of GitHub user
+- `GITHUB_OAUTH_TOKEN` - GitHub auth token
+

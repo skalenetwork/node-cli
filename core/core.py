@@ -1,7 +1,7 @@
 import inspect
 import requests
 from core.config import URLS, LONG_LINE
-from core.helper import safe_get_config, safe_load_texts, get_node_creds, construct_url, \
+from core.helper import safe_load_texts, get_node_creds, construct_url, \
     get_response_data, clean_cookies, get_request
 
 NODE_STATUSES = ['Not created', 'Requested', 'Active']

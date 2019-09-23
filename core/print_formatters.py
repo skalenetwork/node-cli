@@ -77,6 +77,17 @@ def print_schains(schains):
     print(Formatter().table(headers, rows))
 
 
+def print_metrics(metrics):
+    headers = [
+        'Date',
+        'Bounty',
+        'Downtime',
+        'Latency'
+    ]
+    rows = metrics['bounties']
+    print(Formatter().table(headers, rows))
+
+
 def print_logs(logs):
     print('Base logs\n')
     print_log_list(logs['base'])

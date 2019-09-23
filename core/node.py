@@ -5,8 +5,7 @@ import subprocess
 from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
 from core.config import URLS
 from core.helper import get_node_creds, construct_url, post_request, print_err_response
-from core.host import prepare_host
-from core.resources import check_is_partition
+from core.host import prepare_host, init_data_dir
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +21,9 @@ def create_node(config, name, p2p_ip, public_ip, port):
     }
     url = construct_url(host, URLS['create_node'])
 
-    try: # todo: tmp fix!
+    try:  # todo: tmp fix!
         response = post_request(url, data, cookies)
-    except:
+    except Exception:
         response = post_request(url, data, cookies)
 
     if response is None:
@@ -38,7 +37,8 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port,
+def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, endpoint, rpc_ip,
+         rpc_port,
          db_user,
          db_password, db_root_password, db_port, disk_mountpoint, test_mode):
     env = {
@@ -58,8 +58,10 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'DISK_MOUNTPOINT': disk_mountpoint
     }
 
-    #if check_is_partition(disk_mountpoint):
+    # if check_is_partition(disk_mountpoint):
     #    raise Exception("You provided partition path instead of disk mountpoint.")
+
+    init_data_dir()
 
     prepare_host(test_mode, disk_mountpoint)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
@@ -69,7 +71,7 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
 
 def purge():
     # todo: check that node is installed
-    res = subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
+    subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
     # todo: check execution result
 
 
@@ -77,9 +79,8 @@ def deregister():
     pass
 
 
-def update(mta_endpoint, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port, db_user,
-           db_password,
-           db_root_password, db_port):
+def update(mta_endpoint, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port,
+           db_user, db_password, db_root_password, db_port):
     env = {
         **os.environ,
         'MTA_ENDPOINT': mta_endpoint,
@@ -98,7 +99,8 @@ def update(mta_endpoint, github_token, docker_username, docker_password, endpoin
     }
     res_update_project = subprocess.run(['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT], env=env)
     logging.info(
-        f'Update node project script result: {res_update_project.stderr}, {res_update_project.stdout}')
+        f'Update node project script result: {res_update_project.stderr}, \
+        {res_update_project.stdout}')
     res_update_node = subprocess.run(['sudo', '-E', 'bash', UPDATE_SCRIPT], env=env)
     logging.info(
         f'Update node script result: {res_update_node.stderr}, {res_update_node.stdout}')
