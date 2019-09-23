@@ -40,11 +40,11 @@ if __name__ == "__main__":
     KEY = sys.argv[3]
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    dist_filepath = os.path.join(dir_path, os.pardir, 'dist', FILEPATH)
-
+    dist_path = os.path.join(dir_path, os.pardir, 'dist')
+    executable_filepath = os.path.join(dist_path, FILEPATH)
 
     print('Files in dist:')
-    files = os.listdir(dist_filepath)
+    files = os.listdir(dist_path)
     print(files)
 
-    upload_file(ACCESS_KEY_ID, SECRET_ACCESS_KEY, dist_filepath, SPACE_NAME, KEY)
+    upload_file(ACCESS_KEY_ID, SECRET_ACCESS_KEY, executable_filepath, SPACE_NAME, KEY)
