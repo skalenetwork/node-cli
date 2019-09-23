@@ -410,20 +410,24 @@ skale validator list
 
 ## Development
 
-Requirements:
-- PyInstaller 3.5+
+### Setup repo
 
-Create release:
-
-```bash
-bash build.sh patch/minor/major/keep
-```
-
-Build executable:
+##### Install development dependencies
 
 ```bash
-pyinstaller --onefile main.spec
+pip install -r requirements-dev.txt
 ```
+
+##### Add flake8 git hook
+
+In file `.git/hooks/pre-commit` add:
+
+```bash
+#!/bin/sh
+flake8 .
+```
+
+### Debugging
 
 Run commands in dev mode:
 
@@ -431,8 +435,7 @@ Run commands in dev mode:
 ENV=dev python main.py YOUR_COMMAND
 ```
 
-
-#### Setting up Travis 
+### Setting up Travis 
 
 Required environment variables:
 
@@ -440,3 +443,4 @@ Required environment variables:
 - `SECRET_ACCESS_KEY` - DO Spaces/AWS S3 Secret access key
 - `GITHUB_EMAIL` - Email of GitHub user
 - `GITHUB_OAUTH_TOKEN` - GitHub auth token
+
