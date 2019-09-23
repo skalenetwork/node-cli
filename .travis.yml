@@ -42,7 +42,7 @@ jobs:
           api_key: "$GITHUB_OAUTH_TOKEN"
           skip_cleanup: true
           prerelease: true
-          name: Build $(date +'%d.%m.%Y %R') - $TRAVIS_TAG
+          name: $TRAVIS_TAG @ $(date +'%d.%m.%Y %R')
           file:
             - dist/$EXECUTABLE_NAME
           on:
