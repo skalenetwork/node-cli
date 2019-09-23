@@ -184,7 +184,7 @@ def download_log_file(name, type, schain):
 def download_dump(path, container_name=None):
     host, cookies = get_node_creds(config)
     url = construct_url(host, URLS['logs_dump'])
-    params = { }
+    params = {}
     if container_name:
         params['container_name'] = container_name
     with requests.get(url, params=params, cookies=cookies, stream=True) as r:
