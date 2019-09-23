@@ -49,7 +49,8 @@ jobs:
               - develop
               - beta
         - provider: script
-          script: bash ./scripts/upload_to_do.sh
+          skip_cleanup: true
+          script: $TRAVIS_BUILD_DIR/scripts/upload_to_do.sh
           on:
             repo: $TRAVIS_REPO_SLUG
             branch:
