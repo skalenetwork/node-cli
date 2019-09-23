@@ -77,7 +77,7 @@ def show_registration_token(short):
             print(config["token"])
         else:
             print(f'User registration token: {config["token"]}')
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         err_msg = "Couldn't find registration tokens file. Check that node inited on this machine."
         logger.error(err_msg)
         print(err_msg)

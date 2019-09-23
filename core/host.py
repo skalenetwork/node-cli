@@ -13,9 +13,9 @@ from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, \
     CONVOY_HELPER_SCRIPT_FILEPATH, CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH
 
-from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, clean_host, \
-    get_localhost_endpoint
-from tools.helper import run_cmd, process_template, get_username
+from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, \
+    clean_host, get_localhost_endpoint
+from tools.helper import run_cmd, process_template
 
 TEXTS = safe_load_texts()
 
@@ -27,7 +27,7 @@ def install_host_dependencies():
         **os.environ,
         'SKALE_CMD': 'host_deps'
     }
-    res = subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
+    subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
     # todo: check execution status
 
 
@@ -90,7 +90,8 @@ def init_convoy(disk_mountpoint):
 def start_convoy_daemon(disk_mountpoint):
     template_data = {
         # 'user': get_username(),
-        'cmd': f'/usr/local/bin/convoy daemon --drivers devicemapper --driver-opts dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
+        'cmd': f'/usr/local/bin/convoy daemon --drivers devicemapper --driver-opts \
+        dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
     }
     msg = f'Starting convoy daemon, template data: {template_data}'
     logger.info(msg), print(msg)

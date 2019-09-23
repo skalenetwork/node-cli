@@ -1,6 +1,5 @@
-import requests
-from core.config import URLS, LONG_LINE
-from core.helper import get_node_creds, construct_url, get_request, print_err_response
+from core.config import URLS
+from core.helper import get_node_creds, construct_url, get_request
 
 
 def get_validators_info(config, format):
@@ -16,6 +15,3 @@ def get_validators_info(config, format):
 
     if format == 'json':
         print(data)
-    else:
-        pass
-        #print_wallet_info(data)
