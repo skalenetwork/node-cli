@@ -32,7 +32,7 @@ jobs:
         - provider: releases
           api_key: "$GITHUB_OAUTH_TOKEN"
           skip_cleanup: true
-          name: $TRAVIS_TAG
+          name: $VERSION @ $(date +'%d.%m.%Y %R')
           file:
             - dist/$EXECUTABLE_NAME
           on:
@@ -42,7 +42,7 @@ jobs:
           api_key: "$GITHUB_OAUTH_TOKEN"
           skip_cleanup: true
           prerelease: true
-          name: $TRAVIS_TAG @ $(date +'%d.%m.%Y %R')
+          name: $VERSION @ $(date +'%d.%m.%Y %R')
           file:
             - dist/$EXECUTABLE_NAME
           on:
