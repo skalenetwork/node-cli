@@ -49,7 +49,7 @@ jobs:
               - develop
               - beta
         - provider: script
-          script: python ./scripts/upload_to_do.py $EXECUTABLE_NAME skale-cli $TRAVIS_BRANCH/$EXECUTABLE_NAME
+          script: bash upload_to_do.sh
           on:
             repo: $TRAVIS_REPO_SLUG
             branch:
