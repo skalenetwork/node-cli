@@ -39,4 +39,6 @@ if __name__ == "__main__":
     SPACE_NAME = sys.argv[2]
     KEY = sys.argv[3]
 
-    upload_file(ACCESS_KEY_ID, SECRET_ACCESS_KEY, FILEPATH, SPACE_NAME, KEY)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dist_filepath = os.path.join(dir_path, os.pardir, 'dist', FILEPATH)
+    upload_file(ACCESS_KEY_ID, SECRET_ACCESS_KEY, dist_filepath, SPACE_NAME, KEY)
