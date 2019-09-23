@@ -39,12 +39,4 @@ if __name__ == "__main__":
     SPACE_NAME = sys.argv[2]
     KEY = sys.argv[3]
 
-    #dir_path = os.path.dirname(os.path.realpath(__file__))
-    #dist_path = os.path.join(dir_path, os.pardir, 'dist')
-    #executable_filepath = os.path.join(dist_path, FILEPATH)
-
-    #print('Files in dist:')
-    #files = os.listdir(dist_path)
-    #print(files)
-
     upload_file(ACCESS_KEY_ID, SECRET_ACCESS_KEY, FILEPATH, SPACE_NAME, KEY)
