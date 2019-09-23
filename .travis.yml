@@ -9,7 +9,7 @@ jobs:
   include:
     #- stage: test
     - stage: deploy
-      if: branch IN (develop, beta, stable, feature/SKALE-1560-automated-builds)
+      if: branch IN (develop, beta, stable, master)
       script:
         - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
         - echo "Version $VERSION"
@@ -45,7 +45,6 @@ jobs:
             repo: $TRAVIS_REPO_SLUG
             branch:
               - master
-              - feature/SKALE-1560-automated-builds
               - develop
               - beta
         - provider: script
@@ -55,6 +54,6 @@ jobs:
             repo: $TRAVIS_REPO_SLUG
             branch:
               - master
-              - feature/SKALE-1560-automated-builds
+              - stable
               - develop
               - beta
