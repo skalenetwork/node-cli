@@ -430,3 +430,13 @@ Run commands in dev mode:
 ```bash
 ENV=dev python main.py YOUR_COMMAND
 ```
+
+
+#### Setting up Travis 
+
+Required environment variables:
+
+- `ACCESS_KEY_ID` - DO Spaces/AWS S3 API Key ID
+- `SECRET_ACCESS_KEY` - DO Spaces/AWS S3 Secret access key
+- `GITHUB_EMAIL` - Email of GitHub user
+- `GITHUB_OAUTH_TOKEN` - GitHub auth token
