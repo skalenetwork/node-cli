@@ -1,5 +1,8 @@
 # SKALE node CLI
 
+[![Build Status](https://travis-ci.com/skalenetwork/skale-node-cli.svg?token=tLesVRTSHvWZxoyqXdoA&branch=develop)](https://travis-ci.com/skalenetwork/skale-node-cli)
+[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
+
 SKALE Node CLI, part of the SKALE suite of validator tools, is the command line to setup, register and maintain your SKALE node.
 
 ## Table of Contents
