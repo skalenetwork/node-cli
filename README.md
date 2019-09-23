@@ -6,22 +6,22 @@
 SKALE Node CLI, part of the SKALE suite of validator tools, is the command line to setup, register and maintain your SKALE node.
 
 ## Table of Contents
-1. [Installation](#installation)
-2. [CLI usage](#cli-usage)  
+
+1.  [Installation](#installation)
+2.  [CLI usage](#cli-usage)  
     2.1 [Top level commands](#top-level-commands)  
-    2.2 [User](#user-commands)   
+    2.2 [User](#user-commands)  
     2.3 [Node](#node-commands)  
     2.4 [Wallet](#wallet-commands)  
     2.5 [sChains](#schain-commands)  
     2.6 [Containers](#containers-commands)  
     2.7 [Logs](#logs-commands)  
-3. [Development](#development)
-
-
+3.  [Development](#development)
 
 ## Installation
 
-- Download executable
+-   Download executable
+
 ```bash
 VERSION_NUM=0.0.0 && curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` > /usr/local/bin/skale
 ```
@@ -32,13 +32,13 @@ With `sudo`:
 VERSION_NUM=0.0.0 && sudo -E bash -c "curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
 ```
 
-- Apply executable permissions to the binary:
+-   Apply executable permissions to the binary:
 
 ```bash
 chmod +x /usr/local/bin/skale
 ```
 
-- Test the installation
+-   Test the installation
 
 ```bash
 skale --help
@@ -66,7 +66,7 @@ skale version
 
 Options:
 
-- `--short` - prints version only, without additional text.
+-   `--short` - prints version only, without additional text.
 
 ##### host
 
@@ -78,9 +78,9 @@ skale host
 
 Options:
 
-- `--reset` - Reset SKALE node host and remove saved cookies
+-   `--reset` - Reset SKALE node host and remove saved cookies
 
-##### Attach 
+##### Attach
 
 Attach `skale-node-cli` to the remote node
 
@@ -89,9 +89,10 @@ skale attach $REMOTE_NODE_URL
 ```
 
 Possible `REMOTE_NODE_URL` formats:
-- `http://NODE_IP:NODE_PORT`
-- `NODE_IP:NODE_PORT` - default schema is `http://`
-- `NODE_IP` - default port is `3007`
+
+-   `http://NODE_IP:NODE_PORT`
+-   `NODE_IP:NODE_PORT` - default schema is `http://`
+-   `NODE_IP` - default port is `3007`
 
 ### User commands
 
@@ -108,11 +109,13 @@ skale user token
 ##### register
 
 Interactive:
+
 ```bash
 skale user register
 ```
 
 Non-interactive:
+
 ```bash
 skale user register -u/--username USERNAME -p/--password PASSWORD -t/--token TOKEN
 ```
@@ -120,11 +123,13 @@ skale user register -u/--username USERNAME -p/--password PASSWORD -t/--token TOK
 ##### login
 
 Interactive:
+
 ```bash
 skale user login
 ```
 
 Non-interactive:
+
 ```bash
 skale user login -u/--username user -p/--password pass
 ```
@@ -135,11 +140,9 @@ skale user login -u/--username user -p/--password pass
 skale user logout
 ```
 
-
 ### Node commands
 
 > Prefix: `skale node`
-
 
 ##### node init
 
@@ -152,45 +155,49 @@ skale node init
 ```
 
 Required arguments:
-- `--github-token` - token for accessing `skale-node` repo
-- `--docker-username` - username for DockerHub
-- `--docker-password` - password for DockerHub
-- `--db-password` - MySQL password for local node database
-- `--disk-mountpoint` - Mount point of the disk to be used for storing sChains data
-- `--stream` - stream of `skale-node` to use
+
+-   `--github-token` - token for accessing `skale-node` repo
+-   `--docker-username` - username for DockerHub
+-   `--docker-password` - password for DockerHub
+-   `--db-password` - MySQL password for local node database
+-   `--disk-mountpoint` - Mount point of the disk to be used for storing sChains data
+-   `--stream` - stream of `skale-node` to use
 
 Optional arguments:
-- `--mta-endpoint` - MTA endpoint to connect
-- `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
-- `--rpc-ip` - RPC IP of the network with SKALE Manager
-- `--rpc-port` - RPC port of the network with SKALE Manager
-- `--db-user` - MySQL user for local node database 
-- `--db-root-password` - Password for root user of node internal database 
-(equal to user password by default)  
-- `--db-port` - Port for of node internal database (default is `3306`)
+
+-   `--mta-endpoint` - MTA endpoint to connect
+-   `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
+-   `--rpc-ip` - RPC IP of the network with SKALE Manager
+-   `--rpc-port` - RPC port of the network with SKALE Manager
+-   `--db-user` - MySQL user for local node database 
+-   `--db-root-password` - Password for root user of node internal database 
+    (equal to user password by default)  
+-   `--db-port` - Port for of node internal database (default is `3306`)
 
 ##### node register
 
 Register SKALE node on SKALE Manager contracts
 
-- Login required
+-   Login required
 
 ```bash
 skale node register
 ```
 
 Required arguments:
-- `--ip` - public IP for RPC connections & consensus
- 
+
+-   `--ip` - public IP for RPC connections & consensus
+
 Optional arguments:
-- `--name` - SKALE node name
-- `--port` - base port for node sChains (default: `10000`)
- 
-##### node info 
+
+-   `--name` - SKALE node name
+-   `--port` - base port for node sChains (default: `10000`)
+
+##### node info
 
 Get base info about SKALE node
 
-- Login required
+-   Login required
 
 ```bash
 skale node info
@@ -199,7 +206,6 @@ skale node info
 Options:
 
 `-f/--format json/text` - optional
-
 
 #### node purge
 
@@ -213,8 +219,7 @@ skale node purge
 
 Options:
 
-- `--yes` - remove without additional confirmation
-
+-   `--yes` - remove without additional confirmation
 
 ##### node update
 
@@ -227,21 +232,22 @@ skale node update
 ```
 
 Required arguments:
-- `--github-token` - token for accessing `skale-node` repo
-- `--docker-username` - username for DockerHub
-- `--docker-password` - password for DockerHub
-- `--db-password` - MySQL password for local node database
+
+-   `--github-token` - token for accessing `skale-node` repo
+-   `--docker-username` - username for DockerHub
+-   `--docker-password` - password for DockerHub
+-   `--db-password` - MySQL password for local node database
 
 Optional arguments:
-- `--mta-endpoint` - MTA endpoint to connect
-- `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
-- `--rpc-ip` - RPC IP of the network with SKALE Manager
-- `--rpc-port` - RPC port of the network with SKALE Manager
-- `--db-user` - MySQL user for local node database 
-- `--db-root-password` - Password for root user of node internal database 
-(equal to user password by default)  
-- `--db-port` - Port for of node internal database (default is `3306`)
 
+-   `--mta-endpoint` - MTA endpoint to connect
+-   `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
+-   `--rpc-ip` - RPC IP of the network with SKALE Manager
+-   `--rpc-port` - RPC port of the network with SKALE Manager
+-   `--db-user` - MySQL user for local node database 
+-   `--db-root-password` - Password for root user of node internal database 
+    (equal to user password by default)  
+-   `--db-port` - Port for of node internal database (default is `3306`)
 
 ###### Updating from v0.0.14 or earlier
 
@@ -260,7 +266,7 @@ Commands related to Ethereum wallet associated with SKALE node
 
 ##### wallet info
 
-- Login required
+-   Login required
 
 ```bash
 skale wallet info
@@ -270,19 +276,17 @@ Options:
 
 `-f/--format json/text` - optional
 
-
 ##### wallet set
 
 Set local wallet for the SKALE node
 
-- Login required
-- Local only
-- No node ony
+-   Login required
+-   Local only
+-   No node ony
 
 ```bash
 skale wallet set --private-key $ETH_PRIVATE_KEY
 ```
-
 
 ### sChain commands
 
@@ -308,8 +312,7 @@ Node containers commands
 
 > Prefix: `skale containers`
 
-
-##### SKALE containers 
+##### SKALE containers
 
 List of SKALE containers running on connected node
 
@@ -319,9 +322,9 @@ skale containers ls
 
 Options:
 
-- `-a/--all` - list all containers (by default - only running) 
+-   `-a/--all` - list all containers (by default - only running) 
 
-##### sChain containers 
+##### sChain containers
 
 List of sChain containers running on connected node
 
@@ -331,13 +334,11 @@ skale containers schains
 
 Options:
 
-- `-a/--all` - list all sChain containers (by default - only running)
+-   `-a/--all` - list all sChain containers (by default - only running)
 
-
-### Logs commands 
+### Logs commands
 
 > Prefix: `skale logs`
-
 
 ##### Logs list
 
@@ -359,7 +360,6 @@ sChain logs
 skale logs download --schain/-s `schain_name` `filename`
 ```
 
-
 ##### CLI Logs
 
 Fetch node CLI logs:
@@ -370,8 +370,7 @@ skale logs cli
 
 Options:
 
-- `--debug` - show debug logs; more detailed output
-
+-   `--debug` - show debug logs; more detailed output
 
 ##### Container Logs (from 0.2.1)
 
@@ -383,8 +382,7 @@ skale logs container [NAME]
 
 Optional arguments:
 
-- `--lines`, `-l` - Output specified number of lines at the end of logs
-
+-   `--lines`, `-l` - Output specified number of lines at the end of logs
 
 ##### Dump Logs (from 0.2.2)
 
@@ -396,20 +394,17 @@ skale logs dump [PATH]
 
 Optional arguments:
 
-- `--container`, `-c` - Dump logs only from specified container
-
+-   `--container`, `-c` - Dump logs only from specified container
 
 ### Validator commands (not implemented yet)
 
 > Prefix: `skale validator`
-
 
 ##### validator list
 
 ```bash
 skale validator list
 ```
-
 
 ## Development
 
@@ -438,12 +433,11 @@ Run commands in dev mode:
 ENV=dev python main.py YOUR_COMMAND
 ```
 
-### Setting up Travis 
+### Setting up Travis
 
 Required environment variables:
 
-- `ACCESS_KEY_ID` - DO Spaces/AWS S3 API Key ID
-- `SECRET_ACCESS_KEY` - DO Spaces/AWS S3 Secret access key
-- `GITHUB_EMAIL` - Email of GitHub user
-- `GITHUB_OAUTH_TOKEN` - GitHub auth token
-
+-   `ACCESS_KEY_ID` - DO Spaces/AWS S3 API Key ID
+-   `SECRET_ACCESS_KEY` - DO Spaces/AWS S3 Secret access key
+-   `GITHUB_EMAIL` - Email of GitHub user
+-   `GITHUB_OAUTH_TOKEN` - GitHub auth token

@@ -32,15 +32,17 @@ jobs:
         - provider: releases
           api_key: "$GITHUB_OAUTH_TOKEN"
           skip_cleanup: true
+          name: $VERSION @ $(date +'%d.%m.%Y %R')
           file:
             - dist/$EXECUTABLE_NAME
           on:
-            repo: skalenetwork/skaled
+            repo: $TRAVIS_REPO_SLUG
             branch: stable
         - provider: releases
           api_key: "$GITHUB_OAUTH_TOKEN"
           skip_cleanup: true
           prerelease: true
+          name: $VERSION @ $(date +'%d.%m.%Y %R')
           file:
             - dist/$EXECUTABLE_NAME
           on:
