@@ -50,7 +50,7 @@ jobs:
               - beta
         - provider: script
           skip_cleanup: true
-          script: $TRAVIS_BUILD_DIR/scripts/upload_to_do.sh
+          script: bash $TRAVIS_BUILD_DIR/scripts/upload_to_do.sh
           on:
             repo: $TRAVIS_REPO_SLUG
             branch:
