@@ -1,5 +1,6 @@
 import click
-from core.helper import login_required, get, download_log_file, local_only, download_dump
+from core.helper import (login_required, get, download_log_file,
+                         local_only, download_dump)
 from core.print_formatters import print_logs
 
 from configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
@@ -57,10 +58,10 @@ def cli(debug):
 @login_required
 def container(name, lines):
     params = {'container_name': name}
-    if lines: params['lines'] = lines
+    if lines:
+        params['lines'] = lines
     container_logs = get('container_logs', params)
     print(container_logs)
-
 
 
 @logs.command(help="Dump all logs from the connected node")

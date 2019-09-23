@@ -12,11 +12,14 @@ from cli.logs import logs_cli
 from cli.node import node_cli
 from cli.metrics import metrics_cli
 
-from core.helper import login_required, safe_load_texts, local_only, no_node, init_default_logger
+from core.helper import (login_required, safe_load_texts, local_only,
+                         no_node, init_default_logger)
 from core.config import CONFIG_FILEPATH, LONG_LINE
 from core.wallet import get_wallet_info, set_wallet_by_pk
-from core.user import register_user, login_user, logout_user, show_registration_token
-from core.host import test_host, show_host, fix_url, reset_host, init_logs_dir
+from core.user import (register_user, login_user, logout_user,
+                       show_registration_token)
+from core.host import (test_host, show_host, fix_url, reset_host,
+                       init_logs_dir)
 
 config = ReadSettings(CONFIG_FILEPATH)
 TEXTS = safe_load_texts()
@@ -57,7 +60,8 @@ def info():
 @click.option('--skip-check', is_flag=True)
 def attach(host, skip_check):
     host = fix_url(host)
-    if not host: return
+    if not host:
+        return
     if test_host(host) or skip_check:
         config['host'] = host
         logging.info(f'Attached to {host}')
@@ -80,7 +84,9 @@ def user():
     pass
 
 
-@user.command('token', help="Show registration token if avaliable. Server-only command.")
+@user.command('token',
+              help="Show registration token if avaliable. "
+                   "Server-only command.")
 @click.option('--short', is_flag=True)
 @local_only
 def user_token(short):
@@ -160,7 +166,8 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+    logger.error("Uncaught exception",
+                 exc_info=(exc_type, exc_value, exc_traceback))
 
 
 sys.excepthook = handle_exception
@@ -169,8 +176,13 @@ if __name__ == '__main__':
     init_logs_dir()
     init_default_logger()
     args = sys.argv
-    logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')  # todo: hide secret variables (passwords, private keys)
+    # todo: hide secret variables (passwords, private keys)
+    logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
 
     cmd_collection = click.CommandCollection(
-        sources=[cli, schains_cli, containers_cli, logs_cli, node_cli, metrics_cli])
-    cmd_collection()
+        sources=[cli, schains_cli, containers_cli, logs_cli,
+                 node_cli, metrics_cli])
+    try:
+        cmd_collection()
+    except Exception as err:
+        print(f'Command execution falied with {err}. Recheck your inputs')
