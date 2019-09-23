@@ -34,7 +34,7 @@ jobs:
             - dist/$EXECUTABLE_NAME
           on:
             repo: skalenetwork/skaled
-            branch: master
+            branch: stable
         - provider: releases
           api_key: "$GITHUB_OAUTH_TOKEN"
           skip_cleanup: true
@@ -47,3 +47,13 @@ jobs:
               - master
               - feature/SKALE-1560-automated-builds
               - develop
+              - beta
+        - provider: script
+          script: python ./scripts/upload_to_do.py dist/$EXECUTABLE_NAME skale-cli $TRAVIS_BRANCH/$EXECUTABLE_NAME
+          on:
+            repo: $TRAVIS_REPO_SLUG
+            branch:
+              - master
+              - feature/SKALE-1560-automated-builds
+              - develop
+              - beta
