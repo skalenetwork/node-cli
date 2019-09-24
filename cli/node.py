@@ -49,6 +49,7 @@ class UrlType(click.ParamType):
                       param, ctx)
         if not all([result.scheme, result.netloc]):
             self.fail(f'Expected valid url. Got {value}', param, ctx)
+        return value
 
 
 class IpType(click.ParamType):
@@ -60,6 +61,11 @@ class IpType(click.ParamType):
         except ValueError:
             self.fail(f'expected valid ipv4/ipv6 address. Got {value}',
                       param, ctx)
+        return value
+
+
+URL_TYPE = UrlType()
+IP_TYPE = IpType()
 
 
 @click.group()
@@ -106,7 +112,7 @@ def node_about(format):
 @click.option(
     '--ip',
     prompt="Enter node public IP",
-    type=IpType(),
+    type=IP_TYPE,
     help='Public IP for RPC connections & consensus (required)'
 )
 @click.option(
@@ -126,7 +132,7 @@ def register_node(name, ip, port):
 @click.option('--install-deps', is_flag=True)
 @click.option(  # todo: tmp option - after stable release branch
     '--mta-endpoint',
-    type=UrlType(),
+    type=URL_TYPE,
     # prompt="Enter Git branch to clone",
     help='MTA endpoint to connect',
     default=DEFAULT_MTA_ENDPOINT
@@ -153,7 +159,7 @@ def register_node(name, ip, port):
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--endpoint',
-    type=UrlType(),
+    type=URL_TYPE,
     # prompt="Enter Mainnet RPC port",
     help='RPC endpoint of the node in the network '
          'where SKALE manager is deployed',
@@ -161,7 +167,7 @@ def register_node(name, ip, port):
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--rpc-ip',
-    type=IpType(),
+    type=IP_TYPE,
     # prompt="Enter Mainnet RPC IP",
     help='IP of the node in the network where SKALE manager is deployed',
     default=DEFAULT_RPC_IP
@@ -247,7 +253,7 @@ def purge_node():
               prompt='Are you sure you want to update SKALE node software?')
 @click.option(  # todo: tmp option - after stable release branch
     '--mta-endpoint',
-    type=UrlType(),
+    type=URL_TYPE,
     # prompt="Enter Git branch to clone",
     help='MTA endpoint to connect',
     default=DEFAULT_MTA_ENDPOINT
@@ -269,7 +275,7 @@ def purge_node():
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--endpoint',
-    type=UrlType(),
+    type=URL_TYPE,
     # prompt="Enter Mainnet RPC port",
     help='RPC endpoint of the node in the network '
          'where SKALE manager is deployed',
@@ -277,7 +283,7 @@ def purge_node():
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--rpc-ip',
-    type=IpType(),
+    type=IP_TYPE,
     # prompt="Enter Mainnet RPC IP",
     help='IP of the node in the network where SKALE manager is deployed',
     default=DEFAULT_RPC_IP
