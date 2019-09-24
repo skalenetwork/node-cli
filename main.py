@@ -55,9 +55,9 @@ def cli():
 @click.option('--short', is_flag=True)
 def version(short):
     if short:
-        print(__version__)
+        print(VERSION)
     else:
-        print(f'SKALE Node CLI version: {__version__}')
+        print(f'SKALE Node CLI version: {VERSION}')
 
 
 @cli.command('info', help="Show SKALE node CLI info")
