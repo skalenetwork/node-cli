@@ -340,25 +340,6 @@ Options:
 
 > Prefix: `skale logs`
 
-##### Logs list
-
-```bash
-skale logs ls
-```
-
-##### Download log file
-
-Base logs:
-
-```bash
-skale logs download `filename`
-```
-
-sChain logs 
-
-```bash
-skale logs download --schain/-s `schain_name` `filename`
-```
 
 ##### CLI Logs
 
@@ -372,19 +353,7 @@ Options:
 
 -   `--debug` - show debug logs; more detailed output
 
-##### Container Logs (from 0.2.1)
-
-Fetch logs from one of the node containers:
-
-```bash
-skale logs container [NAME]
-```
-
-Optional arguments:
-
--   `--lines`, `-l` - Output specified number of lines at the end of logs
-
-##### Dump Logs (from 0.2.2)
+##### Dump Logs 
 
 Dump all logs from the connected node:
 
