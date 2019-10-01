@@ -30,8 +30,7 @@ from core.node import create_node, init, purge, update
 from core.host import install_host_dependencies
 from core.helper import (abort_if_false, local_only,
                          login_required, safe_load_texts)
-from core.config import CONFIG_FILEPATH, DEFAULT_RPC_IP, DEFAULT_RPC_PORT, \
-    DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_MTA_ENDPOINT, DEFAULT_ENDPOINT
+from core.config import CONFIG_FILEPATH, DEFAULT_DB_USER, DEFAULT_DB_PORT
 from configs.node import DEFAULT_NODE_BASE_PORT
 
 config = ReadSettings(CONFIG_FILEPATH)
@@ -130,12 +129,11 @@ def register_node(name, ip, port):
 
 @node.command('init', help="Initialize SKALE node")
 @click.option('--install-deps', is_flag=True)
-@click.option(  # todo: tmp option - after stable release branch
-    '--mta-endpoint',
+@click.option(
+    '--ima-endpoint',
     type=URL_TYPE,
-    # prompt="Enter Git branch to clone",
-    help='MTA endpoint to connect',
-    default=DEFAULT_MTA_ENDPOINT
+    prompt="Enter IMA endpoint to connect",
+    help='IMA endpoint to connect'
 )
 @click.option(  # todo: tmp option - after stable release branch
     '--stream',
@@ -160,25 +158,9 @@ def register_node(name, ip, port):
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--endpoint',
     type=URL_TYPE,
-    # prompt="Enter Mainnet RPC port",
+    prompt="Enter Mainnet RPC endpoint",
     help='RPC endpoint of the node in the network '
-         'where SKALE manager is deployed',
-    default=DEFAULT_ENDPOINT
-)
-@click.option(  # todo: tmp option - remove after mainnet deploy
-    '--rpc-ip',
-    type=IP_TYPE,
-    # prompt="Enter Mainnet RPC IP",
-    help='IP of the node in the network where SKALE manager is deployed',
-    default=DEFAULT_RPC_IP
-)
-@click.option(  # todo: tmp option - remove after mainnet deploy
-    '--rpc-port',
-    type=int,
-    # prompt="Enter Mainnet RPC port",
-    help='WS RPC port of the node in the network '
-         'where SKALE manager is deployed',
-    default=DEFAULT_RPC_PORT
+         'where SKALE manager is deployed'
 )
 @click.option(
     '--db-user',
@@ -209,23 +191,39 @@ def register_node(name, ip, port):
          'for storing sChains data (required)'
 )
 @click.option(
+    '--manager-url',
+    prompt="Enter URL to SKALE Manager contracts ABI and addresses",
+    help='URL to SKALE Manager contracts ABI and addresses'
+)
+@click.option(
+    '--ima-url',
+    prompt="Enter URL to IMA contracts ABI and addresses",
+    help='URL to IMA contracts ABI and addresses'
+)
+@click.option(
+    '--dkg-url',
+    prompt="Enter URL to DKG contracts ABI and addresses",
+    help='URL to DKG contracts ABI and addresses'
+)
+@click.option(
     '--test-mode',
     is_flag=True
 )
 @local_only
-def init_node(mta_endpoint, install_deps, stream, github_token,
-              docker_username, docker_password, endpoint, rpc_ip,
-              rpc_port, db_user, db_password, db_root_password, db_port,
-              disk_mountpoint, test_mode):
+def init_node(ima_endpoint, install_deps, stream, github_token,
+              docker_username, docker_password, endpoint, db_user, db_password, db_root_password,
+              db_port,
+              disk_mountpoint, manager_url, ima_url, dkg_url, test_mode):
     if install_deps:
         install_host_dependencies()
     if not db_root_password:
         db_root_password = db_password
 
     git_branch = stream
-    init(mta_endpoint, git_branch, github_token, docker_username,
-         docker_password, endpoint, rpc_ip, rpc_port, db_user,
-         db_password, db_root_password, db_port, disk_mountpoint, test_mode)
+    init(ima_endpoint, git_branch, github_token, docker_username,
+         docker_password, endpoint, db_user,
+         db_password, db_root_password, db_port, disk_mountpoint, manager_url, ima_url, dkg_url,
+         test_mode)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -252,11 +250,10 @@ def purge_node():
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.option(  # todo: tmp option - after stable release branch
-    '--mta-endpoint',
+    '--ima-endpoint',
     type=URL_TYPE,
-    # prompt="Enter Git branch to clone",
-    help='MTA endpoint to connect',
-    default=DEFAULT_MTA_ENDPOINT
+    prompt="Enter IMA endpoint to connect",
+    help='IMA endpoint to connect',
 )
 @click.option(  # todo: tmp option - remove after open source
     '--github-token',
@@ -276,25 +273,9 @@ def purge_node():
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--endpoint',
     type=URL_TYPE,
-    # prompt="Enter Mainnet RPC port",
+    prompt="Enter Mainnet RPC port",
     help='RPC endpoint of the node in the network '
          'where SKALE manager is deployed',
-    default=DEFAULT_ENDPOINT
-)
-@click.option(  # todo: tmp option - remove after mainnet deploy
-    '--rpc-ip',
-    type=IP_TYPE,
-    # prompt="Enter Mainnet RPC IP",
-    help='IP of the node in the network where SKALE manager is deployed',
-    default=DEFAULT_RPC_IP
-)
-@click.option(  # todo: tmp option - remove after mainnet deploy
-    '--rpc-port',
-    type=int,
-    # prompt="Enter Mainnet RPC port",
-    help='WS RPC port of the node in the network '
-         'where SKALE manager is deployed',
-    default=DEFAULT_RPC_PORT
 )
 @click.option(
     '--db-user',
@@ -318,12 +299,25 @@ def purge_node():
     help='Port for of node internal database',
     default=DEFAULT_DB_PORT
 )
+@click.option(
+    '--manager-url',
+    prompt="Enter URL to SKALE Manager contracts ABI and addresses",
+    help='URL to SKALE Manager contracts ABI and addresses'
+)
+@click.option(
+    '--ima-url',
+    prompt="Enter URL to IMA contracts ABI and addresses",
+    help='URL to IMA contracts ABI and addresses'
+)
+@click.option(
+    '--dkg-url',
+    prompt="Enter URL to DKG contracts ABI and addresses",
+    help='URL to DKG contracts ABI and addresses'
+)
 @local_only
-def update_node(mta_endpoint, github_token, docker_username, docker_password,
-                endpoint, rpc_ip, rpc_port,
-                db_user, db_password, db_root_password, db_port):
+def update_node(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
+                db_password, db_root_password, db_port, manager_url, ima_url, dkg_url):
     if not db_root_password:
         db_root_password = db_password
-    update(mta_endpoint, github_token, docker_username, docker_password,
-           endpoint, rpc_ip, rpc_port,
-           db_user, db_password, db_root_password, db_port)
+    update(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
+           db_password, db_root_password, db_port, manager_url, ima_url, dkg_url)

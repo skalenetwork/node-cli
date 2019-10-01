@@ -1,4 +1,6 @@
 #!/bin/bash
 
-cd /skale/skale-node
+REPO_NAME=skale-node
+
+cd /skale/$REPO_NAME
 sudo git pull

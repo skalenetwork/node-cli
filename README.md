@@ -162,13 +162,14 @@ Required arguments:
 -   `--db-password` - MySQL password for local node database
 -   `--disk-mountpoint` - Mount point of the disk to be used for storing sChains data
 -   `--stream` - stream of `skale-node` to use
+-   `--ima-endpoint` - IMA endpoint to connect
+-   `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
+- `--manager-url` - URL to SKALE Manager contracts ABI and addresses  
+- `--ima-url` - URL to IMA contracts ABI and addresses  
+- `--dkg-url` - URL to DKG contracts ABI and addresses  
 
 Optional arguments:
 
--   `--mta-endpoint` - MTA endpoint to connect
--   `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
--   `--rpc-ip` - RPC IP of the network with SKALE Manager
--   `--rpc-port` - RPC port of the network with SKALE Manager
 -   `--db-user` - MySQL user for local node database 
 -   `--db-root-password` - Password for root user of node internal database 
     (equal to user password by default)  
@@ -237,26 +238,19 @@ Required arguments:
 -   `--docker-username` - username for DockerHub
 -   `--docker-password` - password for DockerHub
 -   `--db-password` - MySQL password for local node database
+- `--manager-url` - URL to SKALE Manager contracts ABI and addresses  
+- `--ima-url` - URL to IMA contracts ABI and addresses  
+- `--dkg-url` - URL to DKG contracts ABI and addresses  
+- `--ima-endpoint` - IMA endpoint to connect
+- `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
 
 Optional arguments:
 
--   `--mta-endpoint` - MTA endpoint to connect
--   `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
--   `--rpc-ip` - RPC IP of the network with SKALE Manager
--   `--rpc-port` - RPC port of the network with SKALE Manager
 -   `--db-user` - MySQL user for local node database 
 -   `--db-root-password` - Password for root user of node internal database 
     (equal to user password by default)  
 -   `--db-port` - Port for of node internal database (default is `3306`)
 
-###### Updating from v0.0.14 or earlier
-
-```bash
-cd /skale_vol/config
-docker-compose down
-docker rm -f skale_events
-skale node update [OPTIONS]
-```
 
 ### Wallet commands
 
