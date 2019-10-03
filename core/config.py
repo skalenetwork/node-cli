@@ -39,7 +39,7 @@ else:
 TEXT_FILE = os.path.join(PARDIR, 'text.yml')
 DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
-THIRDPARTY_FOLDER_NAME = 'thirdparty'
+THIRDPARTY_FOLDER_NAME = 'third_party'
 THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, THIRDPARTY_FOLDER_NAME)
 
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
@@ -64,10 +64,7 @@ URLS = {
     'schain_config': '/schain-config',
     'skale_containers': '/containers/list',
 
-    'logs': '/logs',
     'logs_dump': '/logs/dump',
-    'container_logs': '/container-logs',
-    'log_download': '/download-log-file',
     'first-bounties': '/first-bounties',
     'last-bounties': '/last-bounties'
 }
@@ -79,17 +76,13 @@ SKALE_NODE_UI_LOCALHOST = 'http://0.0.0.0'
 DEFAULT_URL_SCHEME = 'http://'
 
 SKALE_PROJECT_PATH = os.path.join('/skale', 'skale-node')
-UNINSTALL_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'uninstall.sh')
-UPDATE_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'installation', 'update.sh')
+UNINSTALL_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'scripts', 'uninstall.sh')
+UPDATE_SCRIPT = os.path.join(SKALE_PROJECT_PATH, 'scripts', 'update.sh')
 
 NODE_DATA_PATH = '/skale_node_data'
 TOKENS_FILENAME = 'tokens.json'
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, TOKENS_FILENAME)
 
-DEFAULT_MTA_ENDPOINT = 'http://134.209.56.46:1919'
-DEFAULT_ENDPOINT = 'ws://134.209.56.46:1920'
-DEFAULT_RPC_IP = '134.209.56.46'
-DEFAULT_RPC_PORT = 1920
 DEFAULT_DB_USER = 'root'
 DEFAULT_DB_PORT = '3306'
 

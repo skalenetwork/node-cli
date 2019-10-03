@@ -56,10 +56,9 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, endpoint, rpc_ip,
-         rpc_port,
-         db_user,
-         db_password, db_root_password, db_port, disk_mountpoint, test_mode):
+def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, endpoint,
+         db_user, db_password, db_root_password, db_port, disk_mountpoint, manager_url, ima_url,
+         dkg_url, test_mode):
     env = {
         **os.environ,
         'MTA_ENDPOINT': mta_endpoint,
@@ -68,18 +67,15 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'DOCKER_USERNAME': docker_username,
         'DOCKER_PASSWORD': str(docker_password),
         'ENDPOINT': endpoint,
-        'RPC_IP': rpc_ip,
-        'RPC_PORT': str(rpc_port),
         'DB_USER': db_user,
         'DB_PASSWORD': db_password,
         'DB_ROOT_PASSWORD': db_root_password,
         'DB_PORT': str(db_port),
-        'DISK_MOUNTPOINT': disk_mountpoint
+        'DISK_MOUNTPOINT': disk_mountpoint,
+        'MANAGER_CONTRACTS_INFO_URL': manager_url,
+        'IMA_CONTRACTS_INFO_URL': ima_url,
+        'DKG_CONTRACTS_INFO_URL': dkg_url
     }
-
-    # if check_is_partition(disk_mountpoint):
-    #    raise Exception("You provided partition path instead of disk mountpoint.")
-
     init_data_dir()
 
     prepare_host(test_mode, disk_mountpoint)
@@ -98,23 +94,23 @@ def deregister():
     pass
 
 
-def update(mta_endpoint, github_token, docker_username, docker_password, endpoint, rpc_ip, rpc_port,
-           db_user, db_password, db_root_password, db_port):
+def update(ima_endpoint, github_token, docker_username, docker_password, endpoint,
+           db_user, db_password, db_root_password, db_port, manager_url, ima_url, dkg_url):
     env = {
         **os.environ,
-        'MTA_ENDPOINT': mta_endpoint,
+        'IMA_ENDPOINT': ima_endpoint,
         'GITHUB_TOKEN': github_token,
         'DOCKER_USERNAME': docker_username,
         'DOCKER_PASSWORD': str(docker_password),
         'ENDPOINT': endpoint,
-        'RPC_IP': rpc_ip,
-        'RPC_PORT': str(rpc_port),
         'DB_USER': db_user,
         'DB_PASSWORD': db_password,
         'DB_ROOT_PASSWORD': db_root_password,
         'DB_PORT': str(db_port),
         'DISK_MOUNTPOINT': '/',
-        'RUN_MODE': 'prod'
+        'MANAGER_CONTRACTS_INFO_URL': manager_url,
+        'IMA_CONTRACTS_INFO_URL': ima_url,
+        'DKG_CONTRACTS_INFO_URL': dkg_url
     }
     res_update_project = subprocess.run(['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT], env=env)
     logging.info(
