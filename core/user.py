@@ -41,7 +41,6 @@ def register_user(config, username, password, token):
     response = post_request(url, data)
     if response is None:
         return None
-
     if response.status_code == requests.codes.ok:
         cookies_text = pickle.dumps(response.cookies)
         config['cookies'] = cookies_text
@@ -88,15 +87,23 @@ def logout_user(config):
         print(response.text)
 
 
-def show_registration_token(short):
+def get_registration_token_data():
     try:
         with open(TOKENS_FILEPATH, encoding='utf-8') as data_file:
-            config = json.loads(data_file.read())
-        if short:
-            print(config["token"])
-        else:
-            print(f'User registration token: {config["token"]}')
+            return json.loads(data_file.read())
     except FileNotFoundError:
-        err_msg = "Couldn't find registration tokens file. Check that node inited on this machine."
+        return None
+
+
+def show_registration_token(short):
+    token_data = get_registration_token_data()
+    if token_data is not None:
+        if short:
+            print(token_data["token"])
+        else:
+            print(f'User registration token: {token_data["token"]}')
+    else:
+        err_msg = ("Couldn't find registration tokens file. "
+                   "Check that node inited on this machine.")
         logger.error(err_msg)
         print(err_msg)
