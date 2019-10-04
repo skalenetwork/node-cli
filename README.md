@@ -167,6 +167,7 @@ Required arguments:
 - `--manager-url` - URL to SKALE Manager contracts ABI and addresses  
 - `--ima-url` - URL to IMA contracts ABI and addresses  
 - `--dkg-url` - URL to DKG contracts ABI and addresses  
+- `--filebeat-url` - URL to the Filebeat log server
 
 Optional arguments:
 
@@ -243,6 +244,7 @@ Required arguments:
 - `--dkg-url` - URL to DKG contracts ABI and addresses  
 - `--ima-endpoint` - IMA endpoint to connect
 - `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
+- `--filebeat-url` - URL to the Filebeat log server
 
 Optional arguments:
 
