@@ -206,24 +206,27 @@ def register_node(name, ip, port):
     help='URL to DKG contracts ABI and addresses'
 )
 @click.option(
+    '--filebeat-url',
+    prompt="Enter URL to the Filebeat log server",
+    help='URL to the Filebeat log server'
+)
+@click.option(
     '--test-mode',
     is_flag=True
 )
 @local_only
-def init_node(ima_endpoint, install_deps, stream, github_token,
-              docker_username, docker_password, endpoint, db_user, db_password, db_root_password,
-              db_port,
-              disk_mountpoint, manager_url, ima_url, dkg_url, test_mode):
+def init_node(ima_endpoint, install_deps, stream, github_token, docker_username, docker_password,
+              endpoint, db_user, db_password, db_root_password, db_port, disk_mountpoint,
+              manager_url, ima_url, dkg_url, filebeat_url, test_mode):
     if install_deps:
         install_host_dependencies()
     if not db_root_password:
         db_root_password = db_password
 
     git_branch = stream
-    init(ima_endpoint, git_branch, github_token, docker_username,
-         docker_password, endpoint, db_user,
-         db_password, db_root_password, db_port, disk_mountpoint, manager_url, ima_url, dkg_url,
-         test_mode)
+    init(ima_endpoint, git_branch, github_token, docker_username, docker_password, endpoint,
+         db_user, db_password, db_root_password, db_port, disk_mountpoint, manager_url, ima_url,
+         dkg_url, filebeat_url, test_mode)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -314,10 +317,16 @@ def purge_node():
     prompt="Enter URL to DKG contracts ABI and addresses",
     help='URL to DKG contracts ABI and addresses'
 )
+@click.option(
+    '--filebeat-url',
+    prompt="Enter URL to the Filebeat log server",
+    help='URL to the Filebeat log server'
+)
 @local_only
 def update_node(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
-                db_password, db_root_password, db_port, manager_url, ima_url, dkg_url):
+                db_password, db_root_password, db_port, manager_url, ima_url, dkg_url,
+                filebeat_url):
     if not db_root_password:
         db_root_password = db_password
     update(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
-           db_password, db_root_password, db_port, manager_url, ima_url, dkg_url)
+           db_password, db_root_password, db_port, manager_url, ima_url, dkg_url, filebeat_url)
