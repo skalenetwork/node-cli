@@ -83,7 +83,7 @@ def logout_user(config):
         clean_cookies(config)
         print('Cookies removed')
     else:
-        print('Logout failed')
+        print('Logout failed:')
         print(response.text)
 
 

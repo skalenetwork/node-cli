@@ -2,7 +2,7 @@ import mock
 import requests
 
 import cli.info as info
-from main import version, attach, host, user_token, register, login
+from main import version, attach, host, user_token, register, login, logout
 from tests.helper import run_command, run_command_mock
 
 
@@ -56,7 +56,7 @@ def test_user_token(config):
 def test_register(config):
     response_mock = mock.MagicMock()
     response_mock.status_code = requests.codes.ok
-    response_mock.cookies = 'darova'
+    response_mock.cookies = 'cookies'
     result = run_command_mock('core.user.post_request',
                               response_mock,
                               register,
@@ -90,7 +90,7 @@ def test_register(config):
 def test_login(config):
     response_mock = mock.MagicMock()
     response_mock.status_code = requests.codes.ok
-    response_mock.cookies = 'darova'
+    response_mock.cookies = 'simple-cookies'
     result = run_command_mock('core.user.post_request',
                               response_mock,
                               login,
@@ -104,16 +104,70 @@ def test_login(config):
     assert result.output == expected
 
     response_mock.status_code = -1
-    response_mock.text = 'Darova'
+    response_mock.text = '{"errors": [{"msg": "Test error"}]}'
     result = run_command_mock('core.user.post_request',
                               response_mock,
                               login,
-                              input="test\n qwerty1\n token")
-    result = run_command(login, input="test\n qwerty1\n token")
+                              input="test\n qwerty1")
     assert result.exit_code == 0
     expected = (
         'Enter username: test\n'
         'Enter password: \n'
-        'Authorization failed: {"errors": [{"msg": "Token not match"}]}\n'
+        'Authorization failed: {"errors": [{"msg": "Test error"}]}\n'
     )
+    print(result.output)
+    assert expected == result.output
+
+
+def test_logout():
+    response_mock = mock.MagicMock()
+    response_mock.status_code = requests.codes.ok
+    response_mock.cookies = 'simple-cookies'
+    result = run_command_mock('core.user.get_request',
+                              response_mock,
+                              logout,
+                              input="test\n qwerty1\n token")
+    assert result.exit_code == 0
+    expected = 'Cookies removed\n'
+    assert result.output == expected
+
+    response_mock.status_code = -1
+    response_mock.text = '{"errors": [{"msg": "Test error"}]}'
+    result = run_command_mock('core.user.get_request',
+                              response_mock,
+                              logout,
+                              input="test\n qwerty1")
+    assert result.exit_code == 0
+    expected = (
+        'Logout failed:\n'
+        '{"errors": [{"msg": "Test error"}]}\n'
+    )
+    print(result.output)
+    assert expected == result.output
+
+
+def test_wallet_info():
+    response_mock = mock.MagicMock()
+    response_mock.status_code = requests.codes.ok
+    response_mock.json = mock.Mock(return_value={'data': 'wallet_data'})
+
+    result = run_command_mock('core.user.get_request',
+                              response_mock,
+                              logout)
+    assert result.exit_code == 0
+    expected = 'Cookies removed\n'
+    assert result.output == expected
+
+    response_mock.status_code = -1
+    response_mock.text = '{"errors": [{"msg": "Test error"}]}'
+    result = run_command_mock('core.user.get_request',
+                              response_mock,
+                              logout,
+                              input="test\n qwerty1")
+    assert result.exit_code == 0
+    expected = (
+        'Logout failed:\n'
+        '{"errors": [{"msg": "Test error"}]}\n'
+    )
+    print(result.output)
     assert expected == result.output
