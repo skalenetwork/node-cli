@@ -17,18 +17,3 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """ SKALE config test """
-
-
-import mock
-import pytest
-
-
-@pytest.fixture
-def config():
-    config_mock = {
-        'host': 'https://test.com',
-        'cookies': {}
-    }
-    with mock.patch('readsettings.ReadSettings',
-                    mock.MagicMock(return_value=config_mock)):
-        yield

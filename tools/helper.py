@@ -25,6 +25,9 @@ from subprocess import PIPE
 import json
 
 from jinja2 import Environment
+from readsettings import ReadSettings
+
+from core.config import CONFIG_FILEPATH
 
 logger = logging.getLogger(__name__)
 
@@ -79,3 +82,7 @@ def read_file(path):
 
 def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
+
+
+def session_config():
+    return ReadSettings(CONFIG_FILEPATH)

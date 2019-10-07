@@ -1,9 +1,30 @@
 import mock
+import pytest
 import requests
 
 import cli.info as info
-from main import version, attach, host, user_token, register, login, logout
+
+from mock import MagicMock, Mock
+from main import (user, version, attach, host, user_token,
+                  register, login, wallet)
 from tests.helper import run_command, run_command_mock
+import main
+
+
+@pytest.fixture
+def config():
+    config_mock = {
+        'host': 'https://test.com',
+        'cookies': {'cookie_key': 'cookie_value'}
+    }
+    with mock.patch('tools.helper.session_config',
+                    MagicMock(return_value=config_mock)):
+        yield
+
+
+@pytest.fixture
+def skip_auth(monkeypatch):
+    monkeypatch.setattr('core.helper.cookies_exists', Mock(return_value=True))
 
 
 def test_version(config):
@@ -38,14 +59,14 @@ def test_host():
 def test_user_token(config):
     test_token = '231test-token'
     with mock.patch('core.user.get_registration_token_data',
-                    new=mock.MagicMock(return_value={'token': test_token})):
+                    new=MagicMock(return_value={'token': test_token})):
         result = run_command(user_token, [])
         assert result.output == f'User registration token: {test_token}\n'
         result = run_command(user_token, ['--short'])
         assert result.output == '231test-token\n'
 
     with mock.patch('core.user.get_registration_token_data',
-                    new=mock.MagicMock(return_value=None)):
+                    new=MagicMock(return_value=None)):
         result = run_command(user_token, [])
         assert result.exit_code == 0
         print(result.output)
@@ -54,7 +75,7 @@ def test_user_token(config):
 
 
 def test_register(config):
-    response_mock = mock.MagicMock()
+    response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
     response_mock.cookies = 'cookies'
     result = run_command_mock('core.user.post_request',
@@ -88,7 +109,7 @@ def test_register(config):
 
 
 def test_login(config):
-    response_mock = mock.MagicMock()
+    response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
     response_mock.cookies = 'simple-cookies'
     result = run_command_mock('core.user.post_request',
@@ -120,12 +141,13 @@ def test_login(config):
 
 
 def test_logout():
-    response_mock = mock.MagicMock()
+    response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
     response_mock.cookies = 'simple-cookies'
     result = run_command_mock('core.user.get_request',
                               response_mock,
-                              logout,
+                              user,
+                              ['logout'],
                               input="test\n qwerty1\n token")
     assert result.exit_code == 0
     expected = 'Cookies removed\n'
@@ -135,39 +157,26 @@ def test_logout():
     response_mock.text = '{"errors": [{"msg": "Test error"}]}'
     result = run_command_mock('core.user.get_request',
                               response_mock,
-                              logout,
+                              user,
+                              ['logout'],
                               input="test\n qwerty1")
     assert result.exit_code == 0
     expected = (
         'Logout failed:\n'
         '{"errors": [{"msg": "Test error"}]}\n'
     )
-    print(result.output)
     assert expected == result.output
 
 
-def test_wallet_info():
-    response_mock = mock.MagicMock()
+def test_wallet_info(skip_auth, config):
+    response_mock = MagicMock({'host': 'test.com'})
     response_mock.status_code = requests.codes.ok
-    response_mock.json = mock.Mock(return_value={'data': 'wallet_data'})
-
+    response_mock.json = Mock(return_value={'data': 'wallet_data'})
     result = run_command_mock('core.user.get_request',
                               response_mock,
-                              logout)
+                              main.wallet,
+                              ['info'])
     assert result.exit_code == 0
     expected = 'Cookies removed\n'
-    assert result.output == expected
-
-    response_mock.status_code = -1
-    response_mock.text = '{"errors": [{"msg": "Test error"}]}'
-    result = run_command_mock('core.user.get_request',
-                              response_mock,
-                              logout,
-                              input="test\n qwerty1")
-    assert result.exit_code == 0
-    expected = (
-        'Logout failed:\n'
-        '{"errors": [{"msg": "Test error"}]}\n'
-    )
     print(result.output)
-    assert expected == result.output
+    assert result.output == expected

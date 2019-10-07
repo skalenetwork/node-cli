@@ -21,7 +21,6 @@ import click
 import sys
 import logging
 import inspect
-from readsettings import ReadSettings
 
 from cli import __version__
 from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
@@ -33,14 +32,16 @@ from cli.metrics import metrics_cli
 
 from core.helper import (login_required, safe_load_texts, local_only,
                          no_node, init_default_logger)
-from core.config import CONFIG_FILEPATH, LONG_LINE
+from core.config import LONG_LINE
 from core.wallet import get_wallet_info, set_wallet_by_pk
 from core.user import (register_user, login_user, logout_user,
                        show_registration_token)
 from core.host import (test_host, show_host, fix_url, reset_host,
                        init_logs_dir)
+from tools.helper import session_config
 
-config = ReadSettings(CONFIG_FILEPATH)
+
+config = session_config()
 TEXTS = safe_load_texts()
 
 logger = logging.getLogger(__name__)
@@ -164,6 +165,7 @@ def wallet():
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 @login_required
 def wallet_info(format):
+    config = session_config()
     get_wallet_info(config, format)
 
 
