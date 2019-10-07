@@ -1,4 +1,4 @@
 PyInstaller==3.5
-boto3==1.9.233
+boto3==1.9.243
 flake8==3.7.8
 bumpversion==0.5.3
