@@ -204,7 +204,8 @@ def test_set_wallet(skip_local_only, skip_auth):
                     MagicMock(return_value='0xaddress')):
         with mock.patch('core.wallet.write_json'):
             result = run_command(wallet, ['set'],
-                                 input=('0xabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcd'
+                                 input=('0xabcdeabcdeabcdeabcdeabc'
+                                        'deabcdeabcdeabcd'
                                         'eeabcdeabcdeabcdeabcdeabc'))
             assert result.exit_code == 0
             print(repr(result.output))
