@@ -1,5 +1,4 @@
 import mock
-import pytest
 import requests
 
 import cli.info as info

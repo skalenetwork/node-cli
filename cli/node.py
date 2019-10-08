@@ -21,7 +21,6 @@ import ipaddress
 from urllib.parse import urlparse
 
 import click
-from readsettings import ReadSettings
 
 from skale.utils.random_names.generator import generate_random_node_name
 
@@ -30,10 +29,11 @@ from core.node import create_node, init, purge, update
 from core.host import install_host_dependencies
 from core.helper import (abort_if_false, local_only,
                          login_required, safe_load_texts)
-from core.config import CONFIG_FILEPATH, DEFAULT_DB_USER, DEFAULT_DB_PORT
+from core.config import DEFAULT_DB_USER, DEFAULT_DB_PORT
 from configs.node import DEFAULT_NODE_BASE_PORT
+from tools.helper import session_config
 
-config = ReadSettings(CONFIG_FILEPATH)
+config = session_config()
 TEXTS = safe_load_texts()
 
 

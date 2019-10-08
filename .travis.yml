@@ -6,7 +6,7 @@ cache: pip
 install:
   - pip install -e .
   - pip install -e .[dev]
-  - python setup.py install
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)
 jobs:
   include:
     - stage: test
