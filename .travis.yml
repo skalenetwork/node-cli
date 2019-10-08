@@ -1,8 +1,7 @@
 language: python
 os: linux
 dist: bionic
-python:
-  - '3.6'
+python: '3.6'
 cache: pip
 install:
   - pip install -r requirements.txt
@@ -11,7 +10,7 @@ jobs:
   include:
     - stage: test
       script:
-        - bash scripts/run-tests.sh 
+        - bash scripts/run-tests.sh
       after_script:
         - codecov -t $CODECOV_TOKEN
     - stage: deploy

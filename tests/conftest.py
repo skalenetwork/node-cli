@@ -19,7 +19,19 @@
 """ SKALE config test """
 
 import pytest
+
+from mock import Mock
 from readsettings import ReadSettings
+
+
+@pytest.fixture
+def skip_auth(monkeypatch):
+    monkeypatch.setattr('core.helper.cookies_exists', Mock(return_value=True))
+
+
+@pytest.fixture
+def skip_local_only(monkeypatch):
+    monkeypatch.setattr('core.helper.host_exists', Mock(return_value=False))
 
 
 @pytest.fixture

@@ -9,16 +9,6 @@ from main import (user, version, attach, host, wallet)
 from tests.helper import run_command, run_command_mock
 
 
-@pytest.fixture
-def skip_auth(monkeypatch):
-    monkeypatch.setattr('core.helper.cookies_exists', Mock(return_value=True))
-
-
-@pytest.fixture
-def skip_local_only(monkeypatch):
-    monkeypatch.setattr('core.helper.host_exists', Mock(return_value=False))
-
-
 def test_version(config):
     result = run_command(version, [])
     expected = f'SKALE Node CLI version: {info.VERSION}\n'
