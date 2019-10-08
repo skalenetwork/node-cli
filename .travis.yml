@@ -1,4 +1,6 @@
 language: python
+os: linux
+dist: bionic
 python:
   - '3.6'
 cache: pip
@@ -9,7 +11,7 @@ jobs:
   include:
     - stage: test
       script:
-        - CONFIG_FILEPATH='.skale-cli.yaml' py.test tests/
+        - bash scripts/run-tests.sh 
       after_script:
         - codecov -t $CODECOV_TOKEN
     - stage: deploy

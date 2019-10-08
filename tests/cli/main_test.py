@@ -5,8 +5,7 @@ import requests
 import cli.info as info
 
 from mock import MagicMock, Mock
-from main import (user, version, attach, host, user_token,
-                  register, login, wallet)
+from main import (user, version, attach, host, wallet)
 from tests.helper import run_command, run_command_mock
 
 
@@ -53,14 +52,14 @@ def test_user_token(skip_local_only):
     test_token = '231test-token'
     with mock.patch('core.user.get_registration_token_data',
                     new=MagicMock(return_value={'token': test_token})):
-        result = run_command(user_token, [])
+        result = run_command(user, ['token'])
         assert result.output == f'User registration token: {test_token}\n'
-        result = run_command(user_token, ['--short'])
+        result = run_command(user, ['token', '--short'])
         assert result.output == '231test-token\n'
 
     with mock.patch('core.user.get_registration_token_data',
                     new=MagicMock(return_value=None)):
-        result = run_command(user_token, [])
+        result = run_command(user, ['token'])
         assert result.exit_code == 0
         print(result.output)
         assert result.output == ("Couldn't find registration tokens file. "
@@ -73,7 +72,7 @@ def test_register(config):
     response_mock.cookies = 'cookies'
     result = run_command_mock('core.user.post_request',
                               response_mock,
-                              register,
+                              user, ['register'],
                               input="test\n qwerty1\n token")
     expected = (
         'Enter username: test\n'
@@ -89,7 +88,7 @@ def test_register(config):
     response_mock.text = '{"errors": [{"msg": "Token not match"}]}'
     result = run_command_mock('core.user.post_request',
                               response_mock,
-                              register,
+                              user, ['register'],
                               input="test\n qwerty1\n token")
     assert result.exit_code == 0
     expected = (
@@ -107,7 +106,7 @@ def test_login(config):
     response_mock.cookies = 'simple-cookies'
     result = run_command_mock('core.user.post_request',
                               response_mock,
-                              login,
+                              user, ['login'],
                               input="test\n qwerty1\n token")
     expected = (
         'Enter username: test\n'
@@ -121,7 +120,7 @@ def test_login(config):
     response_mock.text = '{"errors": [{"msg": "Test error"}]}'
     result = run_command_mock('core.user.post_request',
                               response_mock,
-                              login,
+                              user, ['login'],
                               input="test\n qwerty1")
     assert result.exit_code == 0
     expected = (
@@ -139,8 +138,7 @@ def test_logout():
     response_mock.cookies = 'simple-cookies'
     result = run_command_mock('core.user.get_request',
                               response_mock,
-                              user,
-                              ['logout'],
+                              user, ['logout'],
                               input="test\n qwerty1\n token")
     assert result.exit_code == 0
     expected = 'Cookies removed\n'
@@ -150,8 +148,7 @@ def test_logout():
     response_mock.text = '{"errors": [{"msg": "Test error"}]}'
     result = run_command_mock('core.user.get_request',
                               response_mock,
-                              user,
-                              ['logout'],
+                              user, ['logout'],
                               input="test\n qwerty1")
     assert result.exit_code == 0
     expected = (
@@ -174,8 +171,7 @@ def test_wallet_info(config):
     response_mock.json = Mock(return_value=response_data)
     result = run_command_mock('core.wallet.get_request',
                               response_mock,
-                              wallet,
-                              ['info'])
+                              wallet, ['info'])
     assert result.exit_code == 0
     expected = 'Cookies removed\n'
     expected = (
