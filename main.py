@@ -41,7 +41,6 @@ from core.host import (test_host, show_host, fix_url, reset_host,
 from tools.helper import session_config
 
 
-config = session_config()
 TEXTS = safe_load_texts()
 
 logger = logging.getLogger(__name__)
@@ -79,6 +78,7 @@ def info():
 @click.argument('host')
 @click.option('--skip-check', is_flag=True)
 def attach(host, skip_check):
+    config = session_config()
     host = fix_url(host)
     if not host:
         return
@@ -93,6 +93,7 @@ def attach(host, skip_check):
 @cli.command('host', help="Get SKALE node endpoint")
 @click.option('--reset', is_flag=True)
 def host(reset):
+    config = session_config()
     if reset:
         reset_host(config)
         return
@@ -132,6 +133,7 @@ def user_token(short):
     hide_input=True
 )
 def register(username, password, token):
+    config = session_config()
     register_user(config, username, password, token)
 
 
@@ -148,11 +150,13 @@ def register(username, password, token):
     hide_input=True
 )
 def login(username, password):
+    config = session_config()
     login_user(config, username, password)
 
 
 @user.command('logout', help="Logout from SKALE node")
 def logout():
+    config = session_config()
     logout_user(config)
 
 

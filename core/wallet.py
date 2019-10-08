@@ -37,7 +37,6 @@ def set_wallet_by_pk(private_key):
 
 
 def get_wallet_info(config, format):
-    assert False, config
     host, cookies = get_node_creds(config)
     url = construct_url(host, URLS['wallet_info'])
 
@@ -45,9 +44,8 @@ def get_wallet_info(config, format):
     if response is None:
         return None
 
-    json = response.json()
-    data = json['data']
-
+    json_data = response.json()
+    data = json_data['data']
     if format == 'json':
         print(data)
     else:

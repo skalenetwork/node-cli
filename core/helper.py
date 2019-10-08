@@ -54,6 +54,10 @@ def cookies_exists():
     return safe_get_config(config, 'cookies') is not None
 
 
+def host_exists():
+    return safe_get_config(config, 'host') is not None
+
+
 def login_required(f):
     @wraps(f)
     def inner(*args, **kwargs):
@@ -69,8 +73,7 @@ def login_required(f):
 def local_only(f):
     @wraps(f)
     def inner(*args, **kwargs):
-        host = safe_get_config(config, 'host')
-        if host:
+        if host_exists():
             print('This command couldn\'t be executed on the remote SKALE host.')
         else:
             if HOST_OS == MAC_OS_SYSTEM_NAME:

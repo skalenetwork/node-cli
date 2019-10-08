@@ -5,11 +5,17 @@ cache: pip
 install:
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
-before_script:
-  - "flake8 ."
+install:
+  - pip install codecov pytest pytest-cov
+  - pip install -e .
+  - pip install -e .[dev]
 jobs:
   include:
-    #- stage: test
+    - stage: test
+      script:
+        - CONFIG_FILEPATH='.skale-cli.yaml' py.test tests/
+      after_script:
+        - codecov -t $CODECOV_TOKEN
     - stage: deploy
       if: branch IN (develop, beta, stable, master)
       script:

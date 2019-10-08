@@ -8,23 +8,16 @@ from mock import MagicMock, Mock
 from main import (user, version, attach, host, user_token,
                   register, login, wallet)
 from tests.helper import run_command, run_command_mock
-import main
-
-
-@pytest.fixture
-def config():
-    config_mock = {
-        'host': 'https://test.com',
-        'cookies': {'cookie_key': 'cookie_value'}
-    }
-    with mock.patch('tools.helper.session_config',
-                    MagicMock(return_value=config_mock)):
-        yield
 
 
 @pytest.fixture
 def skip_auth(monkeypatch):
     monkeypatch.setattr('core.helper.cookies_exists', Mock(return_value=True))
+
+
+@pytest.fixture
+def skip_local_only(monkeypatch):
+    monkeypatch.setattr('core.helper.host_exists', Mock(return_value=False))
 
 
 def test_version(config):
@@ -56,7 +49,7 @@ def test_host():
     assert result.output == 'Host removed, cookies cleaned.\n'
 
 
-def test_user_token(config):
+def test_user_token(skip_local_only):
     test_token = '231test-token'
     with mock.patch('core.user.get_registration_token_data',
                     new=MagicMock(return_value={'token': test_token})):
@@ -168,15 +161,55 @@ def test_logout():
     assert expected == result.output
 
 
-def test_wallet_info(skip_auth, config):
-    response_mock = MagicMock({'host': 'test.com'})
+def test_wallet_info(config):
+    response_data = {
+        'data': {
+            'address': 'simple_address',
+            'eth_balance': 13,
+            'skale_balance': 123
+        }
+    }
+    response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
-    response_mock.json = Mock(return_value={'data': 'wallet_data'})
-    result = run_command_mock('core.user.get_request',
+    response_mock.json = Mock(return_value=response_data)
+    result = run_command_mock('core.wallet.get_request',
                               response_mock,
-                              main.wallet,
+                              wallet,
                               ['info'])
     assert result.exit_code == 0
     expected = 'Cookies removed\n'
-    print(result.output)
+    expected = (
+        '--------------------------------------------------\n'
+        'Address: simple_address\n'
+        'ETH balance: 13 ETH\n'
+        'SKALE balance: 123 SKALE\n'
+        '--------------------------------------------------\n'
+    )
     assert result.output == expected
+
+    result = run_command_mock('core.wallet.get_request',
+                              response_mock,
+                              wallet,
+                              ['info', '--format', 'json'])
+    assert result.exit_code == 0
+    expected = (
+        "{'address': 'simple_address', "
+        "'eth_balance': 13, 'skale_balance': 123}\n"
+    )
+    assert result.output == expected
+
+
+def test_set_wallet(skip_local_only, skip_auth):
+    with mock.patch('skale.utils.helper.private_key_to_address',
+                    MagicMock(return_value='0xaddress')):
+        with mock.patch('core.wallet.write_json'):
+            result = run_command(wallet, ['set'],
+                                 input=('0xabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcd'
+                                        'eeabcdeabcdeabcdeabcdeabc'))
+            assert result.exit_code == 0
+            print(repr(result.output))
+            assert result.output == (
+                'Enter private key: \n'
+                'Local wallet updated: '
+                '0xECaf17d13C3c995284FCDBCc0f2f123eB92f60C6\n'
+            )

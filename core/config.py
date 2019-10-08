@@ -26,9 +26,8 @@ ENV = os.environ.get('ENV')
 
 home = str(Path.home())
 
-CONFIG_FILENAME = '.skale-cli.yaml'
-CONFIG_FILEPATH = os.path.join(home, CONFIG_FILENAME)
-SKALE_CLI_CONFIG_PATH = '.skale-cli.yaml'
+CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH', None) or \
+                  os.path.join(home, '.skale-cli.yaml')
 
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 

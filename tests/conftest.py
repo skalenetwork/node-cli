@@ -17,3 +17,14 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """ SKALE config test """
+
+import pytest
+from readsettings import ReadSettings
+
+
+@pytest.fixture
+def config(monkeypatch):
+    TEST_PATH = '.skale-cli.yaml'
+    config = ReadSettings(TEST_PATH)
+    config['host'] = 'https://test.com'
+    config['cookies'] = b'\x80\x03}q\x00X\n\x00\x00\x00cookie_keyq\x01X\x0c\x00\x00\x00cookie_valueq\x02s.'  # noqa
