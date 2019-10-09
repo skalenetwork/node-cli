@@ -36,19 +36,19 @@ def metrics():
 @login_required
 def first():
     print('Please wait - collecting metrics from blockchain...')
-    bounty_list = get('first-bounties')
-    if not bounty_list:
+    bounty_data = get('first-bounties')
+    if not bounty_data.get('bounties'):
         print('No bounties found')
         return
-    print_metrics(bounty_list)
+    print_metrics(bounty_data)
 
 
 @metrics.command(help="List of bounties and metrics for the last year")
 @login_required
 def last():
     print('Please wait - collecting metrics from blockchain...')
-    bounty_list = get('last-bounties')
-    if not bounty_list:
+    bounty_data = get('last-bounties')
+    if not bounty_data.get('bounties'):
         print('No bounties found')
         return
-    print_metrics(bounty_list)
+    print_metrics(bounty_data)
