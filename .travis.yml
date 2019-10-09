@@ -8,6 +8,7 @@ install:
   - pip install -e .[dev]
   - export PYTHONPATH=$PYTHONPATH:$(pwd)
   - export ENV=dev
+  - scripts/build.sh 1.0.0 test-branch
 jobs:
   include:
     - stage: test

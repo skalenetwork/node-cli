@@ -1,9 +1,9 @@
 import mock
 import requests
 
-import cli.info as info
-
 from mock import MagicMock, Mock
+
+from cli import info
 from main import (user, version, attach, host, wallet)
 from tests.helper import run_command, run_command_mock
 
