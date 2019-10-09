@@ -8,14 +8,13 @@ install:
   - pip install -e .[dev]
   - export PYTHONPATH=$PYTHONPATH:$(pwd)
   - export ENV=dev
+  - export CONFIG_FILEPATH='.skale-cli.yml'
   - bash scripts/build.sh 1.0.0 test-branch
 jobs:
   include:
     - stage: test
       script:
         - bash scripts/run-tests.sh
-      after_script:
-        - codecov -t $CODECOV_TOKEN
     - stage: deploy
       if: branch IN (develop, beta, stable, master)
       script:
