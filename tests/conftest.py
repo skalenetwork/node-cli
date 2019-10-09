@@ -18,6 +18,9 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """ SKALE config test """
 
+
+import os
+
 import pytest
 
 from mock import Mock
@@ -40,3 +43,6 @@ def config(monkeypatch):
     config = ReadSettings(TEST_PATH)
     config['host'] = 'https://test.com'
     config['cookies'] = b'\x80\x03}q\x00X\n\x00\x00\x00cookie_keyq\x01X\x0c\x00\x00\x00cookie_valueq\x02s.'  # noqa
+    yield
+    if os.path.exists(TEST_PATH):
+        os.remove(TEST_PATH)
