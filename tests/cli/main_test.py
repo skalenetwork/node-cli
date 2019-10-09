@@ -192,7 +192,6 @@ def test_set_wallet(skip_local_only, skip_auth):
                                         'deabcdeabcdeabcd'
                                         'eeabcdeabcdeabcdeabcdeabc'))
             assert result.exit_code == 0
-            print(repr(result.output))
             assert result.output == (
                 'Enter private key: \n'
                 'Local wallet updated: '

@@ -46,6 +46,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
         response = post_request(url, data, cookies)
 
     if response is None:
+        print('Your request returned nothing. Something went wrong. Try again')
         return None
     if response.status_code == requests.codes.created:
         msg = 'Node registered in SKALE manager. For more info run: skale node info'
