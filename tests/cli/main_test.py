@@ -121,7 +121,7 @@ def test_login(config):
     assert expected == result.output
 
 
-def test_logout():
+def test_logout(config):
     response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
     response_mock.cookies = 'simple-cookies'
@@ -162,7 +162,6 @@ def test_wallet_info(config):
                               response_mock,
                               wallet, ['info'])
     assert result.exit_code == 0
-    expected = 'Cookies removed\n'
     expected = (
         '--------------------------------------------------\n'
         'Address: simple_address\n'

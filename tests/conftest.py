@@ -19,12 +19,11 @@
 """ SKALE config test """
 
 
-import os
-
 import pytest
 
 from mock import Mock
 from readsettings import ReadSettings
+from core.config import CONFIG_FILEPATH
 
 
 @pytest.fixture
@@ -39,10 +38,7 @@ def skip_local_only(monkeypatch):
 
 @pytest.fixture
 def config(monkeypatch):
-    TEST_PATH = '.skale-cli.yaml'
-    config = ReadSettings(TEST_PATH)
-    config['host'] = 'https://test.com'
-    config['cookies'] = b'\x80\x03}q\x00X\n\x00\x00\x00cookie_keyq\x01X\x0c\x00\x00\x00cookie_valueq\x02s.'  # noqa
-    yield
-    if os.path.exists(TEST_PATH):
-        os.remove(TEST_PATH)
+    cli_config = ReadSettings(CONFIG_FILEPATH)
+    cli_config['host'] = 'https://test.com'
+    cli_config['cookies'] = b'\x80\x03}q\x00X\n\x00\x00\x00cookie_keyq\x01X\x0c\x00\x00\x00cookie_valueq\x02s.'  # noqa
+    cli_config.save()

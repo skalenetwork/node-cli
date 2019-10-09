@@ -81,6 +81,7 @@ def node():
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 @login_required
 def node_info(format):
+    config = session_config()
     get_node_info(config, format)
 
 
@@ -88,6 +89,7 @@ def node_info(format):
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 @login_required
 def node_about(format):
+    config = session_config()
     get_node_about(config, format)
 
 
@@ -124,6 +126,7 @@ def node_about(format):
 @login_required
 # def register_node(name, p2p_ip, public_ip, port):
 def register_node(name, ip, port):
+    config = session_config()
     create_node(config, name, ip, ip, port)
 
 
