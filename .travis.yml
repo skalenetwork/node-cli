@@ -11,6 +11,8 @@ install:
 jobs:
   include:
     - stage: test
+      before_script:
+        - flake8 .
       script:
         - bash scripts/run-tests.sh
     - stage: deploy
