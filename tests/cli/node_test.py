@@ -86,7 +86,6 @@ def test_init_node(skip_local_only, config):
               '--db-password', 'pass123', '--db-root-password', 'pass123',
               '--db-port', 8087, '--disk-mountpoint', '/dev/sdp',
               '--manager-url', '0.0.0.1:8080', '--ima-url', 'ws://0.0.0.1:8080',
-              '--dkg-url', '0.0.0.1:8080',
               '--filebeat-url', 'http://0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
@@ -111,7 +110,6 @@ def test_init_node_invalid_url(skip_local_only, config):
               '--db-password', 'pass123', '--db-root-password', 'pass123',
               '--db-port', 8080, '--disk-mountpoint', '/dev/sda',
               '--manager-url', '0.0.0.0:8080', '--ima-url', 'ws://0.0.0.0:8080',
-              '--dkg-url', '0.0.0.0:8080',
               '--filebeat-url', 'http://0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('core.node.subprocess.run'), \
@@ -150,7 +148,7 @@ def test_update_node(skip_local_only, config):
               '--db-password', 'pass123', '--db-root-password', 'pass123',
               '--db-port', 8080,
               '--manager-url', '0.0.0.0:8080', '--ima-url', 'ws://0.0.0.0:8080',
-              '--dkg-url', '0.0.0.0:8080', '--yes',
+              '--yes',
               '--filebeat-url', 'http://0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \

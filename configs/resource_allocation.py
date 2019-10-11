@@ -18,8 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-from configs.node import NODE_DATA_PATH
-from core.config import THIRDPARTY_FOLDER_PATH, DATAFILES_FOLDER
+from configs import NODE_DATA_PATH, THIRDPARTY_FOLDER_PATH, DATAFILES_FOLDER
 
 MEDIUM_DIVIDER = 1
 SMALL_DIVIDER = 8

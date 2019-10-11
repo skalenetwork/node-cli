@@ -21,7 +21,7 @@ import requests
 import logging
 import pickle
 import json
-from core.config import URLS, TOKENS_FILEPATH
+from configs import ROUTES, TOKENS_FILEPATH
 from core.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint, \
     get_request, post_request
 
@@ -37,7 +37,7 @@ def register_user(config, username, password, token):
         'password': password,
         'token': token
     }
-    url = construct_url(host, URLS['register'])
+    url = construct_url(host, ROUTES['register'])
     response = post_request(url, data)
     if response is None:
         return None
@@ -59,7 +59,7 @@ def login_user(config, username, password):
         'username': username,
         'password': password
     }
-    url = construct_url(host, URLS['login'])
+    url = construct_url(host, ROUTES['login'])
     response = post_request(url, data)
     if response is None:
         return None
@@ -74,7 +74,7 @@ def login_user(config, username, password):
 
 def logout_user(config):
     host = safe_get_config(config, 'host')
-    url = construct_url(host, URLS['logout'])
+    url = construct_url(host, ROUTES['logout'])
     response = get_request(url)
     if response is None:
         return None

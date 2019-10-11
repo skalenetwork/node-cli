@@ -32,7 +32,7 @@ from cli.metrics import metrics_cli
 
 from core.helper import (login_required, safe_load_texts, local_only,
                          no_node, init_default_logger)
-from core.config import LONG_LINE
+from configs import LONG_LINE
 from core.wallet import get_wallet_info, set_wallet_by_pk
 from core.user import (register_user, login_user, logout_user,
                        show_registration_token)
