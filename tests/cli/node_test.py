@@ -18,7 +18,6 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import mock
-import pytest
 import requests
 
 from tests.helper import response_mock, run_command_mock
