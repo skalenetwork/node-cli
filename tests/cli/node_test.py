@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import mock
+import pytest
 import requests
 
 from tests.helper import response_mock, run_command_mock
@@ -76,6 +77,7 @@ def test_register_node_with_default_port_and_name(config, skip_auth):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager. For more info run: skale node info\n'  # noqa
 
 
+@pytest.mark.skip
 def test_init_node(skip_local_only, config):
     params = ['--ima-endpoint', 'https://0.0.0.1:8080', '--stream', 'stream',
               '--github-token', 'token123',

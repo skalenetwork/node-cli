@@ -135,33 +135,33 @@ def register_node(name, ip, port):
 @click.option(
     '--ima-endpoint',
     type=URL_TYPE,
-    # prompt="Enter IMA endpoint to connect",
+    prompt="Enter IMA endpoint to connect",
     help='IMA endpoint to connect'
 )
 @click.option(  # todo: tmp option - after stable release branch
     '--stream',
-    # prompt="Enter stream for the SKALE node",
+    prompt="Enter stream for the SKALE node",
     help='Stream that will be used for SKALE node setup (required)'
 )
 @click.option(  # todo: tmp option - remove after open source
     '--github-token',
-    # prompt="Enter GitHub access token",
+    prompt="Enter GitHub access token",
     help='GitHub access token to clone the repo (required)'
 )
 @click.option(  # todo: tmp option - remove after open source
     '--docker-username',
-    # prompt="Enter DockerHub username",
+    prompt="Enter DockerHub username",
     help='DockerHub username to pull images (required)'
 )
 @click.option(  # todo: tmp option - remove after open source
     '--docker-password',
-    # prompt="Enter DockerHub password",
+    prompt="Enter DockerHub password",
     help='DockerHub password to pull images (required)'
 )
 @click.option(  # todo: tmp option - remove after mainnet deploy
     '--endpoint',
     type=URL_TYPE,
-    # prompt="Enter Mainnet RPC endpoint",
+    prompt="Enter Mainnet RPC endpoint",
     help='RPC endpoint of the node in the network '
          'where SKALE manager is deployed'
 )
@@ -173,7 +173,7 @@ def register_node(name, ip, port):
 )
 @click.option(
     '--db-password',
-    # prompt="Enter password for node DB",
+    prompt="Enter password for node DB",
     help='Password for node internal database (required)'
 )
 @click.option(
@@ -189,23 +189,23 @@ def register_node(name, ip, port):
 )
 @click.option(
     '--disk-mountpoint',
-    # prompt="Enter data disk mount point",
+    prompt="Enter data disk mount point",
     help='Mount point of the disk to be used '
          'for storing sChains data (required)'
 )
 @click.option(
     '--manager-url',
-    # prompt="Enter URL to SKALE Manager contracts ABI and addresses",
+    prompt="Enter URL to SKALE Manager contracts ABI and addresses",
     help='URL to SKALE Manager contracts ABI and addresses'
 )
 @click.option(
     '--ima-url',
-    # prompt="Enter URL to IMA contracts ABI and addresses",
+    prompt="Enter URL to IMA contracts ABI and addresses",
     help='URL to IMA contracts ABI and addresses'
 )
 @click.option(
     '--dkg-url',
-    # prompt="Enter URL to DKG contracts ABI and addresses",
+    prompt="Enter URL to DKG contracts ABI and addresses",
     help='URL to DKG contracts ABI and addresses'
 )
 @click.option(
