@@ -17,7 +17,6 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pytest
 import mock
 import requests
 
@@ -77,7 +76,7 @@ def test_register_node_with_default_port_and_name(config, skip_auth):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager. For more info run: skale node info\n'  # noqa
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_init_node(skip_local_only, config):
     params = ['--ima-endpoint', 'https://0.0.0.1:8080', '--stream', 'stream',
               '--github-token', 'token123',

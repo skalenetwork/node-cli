@@ -77,7 +77,6 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'IMA_CONTRACTS_INFO_URL': ima_url,
         'DKG_CONTRACTS_INFO_URL': dkg_url
     }
-    return
     init_data_dir()
 
     prepare_host(test_mode, disk_mountpoint)
@@ -114,7 +113,6 @@ def update(ima_endpoint, github_token, docker_username, docker_password, endpoin
         'IMA_CONTRACTS_INFO_URL': ima_url,
         'DKG_CONTRACTS_INFO_URL': dkg_url
     }
-    return
     res_update_project = subprocess.run(['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT], env=env)
     logging.info(
         f'Update node project script result: {res_update_project.stderr}, \
