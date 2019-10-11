@@ -77,7 +77,6 @@ def test_register_node_with_default_port_and_name(config, skip_auth):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager. For more info run: skale node info\n'  # noqa
 
 
-@pytest.mark.skip
 def test_init_node(skip_local_only, config):
     params = ['--ima-endpoint', 'https://0.0.0.1:8080', '--stream', 'stream',
               '--github-token', 'token123',
@@ -126,7 +125,6 @@ def test_init_node_invalid_url(skip_local_only, config):
         assert result.output == 'Usage: init [OPTIONS]\nTry "init --help" for help.\n\nError: Invalid value for "--ima-endpoint": Expected valid url. Got invalid_url\n'  # noqa
 
 
-@pytest.mark.skip
 def test_update_node(skip_local_only, config):
     params = ['--ima-endpoint', 'https://0.0.0.0:8080',
               '--github-token', 'token123',
@@ -138,7 +136,7 @@ def test_update_node(skip_local_only, config):
               '--manager-url', '0.0.0.0:8080', '--ima-url', 'ws://0.0.0.0:8080',
               '--dkg-url', '0.0.0.0:8080', '--yes']
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.node.subprocess.run'), \
+    with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.node.init_data_dir'):
