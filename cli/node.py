@@ -221,7 +221,6 @@ def register_node(name, ip, port):
 def init_node(ima_endpoint, install_deps, stream, github_token, docker_username, docker_password,
               endpoint, db_user, db_password, db_root_password, db_port, disk_mountpoint,
               manager_url, ima_url, dkg_url, filebeat_url, test_mode):
-    return
     if install_deps:
         install_host_dependencies()
     if not db_root_password:
@@ -330,7 +329,6 @@ def purge_node():
 def update_node(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
                 db_password, db_root_password, db_port, manager_url, ima_url, dkg_url,
                 filebeat_url):
-    return
     if not db_root_password:
         db_root_password = db_password
     update(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,

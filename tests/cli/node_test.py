@@ -21,7 +21,7 @@ import mock
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.node import (register_node, init_node, update_node,
+from cli.node import (register_node, init_node, purge_node, update_node,
                       node_about, node_info)
 
 
@@ -86,7 +86,8 @@ def test_init_node(skip_local_only, config):
               '--db-password', 'pass123', '--db-root-password', 'pass123',
               '--db-port', 8087, '--disk-mountpoint', '/dev/sdp',
               '--manager-url', '0.0.0.1:8080', '--ima-url', 'ws://0.0.0.1:8080',
-              '--dkg-url', '0.0.0.1:8080']
+              '--dkg-url', '0.0.0.1:8080',
+              '--filebeat-url', 'http://0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
@@ -110,7 +111,8 @@ def test_init_node_invalid_url(skip_local_only, config):
               '--db-password', 'pass123', '--db-root-password', 'pass123',
               '--db-port', 8080, '--disk-mountpoint', '/dev/sda',
               '--manager-url', '0.0.0.0:8080', '--ima-url', 'ws://0.0.0.0:8080',
-              '--dkg-url', '0.0.0.0:8080']
+              '--dkg-url', '0.0.0.0:8080',
+              '--filebeat-url', 'http://0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('core.node.subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
@@ -125,6 +127,20 @@ def test_init_node_invalid_url(skip_local_only, config):
         assert result.output == 'Usage: init [OPTIONS]\nTry "init --help" for help.\n\nError: Invalid value for "--ima-endpoint": Expected valid url. Got invalid_url\n'  # noqa
 
 
+def test_purge(skip_local_only, config):
+    params = ['--yes']
+    resp_mock = response_mock(requests.codes.created)
+    with mock.patch('core.node.subprocess.run'):
+        result = run_command_mock(
+            'core.node.post_request',
+            resp_mock,
+            purge_node,
+            params
+        )
+        assert result.exit_code == 0
+        assert result.output == ''  # noqa
+
+
 def test_update_node(skip_local_only, config):
     params = ['--ima-endpoint', 'https://0.0.0.0:8080',
               '--github-token', 'token123',
@@ -134,7 +150,8 @@ def test_update_node(skip_local_only, config):
               '--db-password', 'pass123', '--db-root-password', 'pass123',
               '--db-port', 8080,
               '--manager-url', '0.0.0.0:8080', '--ima-url', 'ws://0.0.0.0:8080',
-              '--dkg-url', '0.0.0.0:8080', '--yes']
+              '--dkg-url', '0.0.0.0:8080', '--yes',
+              '--filebeat-url', 'http://0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
