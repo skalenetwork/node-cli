@@ -31,8 +31,8 @@ import logging.handlers as py_handlers
 from logging import Formatter
 
 from readsettings import ReadSettings
-from core.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
-    LONG_LINE, URLS, HOST_OS, MAC_OS_SYSTEM_NAME
+from configs import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
+    LONG_LINE, HOST_OS, MAC_OS_SYSTEM_NAME, ROUTES
 from configs.cli_logger import LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, LOG_FILEPATH, \
     DEBUG_LOG_FILEPATH
 
@@ -161,7 +161,7 @@ def print_err_response(err_response):
 
 def get(url_name, params=None):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS[url_name])
+    url = construct_url(host, ROUTES[url_name])
 
     response = get_request(url, cookies, params)
     if response is None:
@@ -181,7 +181,7 @@ def get(url_name, params=None):
 
 def download_log_file(name, type, schain):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS['log_download'])
+    url = construct_url(host, ROUTES['log_download'])
     params = {
         'filename': name,
         'type': type,
@@ -202,7 +202,7 @@ def download_log_file(name, type, schain):
 
 def download_dump(path, container_name=None):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS['logs_dump'])
+    url = construct_url(host, ROUTES['logs_dump'])
     params = {}
     if container_name:
         params['container_name'] = container_name

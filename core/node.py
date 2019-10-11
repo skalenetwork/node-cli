@@ -21,8 +21,8 @@ import os
 import logging
 import requests
 import subprocess
-from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
-from core.config import URLS
+from configs import (INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT,
+                     ROUTES)
 from core.helper import get_node_creds, construct_url, post_request, print_err_response
 from core.host import prepare_host, init_data_dir
 
@@ -38,7 +38,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
         'publicIP': public_ip,
         'port': port
     }
-    url = construct_url(host, URLS['create_node'])
+    url = construct_url(host, ROUTES['create_node'])
 
     try:  # todo: tmp fix!
         response = post_request(url, data, cookies)
@@ -58,7 +58,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
 
 def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, endpoint,
          db_user, db_password, db_root_password, db_port, disk_mountpoint, manager_url, ima_url,
-         dkg_url, filebeat_url, test_mode):
+         filebeat_url, test_mode):
     env = {
         **os.environ,
         'MTA_ENDPOINT': mta_endpoint,
@@ -74,7 +74,6 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'DISK_MOUNTPOINT': disk_mountpoint,
         'MANAGER_CONTRACTS_INFO_URL': manager_url,
         'IMA_CONTRACTS_INFO_URL': ima_url,
-        'DKG_CONTRACTS_INFO_URL': dkg_url,
         'FILEBEAT_HOST': filebeat_url,
     }
     init_data_dir()
@@ -96,7 +95,7 @@ def deregister():
 
 
 def update(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
-           db_password, db_root_password, db_port, manager_url, ima_url, dkg_url, filebeat_url):
+           db_password, db_root_password, db_port, manager_url, ima_url, filebeat_url):
     env = {
         **os.environ,
         'IMA_ENDPOINT': ima_endpoint,
@@ -111,7 +110,6 @@ def update(ima_endpoint, github_token, docker_username, docker_password, endpoin
         'DISK_MOUNTPOINT': '/',
         'MANAGER_CONTRACTS_INFO_URL': manager_url,
         'IMA_CONTRACTS_INFO_URL': ima_url,
-        'DKG_CONTRACTS_INFO_URL': dkg_url,
         'FILEBEAT_HOST': filebeat_url,
     }
     res_update_project = subprocess.run(['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT], env=env)

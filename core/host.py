@@ -25,9 +25,8 @@ from urllib.parse import urlparse
 
 from core.resources import save_resource_allocation_config
 
-from core.config import DEPENDENCIES_SCRIPT, URLS, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME, \
-    INSTALL_CONVOY_SCRIPT
-from configs.node import NODE_DATA_PATH
+from configs import DEPENDENCIES_SCRIPT, ROUTES, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME, \
+    INSTALL_CONVOY_SCRIPT, NODE_DATA_PATH
 from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, \
     CONVOY_HELPER_SCRIPT_FILEPATH, CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH
@@ -66,7 +65,7 @@ def reset_host(config):
 
 
 def test_host(host):
-    url = construct_url(host, URLS['test_host'])
+    url = construct_url(host, ROUTES['test_host'])
 
     try:
         response = requests.get(url)

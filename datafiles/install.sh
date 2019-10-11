@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
-REPO_NAME=skale-node
+SKALE_DIR=~/.skale
+SKALE_NODE_DIR_NAME=.skale-node
+SKALE_NODE_DIR="$SKALE_DIR"/"$SKALE_NODE_DIR_NAME"
 
-sudo mkdir -p /skale
-#sudo chown -R $USER: /skale
-cd /skale
+mkdir -p $SKALE_DIR
+cd $SKALE_DIR
 
-sudo git clone -b $GIT_BRANCH https://$GITHUB_TOKEN\@github.com/skalenetwork/$REPO_NAME.git
-#cp -f /tmp/data.json ./skale-node/config/data.json
+rm -rf $SKALE_NODE_DIR
+sudo git clone -b $GIT_BRANCH https://$GITHUB_TOKEN\@github.com/skalenetwork/skale-node.git .skale-node
 
 umount $DISK_MOUNTPOINT
 
-cd /skale/$REPO_NAME/scripts
+cd "$SKALE_NODE_DIR"/scripts
 
 export DOCKER_USERNAME=$DOCKER_USERNAME
 export DOCKER_PASSWORD=$DOCKER_PASSWORD
@@ -22,7 +23,6 @@ export IMA_ENDPOINT=$IMA_ENDPOINT
 
 export MANAGER_CONTRACTS_INFO_URL=$MANAGER_CONTRACTS_INFO_URL
 export IMA_CONTRACTS_INFO_URL=$IMA_CONTRACTS_INFO_URL
-export DKG_CONTRACTS_INFO_URL=$DKG_CONTRACTS_INFO_URL
 
 export DB_USER=$DB_USER
 export DB_PORT=$DB_PORT

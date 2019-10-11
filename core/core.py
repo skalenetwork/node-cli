@@ -19,7 +19,7 @@
 
 import inspect
 import requests
-from core.config import URLS, LONG_LINE
+from configs import LONG_LINE, ROUTES
 from core.helper import safe_load_texts, get_node_creds, construct_url, \
     get_response_data, clean_cookies, get_request
 
@@ -29,7 +29,7 @@ TEXTS = safe_load_texts()
 
 def get_node_info(config, format):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS['node_info'])
+    url = construct_url(host, ROUTES['node_info'])
     response = get_request(url, cookies)
     if response is None:
         return None
@@ -52,7 +52,7 @@ def get_node_info(config, format):
 
 def get_node_about(config, format):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS['node_about'])
+    url = construct_url(host, ROUTES['node_about'])
 
     response = get_request(url, cookies)
     if response is None:
