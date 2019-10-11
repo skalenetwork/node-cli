@@ -77,15 +77,15 @@ def test_register_node_with_default_port_and_name(config, skip_auth):
 
 
 def test_init_node(skip_local_only, config):
-    params = ['--ima-endpoint', 'https://0.0.0.0:8080', '--stream', 'stream',
+    params = ['--ima-endpoint', 'https://0.0.0.1:8080', '--stream', 'stream',
               '--github-token', 'token123',
               '--docker-username', 'docker-test',
               '--docker-password', 'qwerty123',
-              '--endpoint', 'ws://0.0.0.0:8080', '--db-user', 'user1',
+              '--endpoint', 'ws://0.0.0.1:8080', '--db-user', 'user1',
               '--db-password', 'pass123', '--db-root-password', 'pass123',
-              '--db-port', 8080, '--disk-mountpoint', '/dev/sda',
-              '--manager-url', '0.0.0.0:8080', '--ima-url', 'ws://0.0.0.0:8080',
-              '--dkg-url', '0.0.0.0:8080']
+              '--db-port', 8087, '--disk-mountpoint', '/dev/sdp',
+              '--manager-url', '0.0.0.1:8080', '--ima-url', 'ws://0.0.0.1:8080',
+              '--dkg-url', '0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('core.node.subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
