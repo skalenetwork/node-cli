@@ -126,6 +126,7 @@ def test_init_node_invalid_url(skip_local_only, config):
         assert result.output == 'Usage: init [OPTIONS]\nTry "init --help" for help.\n\nError: Invalid value for "--ima-endpoint": Expected valid url. Got invalid_url\n'  # noqa
 
 
+@pytest.mark.skip
 def test_update_node(skip_local_only, config):
     params = ['--ima-endpoint', 'https://0.0.0.0:8080',
               '--github-token', 'token123',
