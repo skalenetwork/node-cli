@@ -77,10 +77,10 @@ def init(mta_endpoint, git_branch, github_token, docker_username, docker_passwor
         'IMA_CONTRACTS_INFO_URL': ima_url,
         'DKG_CONTRACTS_INFO_URL': dkg_url
     }
+    return
     init_data_dir()
 
     prepare_host(test_mode, disk_mountpoint)
-    return
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
     logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
