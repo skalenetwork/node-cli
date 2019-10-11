@@ -87,7 +87,7 @@ def test_init_node(skip_local_only, config):
               '--manager-url', '0.0.0.1:8080', '--ima-url', 'ws://0.0.0.1:8080',
               '--dkg-url', '0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.node.subprocess.run'), \
+    with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.node.init_data_dir'):
