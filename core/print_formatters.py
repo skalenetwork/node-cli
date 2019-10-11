@@ -22,7 +22,7 @@ import datetime
 import texttable
 from dateutil import parser
 
-from core.config import LONG_LINE
+from configs import LONG_LINE
 
 
 def get_tty_width():
