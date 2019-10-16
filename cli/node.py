@@ -21,7 +21,6 @@ import ipaddress
 from urllib.parse import urlparse
 
 import click
-from readsettings import ReadSettings
 
 from skale.utils.random_names.generator import generate_random_node_name
 
@@ -30,9 +29,11 @@ from core.node import create_node, init, purge, update
 from core.host import install_host_dependencies
 from core.helper import (abort_if_false, local_only,
                          login_required, safe_load_texts)
-from configs import CONFIG_FILEPATH, DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_NODE_BASE_PORT
+from configs import DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_NODE_BASE_PORT
+from tools.helper import session_config
 
-config = ReadSettings(CONFIG_FILEPATH)
+
+config = session_config()
 TEXTS = safe_load_texts()
 
 
@@ -80,6 +81,7 @@ def node():
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 @login_required
 def node_info(format):
+    config = session_config()
     get_node_info(config, format)
 
 
@@ -87,6 +89,7 @@ def node_info(format):
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 @login_required
 def node_about(format):
+    config = session_config()
     get_node_about(config, format)
 
 
@@ -123,6 +126,7 @@ def node_about(format):
 @login_required
 # def register_node(name, p2p_ip, public_ip, port):
 def register_node(name, ip, port):
+    config = session_config()
     create_node(config, name, ip, ip, port)
 
 

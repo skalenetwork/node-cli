@@ -27,8 +27,9 @@ HOME_DIR = str(Path.home())
 
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 PROJECT_PATH = os.path.join(SKALE_DIR, '.skale-node')
-NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
-CONFIG_FILEPATH = os.path.join(SKALE_DIR, '.skale-cli.yaml')
+NODE_DATA_PATH = os.path.join(SKALE_DIR, 'NODE_DATA_PATH')
+CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
+                              os.path.join(SKALE_DIR, '.skale-cli.yaml')
 
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
 LOCAL_WALLET_FILEPATH = os.path.join(NODE_DATA_PATH, 'local_wallet.json')

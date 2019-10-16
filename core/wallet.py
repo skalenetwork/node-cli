@@ -43,9 +43,8 @@ def get_wallet_info(config, format):
     if response is None:
         return None
 
-    json = response.json()
-    data = json['data']
-
+    json_data = response.json()
+    data = json_data['data']
     if format == 'json':
         print(data)
     else:
