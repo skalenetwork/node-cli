@@ -60,7 +60,7 @@ setup(
         "Jinja2==2.10.1",
         "skale-py==0.82.0",
         "eth-hash==0.2.0",
-        "pycryptodome==3.8.2",
+        "pycryptodome==3.9.0",
         "psutil==5.6.3"
     ],
     python_requires='>=3.6,<4',
