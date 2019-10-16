@@ -27,7 +27,7 @@ import json
 from jinja2 import Environment
 from readsettings import ReadSettings
 
-from core.config import CONFIG_FILEPATH
+from configs import CONFIG_FILEPATH
 
 logger = logging.getLogger(__name__)
 

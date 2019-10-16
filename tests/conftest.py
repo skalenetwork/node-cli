@@ -23,7 +23,7 @@ import pytest
 
 from mock import Mock
 from readsettings import ReadSettings
-from core.config import CONFIG_FILEPATH
+from configs import CONFIG_FILEPATH
 
 
 @pytest.fixture
