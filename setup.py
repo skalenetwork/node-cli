@@ -53,7 +53,7 @@ setup(
     install_requires=[
         "click==7.0",
         "confuse",
-        "readsettings==3.4.0",
+        "readsettings==3.4.5",
         "web3==4.9.2",
         "texttable==1.6.2",
         "python-dateutil==2.8.0",
