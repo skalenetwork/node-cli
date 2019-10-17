@@ -27,7 +27,7 @@ HOME_DIR = str(Path.home())
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 
 PROJECT_PATH = os.path.join(SKALE_DIR, '.skale-node')
-NODE_DATA_PATH = os.path.join(SKALE_DIR, 'NODE_DATA_PATH')
+NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
                               os.path.join(SKALE_DIR, '.skale-cli.yaml')
 
