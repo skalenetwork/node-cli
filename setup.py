@@ -28,7 +28,7 @@ extras_require = {
         "bumpversion==0.5.3",
         "PyInstaller==3.5",
         "pytest==5.2.1",
-        "pytest-cov==2.7.1",
+        "pytest-cov==2.8.1",
         "twine==1.12.1",
         "when-changed"
     ]
