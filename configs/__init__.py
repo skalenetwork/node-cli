@@ -24,8 +24,8 @@ from pathlib import Path
 from configs.routes import ROUTES  # noqa: F401
 
 HOME_DIR = str(Path.home())
-
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')
+
 PROJECT_PATH = os.path.join(SKALE_DIR, '.skale-node')
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'NODE_DATA_PATH')
 CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
