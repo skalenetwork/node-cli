@@ -54,7 +54,7 @@ setup(
         "click==7.0",
         "confuse",
         "readsettings==3.4.5",
-        "web3==4.9.2",
+        "web3==5.2.2",
         "texttable==1.6.2",
         "python-dateutil==2.8.0",
         "Jinja2==2.10.3",
