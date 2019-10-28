@@ -210,4 +210,5 @@ if __name__ == '__main__':
     try:
         cmd_collection()
     except Exception as err:
-        print(f'Command execution falied with {err}. Recheck your inputs')
+        print(f'Command execution falied. Recheck your inputs')
+        raise err
