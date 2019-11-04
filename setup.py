@@ -61,7 +61,7 @@ setup(
         "skale-py==0.82.0",
         "eth-hash==0.2.0",
         "pycryptodome==3.9.0",
-        "psutil==5.6.3"
+        "psutil==5.6.4"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
