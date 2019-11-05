@@ -32,6 +32,17 @@ def metrics():
     pass
 
 
+@metrics.command(help="List of all bounties and metrics from local db (fast method)")
+@login_required
+def all():
+    print('Please wait - collecting metrics from blockchain...')
+    bounty_data = get('all-bounties')
+    if not bounty_data.get('bounties'):
+        print('No bounties found')
+        return
+    print_metrics(bounty_data)
+
+
 @metrics.command(help="List of bounties and metrics for the first year")
 @login_required
 def first():
