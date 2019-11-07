@@ -36,7 +36,8 @@ def metrics():
 @click.option('--force', '-f', is_flag=True)
 @login_required
 def all(force):
-    print('Please wait - collecting metrics from blockchain...')
+    if force:
+        print('Please wait - collecting metrics from blockchain...')
     bounty_data = get('all-bounties')
     if not bounty_data.get('bounties', {'force': force}):
         print('No bounties found')
@@ -48,7 +49,8 @@ def all(force):
 @click.option('--force', '-f', is_flag=True)
 @login_required
 def first(force):
-    print('Please wait - collecting metrics from blockchain...')
+    if force:
+        print('Please wait - collecting metrics from blockchain...')
     bounty_data = get('first-bounties')
     if not bounty_data.get('bounties', {'force': force}):
         print('No bounties found')
@@ -60,7 +62,8 @@ def first(force):
 @click.option('--force', '-f', is_flag=True)
 @login_required
 def last(force):
-    print('Please wait - collecting metrics from blockchain...')
+    if force:
+        print('Please wait - collecting metrics from blockchain...')
     bounty_data = get('last-bounties', {'force': force})
     if not bounty_data.get('bounties'):
         print('No bounties found')
