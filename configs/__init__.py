@@ -30,6 +30,8 @@ PROJECT_PATH = os.path.join(SKALE_DIR, '.skale-node')
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
                               os.path.join(SKALE_DIR, '.skale-cli.yaml')
+SESSION_FILEPATH = os.environ.get('SESSION_FILEPATH') or \
+                              os.path.join(SKALE_DIR, '.cli-session.yaml')
 
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
 LOCAL_WALLET_FILEPATH = os.path.join(NODE_DATA_PATH, 'local_wallet.json')
@@ -61,9 +63,6 @@ LONG_LINE = '-' * 50
 SKALE_NODE_UI_PORT = 3007
 SKALE_NODE_UI_LOCALHOST = 'http://0.0.0.0'
 DEFAULT_URL_SCHEME = 'http://'
-
-DEFAULT_DB_USER = 'root'
-DEFAULT_DB_PORT = '3306'
 
 DEFAULT_NODE_BASE_PORT = 10000
 

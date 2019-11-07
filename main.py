@@ -23,19 +23,17 @@ import logging
 import inspect
 
 from cli import __version__
-from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
-from cli.schains import schains_cli
 from cli.containers import containers_cli
+from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
 from cli.logs import logs_cli
-from cli.node import node_cli
 from cli.metrics import metrics_cli
+from cli.node import node_cli
+from cli.schains import schains_cli
+from cli.user import user_cli
+from cli.wallet import wallet_cli
 
-from core.helper import (login_required, safe_load_texts, local_only,
-                         no_node, init_default_logger)
+from core.helper import (safe_load_texts, init_default_logger)
 from configs import LONG_LINE
-from core.wallet import get_wallet_info, set_wallet_by_pk
-from core.user import (register_user, login_user, logout_user,
-                       show_registration_token)
 from core.host import (test_host, show_host, fix_url, reset_host,
                        init_logs_dir)
 from tools.helper import session_config
@@ -100,93 +98,6 @@ def host(reset):
     show_host(config)
 
 
-@cli.group('user', help="SKALE node user commands")
-def user():
-    pass
-
-
-@user.command('token',
-              help="Show registration token if avaliable. "
-                   "Server-only command.")
-@click.option('--short', is_flag=True)
-@local_only
-def user_token(short):
-    show_registration_token(short)
-
-
-@user.command('register', help="Create new user for SKALE node")
-@click.option(
-    '--username', '-u',
-    prompt="Enter username",
-    help='SKALE node username'
-)
-@click.option(
-    '--password', '-p',
-    prompt="Enter password",
-    help='SKALE node password',
-    hide_input=True
-)
-@click.option(
-    '--token', '-t',
-    prompt="Enter one-time token",
-    help='One-time token',
-    hide_input=True
-)
-def register(username, password, token):
-    config = session_config()
-    register_user(config, username, password, token)
-
-
-@user.command('login', help="Login user in a SKALE node")
-@click.option(
-    '--username', '-u',
-    prompt="Enter username",
-    help='SKALE node username'
-)
-@click.option(
-    '--password', '-p',
-    prompt="Enter password",
-    help='SKALE node password',
-    hide_input=True
-)
-def login(username, password):
-    config = session_config()
-    login_user(config, username, password)
-
-
-@user.command('logout', help="Logout from SKALE node")
-def logout():
-    config = session_config()
-    logout_user(config)
-
-
-@cli.group('wallet', help="Node wallet commands")
-def wallet():
-    pass
-
-
-@wallet.command('info', help="Get info about SKALE node wallet")
-@click.option('--format', '-f', type=click.Choice(['json', 'text']))
-@login_required
-def wallet_info(format):
-    config = session_config()
-    get_wallet_info(config, format)
-
-
-@wallet.command('set', help="Set local wallet for the SKALE node")
-@click.option(
-    '--private-key', '-p',
-    prompt="Enter private key",
-    help='Private key to be used as local wallet',
-    hide_input=True
-)
-@login_required
-@local_only
-@no_node
-def set_wallet(private_key):
-    set_wallet_by_pk(private_key)
-
-
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
@@ -206,9 +117,9 @@ if __name__ == '__main__':
 
     cmd_collection = click.CommandCollection(
         sources=[cli, schains_cli, containers_cli, logs_cli,
-                 node_cli, metrics_cli])
+                 node_cli, metrics_cli, user_cli, wallet_cli])
     try:
         cmd_collection()
     except Exception as err:
-        print(f'Command execution falied. Recheck your inputs')
-        raise err
+        print(f'Command execution falied with {err}. Recheck your inputs')
+        logger.error(err)
