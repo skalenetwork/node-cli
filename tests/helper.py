@@ -40,6 +40,8 @@ def request_mock(response_mock):
 
 def run_command(command, params=[], input=''):
     runner = CliRunner()
+    print(command)
+    print(params)
     return runner.invoke(command, params, input=input)
 
 

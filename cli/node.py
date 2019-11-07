@@ -132,6 +132,7 @@ def register_node(name, ip, port):
 )
 @local_only
 def init_node(install_deps, disk_mountpoint, test_mode):
+    return
     if install_deps:
         install_host_dependencies()
     init(disk_mountpoint, test_mode)
