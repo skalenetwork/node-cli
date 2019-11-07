@@ -30,13 +30,14 @@ import logging
 import logging.handlers as py_handlers
 from logging import Formatter
 
-from readsettings import ReadSettings
-from core.config import CONFIG_FILEPATH, TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
-    LONG_LINE, URLS, HOST_OS, MAC_OS_SYSTEM_NAME
+from configs import TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
+    LONG_LINE, HOST_OS, MAC_OS_SYSTEM_NAME, ROUTES
 from configs.cli_logger import LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, LOG_FILEPATH, \
     DEBUG_LOG_FILEPATH
+from tools.helper import session_config
 
-config = ReadSettings(CONFIG_FILEPATH)
+
+config = session_config()
 logger = logging.getLogger(__name__)
 
 
@@ -49,15 +50,22 @@ def safe_get_config(config, key):
         return None
 
 
+def cookies_exists():
+    return safe_get_config(config, 'cookies') is not None
+
+
+def host_exists():
+    return safe_get_config(config, 'host') is not None
+
+
 def login_required(f):
     @wraps(f)
     def inner(*args, **kwargs):
-        cookies_text = safe_get_config(config, 'cookies')
-        if not cookies_text:
+        if cookies_exists():
+            return f(*args, **kwargs)
+        else:
             TEXTS = safe_load_texts()
             print(TEXTS['service']['unauthorized'])
-        else:
-            return f(*args, **kwargs)
 
     return inner
 
@@ -65,8 +73,7 @@ def login_required(f):
 def local_only(f):
     @wraps(f)
     def inner(*args, **kwargs):
-        host = safe_get_config(config, 'host')
-        if host:
+        if host_exists():
             print('This command couldn\'t be executed on the remote SKALE host.')
         else:
             if HOST_OS == MAC_OS_SYSTEM_NAME:
@@ -161,7 +168,7 @@ def print_err_response(err_response):
 
 def get(url_name, params=None):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS[url_name])
+    url = construct_url(host, ROUTES[url_name])
 
     response = get_request(url, cookies, params)
     if response is None:
@@ -181,7 +188,7 @@ def get(url_name, params=None):
 
 def download_log_file(name, type, schain):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS['log_download'])
+    url = construct_url(host, ROUTES['log_download'])
     params = {
         'filename': name,
         'type': type,
@@ -202,7 +209,7 @@ def download_log_file(name, type, schain):
 
 def download_dump(path, container_name=None):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS['logs_dump'])
+    url = construct_url(host, ROUTES['logs_dump'])
     params = {}
     if container_name:
         params['container_name'] = container_name

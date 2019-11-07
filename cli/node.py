@@ -21,7 +21,6 @@ import ipaddress
 from urllib.parse import urlparse
 
 import click
-from readsettings import ReadSettings
 
 from skale.utils.random_names.generator import generate_random_node_name
 
@@ -30,10 +29,11 @@ from core.node import create_node, init, purge, update
 from core.host import install_host_dependencies
 from core.helper import (abort_if_false, local_only,
                          login_required, safe_load_texts)
-from core.config import CONFIG_FILEPATH, DEFAULT_DB_USER, DEFAULT_DB_PORT
-from configs.node import DEFAULT_NODE_BASE_PORT
+from configs import DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_NODE_BASE_PORT
+from tools.helper import session_config
 
-config = ReadSettings(CONFIG_FILEPATH)
+
+config = session_config()
 TEXTS = safe_load_texts()
 
 
@@ -81,6 +81,7 @@ def node():
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 @login_required
 def node_info(format):
+    config = session_config()
     get_node_info(config, format)
 
 
@@ -88,6 +89,7 @@ def node_info(format):
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 @login_required
 def node_about(format):
+    config = session_config()
     get_node_about(config, format)
 
 
@@ -124,6 +126,7 @@ def node_about(format):
 @login_required
 # def register_node(name, p2p_ip, public_ip, port):
 def register_node(name, ip, port):
+    config = session_config()
     create_node(config, name, ip, ip, port)
 
 
@@ -201,11 +204,6 @@ def register_node(name, ip, port):
     help='URL to IMA contracts ABI and addresses'
 )
 @click.option(
-    '--dkg-url',
-    prompt="Enter URL to DKG contracts ABI and addresses",
-    help='URL to DKG contracts ABI and addresses'
-)
-@click.option(
     '--filebeat-url',
     prompt="Enter URL to the Filebeat log server",
     help='URL to the Filebeat log server'
@@ -217,16 +215,14 @@ def register_node(name, ip, port):
 @local_only
 def init_node(ima_endpoint, install_deps, stream, github_token, docker_username, docker_password,
               endpoint, db_user, db_password, db_root_password, db_port, disk_mountpoint,
-              manager_url, ima_url, dkg_url, filebeat_url, test_mode):
+              manager_url, ima_url, filebeat_url, test_mode):
     if install_deps:
         install_host_dependencies()
     if not db_root_password:
         db_root_password = db_password
-
-    git_branch = stream
-    init(ima_endpoint, git_branch, github_token, docker_username, docker_password, endpoint,
+    init(ima_endpoint, stream, github_token, docker_username, docker_password, endpoint,
          db_user, db_password, db_root_password, db_port, disk_mountpoint, manager_url, ima_url,
-         dkg_url, filebeat_url, test_mode)
+         filebeat_url, test_mode)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -313,20 +309,14 @@ def purge_node():
     help='URL to IMA contracts ABI and addresses'
 )
 @click.option(
-    '--dkg-url',
-    prompt="Enter URL to DKG contracts ABI and addresses",
-    help='URL to DKG contracts ABI and addresses'
-)
-@click.option(
     '--filebeat-url',
     prompt="Enter URL to the Filebeat log server",
     help='URL to the Filebeat log server'
 )
 @local_only
 def update_node(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
-                db_password, db_root_password, db_port, manager_url, ima_url, dkg_url,
-                filebeat_url):
+                db_password, db_root_password, db_port, manager_url, ima_url, filebeat_url):
     if not db_root_password:
         db_root_password = db_password
     update(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
-           db_password, db_root_password, db_port, manager_url, ima_url, dkg_url, filebeat_url)
+           db_password, db_root_password, db_port, manager_url, ima_url, filebeat_url)

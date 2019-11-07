@@ -21,7 +21,6 @@ import click
 import sys
 import logging
 import inspect
-from readsettings import ReadSettings
 
 from cli import __version__
 from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
@@ -33,14 +32,15 @@ from cli.metrics import metrics_cli
 
 from core.helper import (login_required, safe_load_texts, local_only,
                          no_node, init_default_logger)
-from core.config import CONFIG_FILEPATH, LONG_LINE
+from configs import LONG_LINE
 from core.wallet import get_wallet_info, set_wallet_by_pk
 from core.user import (register_user, login_user, logout_user,
                        show_registration_token)
 from core.host import (test_host, show_host, fix_url, reset_host,
                        init_logs_dir)
+from tools.helper import session_config
 
-config = ReadSettings(CONFIG_FILEPATH)
+
 TEXTS = safe_load_texts()
 
 logger = logging.getLogger(__name__)
@@ -78,6 +78,7 @@ def info():
 @click.argument('host')
 @click.option('--skip-check', is_flag=True)
 def attach(host, skip_check):
+    config = session_config()
     host = fix_url(host)
     if not host:
         return
@@ -92,6 +93,7 @@ def attach(host, skip_check):
 @cli.command('host', help="Get SKALE node endpoint")
 @click.option('--reset', is_flag=True)
 def host(reset):
+    config = session_config()
     if reset:
         reset_host(config)
         return
@@ -131,6 +133,7 @@ def user_token(short):
     hide_input=True
 )
 def register(username, password, token):
+    config = session_config()
     register_user(config, username, password, token)
 
 
@@ -147,11 +150,13 @@ def register(username, password, token):
     hide_input=True
 )
 def login(username, password):
+    config = session_config()
     login_user(config, username, password)
 
 
 @user.command('logout', help="Logout from SKALE node")
 def logout():
+    config = session_config()
     logout_user(config)
 
 
@@ -164,6 +169,7 @@ def wallet():
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 @login_required
 def wallet_info(format):
+    config = session_config()
     get_wallet_info(config, format)
 
 
@@ -204,4 +210,5 @@ if __name__ == '__main__':
     try:
         cmd_collection()
     except Exception as err:
-        print(f'Command execution falied with {err}. Recheck your inputs')
+        print(f'Command execution falied. Recheck your inputs')
+        raise err

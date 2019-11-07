@@ -21,7 +21,7 @@ import requests
 import logging
 import pickle
 import json
-from core.config import URLS, TOKENS_FILEPATH
+from configs import ROUTES, TOKENS_FILEPATH
 from core.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint, \
     get_request, post_request
 
@@ -37,11 +37,10 @@ def register_user(config, username, password, token):
         'password': password,
         'token': token
     }
-    url = construct_url(host, URLS['register'])
+    url = construct_url(host, ROUTES['register'])
     response = post_request(url, data)
     if response is None:
         return None
-
     if response.status_code == requests.codes.ok:
         cookies_text = pickle.dumps(response.cookies)
         config['cookies'] = cookies_text
@@ -60,7 +59,7 @@ def login_user(config, username, password):
         'username': username,
         'password': password
     }
-    url = construct_url(host, URLS['login'])
+    url = construct_url(host, ROUTES['login'])
     response = post_request(url, data)
     if response is None:
         return None
@@ -75,7 +74,7 @@ def login_user(config, username, password):
 
 def logout_user(config):
     host = safe_get_config(config, 'host')
-    url = construct_url(host, URLS['logout'])
+    url = construct_url(host, ROUTES['logout'])
     response = get_request(url)
     if response is None:
         return None
@@ -84,19 +83,27 @@ def logout_user(config):
         clean_cookies(config)
         print('Cookies removed')
     else:
-        print('Logout failed')
+        print('Logout failed:')
         print(response.text)
 
 
-def show_registration_token(short):
+def get_registration_token_data():
     try:
         with open(TOKENS_FILEPATH, encoding='utf-8') as data_file:
-            config = json.loads(data_file.read())
-        if short:
-            print(config["token"])
-        else:
-            print(f'User registration token: {config["token"]}')
+            return json.loads(data_file.read())
     except FileNotFoundError:
-        err_msg = "Couldn't find registration tokens file. Check that node inited on this machine."
+        return None
+
+
+def show_registration_token(short):
+    token_data = get_registration_token_data()
+    if token_data is not None:
+        if short:
+            print(token_data["token"])
+        else:
+            print(f'User registration token: {token_data["token"]}')
+    else:
+        err_msg = ("Couldn't find registration tokens file. "
+                   "Check that node inited on this machine.")
         logger.error(err_msg)
         print(err_msg)

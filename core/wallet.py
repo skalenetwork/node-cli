@@ -22,10 +22,9 @@ import inspect
 from skale.utils.helper import private_key_to_address
 from web3 import Web3
 
-from core.config import URLS, LONG_LINE
+from configs import ROUTES, LONG_LINE, LOCAL_WALLET_FILEPATH
 from core.helper import get_node_creds, construct_url, get_request
 from tools.helper import write_json
-from configs.node import LOCAL_WALLET_FILEPATH
 
 
 def set_wallet_by_pk(private_key):
@@ -38,15 +37,14 @@ def set_wallet_by_pk(private_key):
 
 def get_wallet_info(config, format):
     host, cookies = get_node_creds(config)
-    url = construct_url(host, URLS['wallet_info'])
+    url = construct_url(host, ROUTES['wallet_info'])
 
     response = get_request(url, cookies)
     if response is None:
         return None
 
-    json = response.json()
-    data = json['data']
-
+    json_data = response.json()
+    data = json_data['data']
     if format == 'json':
         print(data)
     else:
