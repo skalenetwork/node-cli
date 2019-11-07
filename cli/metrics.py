@@ -32,22 +32,39 @@ def metrics():
     pass
 
 
-@metrics.command(help="List of bounties and metrics for the first year")
+@metrics.command(help="List of all bounties and metrics from local db (fast method)")
+@click.option('--force', '-f', is_flag=True)
 @login_required
-def first():
-    print('Please wait - collecting metrics from blockchain...')
+def all(force):
+    if force:
+        print('Please wait - collecting metrics from blockchain...')
+    bounty_data = get('all-bounties')
+    if not bounty_data.get('bounties', {'force': force}):
+        print('No bounties found')
+        return
+    print_metrics(bounty_data)
+
+
+@metrics.command(help="List of bounties and metrics for the first year")
+@click.option('--force', '-f', is_flag=True)
+@login_required
+def first(force):
+    if force:
+        print('Please wait - collecting metrics from blockchain...')
     bounty_data = get('first-bounties')
-    if not bounty_data.get('bounties'):
+    if not bounty_data.get('bounties', {'force': force}):
         print('No bounties found')
         return
     print_metrics(bounty_data)
 
 
 @metrics.command(help="List of bounties and metrics for the last year")
+@click.option('--force', '-f', is_flag=True)
 @login_required
-def last():
-    print('Please wait - collecting metrics from blockchain...')
-    bounty_data = get('last-bounties')
+def last(force):
+    if force:
+        print('Please wait - collecting metrics from blockchain...')
+    bounty_data = get('last-bounties', {'force': force})
     if not bounty_data.get('bounties'):
         print('No bounties found')
         return
