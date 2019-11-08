@@ -60,7 +60,7 @@ setup(
         "python-dateutil==2.8.0",
         "Jinja2==2.10.3",
         "skale-py==0.82.0",
-        "psutil==5.6.3"
+        "psutil==5.6.3",
         "pycryptodome==3.9.0",
         "python-dotenv==0.10.3"
     ],
