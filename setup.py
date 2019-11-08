@@ -53,15 +53,16 @@ setup(
     install_requires=[
         "click==7.0",
         "confuse",
+        "eth-hash==0.2.0",
         "readsettings==3.4.5",
         "web3==4.9.2",
         "texttable==1.6.2",
         "python-dateutil==2.8.0",
         "Jinja2==2.10.3",
         "skale-py==0.82.0",
-        "eth-hash==0.2.0",
-        "pycryptodome==3.9.0",
         "psutil==5.6.3"
+        "pycryptodome==3.9.0",
+        "python-dotenv==0.10.3"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
