@@ -12,6 +12,7 @@ import requests
 import subprocess
 
 
+import click
 from configs import (INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT,
                      UPDATE_NODE_PROJECT_SCRIPT,
                      ROUTES)
@@ -21,6 +22,10 @@ from core.helper import (get_node_creds, construct_url,
 from core.host import prepare_host, init_data_dir
 
 logger = logging.getLogger(__name__)
+
+
+def apsent_env_params(params):
+    return filter(lambda key: not params[key], params)
 
 
 def create_node(config, name, p2p_ip, public_ip, port):
@@ -52,14 +57,19 @@ def create_node(config, name, p2p_ip, public_ip, port):
 
 
 def init(disk_mountpoint, test_mode):
-    env = {
+    env_params = {
         **env_settings,
         'DISK_MOUNTPOINT': disk_mountpoint,
     }
-    init_data_dir()
+    apsent_params = ', '.join(apsent_env_params(env_params))
+    if apsent_params:
+        click.echo(f"You have not specified some options through .env file: "
+                   f"{apsent_params}. "
+                   f"Some services will not work", err=True)
 
+    init_data_dir()
     prepare_host(test_mode, disk_mountpoint)
-    res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
+    res = subprocess.run(['bash', INSTALL_SCRIPT], env=env_params)
     logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
 
@@ -75,15 +85,27 @@ def deregister():
 
 
 def update():
-    env = {
+    env_params = {
         **env_settings,
         'DISK_MOUNTPOINT': '/',
     }
-    res_update_project = subprocess.run(['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT], env=env)
+    apsent_params = ', '.join(apsent_env_params(env_params))
+    if apsent_params:
+        click.echo(f"You have not specified the following options "
+                   f"through .env file: {apsent_params} "
+                   f"Some services won't work")
+    res_update_project = subprocess.run(
+        ['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT],
+        env=env_params
+    )
     logging.info(
         f'Update node project script result: {res_update_project.stderr}, \
         {res_update_project.stdout}')
-    res_update_node = subprocess.run(['sudo', '-E', 'bash', UPDATE_SCRIPT], env=env)
+    res_update_node = subprocess.run(
+        ['sudo', '-E', 'bash', UPDATE_SCRIPT],
+        env=env_params,
+    )
     logging.info(
-        f'Update node script result: {res_update_node.stderr}, {res_update_node.stdout}')
+        f'Update node script result: '
+        f'{res_update_node.stderr}, {res_update_node.stdout}')
     # todo: check execution result

@@ -30,8 +30,6 @@ PROJECT_PATH = os.path.join(SKALE_DIR, '.skale-node')
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
                               os.path.join(SKALE_DIR, '.skale-cli.yaml')
-SESSION_FILEPATH = os.environ.get('SESSION_FILEPATH') or \
-                              os.path.join(SKALE_DIR, '.cli-session.yaml')
 
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
 LOCAL_WALLET_FILEPATH = os.path.join(NODE_DATA_PATH, 'local_wallet.json')

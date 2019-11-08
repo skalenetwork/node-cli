@@ -22,13 +22,12 @@ import os
 import logging
 import subprocess
 import urllib.request
-import yaml
 from subprocess import PIPE
 
 from jinja2 import Environment
 from readsettings import ReadSettings
 
-from configs import CONFIG_FILEPATH, SESSION_FILEPATH
+from configs import CONFIG_FILEPATH
 
 logger = logging.getLogger(__name__)
 
@@ -87,15 +86,3 @@ def get_username():
 
 def session_config():
     return ReadSettings(CONFIG_FILEPATH)
-
-
-def get_session():
-    if os.path.exists(SESSION_FILEPATH):
-        with open(SESSION_FILEPATH) as session_file:
-            return yaml.safe_load(session_file)
-    return {}
-
-
-def save_session(session):
-    with open(SESSION_FILEPATH, 'w') as session_file:
-        return yaml.safe_dump(session, session_file)

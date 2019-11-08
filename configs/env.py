@@ -7,7 +7,6 @@ load_dotenv()
 settings = {
     'IMA_ENDPOINT': '',
     'GIT_BRANCH': '',
-    'GITHUB_TOKEN': '',
     'DOCKER_USERNAME': '',
     'DOCKER_PASSWORD': '',
     'ENDPOINT': '',

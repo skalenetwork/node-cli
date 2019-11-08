@@ -154,27 +154,29 @@ Init SKALE node on current machine
 skale node init
 ```
 
-Required arguments:
+Required arguments(available through prompt):
 
--   `--github-token` - token for accessing `skale-node` repo
--   `--docker-username` - username for DockerHub
--   `--docker-password` - password for DockerHub
--   `--db-password` - MySQL password for local node database
--   `--disk-mountpoint` - Mount point of the disk to be used for storing sChains data
--   `--stream` - stream of `skale-node` to use
--   `--ima-endpoint` - IMA endpoint to connect
--   `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
-- `--manager-url` - URL to SKALE Manager contracts ABI and addresses  
-- `--ima-url` - URL to IMA contracts ABI and addresses  
-- `--dkg-url` - URL to DKG contracts ABI and addresses  
-- `--filebeat-url` - URL to the Filebeat log server
+-   `--disk-mountpoint` - mount point of the disk to be used for storing sChains data
 
-Optional arguments:
+You should also specify the following options through environment variables or .env file:
 
--   `--db-user` - MySQL user for local node database 
--   `--db-root-password` - Password for root user of node internal database 
-    (equal to user password by default)  
--   `--db-port` - Port for of node internal database (default is `3306`)
+-   `GITHUB_TOKEN` - token for accessing `skale-node` repo
+-   `DOCKER_USERNAME` - username for DockerHub
+-   `DOCKER_PASSWORD` - password for DockerHub
+-   `DB_PASSWORD` - MySQL password for local node database
+-   `DISK_MOUNTPOINT` - Mount point of the disk to be used for storing sChains data
+-   `GIT_BRANCH` - stream of `skale-node` to use
+-   `IMA_ENDPOINT` - IMA endpoint to connect
+-   `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
+- `MANAGER_URL` - URL to SKALE Manager contracts ABI and addresses  
+- `IMA_URL` - URL to IMA contracts ABI and addresses  
+- `DKG_URL` - URL to DKG contracts ABI and addresses  
+- `FILEBEAT_URL` - URL to the Filebeat log server
+- `DB_USER`'  - MySQL user for local node database - _optional_
+- `DB_PASSWORD` - Password for root user of node internal database
+    (equal to user password by default) - _optional_   
+- `DB_PORT` - Port for of node internal database (default is `3306`) - _optional_
+
 
 ##### node register
 
@@ -209,7 +211,7 @@ Options:
 
 `-f/--format json/text` - optional
 
-#### node purge
+##### node purge
 
 Remove SKALE node software from the machine.
 
@@ -233,56 +235,29 @@ Update SKALE node on current machine
 skale node update
 ```
 
-Required arguments:
-
--   `--github-token` - token for accessing `skale-node` repo
--   `--docker-username` - username for DockerHub
--   `--docker-password` - password for DockerHub
--   `--db-password` - MySQL password for local node database
-- `--manager-url` - URL to SKALE Manager contracts ABI and addresses  
-- `--ima-url` - URL to IMA contracts ABI and addresses  
-- `--dkg-url` - URL to DKG contracts ABI and addresses  
-- `--ima-endpoint` - IMA endpoint to connect
-- `--endpoint` - RPC endpoint of the node in the network where SKALE manager is deployed
-- `--filebeat-url` - URL to the Filebeat log server
-
-Optional arguments:
-
--   `--db-user` - MySQL user for local node database 
--   `--db-root-password` - Password for root user of node internal database 
-    (equal to user password by default)  
--   `--db-port` - Port for of node internal database (default is `3306`)
-
-
-### Wallet commands
-
-> Prefix: `skale wallet`
-
-Commands related to Ethereum wallet associated with SKALE node
-
-##### wallet info
-
--   Login required
-
-```bash
-skale wallet info
-```
-
 Options:
 
-`-f/--format json/text` - optional
+-   `--yes` - remove without additional confirmation
 
-##### wallet set
+You should specify the following options through environment variables or .env file:
 
-Set local wallet for the SKALE node
+-   `GITHUB_TOKEN` - token for accessing `skale-node` repo
+-   `DOCKER_USERNAME` - username for DockerHub
+-   `DOCKER_PASSWORD` - password for DockerHub
+-   `DB_PASSWORD` - MySQL password for local node database
+-   `DISK_MOUNTPOINT` - Mount point of the disk to be used for storing sChains data
+-   `GIT_BRANCH` - stream of `skale-node` to use
+-   `IMA_ENDPOINT` - IMA endpoint to connect
+-   `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
+- `MANAGER_URL` - URL to SKALE Manager contracts ABI and addresses  
+- `IMA_URL` - URL to IMA contracts ABI and addresses  
+- `DKG_URL` - URL to DKG contracts ABI and addresses  
+- `FILEBEAT_URL` - URL to the Filebeat log server
+- `DB_USER`'  - MySQL user for local node database - _optional_
+- `DB_PASSWORD` - Password for root user of node internal database
+    (equal to user password by default) - _optional_   
+- `DB_PORT` - Port for of node internal database (default is `3306`) - _optional_
 
--   Login required
--   Local only
--   No node ony
-
-```bash
-skale wallet set --private-key $ETH_PRIVATE_KEY
-```
 
 ### sChain commands
 
