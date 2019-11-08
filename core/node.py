@@ -61,6 +61,9 @@ def init(disk_mountpoint, test_mode):
         **env_settings,
         'DISK_MOUNTPOINT': disk_mountpoint,
     }
+    if not env_params.get('DB_ROOT_PASSWORD'):
+        env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
+
     apsent_params = ', '.join(apsent_env_params(env_params))
     if apsent_params:
         click.echo(f"You have not specified some options through .env file: "
@@ -89,6 +92,9 @@ def update():
         **env_settings,
         'DISK_MOUNTPOINT': '/',
     }
+    if not env_params.get('DB_ROOT_PASSWORD'):
+        env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
+
     apsent_params = ', '.join(apsent_env_params(env_params))
     if apsent_params:
         click.echo(f"You have not specified the following options "

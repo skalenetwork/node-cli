@@ -40,6 +40,8 @@ UPDATE_SCRIPT = os.path.join(PROJECT_PATH, 'scripts', 'update.sh')
 
 ENV = os.environ.get('ENV')
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
+DOTENV_FILEPATH = os.environ.get('DOTENV_FILEPATH') or \
+                    os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
 
 if ENV == 'dev':
     PARDIR = os.path.join(CURRENT_FILE_LOCATION, os.pardir)

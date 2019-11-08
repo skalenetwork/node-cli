@@ -1,7 +1,8 @@
 import os
 from dotenv import load_dotenv
+from configs import DOTENV_FILEPATH
 
-load_dotenv()
+load_dotenv(dotenv_path=DOTENV_FILEPATH)
 
 
 settings = {
