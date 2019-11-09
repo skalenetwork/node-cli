@@ -260,6 +260,37 @@ You should specify the following options through environment variables or .env f
 - `DB_PORT` - Port for of node internal database (default is `3306`) - _optional_
 
 
+### Wallet commands
+
+> Prefix: `skale wallet`
+
+Commands related to Ethereum wallet associated with SKALE node
+
+##### wallet info
+
+-   Login required
+
+```bash
+skale wallet info
+```
+
+Options:
+
+`-f/--format json/text` - optional
+
+##### wallet set
+
+Set local wallet for the SKALE node
+
+-   Login required
+-   Local only
+-   No node ony
+
+```bash
+skale wallet set --private-key $ETH_PRIVATE_KEY
+```
+
+
 ### sChain commands
 
 > Prefix: `skale schains`
