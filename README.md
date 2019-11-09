@@ -165,6 +165,7 @@ You should also specify the following options through environment variables or .
 -   `DOCKER_PASSWORD` - password for DockerHub
 -   `DB_PASSWORD` - MySQL password for local node database
 -   `DISK_MOUNTPOINT` - Mount point of the disk to be used for storing sChains data
+-   `GITHUB_TOKEN` - token for accessing `skale-node` repo 
 -   `GIT_BRANCH` - stream of `skale-node` to use
 -   `IMA_ENDPOINT` - IMA endpoint to connect
 -   `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
