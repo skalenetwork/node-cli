@@ -8,6 +8,7 @@ load_dotenv(dotenv_path=DOTENV_FILEPATH)
 settings = {
     'IMA_ENDPOINT': '',
     'GIT_BRANCH': '',
+    'GITHUB_TOKEN': '',
     'DOCKER_USERNAME': '',
     'DOCKER_PASSWORD': '',
     'ENDPOINT': '',
