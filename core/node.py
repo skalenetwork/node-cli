@@ -56,10 +56,11 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(disk_mountpoint, test_mode):
+def init(disk_mountpoint, test_mode, sgx_server_url):
     env_params = {
         **env_settings,
         'DISK_MOUNTPOINT': disk_mountpoint,
+        'SGX_SERVER_URL': sgx_server_url,
     }
     if not env_params.get('DB_ROOT_PASSWORD'):
         env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
@@ -71,7 +72,7 @@ def init(disk_mountpoint, test_mode):
                    f"Some services will not work", err=True)
 
     init_data_dir()
-    prepare_host(test_mode, disk_mountpoint)
+    prepare_host(test_mode, disk_mountpoint, sgx_server_url)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env_params)
     logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
