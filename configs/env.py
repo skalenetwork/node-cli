@@ -19,7 +19,6 @@ settings = {
     'MANAGER_CONTRACTS_INFO_URL': '',
     'IMA_CONTRACTS_INFO_URL': '',
     'FILEBEAT_HOST': '',
-    'DKG_CONTRACTS_INFO_URL': '',
 }
 
 

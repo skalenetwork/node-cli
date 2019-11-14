@@ -171,7 +171,6 @@ You should also specify the following options through environment variables or .
 -   `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
 - `MANAGER_URL` - URL to SKALE Manager contracts ABI and addresses  
 - `IMA_URL` - URL to IMA contracts ABI and addresses  
-- `DKG_URL` - URL to DKG contracts ABI and addresses  
 - `FILEBEAT_URL` - URL to the Filebeat log server
 - `DB_USER`'  - MySQL user for local node database - _optional_
 - `DB_PASSWORD` - Password for root user of node internal database
@@ -252,7 +251,6 @@ You should specify the following options through environment variables or .env f
 -   `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
 - `MANAGER_URL` - URL to SKALE Manager contracts ABI and addresses  
 - `IMA_URL` - URL to IMA contracts ABI and addresses  
-- `DKG_URL` - URL to DKG contracts ABI and addresses  
 - `FILEBEAT_URL` - URL to the Filebeat log server
 - `DB_USER`'  - MySQL user for local node database - _optional_
 - `DB_PASSWORD` - Password for root user of node internal database
