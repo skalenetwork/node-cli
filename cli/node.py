@@ -29,7 +29,7 @@ from core.node import create_node, init, purge, update
 from core.host import install_host_dependencies
 from core.helper import (abort_if_false, local_only,
                          login_required, safe_load_texts)
-from configs import DEFAULT_DB_USER, DEFAULT_DB_PORT, DEFAULT_NODE_BASE_PORT
+from configs import DEFAULT_NODE_BASE_PORT
 from tools.helper import session_config
 
 
@@ -96,20 +96,9 @@ def node_about(format):
 @node.command('register', help="Register current node in the SKALE Manager")
 @click.option(
     '--name', '-n',
-    # prompt="Enter node name",
     default=generate_random_node_name(),
     help='SKALE node name'
 )
-# @click.option(
-#     '--p2p-ip',
-#     prompt="Enter node p2p IP",
-#     help='p2p IP for communication between nodes'
-# )
-# @click.option(
-#     '--public-ip',
-#     prompt="Enter node public IP",
-#     help='Public IP for RPC connections'
-# )
 @click.option(
     '--ip',
     prompt="Enter node public IP",
@@ -124,7 +113,6 @@ def node_about(format):
     help='Base port for node sChains'
 )
 @login_required
-# def register_node(name, p2p_ip, public_ip, port):
 def register_node(name, ip, port):
     config = session_config()
     create_node(config, name, ip, ip, port)
@@ -133,96 +121,20 @@ def register_node(name, ip, port):
 @node.command('init', help="Initialize SKALE node")
 @click.option('--install-deps', is_flag=True)
 @click.option(
-    '--ima-endpoint',
-    type=URL_TYPE,
-    prompt="Enter IMA endpoint to connect",
-    help='IMA endpoint to connect'
-)
-@click.option(  # todo: tmp option - after stable release branch
-    '--stream',
-    prompt="Enter stream for the SKALE node",
-    help='Stream that will be used for SKALE node setup (required)'
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--github-token',
-    prompt="Enter GitHub access token",
-    help='GitHub access token to clone the repo (required)'
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--docker-username',
-    prompt="Enter DockerHub username",
-    help='DockerHub username to pull images (required)'
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--docker-password',
-    prompt="Enter DockerHub password",
-    help='DockerHub password to pull images (required)'
-)
-@click.option(  # todo: tmp option - remove after mainnet deploy
-    '--endpoint',
-    type=URL_TYPE,
-    prompt="Enter Mainnet RPC endpoint",
-    help='RPC endpoint of the node in the network '
-         'where SKALE manager is deployed'
-)
-@click.option(
-    '--db-user',
-    # prompt="Enter username for node DB",
-    help='Username for node internal database',
-    default=DEFAULT_DB_USER
-)
-@click.option(
-    '--db-password',
-    prompt="Enter password for node DB",
-    help='Password for node internal database (required)'
-)
-@click.option(
-    '--db-root-password',
-    # prompt="Enter root password for node DB",
-    help='Password for root user of node internal database'
-)
-@click.option(
-    '--db-port',
-    type=int,
-    help='Port for of node internal database',
-    default=DEFAULT_DB_PORT
-)
-@click.option(
     '--disk-mountpoint',
     prompt="Enter data disk mount point",
     help='Mount point of the disk to be used '
          'for storing sChains data (required)'
 )
 @click.option(
-    '--manager-url',
-    prompt="Enter URL to SKALE Manager contracts ABI and addresses",
-    help='URL to SKALE Manager contracts ABI and addresses'
-)
-@click.option(
-    '--ima-url',
-    prompt="Enter URL to IMA contracts ABI and addresses",
-    help='URL to IMA contracts ABI and addresses'
-)
-@click.option(
-    '--filebeat-url',
-    prompt="Enter URL to the Filebeat log server",
-    help='URL to the Filebeat log server'
-)
-@click.option(
     '--test-mode',
     is_flag=True
 )
 @local_only
-def init_node(ima_endpoint, install_deps, stream, github_token, docker_username, docker_password,
-              endpoint, db_user, db_password, db_root_password, db_port, disk_mountpoint,
-              manager_url, ima_url, filebeat_url, test_mode):
+def init_node(install_deps, disk_mountpoint, test_mode):
     if install_deps:
         install_host_dependencies()
-    if not db_root_password:
-        db_root_password = db_password
-    init(ima_endpoint, stream, github_token, docker_username, docker_password, endpoint,
-         db_user, db_password, db_root_password, db_port, disk_mountpoint, manager_url, ima_url,
-         filebeat_url, test_mode)
+    init(disk_mountpoint, test_mode)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -248,75 +160,6 @@ def purge_node():
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
-@click.option(  # todo: tmp option - after stable release branch
-    '--ima-endpoint',
-    type=URL_TYPE,
-    prompt="Enter IMA endpoint to connect",
-    help='IMA endpoint to connect',
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--github-token',
-    prompt="Enter GitHub access token",
-    help='GitHub access token to clone the repo'
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--docker-username',
-    prompt="Enter DockerHub username",
-    help='DockerHub username to pull images'
-)
-@click.option(  # todo: tmp option - remove after open source
-    '--docker-password',
-    prompt="Enter DockerHub password",
-    help='DockerHub password to pull images'
-)
-@click.option(  # todo: tmp option - remove after mainnet deploy
-    '--endpoint',
-    type=URL_TYPE,
-    prompt="Enter Mainnet RPC port",
-    help='RPC endpoint of the node in the network '
-         'where SKALE manager is deployed',
-)
-@click.option(
-    '--db-user',
-    # prompt="Enter username for node DB",
-    help='Username for node internal database',
-    default=DEFAULT_DB_USER
-)
-@click.option(
-    '--db-password',
-    prompt="Enter password for node DB",
-    help='Password for node internal database'
-)
-@click.option(
-    '--db-root-password',
-    # prompt="Enter root password for node DB",
-    help='Password for root user of node internal database'
-)
-@click.option(
-    '--db-port',
-    type=int,
-    help='Port for of node internal database',
-    default=DEFAULT_DB_PORT
-)
-@click.option(
-    '--manager-url',
-    prompt="Enter URL to SKALE Manager contracts ABI and addresses",
-    help='URL to SKALE Manager contracts ABI and addresses'
-)
-@click.option(
-    '--ima-url',
-    prompt="Enter URL to IMA contracts ABI and addresses",
-    help='URL to IMA contracts ABI and addresses'
-)
-@click.option(
-    '--filebeat-url',
-    prompt="Enter URL to the Filebeat log server",
-    help='URL to the Filebeat log server'
-)
 @local_only
-def update_node(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
-                db_password, db_root_password, db_port, manager_url, ima_url, filebeat_url):
-    if not db_root_password:
-        db_root_password = db_password
-    update(ima_endpoint, github_token, docker_username, docker_password, endpoint, db_user,
-           db_password, db_root_password, db_port, manager_url, ima_url, filebeat_url)
+def update_node():
+    update()

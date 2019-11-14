@@ -40,6 +40,8 @@ UPDATE_SCRIPT = os.path.join(PROJECT_PATH, 'scripts', 'update.sh')
 
 ENV = os.environ.get('ENV')
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
+DOTENV_FILEPATH = os.environ.get('DOTENV_FILEPATH') or \
+                    os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
 
 if ENV == 'dev':
     PARDIR = os.path.join(CURRENT_FILE_LOCATION, os.pardir)
@@ -61,9 +63,6 @@ LONG_LINE = '-' * 50
 SKALE_NODE_UI_PORT = 3007
 SKALE_NODE_UI_LOCALHOST = 'http://0.0.0.0'
 DEFAULT_URL_SCHEME = 'http://'
-
-DEFAULT_DB_USER = 'root'
-DEFAULT_DB_PORT = '3306'
 
 DEFAULT_NODE_BASE_PORT = 10000
 
