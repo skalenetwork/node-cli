@@ -130,11 +130,16 @@ def register_node(name, ip, port):
     '--test-mode',
     is_flag=True
 )
+@click.option(
+    '--sgx-url',
+    prompt="Enter URL of sgx server",
+    help='URL of sgx server endpoint'
+)
 @local_only
-def init_node(install_deps, disk_mountpoint, test_mode):
+def init_node(install_deps, disk_mountpoint, test_mode, sgx_url):
     if install_deps:
         install_host_dependencies()
-    init(disk_mountpoint, test_mode)
+    init(disk_mountpoint, test_mode, sgx_url)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")

@@ -56,7 +56,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(disk_mountpoint, test_mode):
+def init(disk_mountpoint, test_mode, sgx_url):
     env_params = {
         **env_settings,
         'DISK_MOUNTPOINT': disk_mountpoint,
