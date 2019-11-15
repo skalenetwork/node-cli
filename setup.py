@@ -55,7 +55,7 @@ setup(
         "confuse",
         "eth-hash==0.2.0",
         "readsettings==3.4.5",
-        "web3==4.9.2",
+        "web3==5.3.0",
         "texttable==1.6.2",
         "python-dateutil==2.8.1",
         "Jinja2==2.10.3",
