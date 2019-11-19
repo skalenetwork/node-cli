@@ -38,8 +38,8 @@ def metrics():
 def all(force):
     if force:
         print('Please wait - collecting metrics from blockchain...')
-    bounty_data = get('all-bounties')
-    if not bounty_data.get('bounties', {'force': force}):
+    bounty_data = get('all-bounties', {'force': force})
+    if not bounty_data:
         print('No bounties found')
         return
     print_metrics(bounty_data)
@@ -51,8 +51,8 @@ def all(force):
 def first(force):
     if force:
         print('Please wait - collecting metrics from blockchain...')
-    bounty_data = get('first-bounties')
-    if not bounty_data.get('bounties', {'force': force}):
+    bounty_data = get('first-bounties', {'force': force})
+    if not bounty_data:
         print('No bounties found')
         return
     print_metrics(bounty_data)
@@ -65,7 +65,7 @@ def last(force):
     if force:
         print('Please wait - collecting metrics from blockchain...')
     bounty_data = get('last-bounties', {'force': force})
-    if not bounty_data.get('bounties'):
+    if not bounty_data:
         print('No bounties found')
         return
     print_metrics(bounty_data)
