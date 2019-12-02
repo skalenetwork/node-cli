@@ -28,8 +28,8 @@ from core.resources import save_resource_allocation_config
 from configs import DEPENDENCIES_SCRIPT, ROUTES, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME, \
     INSTALL_CONVOY_SCRIPT, NODE_DATA_PATH
 from configs.cli_logger import LOG_DATA_PATH
-from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, \
-    CONVOY_HELPER_SCRIPT_FILEPATH, CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH
+from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, CONVOY_HELPER_SCRIPT_FILEPATH, \
+    CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH, SGX_SERVER_URL_FILEPATH
 
 from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, \
     clean_host, get_localhost_endpoint
@@ -89,9 +89,10 @@ def fix_url(url):
         return False
 
 
-def prepare_host(test_mode, disk_mountpoint):
+def prepare_host(test_mode, disk_mountpoint, sgx_server_url):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
     save_disk_mountpoint(disk_mountpoint)
+    save_sgx_server_url(sgx_server_url)
     save_resource_allocation_config()
     if not test_mode:
         init_convoy(disk_mountpoint)
@@ -129,6 +130,12 @@ def save_disk_mountpoint(disk_mountpoint):
     logger.info(f'Saving disk_mountpoint option to {DISK_MOUNTPOINT_FILEPATH}')
     with open(DISK_MOUNTPOINT_FILEPATH, 'w') as f:
         f.write(disk_mountpoint)
+
+
+def save_sgx_server_url(sgx_server_url):
+    logger.info(f'Saving disk_mountpoint option to {SGX_SERVER_URL_FILEPATH}')
+    with open(SGX_SERVER_URL_FILEPATH, 'w') as f:
+        f.write(sgx_server_url)
 
 
 def init_logs_dir():

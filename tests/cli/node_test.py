@@ -76,17 +76,7 @@ def test_register_node_with_default_port_and_name(config, skip_auth):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager. For more info run: skale node info\n'  # noqa
 
 
-# @pytest.mark.skip
 def test_init_node(skip_local_only, config):
-    params = ['--ima-endpoint', 'https://0.0.0.1:8080', '--stream', 'stream',
-              '--github-token', 'token123',
-              '--docker-username', 'docker-test',
-              '--docker-password', 'qwerty123',
-              '--endpoint', 'ws://0.0.0.1:8080', '--db-user', 'user1',
-              '--db-password', 'pass123', '--db-root-password', 'pass123',
-              '--db-port', 8087, '--disk-mountpoint', '/dev/sdp',
-              '--manager-url', '0.0.0.1:8080', '--ima-url', 'ws://0.0.0.1:8080',
-              '--filebeat-url', 'http://0.0.0.1:8080']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
@@ -96,33 +86,9 @@ def test_init_node(skip_local_only, config):
             'core.node.post_request',
             resp_mock,
             init_node,
-            params)
+            input='/dev/sdp\nlocalhost')
         assert result.exit_code == 0
-        assert result.output == ''
-
-
-def test_init_node_invalid_url(skip_local_only, config):
-    params = ['--ima-endpoint', 'invalid_url', '--stream', 'stream',
-              '--github-token', 'token123',
-              '--docker-username', 'docker-test',
-              '--docker-password', 'qwerty123',
-              '--endpoint', 'ws://0.0.0.0:8080', '--db-user', 'user1',
-              '--db-password', 'pass123', '--db-root-password', 'pass123',
-              '--db-port', 8080, '--disk-mountpoint', '/dev/sda',
-              '--manager-url', '0.0.0.0:8080', '--ima-url', 'ws://0.0.0.0:8080',
-              '--filebeat-url', 'http://0.0.0.1:8080']
-    resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.node.subprocess.run'), \
-            mock.patch('cli.node.install_host_dependencies'), \
-            mock.patch('core.node.prepare_host'), \
-            mock.patch('core.node.init_data_dir'):
-        result = run_command_mock(
-            'core.node.post_request',
-            resp_mock,
-            init_node,
-            params)
-        assert result.exit_code == 2
-        assert result.output == 'Usage: init [OPTIONS]\nTry "init --help" for help.\n\nError: Invalid value for "--ima-endpoint": Expected valid url. Got invalid_url\n'  # noqa
+        assert result.output == 'Enter data disk mount point: /dev/sdp\nEnter URL of sgx server: localhost\n'  # noqa
 
 
 def test_purge(skip_local_only, config):
@@ -140,16 +106,7 @@ def test_purge(skip_local_only, config):
 
 
 def test_update_node(skip_local_only, config):
-    params = ['--ima-endpoint', 'https://0.0.0.0:8080',
-              '--github-token', 'token123',
-              '--docker-username', 'docker-test',
-              '--docker-password', 'qwerty123',
-              '--endpoint', 'ws://0.0.0.0:8080', '--db-user', 'user1',
-              '--db-password', 'pass123', '--db-root-password', 'pass123',
-              '--db-port', 8080,
-              '--manager-url', '0.0.0.0:8080', '--ima-url', 'ws://0.0.0.0:8080',
-              '--yes',
-              '--filebeat-url', 'http://0.0.0.1:8080']
+    params = ['--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
@@ -159,7 +116,8 @@ def test_update_node(skip_local_only, config):
             'core.node.post_request',
             resp_mock,
             update_node,
-            params)
+            params,
+            input='/dev/sdp')
         assert result.exit_code == 0
         assert result.output == ''
 

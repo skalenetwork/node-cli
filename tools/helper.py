@@ -17,12 +17,12 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import os
 import logging
-import urllib.request
 import subprocess
+import urllib.request
 from subprocess import PIPE
-import json
 
 from jinja2 import Environment
 from readsettings import ReadSettings
