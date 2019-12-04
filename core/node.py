@@ -59,11 +59,13 @@ def create_node(config, name, p2p_ip, public_ip, port):
 
 def init(disk_mountpoint, test_mode, sgx_server_url):
     env_params = {
-        **os.environ,
         **env_settings,
         'DISK_MOUNTPOINT': disk_mountpoint,
         'SGX_SERVER_URL': sgx_server_url,
     }
+    env_params.update({
+        **os.environ
+    })
     if not env_params.get('DB_ROOT_PASSWORD'):
         env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
@@ -92,7 +94,6 @@ def deregister():
 
 def update():
     env_params = {
-        **os.environ,
         **env_settings,
         'DISK_MOUNTPOINT': '/',
     }
@@ -104,6 +105,9 @@ def update():
         click.echo(f"You have not specified the following options "
                    f"through .env file: {apsent_params} "
                    f"Some services won't work")
+    env_params.update({
+        **os.environ
+    })
     res_update_project = subprocess.run(
         ['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT],
         env=env_params
