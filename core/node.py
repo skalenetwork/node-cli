@@ -8,6 +8,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import os
 import requests
 import subprocess
 
@@ -71,6 +72,9 @@ def init(disk_mountpoint, test_mode, sgx_server_url):
                    f"{apsent_params}. "
                    f"Some services will not work", err=True)
 
+    env_params.update({
+        **os.environ
+    })
     init_data_dir()
     prepare_host(test_mode, disk_mountpoint, sgx_server_url)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env_params)
@@ -101,6 +105,9 @@ def update():
         click.echo(f"You have not specified the following options "
                    f"through .env file: {apsent_params} "
                    f"Some services won't work")
+    env_params.update({
+        **os.environ
+    })
     res_update_project = subprocess.run(
         ['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT],
         env=env_params

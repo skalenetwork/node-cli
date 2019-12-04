@@ -30,6 +30,7 @@ extras_require = {
         "pytest==5.2.1",
         "pytest-cov==2.8.1",
         "twine==2.0.0",
+        "mock==3.0.5",
         "when-changed"
     ]
 }
