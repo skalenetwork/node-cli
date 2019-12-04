@@ -63,9 +63,6 @@ def init(disk_mountpoint, test_mode, sgx_server_url):
         'DISK_MOUNTPOINT': disk_mountpoint,
         'SGX_SERVER_URL': sgx_server_url,
     }
-    env_params.update({
-        **os.environ
-    })
     if not env_params.get('DB_ROOT_PASSWORD'):
         env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
@@ -75,6 +72,9 @@ def init(disk_mountpoint, test_mode, sgx_server_url):
                    f"{apsent_params}. "
                    f"Some services will not work", err=True)
 
+    env_params.update({
+        **os.environ
+    })
     init_data_dir()
     prepare_host(test_mode, disk_mountpoint, sgx_server_url)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env_params)
