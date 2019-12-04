@@ -8,6 +8,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import os
 import requests
 import subprocess
 
@@ -58,6 +59,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
 
 def init(disk_mountpoint, test_mode, sgx_server_url):
     env_params = {
+        **os.environ,
         **env_settings,
         'DISK_MOUNTPOINT': disk_mountpoint,
         'SGX_SERVER_URL': sgx_server_url,
@@ -90,6 +92,7 @@ def deregister():
 
 def update():
     env_params = {
+        **os.environ,
         **env_settings,
         'DISK_MOUNTPOINT': '/',
     }
