@@ -140,7 +140,7 @@ def register_node(name, ip, port):
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
-# @local_only
+@local_only
 def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, dotenv_path):
     if install_deps:
         install_host_dependencies()
@@ -175,6 +175,6 @@ def purge_node():
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
-# @local_only
+@local_only
 def update_node(dotenv_path):
     update(dotenv_path)
