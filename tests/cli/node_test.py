@@ -86,6 +86,7 @@ def test_init_node(skip_local_only, config):
             'core.node.post_request',
             resp_mock,
             init_node,
+            ['--dotenv-path', './tests/test-env'],
             input='/dev/sdp\nlocalhost')
         assert result.exit_code == 0
         assert result.output == 'Enter data disk mount point: /dev/sdp\nEnter URL of sgx server: localhost\n'  # noqa
@@ -106,7 +107,7 @@ def test_purge(skip_local_only, config):
 
 
 def test_update_node(skip_local_only, config):
-    params = ['--yes']
+    params = ['--dotenv-path', './tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \

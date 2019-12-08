@@ -29,7 +29,7 @@ from core.node import create_node, init, purge, update
 from core.host import install_host_dependencies
 from core.helper import (abort_if_false, local_only,
                          login_required, safe_load_texts)
-from configs import DEFAULT_NODE_BASE_PORT
+from configs import DEFAULT_NODE_BASE_PORT, DOTENV_FILEPATH
 from tools.helper import session_config
 
 
@@ -135,11 +135,16 @@ def register_node(name, ip, port):
     prompt="Enter URL of sgx server",
     help='URL of sgx server endpoint'
 )
-@local_only
-def init_node(install_deps, disk_mountpoint, test_mode, sgx_url):
+@click.option(
+    '--dotenv-path',
+    default=DOTENV_FILEPATH,
+    help='Path to .env file with additional config'
+)
+# @local_only
+def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, dotenv_path):
     if install_deps:
         install_host_dependencies()
-    init(disk_mountpoint, test_mode, sgx_url)
+    init(disk_mountpoint, test_mode, sgx_url, dotenv_path)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -165,6 +170,11 @@ def purge_node():
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
-@local_only
-def update_node():
-    update()
+@click.option(
+    '--dotenv-path',
+    default=DOTENV_FILEPATH,
+    help='Path to .env file with additional config'
+)
+# @local_only
+def update_node(dotenv_path):
+    update(dotenv_path)
