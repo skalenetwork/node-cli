@@ -17,7 +17,7 @@ import click
 from configs import (INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT,
                      UPDATE_NODE_PROJECT_SCRIPT,
                      ROUTES)
-from configs.env import settings as env_settings
+from configs.env import get_params
 from core.helper import (get_node_creds, construct_url,
                          post_request, print_err_response)
 from core.host import prepare_host, init_data_dir
@@ -57,9 +57,10 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(disk_mountpoint, test_mode, sgx_server_url):
+def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
+    params_from_file = get_params(env_filepath)
     env_params = {
-        **env_settings,
+        **params_from_file,
         'DISK_MOUNTPOINT': disk_mountpoint,
         'SGX_SERVER_URL': sgx_server_url,
     }
@@ -68,10 +69,13 @@ def init(disk_mountpoint, test_mode, sgx_server_url):
 
     apsent_params = ', '.join(apsent_env_params(env_params))
     if apsent_params:
-        click.echo(f"You have not specified some options through .env file: "
-                   f"{apsent_params}. "
-                   f"Some services will not work", err=True)
-
+        click.echo(f"Your env file({env_filepath}) have some apsent params: "
+                   f"{apsent_params}.\n"
+                   f"You should specify them to make sure that "
+                   f"all services are working",
+                   err=True)
+        return
+    # todo: extract only needed parameters
     env_params.update({
         **os.environ
     })
@@ -92,9 +96,10 @@ def deregister():
     pass
 
 
-def update():
+def update(env_filepath):
+    params_from_file = get_params(env_filepath)
     env_params = {
-        **env_settings,
+        **params_from_file,
         'DISK_MOUNTPOINT': '/',
     }
     if not env_params.get('DB_ROOT_PASSWORD'):
@@ -102,9 +107,13 @@ def update():
 
     apsent_params = ', '.join(apsent_env_params(env_params))
     if apsent_params:
-        click.echo(f"You have not specified the following options "
-                   f"through .env file: {apsent_params} "
-                   f"Some services won't work")
+        click.echo(f"Your env file({env_filepath}) have some apsent params: "
+                   f"{apsent_params}.\n"
+                   f"You should specify them to make sure that "
+                   f"all services are working",
+                   err=True)
+        return
+    # todo: extract only needed parameters
     env_params.update({
         **os.environ
     })
