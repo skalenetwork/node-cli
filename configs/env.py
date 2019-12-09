@@ -20,9 +20,8 @@ env_params = {
 }
 
 
-def get_params(dotenv_path=DOTENV_FILEPATH):
-    path = dotenv_path
-    load_dotenv(dotenv_path=path)
+def get_params(env_filepath=DOTENV_FILEPATH):
+    load_dotenv(dotenv_path=env_filepath)
     for option_name in env_params:
         if option_name in os.environ:
             env_params[option_name] = str(os.getenv(option_name))

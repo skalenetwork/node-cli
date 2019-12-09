@@ -136,15 +136,15 @@ def register_node(name, ip, port):
     help='URL of sgx server endpoint'
 )
 @click.option(
-    '--dotenv-path',
+    '--env-file',
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
 @local_only
-def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, dotenv_path):
+def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, env_file):
     if install_deps:
         install_host_dependencies()
-    init(disk_mountpoint, test_mode, sgx_url, dotenv_path)
+    init(disk_mountpoint, test_mode, sgx_url, env_file)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -171,10 +171,10 @@ def purge_node():
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.option(
-    '--dotenv-path',
+    '--env-file',
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
 @local_only
-def update_node(dotenv_path):
-    update(dotenv_path)
+def update_node(env_file):
+    update(env_file)

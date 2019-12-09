@@ -57,8 +57,8 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(disk_mountpoint, test_mode, sgx_server_url, dotenv_path):
-    params_from_file = get_params(dotenv_path)
+def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
+    params_from_file = get_params(env_filepath)
     env_params = {
         **params_from_file,
         'DISK_MOUNTPOINT': disk_mountpoint,
@@ -69,7 +69,7 @@ def init(disk_mountpoint, test_mode, sgx_server_url, dotenv_path):
 
     apsent_params = ', '.join(apsent_env_params(env_params))
     if apsent_params:
-        click.echo(f"Your env file({dotenv_path}) have some apsent params: "
+        click.echo(f"Your env file({env_filepath}) have some apsent params: "
                    f"{apsent_params}.\n"
                    f"You should specify them to make sure that "
                    f"all services are working",
@@ -96,8 +96,8 @@ def deregister():
     pass
 
 
-def update(dotenv_path):
-    params_from_file = get_params(dotenv_path)
+def update(env_filepath):
+    params_from_file = get_params(env_filepath)
     env_params = {
         **params_from_file,
         'DISK_MOUNTPOINT': '/',
@@ -107,7 +107,7 @@ def update(dotenv_path):
 
     apsent_params = ', '.join(apsent_env_params(env_params))
     if apsent_params:
-        click.echo(f"Your env file({dotenv_path}) have some apsent params: "
+        click.echo(f"Your env file({env_filepath}) have some apsent params: "
                    f"{apsent_params}.\n"
                    f"You should specify them to make sure that "
                    f"all services are working",
