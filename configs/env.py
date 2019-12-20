@@ -2,10 +2,8 @@ import os
 from dotenv import load_dotenv
 from configs import DOTENV_FILEPATH
 
-load_dotenv(dotenv_path=DOTENV_FILEPATH)
 
-
-settings = {
+env_params = {
     'IMA_ENDPOINT': '',
     'GIT_BRANCH': '',
     'GITHUB_TOKEN': '',
@@ -22,6 +20,10 @@ settings = {
 }
 
 
-for option_name in settings:
-    if option_name in os.environ:
-        settings[option_name] = str(os.getenv(option_name))
+def get_params(env_filepath=DOTENV_FILEPATH):
+    load_dotenv(dotenv_path=env_filepath)
+    for option_name in env_params:
+        if option_name in os.environ:
+            env_params[option_name] = str(os.getenv(option_name))
+
+    return env_params
