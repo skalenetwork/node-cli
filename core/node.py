@@ -14,6 +14,7 @@ import subprocess
 
 
 import click
+
 from configs import (INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT,
                      UPDATE_NODE_PROJECT_SCRIPT,
                      ROUTES)
@@ -59,6 +60,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
 
 def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
     params_from_file = get_params(env_filepath)
+
     env_params = {
         **params_from_file,
         'DISK_MOUNTPOINT': disk_mountpoint,
