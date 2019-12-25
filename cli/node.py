@@ -136,6 +136,11 @@ def register_node(name, ip, port):
     help='URL of sgx server endpoint'
 )
 @click.option(
+    '--install-deps',
+    is_flag=True,
+    help='Install host dependencies'
+)
+@click.option(
     '--env-file',
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'

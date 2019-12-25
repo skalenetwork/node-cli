@@ -19,7 +19,7 @@
 
 import inspect
 
-from skale.utils.helper import private_key_to_address
+from skale.utils.web3_utils import private_key_to_address
 from web3 import Web3
 
 from configs import ROUTES, LONG_LINE, LOCAL_WALLET_FILEPATH

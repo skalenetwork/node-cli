@@ -8,7 +8,12 @@ mkdir -p $SKALE_DIR
 cd $SKALE_DIR
 
 rm -rf $SKALE_NODE_DIR
-sudo git clone -b $GIT_BRANCH https://$GITHUB_TOKEN\@github.com/skalenetwork/skale-node.git .skale-node
+
+if [[ -z $"{SKALE_NODE_SOURCE}" ]]; then
+    sudo git clone -b $GIT_BRANCH https://$GITHUB_TOKEN\@github.com/skalenetwork/skale-node.git .skale-node
+else
+    rsync -r $SKALE_NODE_SOURCE/* .skale-node
+fi
 
 umount $DISK_MOUNTPOINT
 

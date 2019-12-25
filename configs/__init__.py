@@ -37,7 +37,6 @@ LOCAL_WALLET_FILEPATH = os.path.join(NODE_DATA_PATH, 'local_wallet.json')
 UNINSTALL_SCRIPT = os.path.join(PROJECT_PATH, 'scripts', 'uninstall.sh')
 UPDATE_SCRIPT = os.path.join(PROJECT_PATH, 'scripts', 'update.sh')
 
-
 ENV = os.environ.get('ENV')
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
