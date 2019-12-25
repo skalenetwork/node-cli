@@ -64,7 +64,7 @@ def test_wallet_info(config):
 
 
 def test_set_wallet(skip_local_only, skip_auth):
-    with mock.patch('skale.utils.helper.private_key_to_address',
+    with mock.patch('skale.utils.web3_utils.private_key_to_address',
                     MagicMock(return_value='0xaddress')):
         with mock.patch('core.wallet.write_json'):
             result = run_command(set_wallet,
