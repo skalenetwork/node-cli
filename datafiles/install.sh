@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 SKALE_DIR="$HOME"/.skale
 SKALE_NODE_DIR_NAME=.skale-node
@@ -17,21 +18,20 @@ fi
 
 umount $DISK_MOUNTPOINT
 
-cd "$SKALE_NODE_DIR"/scripts
+source helper.sh
 
-export DOCKER_USERNAME=$DOCKER_USERNAME
-export DOCKER_PASSWORD=$DOCKER_PASSWORD
+check_env_variables
+docker_lvmpy_install
+create_node_dirs
+copy_node_configs
+download_contracts
+configure_filebeat
+configure_flask
+generate_csr
 
-export DISK_MOUNTPOINT=$DISK_MOUNTPOINT
-export ENDPOINT=$ENDPOINT
-export IMA_ENDPOINT=$IMA_ENDPOINT
-
-export MANAGER_CONTRACTS_INFO_URL=$MANAGER_CONTRACTS_INFO_URL
-export IMA_CONTRACTS_INFO_URL=$IMA_CONTRACTS_INFO_URL
-
-export DB_USER=$DB_USER
-export DB_PORT=$DB_PORT
-export DB_PASSWORD=$DB_PASSWORD
-export DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
-
-sudo -E bash install.sh
+if [ -z $DRY_RUN ]; then
+    check_disk_mountpoint
+    save_partition
+    dockerhub_login # todo: remove after containers open-sourcing
+    docker-compose -f $CONFIG_DIR/docker-compose.yml up -d
+fi

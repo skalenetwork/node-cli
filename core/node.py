@@ -15,9 +15,7 @@ import subprocess
 
 import click
 
-from configs import (INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT,
-                     UPDATE_NODE_PROJECT_SCRIPT,
-                     ROUTES)
+from configs import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, ROUTES
 from configs.env import get_params
 from core.helper import (get_node_creds, construct_url,
                          post_request, print_err_response)
@@ -119,13 +117,6 @@ def update(env_filepath):
     env_params.update({
         **os.environ
     })
-    res_update_project = subprocess.run(
-        ['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT],
-        env=env_params
-    )
-    logging.info(
-        f'Update node project script result: {res_update_project.stderr}, \
-        {res_update_project.stdout}')
     res_update_node = subprocess.run(
         ['sudo', '-E', 'bash', UPDATE_SCRIPT],
         env=env_params,
