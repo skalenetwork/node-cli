@@ -19,7 +19,7 @@
 
 
 from cli import info
-from main import version, attach, host
+from main import version
 from tests.helper import run_command
 
 
@@ -29,24 +29,3 @@ def test_version(config):
     assert result.output == expected
     result = run_command(version, ['--short'])
     assert result.output == f'{info.VERSION}\n'
-
-
-def test_attach():
-    result = run_command(attach)
-    assert result.exit_code == 2
-    expected =  'Usage: attach [OPTIONS] HOST\nTry "attach --help" for help.\n\nError: Missing argument "HOST".\n'  # noqa
-    assert result.output == expected
-
-    result = run_command(attach, ['darova'])
-    assert result.exit_code == 0
-    assert result.output == 'Provided SKALE node host is not valid\n'
-
-    result = run_command(attach, ['http://127.0.0.1', '--skip-check'])
-    assert result.output == 'SKALE host: http://127.0.0.1:3007\n'
-
-
-def test_host():
-    result = run_command(host, [])
-    assert result.output == 'SKALE node host: http://127.0.0.1:3007\n'
-    result = run_command(host, ['--reset'])
-    assert result.output == 'Host removed, cookies cleaned.\n'

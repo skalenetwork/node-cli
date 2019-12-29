@@ -19,7 +19,6 @@
 
 import os
 import sys
-import platform
 from pathlib import Path
 from configs.routes import ROUTES  # noqa: F401
 
@@ -63,6 +62,3 @@ SKALE_NODE_UI_LOCALHOST = 'http://0.0.0.0'
 DEFAULT_URL_SCHEME = 'http://'
 
 DEFAULT_NODE_BASE_PORT = 10000
-
-HOST_OS = platform.system()
-MAC_OS_SYSTEM_NAME = 'Darwin'

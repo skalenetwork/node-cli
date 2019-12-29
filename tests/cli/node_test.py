@@ -76,7 +76,7 @@ def test_register_node_with_default_port_and_name(config, skip_auth):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager. For more info run: skale node info\n'  # noqa
 
 
-def test_init_node(skip_local_only, config):
+def test_init_node(config):
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
@@ -92,7 +92,7 @@ def test_init_node(skip_local_only, config):
         assert result.output == 'Enter data disk mount point: /dev/sdp\nEnter URL of sgx server: localhost\n'  # noqa
 
 
-def test_purge(skip_local_only, config):
+def test_purge(config):
     params = ['--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('core.node.subprocess.run'):
@@ -106,7 +106,7 @@ def test_purge(skip_local_only, config):
         assert result.output == ''  # noqa
 
 
-def test_update_node(skip_local_only, config):
+def test_update_node(config):
     params = ['--env-file', './tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \

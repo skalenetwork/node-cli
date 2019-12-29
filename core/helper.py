@@ -31,14 +31,18 @@ import logging.handlers as py_handlers
 from logging import Formatter
 
 from configs import TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
-    LONG_LINE, HOST_OS, MAC_OS_SYSTEM_NAME, ROUTES
-from configs.cli_logger import LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, LOG_FILEPATH, \
-    DEBUG_LOG_FILEPATH
+    LONG_LINE, ROUTES
+from configs.cli_logger import (LOG_FORMAT, LOG_BACKUP_COUNT,
+                                LOG_FILE_SIZE_BYTES,
+                                LOG_FILEPATH, DEBUG_LOG_FILEPATH)
 from tools.helper import session_config
 
 
 config = session_config()
 logger = logging.getLogger(__name__)
+
+
+HOST = 'localhost:3007'
 
 
 def safe_get_config(config, key):
@@ -54,10 +58,6 @@ def cookies_exists():
     return safe_get_config(config, 'cookies') is not None
 
 
-def host_exists():
-    return safe_get_config(config, 'host') is not None
-
-
 def login_required(f):
     @wraps(f)
     def inner(*args, **kwargs):
@@ -66,20 +66,6 @@ def login_required(f):
         else:
             TEXTS = safe_load_texts()
             print(TEXTS['service']['unauthorized'])
-
-    return inner
-
-
-def local_only(f):
-    @wraps(f)
-    def inner(*args, **kwargs):
-        if host_exists():
-            print('This command couldn\'t be executed on the remote SKALE host.')
-        else:
-            if HOST_OS == MAC_OS_SYSTEM_NAME:
-                print('Sorry, local-only commands couldn\'t be executed on current OS.')
-            else:
-                return f(*args, **kwargs)
 
     return inner
 
@@ -102,19 +88,15 @@ def safe_load_texts():
 
 
 def get_node_creds(config):
-    TEXTS = safe_load_texts()
-    host = safe_get_config(config, 'host')
-    if not host:
-        host = get_localhost_endpoint()
     cookies_text = safe_get_config(config, 'cookies')
-    if not host or not cookies_text:
-        raise Exception(TEXTS['service']['no_node_host'])
+    if not cookies_text:
+        raise Exception('Cookies is not set')
     cookies = pickle.loads(cookies_text)
-    return host, cookies
+    return cookies
 
 
-def construct_url(host, url):
-    return urllib.parse.urljoin(host, url)
+def construct_url(route):
+    return urllib.parse.urljoin(HOST, route)
 
 
 def get_response_data(response):
@@ -125,11 +107,6 @@ def get_response_data(response):
 def clean_cookies(config):
     if safe_get_config(config, 'cookies'):
         del config["cookies"]
-
-
-def clean_host(config):
-    if safe_get_config(config, 'host'):
-        del config['host']
 
 
 def abort_if_false(ctx, param, value):
@@ -167,8 +144,8 @@ def print_err_response(err_response):
 
 
 def get(url_name, params=None):
-    host, cookies = get_node_creds(config)
-    url = construct_url(host, ROUTES[url_name])
+    cookies = get_node_creds(config)
+    url = construct_url(ROUTES[url_name])
 
     response = get_request(url, cookies, params)
     if response is None:
@@ -186,30 +163,9 @@ def get(url_name, params=None):
         return json['data']
 
 
-def download_log_file(name, type, schain):
-    host, cookies = get_node_creds(config)
-    url = construct_url(host, ROUTES['log_download'])
-    params = {
-        'filename': name,
-        'type': type,
-        'schain_name': schain
-    }
-
-    local_filename = f'{schain}_{name}' if schain else name
-    with requests.get(url, params=params, cookies=cookies, stream=True) as r:
-        if r is None:
-            return None
-        if r.status_code != requests.codes.ok:
-            print('Request failed, status code:', r.status_code)
-            return None
-        with open(local_filename, 'wb') as f:
-            shutil.copyfileobj(r.raw, f)
-    return local_filename
-
-
 def download_dump(path, container_name=None):
-    host, cookies = get_node_creds(config)
-    url = construct_url(host, ROUTES['logs_dump'])
+    cookies = get_node_creds(config)
+    url = construct_url(ROUTES['logs_dump'])
     params = {}
     if container_name:
         params['container_name'] = container_name

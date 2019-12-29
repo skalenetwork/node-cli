@@ -32,14 +32,14 @@ def apsent_env_params(params):
 
 def create_node(config, name, p2p_ip, public_ip, port):
     # todo: add name, ips and port checks
-    host, cookies = get_node_creds(config)
+    cookies = get_node_creds(config)
     data = {
         'name': name,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port
     }
-    url = construct_url(host, ROUTES['create_node'])
+    url = construct_url(ROUTES['create_node'])
     try:  # todo: tmp fix!
         response = post_request(url, data, cookies)
     except Exception:

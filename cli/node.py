@@ -27,8 +27,7 @@ from skale.utils.random_names.generator import generate_random_node_name
 from core.core import get_node_info, get_node_about
 from core.node import create_node, init, purge, update
 from core.host import install_host_dependencies
-from core.helper import (abort_if_false, local_only,
-                         login_required, safe_load_texts)
+from core.helper import (abort_if_false, login_required, safe_load_texts)
 from configs import DEFAULT_NODE_BASE_PORT, DOTENV_FILEPATH
 from tools.helper import session_config
 
@@ -145,7 +144,6 @@ def register_node(name, ip, port):
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
-@local_only
 def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, env_file):
     if install_deps:
         install_host_dependencies()
@@ -156,7 +154,6 @@ def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, env_file):
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to uninstall SKALE node?')
-@local_only
 def purge_node():
     purge()
 
@@ -166,7 +163,6 @@ def purge_node():
 #               expose_value=False,
 #               prompt='Are you sure you want to de-register '
 #                      'this node from SKALE Manager?')
-# @local_only
 # def deregister_node():
 #     deregister()
 
@@ -180,6 +176,5 @@ def purge_node():
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
-@local_only
 def update_node(env_file):
     update(env_file)

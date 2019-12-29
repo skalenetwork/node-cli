@@ -20,19 +20,17 @@
 import os
 import logging
 import subprocess
-import requests
 from urllib.parse import urlparse
 
 from core.resources import save_resource_allocation_config
 
-from configs import DEPENDENCIES_SCRIPT, ROUTES, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME, \
+from configs import DEPENDENCIES_SCRIPT, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME, \
     INSTALL_CONVOY_SCRIPT, NODE_DATA_PATH
 from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, CONVOY_HELPER_SCRIPT_FILEPATH, \
     CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH, SGX_SERVER_URL_FILEPATH
 
-from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, \
-    clean_host, get_localhost_endpoint
+from core.helper import safe_load_texts
 from tools.helper import run_cmd, process_template
 
 TEXTS = safe_load_texts()
@@ -47,34 +45,6 @@ def install_host_dependencies():
     }
     subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
     # todo: check execution status
-
-
-def show_host(config):
-    host = safe_get_config(config, 'host')
-    if host:
-        print(f'SKALE node host: {host}')
-    else:
-        print(TEXTS['service']['no_node_host'])
-
-
-def reset_host(config):
-    clean_cookies(config)
-    clean_host(config)
-    logging.info(f'Resetting host to defaut: {get_localhost_endpoint()}')
-    print('Host removed, cookies cleaned.')
-
-
-def test_host(host):
-    url = construct_url(host, ROUTES['test_host'])
-
-    try:
-        response = requests.get(url)
-    except requests.exceptions.ConnectionError:
-        return False  # todo: return different error messages
-    except requests.exceptions.InvalidURL:
-        return False  # todo: return different error messages
-
-    return response.status_code == requests.codes.ok
 
 
 def fix_url(url):

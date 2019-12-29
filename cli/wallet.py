@@ -21,7 +21,7 @@ import logging
 
 import click
 
-from core.helper import local_only, login_required, no_node
+from core.helper import login_required, no_node
 from core.wallet import get_wallet_info, set_wallet_by_pk
 
 from tools.helper import session_config
@@ -56,7 +56,6 @@ def wallet_info(format):
     hide_input=True
 )
 @login_required
-@local_only
 @no_node
 def set_wallet(private_key):
     set_wallet_by_pk(private_key)
