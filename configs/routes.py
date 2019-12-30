@@ -18,5 +18,8 @@ ROUTES = {
     'logs_dump': '/logs/dump',
     'first-bounties': '/first-bounties',
     'last-bounties': '/last-bounties',
-    'all-bounties': '/all-bounties'
+    'all-bounties': '/all-bounties',
+
+    'ssl_status': '/api/ssl/status',
+    'ssl_upload': '/api/ssl/upload'
 }

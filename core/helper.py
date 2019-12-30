@@ -150,9 +150,9 @@ def get_request(url, cookies=None, params=None):
         return None
 
 
-def post_request(url, json, cookies=None):
+def post_request(url, json=None, files=None, cookies=None):
     try:
-        return requests.post(url, json=json, cookies=cookies)
+        return requests.post(url, json=json, files=files, cookies=cookies)
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         print(f'Could not connect to {url}')
@@ -164,6 +164,15 @@ def print_err_response(err_response):
     for error in err_response['errors']:
         print(error)
     print(LONG_LINE)
+
+
+def post(url_name, json=None, files=None):
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, ROUTES[url_name])
+    response = post_request(url, json=json, files=files, cookies=cookies,)
+    if response is None:
+        return None
+    return response.json()
 
 
 def get(url_name, params=None):
@@ -243,3 +252,7 @@ def get_file_handler(log_filepath, log_level):
     f_handler.setLevel(log_level)
 
     return f_handler
+
+
+def read_file(path, mode='rb'):
+    return open(path, mode)

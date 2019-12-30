@@ -136,3 +136,8 @@ def print_log_list(logs):
             format_date(date)
         ])
     print(Formatter().table(headers, rows))
+
+
+def print_dict(title, rows, headers=['Key', 'Value']):
+    print(title)
+    print(Formatter().table(headers, rows))
