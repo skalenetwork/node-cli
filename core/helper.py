@@ -170,7 +170,7 @@ def print_err_response(err_response):
 def post(url_name, json=None, files=None):
     host, cookies = get_node_creds(config)
     url = construct_url(host, ROUTES[url_name])
-    response = post_request(url, json=json, files=files, cookies=cookies,)
+    response = post_request(url, json=json, files=files, cookies=cookies)
     if response is None:
         return None
     return response.json()
