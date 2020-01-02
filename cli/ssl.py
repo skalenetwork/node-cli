@@ -27,6 +27,7 @@ from core.helper import login_required, get, post, safe_load_texts, read_file
 
 TEXTS = safe_load_texts()
 
+
 @click.group()
 def ssl_cli():
     pass
