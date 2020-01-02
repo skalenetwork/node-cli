@@ -62,7 +62,7 @@ setup(
         "skale-py==2.0b0",
         "psutil==5.6.5",
         "pycryptodome==3.9.2",
-        "python-dotenv==0.10.3"
+        "python-dotenv==0.10.3",
         "terminaltables==3.1.0"
     ],
     python_requires='>=3.6,<4',
