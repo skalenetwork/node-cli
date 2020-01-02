@@ -411,7 +411,7 @@ skale validator list
 #### Install development dependencies
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -e .[dev]
 ```
 
 ##### Add flake8 git hook

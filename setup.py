@@ -63,6 +63,7 @@ setup(
         "psutil==5.6.5",
         "pycryptodome==3.9.2",
         "python-dotenv==0.10.3"
+        "terminaltables==3.1.0"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,

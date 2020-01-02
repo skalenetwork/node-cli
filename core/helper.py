@@ -17,11 +17,9 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pickle
-import yaml
 import os
 import re
-import requests
+import pickle
 import shutil
 from functools import wraps
 import urllib.parse
@@ -29,6 +27,9 @@ import urllib.parse
 import logging
 import logging.handlers as py_handlers
 from logging import Formatter
+
+import requests
+import yaml
 
 from configs import TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
     LONG_LINE, HOST_OS, MAC_OS_SYSTEM_NAME, ROUTES
@@ -254,5 +255,13 @@ def get_file_handler(log_filepath, log_level):
     return f_handler
 
 
+def load_ssl_files(key_path, cert_path):
+    return {
+        'ssl_key': (os.path.basename(key_path), read_file(key_path), 'application/octet-stream'),
+        'ssl_cert': (os.path.basename(cert_path), read_file(cert_path), 'application/octet-stream')
+    }
+
+
 def read_file(path, mode='rb'):
-    return open(path, mode)
+    with open(path, mode) as f:
+        return f
