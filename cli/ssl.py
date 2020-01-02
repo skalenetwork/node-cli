@@ -66,7 +66,7 @@ def status():
     prompt="Enter path to the certificate file",
     help='Path to the certificate file'
 )
-@click.option('--force', '-f', is_flag=True, help='Overwrite existing certs and restart ')
+@click.option('--force', '-f', is_flag=True, help='Overwrite existing certificates')
 @login_required
 def upload(key_path, cert_path, force):
     files = {
