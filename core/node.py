@@ -2,7 +2,7 @@
 #
 #   This file is part of skale-node-cli
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
