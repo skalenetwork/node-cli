@@ -40,7 +40,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
     if response is None:
         print(TEXTS['service']['empty_response'])
         return None
-    if response.status_code == requests.codes.created:
+    if response['status']:
         msg = TEXTS['node']['registered']
         logging.info(msg)
         print(msg)
