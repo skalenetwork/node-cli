@@ -7,23 +7,21 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging
-import os
-import requests
-import subprocess
 
+import os
+import logging
+import subprocess
 
 import click
 
-from configs import (INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT,
-                     UPDATE_NODE_PROJECT_SCRIPT,
-                     ROUTES)
-from configs.env import get_params
-from core.helper import (get_node_creds, construct_url,
-                         post_request, print_err_response)
 from core.host import prepare_host, init_data_dir
+from core.helper import post, print_err_response
+from tools.texts import Texts
+from configs import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
+from configs.env import get_params
 
 logger = logging.getLogger(__name__)
+TEXTS = Texts()
 
 
 def apsent_env_params(params):
@@ -31,26 +29,18 @@ def apsent_env_params(params):
 
 
 def create_node(config, name, p2p_ip, public_ip, port):
-    # todo: add name, ips and port checks
-    host, cookies = get_node_creds(config)
-    data = {
+    json_data = {
         'name': name,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port
     }
-    url = construct_url(host, ROUTES['create_node'])
-    try:  # todo: tmp fix!
-        response = post_request(url, data, cookies)
-    except Exception:
-        response = post_request(url, data, cookies)
-
+    response = post('create_node', json=json_data)
     if response is None:
-        print('Your request returned nothing. Something went wrong. Try again')
+        print(TEXTS['service']['empty_response'])
         return None
-    if response.status_code == requests.codes.created:
-        msg = 'Node registered in SKALE manager. ' \
-              'For more info run: skale node info'
+    if response['status']:
+        msg = TEXTS['node']['registered']
         logging.info(msg)
         print(msg)
     else:
