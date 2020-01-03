@@ -25,7 +25,7 @@ import click
 from skale.utils.random_names.generator import generate_random_node_name
 
 from core.core import get_node_info, get_node_about
-from core.node import create_node, init, purge, update
+from core.node import register_node as register, init, purge, update
 from core.host import install_host_dependencies
 from core.helper import (abort_if_false, local_only,
                          login_required, safe_load_texts)
@@ -109,36 +109,24 @@ def node_about(format):
     '--port', '-p',
     default=DEFAULT_NODE_BASE_PORT,
     type=int,
-    # prompt="Enter node base port",
     help='Base port for node sChains'
 )
 @login_required
 def register_node(name, ip, port):
     config = session_config()
-    create_node(config, name, ip, ip, port)
+    register(config, name, ip, ip, port)
 
 
 @node.command('init', help="Initialize SKALE node")
-@click.option('--install-deps', is_flag=True)
-@click.option(
-    '--disk-mountpoint',
-    prompt="Enter data disk mount point",
-    help='Mount point of the disk to be used '
-         'for storing sChains data (required)'
-)
-@click.option(
-    '--test-mode',
-    is_flag=True
-)
-@click.option(
-    '--sgx-url',
-    prompt="Enter URL of sgx server",
-    help='URL of sgx server endpoint'
-)
 @click.option(
     '--install-deps',
     is_flag=True,
     help='Install host dependencies'
+)
+@click.option(
+    '--dry-run',
+    is_flag=True,
+    help="Dry run node init (don't setup containers)"
 )
 @click.option(
     '--env-file',
@@ -146,10 +134,10 @@ def register_node(name, ip, port):
     help='Path to .env file with additional config'
 )
 @local_only
-def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, env_file):
+def init_node(install_deps, dry_run, env_file):
     if install_deps:
         install_host_dependencies()
-    init(disk_mountpoint, test_mode, sgx_url, env_file)
+    init(env_file, dry_run)
 
 
 @node.command('purge', help="Uninstall SKALE node software from the machine")

@@ -11,10 +11,11 @@ a = Analysis(
     pathex=['.'],
     binaries=[],
     datas=[
-       ("./text.yml", "data"), 
+       ("./text.yml", "data"),
        ("./datafiles/dependencies.sh", "data/datafiles"),
        ("./datafiles/install.sh", "data/datafiles"),
        ("./datafiles/update.sh", "data/datafiles"),
+       ("./datafiles/helper.sh", "data/datafiles"),
     ],
     hiddenimports=[],
     hookspath=[],

@@ -15,11 +15,13 @@ import subprocess
 
 import click
 
-from configs import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, ROUTES
+from configs import (HOME_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
+                     UPDATE_SCRIPT, ROUTES, DATAFILES_FOLDER)
+
 from configs.env import get_params
 from core.helper import (get_node_creds, construct_url,
                          post_request, print_err_response)
-from core.host import prepare_host, init_data_dir
+from core.host import prepare_host
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ def apsent_env_params(params):
     return filter(lambda key: not params[key], params)
 
 
-def create_node(config, name, p2p_ip, public_ip, port):
+def register_node(config, name, p2p_ip, public_ip, port):
     # todo: add name, ips and port checks
     host, cookies = get_node_creds(config)
     data = {
@@ -56,14 +58,9 @@ def create_node(config, name, p2p_ip, public_ip, port):
         print_err_response(response.json())
 
 
-def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
-    params_from_file = get_params(env_filepath)
+def init(env_filepath, dry_run=False):
+    env_params = get_params(env_filepath)
 
-    env_params = {
-        **params_from_file,
-        'DISK_MOUNTPOINT': disk_mountpoint,
-        'SGX_SERVER_URL': sgx_server_url,
-    }
     if not env_params.get('DB_ROOT_PASSWORD'):
         env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
@@ -75,13 +72,24 @@ def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
                    f"all services are working",
                    err=True)
         return
-    # todo: extract only needed parameters
-    env_params.update({
-        **os.environ
+    prepare_host(
+        env_filepath,
+        env_params['DISK_MOUNTPOINT'],
+        env_params['SGX_SERVER_URL']
+    )
+    dry_run = 'yes' if dry_run else ''
+    res = subprocess.run(['bash', INSTALL_SCRIPT], env={
+        'HOME': HOME_DIR,
+        'DATAFILES_FOLDER': DATAFILES_FOLDER,
+        'GIT_BRANCH': env_params['GIT_BRANCH'],
+        'GITHUB_TOKEN': env_params['GITHUB_TOKEN'],
+        'DRY_RUN': dry_run,
+        'DISK_MOUNTPOINT': env_params['DISK_MOUNTPOINT'],
+        'MANAGER_CONTRACTS_INFO_URL': env_params['MANAGER_CONTRACTS_INFO_URL'],
+        'IMA_CONTRACTS_INFO_URL': env_params['IMA_CONTRACTS_INFO_URL'],
+        'DOCKER_USERNAME': env_params['DOCKER_USERNAME'],
+        'DOCKER_PASSWORD': env_params['DOCKER_PASSWORD']
     })
-    init_data_dir()
-    prepare_host(test_mode, disk_mountpoint, sgx_server_url)
-    res = subprocess.run(['bash', INSTALL_SCRIPT], env=env_params)
     logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
 

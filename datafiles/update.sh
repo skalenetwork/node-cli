@@ -21,7 +21,6 @@ cp -r $CONFIG_DIR /tmp/.skale
 rm -rf $CONFIG_DIR
 
 mkdir -p $CONFIG_DIR
-copy_node_configs
 
 download_contracts
 

@@ -21,12 +21,15 @@ import os
 import logging
 import subprocess
 import requests
+from shutil import copyfile
 from urllib.parse import urlparse
 
 from core.resources import save_resource_allocation_config
 
 from configs import (DEPENDENCIES_SCRIPT, ROUTES, SKALE_NODE_UI_PORT,
-                     DEFAULT_URL_SCHEME, NODE_DATA_PATH)
+                     DEFAULT_URL_SCHEME, NODE_DATA_PATH,
+                     SKALE_DIR, CONTAINERS_CONFIG_PATH, CONTRACTS_PATH,
+                     NODE_CERTS_PATH, SGX_CERTS_PATH, SCHAINS_DATA_PATH)
 from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
@@ -88,11 +91,21 @@ def fix_url(url):
         return False
 
 
-def prepare_host(test_mode, disk_mountpoint, sgx_server_url):
+def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
+    make_dirs()
+    save_env_params(env_filepath)
     save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
     save_resource_allocation_config()
+
+
+def make_dirs():
+    for dir_path in (
+        SKALE_DIR, NODE_DATA_PATH, CONTAINERS_CONFIG_PATH,
+        CONTRACTS_PATH, NODE_CERTS_PATH, SGX_CERTS_PATH, SCHAINS_DATA_PATH
+    ):
+        safe_mk_dirs(dir_path)
 
 
 def save_disk_mountpoint(disk_mountpoint):
@@ -105,6 +118,10 @@ def save_sgx_server_url(sgx_server_url):
     logger.info(f'Saving disk_mountpoint option to {SGX_SERVER_URL_FILEPATH}')
     with open(SGX_SERVER_URL_FILEPATH, 'w') as f:
         f.write(sgx_server_url)
+
+
+def save_env_params(env_filepath):
+    copyfile(env_filepath, os.path.join(SKALE_DIR, '.env'))
 
 
 def init_logs_dir():

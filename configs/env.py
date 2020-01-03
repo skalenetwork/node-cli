@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from configs import DOTENV_FILEPATH
 
 
-env_params = {
+base_params = {
     'IMA_ENDPOINT': '',
     'GIT_BRANCH': '',
     'GITHUB_TOKEN': '',
@@ -17,13 +17,16 @@ env_params = {
     'MANAGER_CONTRACTS_INFO_URL': '',
     'IMA_CONTRACTS_INFO_URL': '',
     'FILEBEAT_HOST': '',
+    'DISK_MOUNTPOINT': '',
+    'SGX_SERVER_URL': '',
 }
 
 
 def get_params(env_filepath=DOTENV_FILEPATH):
     load_dotenv(dotenv_path=env_filepath)
-    for option_name in env_params:
-        if option_name in os.environ:
-            env_params[option_name] = str(os.getenv(option_name))
-
-    return env_params
+    params = base_params.copy()
+    for option_name in params:
+        env_param = os.getenv(option_name)
+        if env_param is not None:
+            params[option_name] = str(env_param)
+    return params
