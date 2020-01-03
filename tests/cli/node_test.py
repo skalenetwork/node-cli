@@ -33,7 +33,7 @@ def test_register_node(skip_auth, config):
         register_node,
         ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080'])
     assert result.exit_code == 0
-    assert result.output == 'Node registered in SKALE manager. For more info run: skale node info\n'
+    assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'
 
     result = run_command_mock(
         'core.node.post',
@@ -41,7 +41,7 @@ def test_register_node(skip_auth, config):
         register_node,
         ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80'])
     assert result.exit_code == 0
-    assert result.output == 'Your request returned nothing. Something went wrong. Try again\n'
+    assert result.output == 'Your request returned nothing. Something went wrong.\n'
 
     resp_mock = response_mock(requests.codes.ok,
                               json_data={'errors': ['Strange error']})
@@ -62,7 +62,7 @@ def test_register_node_with_prompted_ip(config, skip_auth):
         register_node,
         ['--name', 'test-node', '--port', '8080'], input='0.0.0.0\n')
     assert result.exit_code == 0
-    assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager. For more info run: skale node info\n'  # noqa
+    assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
 def test_register_node_with_default_port_and_name(config, skip_auth):
@@ -73,7 +73,7 @@ def test_register_node_with_default_port_and_name(config, skip_auth):
         register_node,
         input='0.0.0.0\n')
     assert result.exit_code == 0
-    assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager. For more info run: skale node info\n'  # noqa
+    assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
 def test_init_node(skip_local_only, config):
