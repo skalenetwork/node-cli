@@ -33,7 +33,8 @@ def test_register_node(skip_auth, config):
         register_node,
         ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080'])
     assert result.exit_code == 0
-    assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'
+    assert result.output == 'Node registered in SKALE manager.\n\
+        For more info run < skale node info >\n'
 
     result = run_command_mock(
         'core.node.post',
