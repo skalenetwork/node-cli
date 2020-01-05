@@ -30,7 +30,7 @@ NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONTAINERS_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 
-LOG_PATH = os.path.join(SKALE_DIR, 'log')
+LOG_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'log')
 NODE_CERTS_PATH = os.path.join(SKALE_DIR, 'ssl')
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
