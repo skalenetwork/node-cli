@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import os
 import re
 import pickle
@@ -265,3 +266,18 @@ def load_ssl_files(key_path, cert_path):
 def read_file(path, mode='rb'):
     with open(path, mode) as f:
         return f
+
+
+def upload_certs(key_path, cert_path, force):
+    with open(key_path, 'rb') as key_file, open(cert_path, 'rb') as cert_file:
+        files_data = {
+            'ssl_key': (os.path.basename(key_path), key_file,
+                        'application/octet-stream'),
+            'ssl_cert': (os.path.basename(cert_path), cert_file,
+                         'application/octet-stream')
+        }
+        files_data['json'] = (
+            None, json.dumps({'force': force}),
+            'application/json'
+        )
+        return post('ssl_upload', files=files_data)
