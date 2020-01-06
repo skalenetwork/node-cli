@@ -19,5 +19,5 @@ ssl:
     No SSL certificates on the node. 
     Run < skale ssl upload > to add new certificates.
   uploaded: |-
-    Certificates are sucsesfully uploaded. 
+    Certificates are successfully uploaded.
     You can check status by running < skale ssl status >

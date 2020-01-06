@@ -17,11 +17,10 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 import click
 from terminaltables import SingleTable
 
-from core.helper import login_required, get, post, safe_load_texts, load_ssl_files
+from core.helper import login_required, get, safe_load_texts, upload_certs
 
 
 TEXTS = safe_load_texts()
@@ -69,9 +68,7 @@ def status():
 @click.option('--force', '-f', is_flag=True, help='Overwrite existing certificates')
 @login_required
 def upload(key_path, cert_path, force):
-    files = load_ssl_files(key_path, cert_path)
-    files['json'] = (None, json.dumps({'force': force}), 'application/json')
-    response = post('ssl_upload', files=files)
+    response = upload_certs(key_path, cert_path, force)
     if not response:
         print('Someting went wrong, sorry')
         return
