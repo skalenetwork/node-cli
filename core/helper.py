@@ -42,7 +42,7 @@ config = session_config()
 logger = logging.getLogger(__name__)
 
 
-HOST = 'localhost:3007'
+HOST = 'http://localhost:3007'
 
 
 def safe_get_config(config, key):
