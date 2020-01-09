@@ -306,6 +306,14 @@ skale schains ls
 skale schains config SCHAIN_NAME
 ```
 
+#### sChains DKG statuses
+
+DKG statuses for each sChain on the node
+
+```bash
+skale schains dkg
+```
+
 ### Containers commands
 
 Node containers commands
