@@ -23,7 +23,7 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import get_schain_config, ls
+from cli.schains import get_schain_config, ls, dkg
 
 
 def test_ls(skip_auth, config):
@@ -51,6 +51,28 @@ def test_ls(skip_auth, config):
     result = run_command_mock('core.helper.get_request', resp_mock, ls)
     assert result.exit_code == 0
     assert result.output == '    Name       Owner   Size   Lifetime        Created At              Deposit      \n-----------------------------------------------------------------------------------\ntest_schain1   0x123   0      5          Oct 03 2019 16:09:45   1000000000000000000\ncrazy_cats1    0x321   0      5          Oct 07 2019 18:30:10   1000000000000000000\n'  # noqa
+
+
+def test_dkg():
+    os.environ['TZ'] = 'Europe/London'
+    time.tzset()
+    response_data = [
+        {
+            'name': 'melodic-aldhibah',
+            'added_at': 1578497212.645233,
+            'dkg_status': 2,
+            'dkg_status_name': 'IN_PROGRESS'
+        }
+    ]
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'data': response_data, 'res': 1}
+    )
+    result = run_command_mock('core.helper.get_request', resp_mock, dkg)
+
+    print(result)
+    assert result.exit_code == 0
+    assert result.output == '  sChain Name      DKG Status          Added At      \n-----------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52\n'  # noqa
 
 
 def test_get_schain_config():

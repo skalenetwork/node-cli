@@ -47,6 +47,8 @@ def ls():
 @login_required
 def dkg():
     dkg_statuses = get('dkg_statuses')
+    if not dkg_statuses:
+        return
     print_dkg_statuses(dkg_statuses)
 
 
