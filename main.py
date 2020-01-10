@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -31,6 +31,7 @@ from cli.node import node_cli
 from cli.schains import schains_cli
 from cli.user import user_cli
 from cli.wallet import wallet_cli
+from cli.ssl import ssl_cli
 
 from core.helper import (safe_load_texts, init_default_logger)
 from configs import LONG_LINE
@@ -117,7 +118,7 @@ if __name__ == '__main__':
 
     cmd_collection = click.CommandCollection(
         sources=[cli, schains_cli, containers_cli, logs_cli,
-                 node_cli, metrics_cli, user_cli, wallet_cli])
+                 node_cli, metrics_cli, user_cli, wallet_cli, ssl_cli])
     try:
         cmd_collection()
     except Exception as err:

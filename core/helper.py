@@ -12,16 +12,15 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pickle
-import yaml
+import json
 import os
 import re
-import requests
+import pickle
 import shutil
 from functools import wraps
 import urllib.parse
@@ -29,6 +28,9 @@ import urllib.parse
 import logging
 import logging.handlers as py_handlers
 from logging import Formatter
+
+import requests
+import yaml
 
 from configs import TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
     LONG_LINE, HOST_OS, MAC_OS_SYSTEM_NAME, ROUTES
@@ -150,9 +152,9 @@ def get_request(url, cookies=None, params=None):
         return None
 
 
-def post_request(url, json, cookies=None):
+def post_request(url, json=None, files=None, cookies=None):
     try:
-        return requests.post(url, json=json, cookies=cookies)
+        return requests.post(url, json=json, files=files, cookies=cookies)
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         print(f'Could not connect to {url}')
@@ -164,6 +166,15 @@ def print_err_response(err_response):
     for error in err_response['errors']:
         print(error)
     print(LONG_LINE)
+
+
+def post(url_name, json=None, files=None):
+    host, cookies = get_node_creds(config)
+    url = construct_url(host, ROUTES[url_name])
+    response = post_request(url, json=json, files=files, cookies=cookies)
+    if response is None:
+        return None
+    return response.json()
 
 
 def get(url_name, params=None):
@@ -243,3 +254,30 @@ def get_file_handler(log_filepath, log_level):
     f_handler.setLevel(log_level)
 
     return f_handler
+
+
+def load_ssl_files(key_path, cert_path):
+    return {
+        'ssl_key': (os.path.basename(key_path), read_file(key_path), 'application/octet-stream'),
+        'ssl_cert': (os.path.basename(cert_path), read_file(cert_path), 'application/octet-stream')
+    }
+
+
+def read_file(path, mode='rb'):
+    with open(path, mode) as f:
+        return f
+
+
+def upload_certs(key_path, cert_path, force):
+    with open(key_path, 'rb') as key_file, open(cert_path, 'rb') as cert_file:
+        files_data = {
+            'ssl_key': (os.path.basename(key_path), key_file,
+                        'application/octet-stream'),
+            'ssl_cert': (os.path.basename(cert_path), cert_file,
+                         'application/octet-stream')
+        }
+        files_data['json'] = (
+            None, json.dumps({'force': force}),
+            'application/json'
+        )
+        return post('ssl_upload', files=files_data)

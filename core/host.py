@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -94,8 +94,6 @@ def prepare_host(test_mode, disk_mountpoint, sgx_server_url):
     save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
     save_resource_allocation_config()
-    if not test_mode:
-        init_convoy(disk_mountpoint)
 
 
 def init_convoy(disk_mountpoint):

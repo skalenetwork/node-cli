@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -134,6 +134,11 @@ def register_node(name, ip, port):
     '--sgx-url',
     prompt="Enter URL of sgx server",
     help='URL of sgx server endpoint'
+)
+@click.option(
+    '--install-deps',
+    is_flag=True,
+    help='Install host dependencies'
 )
 @click.option(
     '--env-file',
