@@ -42,3 +42,5 @@ def config(monkeypatch):
     cli_config['host'] = 'https://test.com'
     cli_config['cookies'] = b'\x80\x03}q\x00X\n\x00\x00\x00cookie_keyq\x01X\x0c\x00\x00\x00cookie_valueq\x02s.'  # noqa
     cli_config.save()
+    yield
+    cli_config.clear()

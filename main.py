@@ -21,6 +21,7 @@ import click
 import sys
 import logging
 import inspect
+import traceback
 
 from cli import __version__
 from cli.containers import containers_cli
@@ -123,4 +124,5 @@ if __name__ == '__main__':
         cmd_collection()
     except Exception as err:
         print(f'Command execution falied with {err}. Recheck your inputs')
+        traceback.print_exc()
         logger.error(err)
