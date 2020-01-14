@@ -96,6 +96,23 @@ def print_schains(schains):
     print(Formatter().table(headers, rows))
 
 
+def print_dkg_statuses(statuses):
+    headers = [
+        'sChain Name',
+        'DKG Status',
+        'Added At'
+    ]
+    rows = []
+    for status in statuses:
+        date = datetime.datetime.fromtimestamp(status['added_at'])
+        rows.append([
+            status['name'],
+            status['dkg_status_name'],
+            format_date(date),
+        ])
+    print(Formatter().table(headers, rows))
+
+
 def print_metrics(metrics):
     headers = [
         'Date',

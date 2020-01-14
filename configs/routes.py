@@ -21,5 +21,9 @@ ROUTES = {
     'all-bounties': '/all-bounties',
 
     'ssl_status': '/api/ssl/status',
-    'ssl_upload': '/api/ssl/upload'
+    'ssl_upload': '/api/ssl/upload',
+
+    'dkg_statuses': '/api/dkg/statuses',
+
+    'sgx_status': '/api/sgx/status'
 }
