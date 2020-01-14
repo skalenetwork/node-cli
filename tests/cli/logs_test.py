@@ -17,15 +17,31 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 import os
-from configs import SKALE_DIR
 
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+import mock
+import requests
 
-LOG_FILE_SIZE_MB = 300
-LOG_FILE_SIZE_BYTES = LOG_FILE_SIZE_MB * 1000000
+from io import BytesIO
+from tests.helper import response_mock, run_command
+from cli.logs import dump
 
-LOG_BACKUP_COUNT = 1
-LOG_DATA_PATH = os.path.join(SKALE_DIR, '.skale-cli-log')
-LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'node-cli.log')
-DEBUG_LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'debug-node-cli.log')
+
+def test_dump(config, skip_auth):
+    archive_filename = 'skale-logs-dump-2019-10-08-17:40:00.tar.gz'
+    resp_mock = response_mock(
+        requests.codes.ok,
+        headers={
+            'Content-Disposition': f'attachment; filename="{archive_filename}"'
+        },
+        raw=BytesIO()
+    )
+    with mock.patch('requests.get') as req_get_mock:
+        req_get_mock.return_value.__enter__.return_value = resp_mock
+        result = run_command(dump, ['.'])
+        assert result.exit_code == 0
+        assert result.output == f'File {archive_filename} downloaded\n'
+
+    if os.path.exists(archive_filename):
+        os.remove(archive_filename)
