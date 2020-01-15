@@ -32,8 +32,7 @@ from logging import Formatter
 import requests
 import yaml
 
-from configs import TEXT_FILE, SKALE_NODE_UI_LOCALHOST, SKALE_NODE_UI_PORT, \
-    LONG_LINE, ROUTES
+from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, LONG_LINE, ROUTES
 from configs.cli_logger import (LOG_FORMAT, LOG_BACKUP_COUNT,
                                 LOG_FILE_SIZE_BYTES,
                                 LOG_FILEPATH, DEBUG_LOG_FILEPATH)
@@ -44,7 +43,7 @@ config = session_config()
 logger = logging.getLogger(__name__)
 
 
-HOST = 'http://localhost:3007'
+HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
 
 
 def safe_get_config(config, key):
@@ -114,10 +113,6 @@ def clean_cookies(config):
 def abort_if_false(ctx, param, value):
     if not value:
         ctx.abort()
-
-
-def get_localhost_endpoint():
-    return f'{SKALE_NODE_UI_LOCALHOST}:{SKALE_NODE_UI_PORT}'
 
 
 def get_request(url, cookies=None, params=None):

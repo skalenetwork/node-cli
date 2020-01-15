@@ -24,7 +24,7 @@ from urllib.parse import urlparse
 
 from core.resources import save_resource_allocation_config
 
-from configs import DEPENDENCIES_SCRIPT, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME, \
+from configs import DEPENDENCIES_SCRIPT, ADMIN_PORT, DEFAULT_URL_SCHEME, \
     INSTALL_CONVOY_SCRIPT, NODE_DATA_PATH
 from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, CONVOY_HELPER_SCRIPT_FILEPATH, \
@@ -52,8 +52,8 @@ def fix_url(url):
         result = urlparse(url)
         if not result.scheme:
             url = f'{DEFAULT_URL_SCHEME}{url}'
-        if not url.endswith(str(SKALE_NODE_UI_PORT)):
-            return f'{url}:{SKALE_NODE_UI_PORT}'
+        if not url.endswith(str(ADMIN_PORT)):
+            return f'{url}:{ADMIN_PORT}'
         return url
     except ValueError:
         return False
