@@ -32,11 +32,6 @@ def skip_auth(monkeypatch):
 
 
 @pytest.fixture
-def skip_local_only(monkeypatch):
-    monkeypatch.setattr('core.helper.host_exists', Mock(return_value=False))
-
-
-@pytest.fixture
 def config(monkeypatch):
     cli_config = ReadSettings(CONFIG_FILEPATH)
     cli_config['host'] = 'https://test.com'

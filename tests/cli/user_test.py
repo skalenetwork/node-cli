@@ -26,7 +26,7 @@ from cli.user import login, logout, register, user_token
 from tests.helper import run_command, run_command_mock
 
 
-def test_user_token(skip_local_only):
+def test_user_token():
     test_token = '231test-token'
     with mock.patch('core.user.get_registration_token_data',
                     new=MagicMock(return_value={'token': test_token})):

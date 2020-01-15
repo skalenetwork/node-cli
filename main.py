@@ -37,10 +37,7 @@ from cli.sgx import sgx_cli
 
 from core.helper import (safe_load_texts, init_default_logger)
 from configs import LONG_LINE
-from core.host import (test_host, show_host, fix_url, reset_host,
-                       init_logs_dir)
-from tools.helper import session_config
-
+from core.host import init_logs_dir
 
 TEXTS = safe_load_texts()
 
@@ -73,32 +70,6 @@ def info():
             Git branch: {BRANCH}
             {LONG_LINE}
         '''))
-
-
-@cli.command('attach', help="Attach to remote SKALE node")
-@click.argument('host')
-@click.option('--skip-check', is_flag=True)
-def attach(host, skip_check):
-    config = session_config()
-    host = fix_url(host)
-    if not host:
-        return
-    if test_host(host) or skip_check:
-        config['host'] = host
-        logging.info(f'Attached to {host}')
-        print(f'SKALE host: {host}')
-    else:
-        print(TEXTS['service']['node_host_not_valid'])
-
-
-@cli.command('host', help="Get SKALE node endpoint")
-@click.option('--reset', is_flag=True)
-def host(reset):
-    config = session_config()
-    if reset:
-        reset_host(config)
-        return
-    show_host(config)
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):

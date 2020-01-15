@@ -36,8 +36,8 @@ def set_wallet_by_pk(private_key):
 
 
 def get_wallet_info(config, format):
-    host, cookies = get_node_creds(config)
-    url = construct_url(host, ROUTES['wallet_info'])
+    cookies = get_node_creds(config)
+    url = construct_url(ROUTES['wallet_info'])
 
     response = get_request(url, cookies)
     if response is None:
