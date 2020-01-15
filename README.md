@@ -15,8 +15,10 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     2.4 [Wallet](#wallet-commands)  
     2.5 [sChains](#schain-commands)  
     2.6 [Containers](#containers-commands)  
-    2.6 [SSL](#ssl-commands)  
-    2.7 [Logs](#logs-commands)  
+    2.7 [SGX](#sgx-commands)  
+    2.8 [SSL](#ssl-commands)  
+    2.9 [Logs](#logs-commands)  
+    
 3.  [Development](#development)
 
 ## Installation
@@ -306,6 +308,14 @@ skale schains ls
 skale schains config SCHAIN_NAME
 ```
 
+#### sChains DKG statuses
+
+DKG statuses for each sChain on the node
+
+```bash
+skale schains dkg
+```
+
 ### Containers commands
 
 Node containers commands
@@ -335,6 +345,27 @@ skale containers schains
 Options:
 
 - `-a/--all` - list all sChain containers (by default - only running)
+
+### SGX commands
+
+> Prefix: `skale sgx`
+
+#### Status
+
+Status of the SGX server. Returns SGX server URL and connection status.
+
+```bash
+$ skale sgx status
+
+SGX server status:
+┌────────────────┬────────────────────────────┐
+│ SGX server URL │ https://0.0.0.0:1026/      │
+├────────────────┼────────────────────────────┤
+│ Status         │ CONNECTED                  │
+└────────────────┴────────────────────────────┘
+```
+
+Admin API URL: [GET] `/api/ssl/sgx`
 
 ### SSL commands
 

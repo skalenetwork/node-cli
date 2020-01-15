@@ -32,13 +32,10 @@ def skip_auth(monkeypatch):
 
 
 @pytest.fixture
-def skip_local_only(monkeypatch):
-    monkeypatch.setattr('core.helper.host_exists', Mock(return_value=False))
-
-
-@pytest.fixture
 def config(monkeypatch):
     cli_config = ReadSettings(CONFIG_FILEPATH)
     cli_config['host'] = 'https://test.com'
     cli_config['cookies'] = b'\x80\x03}q\x00X\n\x00\x00\x00cookie_keyq\x01X\x0c\x00\x00\x00cookie_valueq\x02s.'  # noqa
     cli_config.save()
+    yield
+    cli_config.clear()

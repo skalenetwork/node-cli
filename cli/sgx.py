@@ -12,25 +12,41 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU Affero General Public License for more details.
+#   GNU General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from configs import ROUTES
-from core.helper import get_node_creds, construct_url, get_request
+import click
+from terminaltables import SingleTable
+
+from core.helper import login_required, get, safe_load_texts
 
 
-def get_validators_info(config, format):
-    cookies = get_node_creds(config)
-    url = construct_url(ROUTES['validators_info'])
+TEXTS = safe_load_texts()
 
-    response = get_request(url, cookies)
-    if response is None:
-        return None
 
-    json = response.json()
-    data = json['data']
+@click.group()
+def sgx_cli():
+    pass
 
-    if format == 'json':
-        print(data)
+
+@sgx_cli.group('sgx', help="SGX commands")
+def sgx():
+    pass
+
+
+@sgx.command(help="Status of the SGX server")
+@login_required
+def status():
+    result = get('sgx_status')
+    if not result:
+        return
+    else:
+        table_data = [
+            ['SGX server URL', result['sgx_server_url']],
+            ['Status', result['status_name']]
+        ]
+        table = SingleTable(table_data)
+        print('SGX server status:')
+        print(table.table)

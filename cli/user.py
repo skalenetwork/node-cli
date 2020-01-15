@@ -21,8 +21,6 @@ import logging
 
 import click
 
-from core.helper import local_only
-
 from core.user import (register_user, login_user, logout_user,
                        show_registration_token)
 from tools.helper import session_config
@@ -45,7 +43,6 @@ def user():
               help="Show registration token if avaliable. "
                    "Server-only command.")
 @click.option('--short', is_flag=True)
-@local_only
 def user_token(short):
     show_registration_token(short)
 

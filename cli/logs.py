@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from core.helper import (login_required, local_only, download_dump)
+from core.helper import download_dump, login_required
 from configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
 
 
@@ -34,7 +34,6 @@ def logs():
 
 @logs.command(help="Fetch the logs of the node-cli")
 @click.option('--debug', is_flag=True)
-@local_only
 def cli(debug):
     filepath = DEBUG_LOG_FILEPATH if debug else LOG_FILEPATH
     with open(filepath, 'r') as fin:
