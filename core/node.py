@@ -39,12 +39,16 @@ def create_node(config, name, p2p_ip, public_ip, port):
     if response is None:
         print(TEXTS['service']['empty_response'])
         return None
-    if response['status']:
+    if response.get('errors') is not None:
+        print(f'Node registration failed with error: {response["errors"]}')
+        logger.error(f'Registration error {response["errors"]}')
+        return
+    if response['res']:
         msg = TEXTS['node']['registered']
-        logging.info(msg)
+        logger.info(msg)
         print(msg)
     else:
-        logging.info(response.json())
+        logger.info(response.json())
         print_err_response(response.json())
 
 
@@ -74,7 +78,7 @@ def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
     init_data_dir()
     prepare_host(test_mode, disk_mountpoint, sgx_server_url)
     res = subprocess.run(['bash', INSTALL_SCRIPT], env=env_params)
-    logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
+    logger.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
 
 
@@ -113,14 +117,14 @@ def update(env_filepath):
         ['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT],
         env=env_params
     )
-    logging.info(
+    logger.info(
         f'Update node project script result: {res_update_project.stderr}, \
         {res_update_project.stdout}')
     res_update_node = subprocess.run(
         ['sudo', '-E', 'bash', UPDATE_SCRIPT],
         env=env_params,
     )
-    logging.info(
+    logger.info(
         f'Update node script result: '
         f'{res_update_node.stderr}, {res_update_node.stdout}')
     # todo: check execution result
