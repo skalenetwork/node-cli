@@ -48,8 +48,7 @@ def create_node(config, name, p2p_ip, public_ip, port):
         logger.info(msg)
         print(msg)
     else:
-        logger.info(response.json())
-        print_err_response(response.json())
+        logger.info('Bad response. Something went wrong. Try again')
 
 
 def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
