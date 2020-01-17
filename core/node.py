@@ -15,7 +15,7 @@ import subprocess
 import click
 
 from core.host import prepare_host, init_data_dir
-from core.helper import post, print_err_response
+from core.helper import post
 from tools.texts import Texts
 from configs import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
 from configs.env import get_params
