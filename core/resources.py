@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -27,7 +27,7 @@ from tools.schain_types import SchainTypes
 from tools.helper import write_json, read_json, run_cmd, format_output
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
     TINY_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
-    DISK_MOUNTPOINT_FILEPATH
+    DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ def get_disk_alloc(disk_path):
         raise Exception("Couldn't get disk size, check disk mountpoint option.")
     # if check_is_partition(disk_path):
     #    raise Exception("You provided partition path instead of disk mountpoint.")
-    free_space = disk_size * DISK_FACTOR
+    free_space = int(disk_size * DISK_FACTOR) // VOLUME_CHUNK * VOLUME_CHUNK
     return ResourceAlloc(free_space)
 
 

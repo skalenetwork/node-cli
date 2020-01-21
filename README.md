@@ -15,7 +15,10 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     2.4 [Wallet](#wallet-commands)  
     2.5 [sChains](#schain-commands)  
     2.6 [Containers](#containers-commands)  
-    2.7 [Logs](#logs-commands)  
+    2.7 [SGX](#sgx-commands)  
+    2.8 [SSL](#ssl-commands)  
+    2.9 [Logs](#logs-commands)  
+    
 3.  [Development](#development)
 
 ## Installation
@@ -48,17 +51,17 @@ skale --help
 
 ### Top level commands
 
-##### info
+#### Info
 
-Prints build info 
+Print build info
 
 ```bash
 skale info
 ```
 
-##### version
+#### Version
 
-Prints version of the `skale-node-cli` tool
+Print version of the `skale-node-cli` tool
 
 ```bash
 skale version
@@ -68,9 +71,9 @@ Options:
 
 -   `--short` - prints version only, without additional text.
 
-##### host
+#### Host
 
-Prints current SKALE node host
+Print current SKALE node host
 
 ```bash
 skale host
@@ -78,9 +81,9 @@ skale host
 
 Options:
 
--   `--reset` - Reset SKALE node host and remove saved cookies
+- `--reset` - Reset SKALE node host and remove saved cookies
 
-##### Attach
+#### Attach
 
 Attach `skale-node-cli` to the remote node
 
@@ -96,7 +99,7 @@ Possible `REMOTE_NODE_URL` formats:
 
 ### User commands
 
-##### token
+#### Token
 
 Show user registration token
 
@@ -106,7 +109,7 @@ Show user registration token
 skale user token
 ```
 
-##### register
+#### Register
 
 Interactive:
 
@@ -120,7 +123,7 @@ Non-interactive:
 skale user register -u/--username USERNAME -p/--password PASSWORD -t/--token TOKEN
 ```
 
-##### login
+#### Login
 
 Interactive:
 
@@ -134,7 +137,7 @@ Non-interactive:
 skale user login -u/--username user -p/--password pass
 ```
 
-##### logout
+#### Logout
 
 ```bash
 skale user logout
@@ -144,7 +147,7 @@ skale user logout
 
 > Prefix: `skale node`
 
-##### node init
+#### node init
 
 Init SKALE node on current machine
 
@@ -178,7 +181,7 @@ You should also specify the following options through environment variables or .
 - `DB_PORT` - Port for of node internal database (default is `3306`) - _optional_
 
 
-##### node register
+#### Node Register
 
 Register SKALE node on SKALE Manager contracts
 
@@ -197,11 +200,11 @@ Optional arguments:
 -   `--name` - SKALE node name
 -   `--port` - base port for node sChains (default: `10000`)
 
-##### node info
+#### Node info
 
 Get base info about SKALE node
 
--   Login required
+-  Login required
 
 ```bash
 skale node info
@@ -211,7 +214,7 @@ Options:
 
 `-f/--format json/text` - optional
 
-##### node purge
+#### Node purge
 
 Remove SKALE node software from the machine.
 
@@ -225,7 +228,7 @@ Options:
 
 -   `--yes` - remove without additional confirmation
 
-##### node update
+#### Node update
 
 Update SKALE node on current machine
 
@@ -257,14 +260,13 @@ You should specify the following options through environment variables or .env f
     (equal to user password by default) - _optional_   
 - `DB_PORT` - Port for of node internal database (default is `3306`) - _optional_
 
-
 ### Wallet commands
 
 > Prefix: `skale wallet`
 
 Commands related to Ethereum wallet associated with SKALE node
 
-##### wallet info
+#### Wallet info
 
 -   Login required
 
@@ -276,7 +278,7 @@ Options:
 
 `-f/--format json/text` - optional
 
-##### wallet set
+#### Wallet set
 
 Set local wallet for the SKALE node
 
@@ -288,12 +290,11 @@ Set local wallet for the SKALE node
 skale wallet set --private-key $ETH_PRIVATE_KEY
 ```
 
-
 ### sChain commands
 
 > Prefix: `skale schains`
 
-##### sChains list
+#### sChains list
 
 List of sChains served by connected node
 
@@ -301,10 +302,18 @@ List of sChains served by connected node
 skale schains ls
 ```
 
-##### schains config
+#### schains config
 
 ```bash
 skale schains config SCHAIN_NAME
+```
+
+#### sChains DKG statuses
+
+DKG statuses for each sChain on the node
+
+```bash
+skale schains dkg
 ```
 
 ### Containers commands
@@ -313,7 +322,7 @@ Node containers commands
 
 > Prefix: `skale containers`
 
-##### SKALE containers
+#### SKALE containers
 
 List of SKALE containers running on connected node
 
@@ -325,7 +334,7 @@ Options:
 
 -   `-a/--all` - list all containers (by default - only running) 
 
-##### sChain containers
+#### sChain containers
 
 List of sChain containers running on connected node
 
@@ -335,14 +344,64 @@ skale containers schains
 
 Options:
 
--   `-a/--all` - list all sChain containers (by default - only running)
+- `-a/--all` - list all sChain containers (by default - only running)
+
+### SGX commands
+
+> Prefix: `skale sgx`
+
+#### Status
+
+Status of the SGX server. Returns SGX server URL and connection status.
+
+```bash
+$ skale sgx status
+
+SGX server status:
+┌────────────────┬────────────────────────────┐
+│ SGX server URL │ https://0.0.0.0:1026/      │
+├────────────────┼────────────────────────────┤
+│ Status         │ CONNECTED                  │
+└────────────────┴────────────────────────────┘
+```
+
+Admin API URL: [GET] `/api/ssl/sgx`
+
+### SSL commands
+
+> Prefix: `skale ssl`
+
+#### Status
+
+Status of the SSL certificates on the node
+
+```bash
+skale ssl status
+```
+
+Admin API URL: [GET] `/api/ssl/status`
+
+#### Upload
+
+Upload new SSL certificates
+
+```bash
+skale ssl upload
+```
+
+##### Options
+
+- `-c/--cert-path` - Path to the certificate file
+- `-k/--key-path` - Path to the key file
+- `-f/--force` - Overwrite existing certificates
+
+Admin API URL: [GET] `/api/ssl/upload`
 
 ### Logs commands
 
 > Prefix: `skale logs`
 
-
-##### CLI Logs
+#### CLI Logs
 
 Fetch node CLI logs:
 
@@ -354,7 +413,7 @@ Options:
 
 -   `--debug` - show debug logs; more detailed output
 
-##### Dump Logs 
+#### Dump Logs 
 
 Dump all logs from the connected node:
 
@@ -370,7 +429,7 @@ Optional arguments:
 
 > Prefix: `skale validator`
 
-##### validator list
+#### validator list
 
 ```bash
 skale validator list
@@ -380,10 +439,10 @@ skale validator list
 
 ### Setup repo
 
-##### Install development dependencies
+#### Install development dependencies
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -e .[dev]
 ```
 
 ##### Add flake8 git hook

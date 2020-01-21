@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -20,13 +20,12 @@
 import os
 import logging
 import subprocess
-import requests
 from shutil import copyfile
 from urllib.parse import urlparse
 
 from core.resources import save_resource_allocation_config
 
-from configs import (DEPENDENCIES_SCRIPT, ROUTES, SKALE_NODE_UI_PORT,
+from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
                      SKALE_DIR, CONTAINERS_CONFIG_PATH, CONTRACTS_PATH,
                      NODE_CERTS_PATH, SGX_CERTS_PATH,
@@ -35,8 +34,8 @@ from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
-from core.helper import (safe_get_config, safe_load_texts, construct_url,
-                         clean_cookies, clean_host, get_localhost_endpoint)
+from core.helper import safe_load_texts
+
 
 TEXTS = safe_load_texts()
 
@@ -52,41 +51,13 @@ def install_host_dependencies():
     # todo: check execution status
 
 
-def show_host(config):
-    host = safe_get_config(config, 'host')
-    if host:
-        print(f'SKALE node host: {host}')
-    else:
-        print(TEXTS['service']['no_node_host'])
-
-
-def reset_host(config):
-    clean_cookies(config)
-    clean_host(config)
-    logging.info(f'Resetting host to defaut: {get_localhost_endpoint()}')
-    print('Host removed, cookies cleaned.')
-
-
-def test_host(host):
-    url = construct_url(host, ROUTES['test_host'])
-
-    try:
-        response = requests.get(url)
-    except requests.exceptions.ConnectionError:
-        return False  # todo: return different error messages
-    except requests.exceptions.InvalidURL:
-        return False  # todo: return different error messages
-
-    return response.status_code == requests.codes.ok
-
-
 def fix_url(url):
     try:
         result = urlparse(url)
         if not result.scheme:
             url = f'{DEFAULT_URL_SCHEME}{url}'
-        if not url.endswith(str(SKALE_NODE_UI_PORT)):
-            return f'{url}:{SKALE_NODE_UI_PORT}'
+        if not url.endswith(str(ADMIN_PORT)):
+            return f'{url}:{ADMIN_PORT}'
         return url
     except ValueError:
         return False

@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -28,8 +28,8 @@ TEXTS = safe_load_texts()
 
 
 def get_node_info(config, format):
-    host, cookies = get_node_creds(config)
-    url = construct_url(host, ROUTES['node_info'])
+    cookies = get_node_creds(config)
+    url = construct_url(ROUTES['node_info'])
     response = get_request(url, cookies)
     if response is None:
         return None
@@ -51,8 +51,8 @@ def get_node_info(config, format):
 
 
 def get_node_about(config, format):
-    host, cookies = get_node_creds(config)
-    url = construct_url(host, ROUTES['node_about'])
+    cookies = get_node_creds(config)
+    url = construct_url(ROUTES['node_about'])
 
     response = get_request(url, cookies)
     if response is None:

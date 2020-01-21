@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -20,7 +20,7 @@
 import click
 import pprint
 from core.helper import login_required, get
-from core.print_formatters import print_schains
+from core.print_formatters import print_schains, print_dkg_statuses
 
 
 @click.group()
@@ -41,6 +41,15 @@ def ls():
         print('No sChains found')
         return
     print_schains(schains_list)
+
+
+@schains.command(help="DKG statuses for each sChain on the node")
+@login_required
+def dkg():
+    dkg_statuses = get('dkg_statuses')
+    if not dkg_statuses:
+        return
+    print_dkg_statuses(dkg_statuses)
 
 
 @schains.command('config', help="sChain config")

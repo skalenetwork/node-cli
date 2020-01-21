@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -21,6 +21,7 @@ import click
 import sys
 import logging
 import inspect
+import traceback
 
 from cli import __version__
 from cli.containers import containers_cli
@@ -31,13 +32,12 @@ from cli.node import node_cli
 from cli.schains import schains_cli
 from cli.user import user_cli
 from cli.wallet import wallet_cli
+from cli.ssl import ssl_cli
+from cli.sgx import sgx_cli
 
 from core.helper import (safe_load_texts, init_default_logger)
 from configs import LONG_LINE
-from core.host import (test_host, show_host, fix_url, reset_host,
-                       init_logs_dir)
-from tools.helper import session_config
-
+from core.host import init_logs_dir
 
 TEXTS = safe_load_texts()
 
@@ -72,32 +72,6 @@ def info():
         '''))
 
 
-@cli.command('attach', help="Attach to remote SKALE node")
-@click.argument('host')
-@click.option('--skip-check', is_flag=True)
-def attach(host, skip_check):
-    config = session_config()
-    host = fix_url(host)
-    if not host:
-        return
-    if test_host(host) or skip_check:
-        config['host'] = host
-        logging.info(f'Attached to {host}')
-        print(f'SKALE host: {host}')
-    else:
-        print(TEXTS['service']['node_host_not_valid'])
-
-
-@cli.command('host', help="Get SKALE node endpoint")
-@click.option('--reset', is_flag=True)
-def host(reset):
-    config = session_config()
-    if reset:
-        reset_host(config)
-        return
-    show_host(config)
-
-
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
@@ -117,9 +91,10 @@ if __name__ == '__main__':
 
     cmd_collection = click.CommandCollection(
         sources=[cli, schains_cli, containers_cli, logs_cli,
-                 node_cli, metrics_cli, user_cli, wallet_cli])
+                 node_cli, metrics_cli, user_cli, wallet_cli, ssl_cli, sgx_cli])
     try:
         cmd_collection()
     except Exception as err:
         print(f'Command execution falied with {err}. Recheck your inputs')
+        traceback.print_exc()
         logger.error(err)

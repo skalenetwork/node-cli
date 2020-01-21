@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -27,7 +27,9 @@ TINY_DIVIDER = 128
 TIMES = 1
 TIMEOUT = 1
 MEMORY_FACTOR = 0.9
-DISK_FACTOR = 0.8
+DISK_FACTOR = 0.95
+
+VOLUME_CHUNK = 512 * TINY_DIVIDER
 
 RESOURCE_ALLOCATION_FILENAME = 'resource_allocation.json'
 RESOURCE_ALLOCATION_FILEPATH = os.path.join(NODE_DATA_PATH, RESOURCE_ALLOCATION_FILENAME)

@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -27,8 +27,7 @@ from skale.utils.random_names.generator import generate_random_node_name
 from core.core import get_node_info, get_node_about
 from core.node import register_node as register, init, purge, update
 from core.host import install_host_dependencies
-from core.helper import (abort_if_false, local_only,
-                         login_required, safe_load_texts)
+from core.helper import (abort_if_false, login_required, safe_load_texts)
 from configs import DEFAULT_NODE_BASE_PORT, DOTENV_FILEPATH
 from tools.helper import session_config
 
@@ -133,8 +132,8 @@ def register_node(name, ip, port):
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
-@local_only
-def init_node(install_deps, dry_run, env_file):
+def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, env_file,
+              dry_run):
     if install_deps:
         install_host_dependencies()
     init(env_file, dry_run)
@@ -144,7 +143,6 @@ def init_node(install_deps, dry_run, env_file):
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to uninstall SKALE node?')
-@local_only
 def purge_node():
     purge()
 
@@ -154,7 +152,6 @@ def purge_node():
 #               expose_value=False,
 #               prompt='Are you sure you want to de-register '
 #                      'this node from SKALE Manager?')
-# @local_only
 # def deregister_node():
 #     deregister()
 
@@ -168,6 +165,5 @@ def purge_node():
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
-@local_only
 def update_node(env_file):
     update(env_file)

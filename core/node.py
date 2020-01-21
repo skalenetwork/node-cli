@@ -2,28 +2,28 @@
 #
 #   This file is part of skale-node-cli
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging
-import os
-import requests
-import subprocess
 
+import os
+import logging
+import subprocess
 
 import click
 
 from configs import (HOME_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
-                     UPDATE_SCRIPT, ROUTES, DATAFILES_FOLDER)
+                     UPDATE_SCRIPT, DATAFILES_FOLDER)
 
 from configs.env import get_params
-from core.helper import (get_node_creds, construct_url,
-                         post_request, print_err_response)
+from core.helper import get_node_creds, post
 from core.host import prepare_host
+from tools.texts import Texts
 
 logger = logging.getLogger(__name__)
+TEXTS = Texts()
 
 
 def apsent_env_params(params):
@@ -33,29 +33,26 @@ def apsent_env_params(params):
 def register_node(config, name, p2p_ip, public_ip, port):
     # todo: add name, ips and port checks
     host, cookies = get_node_creds(config)
-    data = {
+    json_data = {
         'name': name,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port
     }
-    url = construct_url(host, ROUTES['create_node'])
-    try:  # todo: tmp fix!
-        response = post_request(url, data, cookies)
-    except Exception:
-        response = post_request(url, data, cookies)
-
+    response = post('create_node', json=json_data)
     if response is None:
-        print('Your request returned nothing. Something went wrong. Try again')
+        print(TEXTS['service']['empty_response'])
         return None
-    if response.status_code == requests.codes.created:
-        msg = 'Node registered in SKALE manager. ' \
-              'For more info run: skale node info'
-        logging.info(msg)
+    if response.get('errors') is not None:
+        print(f'Node registration failed with error: {response["errors"]}')
+        logger.error(f'Registration error {response["errors"]}')
+        return
+    if response['res']:
+        msg = TEXTS['node']['registered']
+        logger.info(msg)
         print(msg)
     else:
-        logging.info(response.json())
-        print_err_response(response.json())
+        logger.info('Bad response. Something went wrong. Try again')
 
 
 def init(env_filepath, dry_run=False):
@@ -129,7 +126,7 @@ def update(env_filepath):
         ['sudo', '-E', 'bash', UPDATE_SCRIPT],
         env=env_params,
     )
-    logging.info(
+    logger.info(
         f'Update node script result: '
         f'{res_update_node.stderr}, {res_update_node.stdout}')
     # todo: check execution result

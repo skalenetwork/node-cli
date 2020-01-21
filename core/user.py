@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -22,22 +22,18 @@ import logging
 import pickle
 import json
 from configs import ROUTES, TOKENS_FILEPATH
-from core.helper import safe_get_config, construct_url, clean_cookies, get_localhost_endpoint, \
-    get_request, post_request
+from core.helper import construct_url, clean_cookies, get_request, post_request
 
 logger = logging.getLogger(__name__)
 
 
 def register_user(config, username, password, token):
-    host = safe_get_config(config, 'host')
-    if not host:
-        host = get_localhost_endpoint()
     data = {
         'username': username,
         'password': password,
         'token': token
     }
-    url = construct_url(host, ROUTES['register'])
+    url = construct_url(ROUTES['register'])
     response = post_request(url, data)
     if response is None:
         return None
@@ -51,15 +47,11 @@ def register_user(config, username, password, token):
 
 
 def login_user(config, username, password):
-    host = safe_get_config(config, 'host')
-    if not host:
-        host = get_localhost_endpoint()
-
     data = {
         'username': username,
         'password': password
     }
-    url = construct_url(host, ROUTES['login'])
+    url = construct_url(ROUTES['login'])
     response = post_request(url, data)
     if response is None:
         return None
@@ -73,8 +65,7 @@ def login_user(config, username, password):
 
 
 def logout_user(config):
-    host = safe_get_config(config, 'host')
-    url = construct_url(host, ROUTES['logout'])
+    url = construct_url(ROUTES['logout'])
     response = get_request(url)
     if response is None:
         return None

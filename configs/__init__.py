@@ -12,14 +12,13 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
 import sys
-import platform
 from pathlib import Path
 from configs.routes import ROUTES  # noqa: F401
 
@@ -62,11 +61,8 @@ UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'scripts', 'update.sh')
 
 LONG_LINE = '-' * 50
 
-SKALE_NODE_UI_PORT = 3007
-SKALE_NODE_UI_LOCALHOST = 'http://0.0.0.0'
+ADMIN_PORT = 3007
+ADMIN_HOST = 'localhost'
 DEFAULT_URL_SCHEME = 'http://'
 
 DEFAULT_NODE_BASE_PORT = 10000
-
-HOST_OS = platform.system()
-MAC_OS_SYSTEM_NAME = 'Darwin'

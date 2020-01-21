@@ -12,7 +12,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
@@ -96,6 +96,23 @@ def print_schains(schains):
     print(Formatter().table(headers, rows))
 
 
+def print_dkg_statuses(statuses):
+    headers = [
+        'sChain Name',
+        'DKG Status',
+        'Added At'
+    ]
+    rows = []
+    for status in statuses:
+        date = datetime.datetime.fromtimestamp(status['added_at'])
+        rows.append([
+            status['name'],
+            status['dkg_status_name'],
+            format_date(date),
+        ])
+    print(Formatter().table(headers, rows))
+
+
 def print_metrics(metrics):
     headers = [
         'Date',
@@ -135,4 +152,9 @@ def print_log_list(logs):
             log['size'],
             format_date(date)
         ])
+    print(Formatter().table(headers, rows))
+
+
+def print_dict(title, rows, headers=['Key', 'Value']):
+    print(title)
     print(Formatter().table(headers, rows))
