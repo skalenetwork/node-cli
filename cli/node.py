@@ -132,8 +132,7 @@ def register_node(name, ip, port):
     default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
-def init_node(install_deps, disk_mountpoint, test_mode, sgx_url, env_file,
-              dry_run):
+def init_node(install_deps, env_file, dry_run):
     if install_deps:
         install_host_dependencies()
     init(env_file, dry_run)
