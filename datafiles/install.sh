@@ -34,4 +34,28 @@ export DB_PORT=$DB_PORT
 export DB_PASSWORD=$DB_PASSWORD
 export DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
 
+# Base policies (drop all incoming, allow all outcoming, drop all forwarding)
+sudo iptables -P INPUT ALLOW
+sudo iptables -P OUTPUT ACCEPT
+sudo iptables -P FORWARD DROP
+# Allow conntrack established connections
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+# Allow local loopback services
+sudo iptables -A INPUT -i lo -j ACCEPT
+# Allow ssh
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+# Allow https
+sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+# Allow dns
+sudo iptables -A INPUT -p tcp --dport 53 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 53 -j ACCEPT  # mb useless
+# Drop all the rest
+sudo iptables -A INPUT -p tcp -j DROP
+sudo iptables -A INPUT -p udp -j DROP
+# Allow pings
+sudo iptables -I INPUT -p icmp --icmp-type destination-unreachable -j ACCEPT
+sudo iptables -I INPUT -p icmp --icmp-type source-quench -j ACCEPT
+sudo iptables -I INPUT -p icmp --icmp-type time-exceeded -j ACCEPT
+sudo iptables-save > /etc/iptables/rules.v4
+
 sudo -E bash install.sh
