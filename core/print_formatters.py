@@ -158,3 +158,7 @@ def print_log_list(logs):
 def print_dict(title, rows, headers=['Key', 'Value']):
     print(title)
     print(Formatter().table(headers, rows))
+
+
+def print_exit_status(exit_status):
+    print(exit_status)

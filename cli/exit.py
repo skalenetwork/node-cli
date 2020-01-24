@@ -1,5 +1,6 @@
 import click
-from core.helper import login_required
+from core.helper import login_required, get, post
+from core.print_formatters import print_exit_status
 
 
 @click.group()
@@ -15,16 +16,19 @@ def node_exit():
 @node_exit.command('start', help="Start exiting process")
 @login_required
 def start():
-    pass
+    post('start_exit')
 
 
 @node_exit.command('status', help="Get exit process status")
 @login_required
 def status():
-    pass
+    exit_status = get('exit_status')
+    if not exit_status:
+        return
+    print_exit_status(exit_status)
 
 
 @node_exit.command('finalize', help="Finalize exit process")
 @login_required
 def finalize():
-    pass
+    post('finalize_exit')
