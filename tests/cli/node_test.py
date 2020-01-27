@@ -26,10 +26,9 @@ from cli.node import (register_node, init_node, purge_node, update_node,
 
 
 def test_register_node(skip_auth, config):
-    resp_mock = response_mock(requests.codes.created)
     result = run_command_mock(
         'core.node.post',
-        resp_mock,
+        {'res': 1},
         register_node,
         ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080'])
     assert result.exit_code == 0
@@ -37,30 +36,17 @@ def test_register_node(skip_auth, config):
 
     result = run_command_mock(
         'core.node.post',
-        None,
+        {'errors': ['Strange error']},
         register_node,
         ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80'])
     assert result.exit_code == 0
-    assert result.output == 'Your request returned nothing. Something went wrong.\n'
-
-    # TODO: fix this test
-#    resp_mock = response_mock(requests.codes.ok,
-#                              json_data={'errors': ['Strange error']})
-#    result = run_command_mock(
-#        'core.node.post',
-#        resp_mock,
-#        register_node,
-#        ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80'])
-#    assert result.exit_code == 0
-#    assert result.output == ''
-#     assert result.output == '--------------------------------------------------\nStrange error\n--------------------------------------------------\n'  # noqa
+    assert result.output == "Node registration failed with error: ['Strange error']\n"
 
 
 def test_register_node_with_prompted_ip(config, skip_auth):
-    resp_mock = response_mock(requests.codes.created)
     result = run_command_mock(
         'core.node.post',
-        resp_mock,
+        {'res': 1},
         register_node,
         ['--name', 'test-node', '--port', '8080'], input='0.0.0.0\n')
     assert result.exit_code == 0
@@ -68,10 +54,9 @@ def test_register_node_with_prompted_ip(config, skip_auth):
 
 
 def test_register_node_with_default_port_and_name(config, skip_auth):
-    resp_mock = response_mock(requests.codes.created)
     result = run_command_mock(
         'core.node.post',
-        resp_mock,
+        {'res': 1},
         register_node,
         input='0.0.0.0\n')
     assert result.exit_code == 0
