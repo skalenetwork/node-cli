@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 TEXTS = Texts()
 
 
-def apsent_env_params(params):
+def absent_env_params(params):
     return filter(lambda key: not params[key], params)
 
 
@@ -62,10 +62,10 @@ def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
     if not env_params.get('DB_ROOT_PASSWORD'):
         env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
-    apsent_params = ', '.join(apsent_env_params(env_params))
-    if apsent_params:
-        click.echo(f"Your env file({env_filepath}) have some apsent params: "
-                   f"{apsent_params}.\n"
+    absent_params = ', '.join(absent_env_params(env_params))
+    if absent_params:
+        click.echo(f"Your env file({env_filepath}) have some absent params: "
+                   f"{absent_params}.\n"
                    f"You should specify them to make sure that "
                    f"all services are working",
                    err=True)
@@ -100,10 +100,10 @@ def update(env_filepath):
     if not env_params.get('DB_ROOT_PASSWORD'):
         env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
-    apsent_params = ', '.join(apsent_env_params(env_params))
-    if apsent_params:
-        click.echo(f"Your env file({env_filepath}) have some apsent params: "
-                   f"{apsent_params}.\n"
+    absent_params = ', '.join(absent_env_params(env_params))
+    if absent_params:
+        click.echo(f"Your env file({env_filepath}) have some absent params: "
+                   f"{absent_params}.\n"
                    f"You should specify them to make sure that "
                    f"all services are working",
                    err=True)

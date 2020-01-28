@@ -95,6 +95,6 @@ def show_registration_token(short):
             print(f'User registration token: {token_data["token"]}')
     else:
         err_msg = ("Couldn't find registration tokens file. "
-                   "Check that node inited on this machine.")
+                   "Check that node initialized on this machine.")
         logger.error(err_msg)
         print(err_msg)

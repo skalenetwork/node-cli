@@ -41,7 +41,7 @@ def test_user_token():
         assert result.exit_code == 0
         print(result.output)
         assert result.output == ("Couldn't find registration tokens file. "
-                                 "Check that node inited on this machine.\n")
+                                 "Check that node initalized on this machine.\n")
 
 
 def test_register(config):

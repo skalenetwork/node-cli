@@ -95,6 +95,6 @@ if __name__ == '__main__':
     try:
         cmd_collection()
     except Exception as err:
-        print(f'Command execution falied with {err}. Recheck your inputs')
+        print(f'Command execution failed with {err}. Recheck your inputs')
         traceback.print_exc()
         logger.error(err)
