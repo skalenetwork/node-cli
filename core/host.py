@@ -100,7 +100,7 @@ def save_sgx_server_url(sgx_server_url):
 
 
 def save_env_params(env_filepath):
-    copyfile(env_filepath, os.path.join(CONTAINER_CONFIG_PATH, '.env'))
+    copyfile(env_filepath, os.path.join(SKALE_DIR, '.env'))
 
 
 def init_logs_dir():

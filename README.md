@@ -71,39 +71,12 @@ Options:
 
 -   `--short` - prints version only, without additional text.
 
-#### Host
-
-Print current SKALE node host
-
-```bash
-skale host
-```
-
-Options:
-
-- `--reset` - Reset SKALE node host and remove saved cookies
-
-#### Attach
-
-Attach `skale-node-cli` to the remote node
-
-```bash
-skale attach $REMOTE_NODE_URL
-```
-
-Possible `REMOTE_NODE_URL` formats:
-
--   `http://NODE_IP:NODE_PORT`
--   `NODE_IP:NODE_PORT` - default schema is `http://`
--   `NODE_IP` - default port is `3007`
 
 ### User commands
 
 #### Token
 
 Show user registration token
-
-> Local-only
 
 ```bash
 skale user token
@@ -151,35 +124,32 @@ skale user logout
 
 Init SKALE node on current machine
 
-> Local-only
-
 ```bash
 skale node init
 ```
-
-Required arguments(available through prompt):
-
--   `--disk-mountpoint` - mount point of the disk to be used for storing sChains data
-
-You should also specify the following options through environment variables or .env file:
-
--   `GITHUB_TOKEN` - token for accessing `skale-node` repo
--   `DOCKER_USERNAME` - username for DockerHub
--   `DOCKER_PASSWORD` - password for DockerHub
--   `DB_PASSWORD` - MySQL password for local node database
--   `DISK_MOUNTPOINT` - Mount point of the disk to be used for storing sChains data
--   `GITHUB_TOKEN` - token for accessing `skale-node` repo 
--   `GIT_BRANCH` - stream of `skale-node` to use
--   `IMA_ENDPOINT` - IMA endpoint to connect
--   `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
-- `MANAGER_URL` - URL to SKALE Manager contracts ABI and addresses  
-- `IMA_URL` - URL to IMA contracts ABI and addresses  
+Required arguments:
+-   `--install-deps` - install docker and other dependencies
+-   `--dry-run` - only creates needed files and directories and don't create and containers
+-   `--env-file` - path to env file where required parameters listed above are defined
+  
+You should also specify the following parameters through environment variables in env-file:
+- `SGX_SERVER_URL` - sgx server url
+- `DISK_MOUNTPOINT` - mount point of the disk to be used for storing sChains data
+- `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
+- `DOCKER_USERNAME` - username for DockerHub
+- `DOCKER_PASSWORD` - password for DockerHub
+- `DB_PASSWORD` - MySQL password for local node database
+- `DISK_MOUNTPOINT` - Mount point of the disk to be used for storing sChains data
+- `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
+- `IMA_ENDPOINT` - IMA endpoint to connect
+- `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
+- `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses  
+- `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses  
 - `FILEBEAT_URL` - URL to the Filebeat log server
-- `DB_USER`'  - MySQL user for local node database - _optional_
+- `DB_USER`'  - MySQL user for local node database
 - `DB_PASSWORD` - Password for root user of node internal database
-    (equal to user password by default) - _optional_   
-- `DB_PORT` - Port for of node internal database (default is `3306`) - _optional_
-
+    (equal to user password by default)
+- `DB_PORT` - Port for of node internal database (default is `3306`)
 
 #### Node Register
 
@@ -214,25 +184,11 @@ Options:
 
 `-f/--format json/text` - optional
 
-#### Node purge
-
-Remove SKALE node software from the machine.
-
-> Local-only
-
-```bash
-skale node purge
-```
-
-Options:
-
--   `--yes` - remove without additional confirmation
 
 #### Node update
 
 Update SKALE node on current machine
 
-> Local-only
 
 ```bash
 skale node update
@@ -242,23 +198,8 @@ Options:
 
 -   `--yes` - remove without additional confirmation
 
-You should specify the following options through environment variables or .env file:
-
--   `GITHUB_TOKEN` - token for accessing `skale-node` repo
--   `DOCKER_USERNAME` - username for DockerHub
--   `DOCKER_PASSWORD` - password for DockerHub
--   `DB_PASSWORD` - MySQL password for local node database
--   `DISK_MOUNTPOINT` - Mount point of the disk to be used for storing sChains data
--   `GIT_BRANCH` - stream of `skale-node` to use
--   `IMA_ENDPOINT` - IMA endpoint to connect
--   `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
-- `MANAGER_URL` - URL to SKALE Manager contracts ABI and addresses  
-- `IMA_URL` - URL to IMA contracts ABI and addresses  
-- `FILEBEAT_URL` - URL to the Filebeat log server
-- `DB_USER`'  - MySQL user for local node database - _optional_
-- `DB_PASSWORD` - Password for root user of node internal database
-    (equal to user password by default) - _optional_   
-- `DB_PORT` - Port for of node internal database (default is `3306`) - _optional_
+You can also specify env file which will update parameters in .env file used in skale node init 
+-   `--env-file` - path to env file where parameters are defined
 
 ### Wallet commands
 
@@ -283,8 +224,6 @@ Options:
 Set local wallet for the SKALE node
 
 -   Login required
--   Local only
--   No node ony
 
 ```bash
 skale wallet set --private-key $ETH_PRIVATE_KEY
