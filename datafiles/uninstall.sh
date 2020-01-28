@@ -6,7 +6,6 @@ source $CURRENT_DIR/helper.sh
 remove_compose_containers
 remove_dynamic_containers
 
-# todo: stop and remove convoy service
 # todo: format disk setted in $NODE_DATA_DIR/disk_mountpoint.txt
 
 rm -rf /tmp/.skale

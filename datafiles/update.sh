@@ -1,28 +1,27 @@
 #!/usr/bin/env bash
 
-SKALE_DIR="$HOME"/.skale
-SKALE_NODE_DIR_NAME=.skale-node
-SKALE_NODE_DIR="$SKALE_DIR"/"$SKALE_NODE_DIR_NAME"
+CONFIG_DIR="$SKALE_DIR"/config
+CONTRACTS_DIR="$SKALE_DIR"/contracts_info
+NODE_DATA_DIR=$SKALE_DIR/node_data
 
-cd $SKALE_NODE_DIR
-sudo git pull
+source "$DATAFILES_FOLDER"/helper.sh
 
-source helper.sh
+export $(grep -v '^#' $CONFIG_DIR/.env | xargs)
 
-check_env_variables
+cd $SKALE_DIR
+docker_lvmpy_update
+
 dockerhub_login
-# docker_lvmpy_install
 
 remove_compose_containers
 remove_dynamic_containers
 
-rm -rf /tmp/.skale
-cp -r $CONFIG_DIR /tmp/.skale
-rm -rf $CONFIG_DIR
-
-mkdir -p $CONFIG_DIR
-
-download_contracts
-
-docker-compose -f $CONFIG_DIR/docker-compose.yml pull
-docker-compose -f $CONFIG_DIR/docker-compose.yml up -d
+cd $CONFIG_DIR
+if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
+    git checkout $CONTAINER_CONFIGS_STREAM
+    git pull
+    docker-compose -f docker-compose.yml pull
+else
+    SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml build
+fi
+SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d

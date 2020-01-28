@@ -1,12 +1,10 @@
 import os
 from dotenv import load_dotenv
-from configs import DOTENV_FILEPATH
 
 
 base_params = {
     'IMA_ENDPOINT': '',
-    'GIT_BRANCH': '',
-    'GITHUB_TOKEN': '',
+    'CONTAINER_CONFIGS_STREAM': '',
     'DOCKER_USERNAME': '',
     'DOCKER_PASSWORD': '',
     'ENDPOINT': '',
@@ -14,15 +12,24 @@ base_params = {
     'DB_PASSWORD': '',
     'DB_ROOT_PASSWORD': '',
     'DB_PORT': '3306',
-    'MANAGER_CONTRACTS_INFO_URL': '',
-    'IMA_CONTRACTS_INFO_URL': '',
+    'MANAGER_CONTRACTS_ABI_URL': '',
+    'IMA_CONTRACTS_ABI_URL': '',
     'FILEBEAT_HOST': '',
     'DISK_MOUNTPOINT': '',
     'SGX_SERVER_URL': '',
+    'CONTAINER_CONFIGS_DIR': '',
+    'DOCKER_LVMPY_STREAM': ''
 }
 
 
-def get_params(env_filepath=DOTENV_FILEPATH):
+def apsent_params(params):
+    return list(filter(
+        lambda key: key != 'CONTAINER_CONFIGS_DIR' and not params[key],
+        params)
+    )
+
+
+def get_params(env_filepath):
     load_dotenv(dotenv_path=env_filepath)
     params = base_params.copy()
     for option_name in params:

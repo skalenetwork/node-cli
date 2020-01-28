@@ -26,11 +26,11 @@ HOME_DIR = str(Path.home())
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
-CONTAINERS_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
+CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 
 LOG_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'log')
-NODE_CERTS_PATH = os.path.join(SKALE_DIR, 'ssl')
+NODE_CERTS_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'ssl')
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 
@@ -56,8 +56,8 @@ THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
 
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
-UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'scripts', 'uninstall.sh')
-UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'scripts', 'update.sh')
+UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
+UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
 
 LONG_LINE = '-' * 50
 

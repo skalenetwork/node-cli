@@ -27,7 +27,7 @@ from core.resources import save_resource_allocation_config
 
 from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
-                     SKALE_DIR, CONTAINERS_CONFIG_PATH, CONTRACTS_PATH,
+                     SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
                      NODE_CERTS_PATH, SGX_CERTS_PATH,
                      SCHAINS_DATA_PATH, LOG_PATH)
 from configs.cli_logger import LOG_DATA_PATH
@@ -63,6 +63,12 @@ def fix_url(url):
         return False
 
 
+def get_flask_secret_key():
+    secret_key_filepath = os.path.join(NODE_DATA_PATH, 'flask_db_key.txt')
+    with open(secret_key_filepath) as key_file:
+        return key_file.read().strip()
+
+
 def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
     make_dirs()
@@ -74,7 +80,7 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
 
 def make_dirs():
     for dir_path in (
-        SKALE_DIR, NODE_DATA_PATH, CONTAINERS_CONFIG_PATH,
+        SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
         CONTRACTS_PATH, NODE_CERTS_PATH,
         SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH
     ):
@@ -94,7 +100,7 @@ def save_sgx_server_url(sgx_server_url):
 
 
 def save_env_params(env_filepath):
-    copyfile(env_filepath, os.path.join(SKALE_DIR, '.env'))
+    copyfile(env_filepath, os.path.join(CONTAINER_CONFIG_PATH, '.env'))
 
 
 def init_logs_dir():

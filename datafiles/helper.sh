@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 
-# export SKALE_DIR="$HOME"/.skale
-# export NODE_DATA_DIR=$SKALE_DIR/node_data
-# export CONFIG_DIR=$SKALE_DIR/config
-FLASK_SECRET_KEY_FILE=$NODE_DATA_DIR/flask_db_key.txt
-DISK_MOUNTPOINT_FILE=$NODE_DATA_DIR/disk_mountpoint.txt
-SGX_CERTIFICATES_DIR_NAME=sgx_certs
+export FLASK_SECRET_KEY_FILE=$NODE_DATA_DIR/flask_db_key.txt
+export DISK_MOUNTPOINT_FILE=$NODE_DATA_DIR/disk_mountpoint.txt
+export SGX_CERTIFICATES_DIR_NAME=sgx_certs
 
 remove_dynamic_containers () {
     docker ps -a --format '{{.Names}}' | grep "^skale_schain_" | awk '{print $1}' | xargs -I {} docker rm -f {}
@@ -17,8 +14,8 @@ remove_compose_containers () {
 }
 
 download_contracts () {
-    curl -L $MANAGER_CONTRACTS_INFO_URL > $CONTRACTS_DIR/manager.json
-    curl -L $IMA_CONTRACTS_INFO_URL > $CONTRACTS_DIR/ima.json
+    curl -L $MANAGER_CONTRACTS_ABI_URL > $CONTRACTS_DIR/manager.json
+    curl -L $IMA_CONTRACTS_ABI_URL > $CONTRACTS_DIR/ima.json
 }
 
 dockerhub_login () {
@@ -28,12 +25,19 @@ dockerhub_login () {
 
 docker_lvmpy_install () {
     if [[ ! -d docker-lvmpy ]]; then
-        git clone "https://$GITHUB_TOKEN@github.com/skalenetwork/docker-lvmpy.git"
+        git clone "https://github.com/skalenetwork/docker-lvmpy.git"
     fi
     cd docker-lvmpy
-    git checkout master
-    which python3
+    git checkout $DOCKER_LVMPY_STREAM
     PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/install.sh
+    cd -
+}
+
+docker_lvmpy_update () {
+    cd docker-lvmpy
+    git checkout $DOCKER_LVMPY_STREAM
+    git pull
+    PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/update.sh
     cd -
 }
 

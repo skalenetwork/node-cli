@@ -28,7 +28,7 @@ from core.core import get_node_info, get_node_about
 from core.node import register_node as register, init, purge, update
 from core.host import install_host_dependencies
 from core.helper import (abort_if_false, login_required, safe_load_texts)
-from configs import DEFAULT_NODE_BASE_PORT, DOTENV_FILEPATH
+from configs import DEFAULT_NODE_BASE_PORT
 from tools.helper import session_config
 
 
@@ -129,7 +129,6 @@ def register_node(name, ip, port):
 )
 @click.option(
     '--env-file',
-    default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
 def init_node(install_deps, env_file, dry_run):
@@ -161,7 +160,6 @@ def purge_node():
               prompt='Are you sure you want to update SKALE node software?')
 @click.option(
     '--env-file',
-    default=DOTENV_FILEPATH,
     help='Path to .env file with additional config'
 )
 def update_node(env_file):
