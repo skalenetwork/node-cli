@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-from configs import NODE_DATA_PATH, THIRDPARTY_FOLDER_PATH, DATAFILES_FOLDER
+from configs import NODE_DATA_PATH
 
 MEDIUM_DIVIDER = 1
 SMALL_DIVIDER = 8

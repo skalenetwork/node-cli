@@ -198,7 +198,8 @@ Options:
 
 -   `--yes` - remove without additional confirmation
 
-You can also specify env file which will update parameters in .env file used in skale node init 
+You can also specify file with environment variables 
+which will update parameters in env file used during skale node init 
 -   `--env-file` - path to env file where parameters are defined
 
 ### Wallet commands
