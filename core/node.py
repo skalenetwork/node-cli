@@ -8,27 +8,26 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import os
 import logging
 import subprocess
 
 import click
 
-from core.host import prepare_host, init_data_dir
+from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
+                     UPDATE_SCRIPT, DATAFILES_FOLDER)
+
+from configs.env import (apsent_params as apsent_env_params,
+                         get_params as get_env_params)
 from core.helper import post
+from core.host import prepare_host, save_env_params, get_flask_secret_key
 from tools.texts import Texts
-from configs import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
-from configs.env import get_params
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
 
 
-def apsent_env_params(params):
-    return filter(lambda key: not params[key], params)
-
-
-def create_node(config, name, p2p_ip, public_ip, port):
+def register_node(config, name, p2p_ip, public_ip, port):
+    # todo: add name, ips and port checks
     json_data = {
         'name': name,
         'ip': p2p_ip,
@@ -51,14 +50,9 @@ def create_node(config, name, p2p_ip, public_ip, port):
         logger.info('Bad response. Something went wrong. Try again')
 
 
-def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
-    params_from_file = get_params(env_filepath)
+def extract_env_params(env_filepath):
+    env_params = get_env_params(env_filepath)
 
-    env_params = {
-        **params_from_file,
-        'DISK_MOUNTPOINT': disk_mountpoint,
-        'SGX_SERVER_URL': sgx_server_url,
-    }
     if not env_params.get('DB_ROOT_PASSWORD'):
         env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
@@ -70,14 +64,24 @@ def init(disk_mountpoint, test_mode, sgx_server_url, env_filepath):
                    f"all services are working",
                    err=True)
         return
-    # todo: extract only needed parameters
-    env_params.update({
-        **os.environ
+    return env_params
+
+
+def init(env_filepath, dry_run=False):
+    env_params = extract_env_params(env_filepath)
+    prepare_host(
+        env_filepath,
+        env_params['DISK_MOUNTPOINT'],
+        env_params['SGX_SERVER_URL']
+    )
+    dry_run = 'yes' if dry_run else ''
+    res = subprocess.run(['bash', INSTALL_SCRIPT], env={
+        'SKALE_DIR': SKALE_DIR,
+        'DATAFILES_FOLDER': DATAFILES_FOLDER,
+        'DRY_RUN': dry_run,
+        **env_params
     })
-    init_data_dir()
-    prepare_host(test_mode, disk_mountpoint, sgx_server_url)
-    res = subprocess.run(['bash', INSTALL_SCRIPT], env=env_params)
-    logger.info(f'Node init install script result: {res.stderr}, {res.stdout}')
+    logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
 
 
@@ -92,37 +96,19 @@ def deregister():
 
 
 def update(env_filepath):
-    params_from_file = get_params(env_filepath)
-    env_params = {
-        **params_from_file,
-        'DISK_MOUNTPOINT': '/',
-    }
-    if not env_params.get('DB_ROOT_PASSWORD'):
-        env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
+    if env_filepath is not None:
+        env_params = extract_env_params(env_filepath)
+        save_env_params(env_filepath)
+    else:
+        env_params = {}
 
-    apsent_params = ', '.join(apsent_env_params(env_params))
-    if apsent_params:
-        click.echo(f"Your env file({env_filepath}) have some apsent params: "
-                   f"{apsent_params}.\n"
-                   f"You should specify them to make sure that "
-                   f"all services are working",
-                   err=True)
-        return
-    # todo: extract only needed parameters
-    env_params.update({
-        **os.environ
+    flask_secret_key = get_flask_secret_key()
+    res_update_node = subprocess.run(['bash', UPDATE_SCRIPT], env={
+        'SKALE_DIR': SKALE_DIR,
+        'FLASK_SECRET_KEY': flask_secret_key,
+        'DATAFILES_FOLDER': DATAFILES_FOLDER,
+        **env_params
     })
-    res_update_project = subprocess.run(
-        ['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT],
-        env=env_params
-    )
-    logger.info(
-        f'Update node project script result: {res_update_project.stderr}, \
-        {res_update_project.stdout}')
-    res_update_node = subprocess.run(
-        ['sudo', '-E', 'bash', UPDATE_SCRIPT],
-        env=env_params,
-    )
     logger.info(
         f'Update node script result: '
         f'{res_update_node.stderr}, {res_update_node.stdout}')

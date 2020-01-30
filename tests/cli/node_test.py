@@ -68,15 +68,14 @@ def test_init_node(config):
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
-            mock.patch('core.node.init_data_dir'):
+            mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
             'core.node.post',
             resp_mock,
             init_node,
-            ['--env-file', './tests/test-env'],
-            input='/dev/sdp\nlocalhost')
+            ['--env-file', './tests/test-env'])
         assert result.exit_code == 0
-        assert result.output == 'Enter data disk mount point: /dev/sdp\nEnter URL of sgx server: localhost\n'  # noqa
+        assert result.output == ''  # noqa
 
 
 def test_purge(config):
@@ -98,8 +97,9 @@ def test_update_node(config):
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
-            mock.patch('core.node.prepare_host'), \
-            mock.patch('core.node.init_data_dir'):
+            mock.patch('core.node.get_flask_secret_key'), \
+            mock.patch('core.node.save_env_params'), \
+            mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
             'core.node.post',
             resp_mock,

@@ -20,18 +20,22 @@
 import os
 import logging
 import subprocess
+from shutil import copyfile
 from urllib.parse import urlparse
 
 from core.resources import save_resource_allocation_config
 
-from configs import DEPENDENCIES_SCRIPT, ADMIN_PORT, DEFAULT_URL_SCHEME, \
-    INSTALL_CONVOY_SCRIPT, NODE_DATA_PATH
+from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
+                     DEFAULT_URL_SCHEME, NODE_DATA_PATH,
+                     SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
+                     NODE_CERTS_PATH, SGX_CERTS_PATH,
+                     SCHAINS_DATA_PATH, LOG_PATH)
 from configs.cli_logger import LOG_DATA_PATH
-from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, CONVOY_HELPER_SCRIPT_FILEPATH, \
-    CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH, SGX_SERVER_URL_FILEPATH
+from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
+                                         SGX_SERVER_URL_FILEPATH)
 
 from core.helper import safe_load_texts
-from tools.helper import run_cmd, process_template
+
 
 TEXTS = safe_load_texts()
 
@@ -59,39 +63,28 @@ def fix_url(url):
         return False
 
 
-def prepare_host(test_mode, disk_mountpoint, sgx_server_url):
+def get_flask_secret_key():
+    secret_key_filepath = os.path.join(NODE_DATA_PATH, 'flask_db_key.txt')
+    with open(secret_key_filepath) as key_file:
+        return key_file.read().strip()
+
+
+def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
+    make_dirs()
+    save_env_params(env_filepath)
     save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
     save_resource_allocation_config()
 
 
-def init_convoy(disk_mountpoint):
-    print(f'Installing convoy...')
-    run_cmd(['bash', INSTALL_CONVOY_SCRIPT], shell=False)
-    print(f'Downloading convoy disk helper...')
-    convoy_prepare_disk(disk_mountpoint)
-    start_convoy_daemon(disk_mountpoint)
-
-
-def start_convoy_daemon(disk_mountpoint):
-    template_data = {
-        # 'user': get_username(),
-        'cmd': f'/usr/local/bin/convoy daemon --drivers devicemapper --driver-opts \
-        dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
-    }
-    msg = f'Starting convoy daemon, template data: {template_data}'
-    logger.info(msg), print(msg)
-    process_template(CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH, template_data)
-    run_cmd(['systemctl', 'enable', 'convoy'], shell=False)
-    run_cmd(['systemctl', 'start', 'convoy'], shell=False)
-
-
-def convoy_prepare_disk(disk_mountpoint):
-    msg = 'Applying disk partitioning...'
-    logger.info(msg), print(msg)
-    run_cmd(['bash', CONVOY_HELPER_SCRIPT_FILEPATH, '--write-to-disk', f'{disk_mountpoint}'],
-            shell=False)
+def make_dirs():
+    for dir_path in (
+        SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
+        CONTRACTS_PATH, NODE_CERTS_PATH,
+        SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH
+    ):
+        safe_mk_dirs(dir_path)
 
 
 def save_disk_mountpoint(disk_mountpoint):
@@ -104,6 +97,10 @@ def save_sgx_server_url(sgx_server_url):
     logger.info(f'Saving disk_mountpoint option to {SGX_SERVER_URL_FILEPATH}')
     with open(SGX_SERVER_URL_FILEPATH, 'w') as f:
         f.write(sgx_server_url)
+
+
+def save_env_params(env_filepath):
+    copyfile(env_filepath, os.path.join(SKALE_DIR, '.env'))
 
 
 def init_logs_dir():
