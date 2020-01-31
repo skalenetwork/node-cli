@@ -20,7 +20,6 @@
 import json
 import os
 import re
-import pickle
 import shutil
 from functools import wraps
 import urllib.parse
@@ -72,14 +71,6 @@ def safe_load_texts():
             print(exc)
 
 
-def get_node_creds(config):
-    cookies_text = safe_get_config(config, 'cookies')
-    if not cookies_text:
-        raise Exception('Cookies is not set')
-    cookies = pickle.loads(cookies_text)
-    return cookies
-
-
 def construct_url(route):
     return urllib.parse.urljoin(HOST, route)
 
@@ -87,11 +78,6 @@ def construct_url(route):
 def get_response_data(response):
     json = response.json()
     return json['data']
-
-
-def clean_cookies(config):
-    if safe_get_config(config, 'cookies'):
-        del config["cookies"]
 
 
 def abort_if_false(ctx, param, value):
@@ -152,12 +138,11 @@ def get(url_name, params=None):
 
 
 def download_dump(path, container_name=None):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES['logs_dump'])
     params = {}
     if container_name:
         params['container_name'] = container_name
-    with requests.get(url, params=params, cookies=cookies, stream=True) as r:
+    with requests.get(url, params=params, stream=True) as r:
         if r is None:
             return None
         if r.status_code != requests.codes.ok:
