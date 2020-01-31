@@ -55,22 +55,6 @@ def safe_get_config(config, key):
         return None
 
 
-def cookies_exists():
-    return safe_get_config(config, 'cookies') is not None
-
-
-def login_required(f):
-    @wraps(f)
-    def inner(*args, **kwargs):
-        if cookies_exists():
-            return f(*args, **kwargs)
-        else:
-            TEXTS = safe_load_texts()
-            print(TEXTS['service']['unauthorized'])
-
-    return inner
-
-
 def no_node(f):
     @wraps(f)
     def inner(*args, **kwargs):
@@ -115,18 +99,18 @@ def abort_if_false(ctx, param, value):
         ctx.abort()
 
 
-def get_request(url, cookies=None, params=None):
+def get_request(url, params=None):
     try:
-        return requests.get(url, cookies=cookies, params=params)
+        return requests.get(url, params=params)
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         print(f'Could not connect to {url}')
         return None
 
 
-def post_request(url, json=None, files=None, cookies=None):
+def post_request(url, json=None, files=None):
     try:
-        return requests.post(url, json=json, files=files, cookies=cookies)
+        return requests.post(url, json=json, files=files)
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         print(f'Could not connect to {url}')
@@ -141,19 +125,17 @@ def print_err_response(err_response):
 
 
 def post(url_name, json=None, files=None):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES[url_name])
-    response = post_request(url, json=json, files=files, cookies=cookies)
+    response = post_request(url, json=json, files=files)
     if response is None:
         return None
     return response.json()
 
 
 def get(url_name, params=None):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES[url_name])
 
-    response = get_request(url, cookies, params)
+    response = get_request(url, params)
     if response is None:
         return None
 
