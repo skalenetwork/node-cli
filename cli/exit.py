@@ -1,6 +1,11 @@
 import click
+import logging
 from core.helper import login_required, get, post
 from core.print_formatters import print_exit_status
+from tools.texts import Texts
+
+logger = logging.getLogger(__name__)
+TEXTS = Texts()
 
 
 @click.group()
@@ -16,7 +21,16 @@ def node_exit():
 @node_exit.command('start', help="Start exiting process")
 @login_required
 def start():
-    post('start_exit')
+    response = post('start_exit')
+    if response is None:
+        print(TEXTS['service']['empty_response'])
+        return None
+    if response['res']:
+        msg = TEXTS['exit']['start']
+        logger.info(msg)
+        print(msg)
+    else:
+        logger.info('Bad response. Something went wrong. Try again')
 
 
 @node_exit.command('status', help="Get exit process status")

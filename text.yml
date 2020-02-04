@@ -21,3 +21,6 @@ ssl:
   uploaded: |-
     Certificates are successfully uploaded.
     You can check status by running < skale ssl status >
+
+exit:
+  start: "Node exit process is started"
