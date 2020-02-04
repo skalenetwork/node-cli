@@ -24,3 +24,7 @@ ssl:
 
 exit:
   start: "Node exit process is started"
+  status:
+    active: "Exiting is not started. Node is active"
+    in_progress: "Node exiting is in progress"
+    completed: "Node exiting is completed"

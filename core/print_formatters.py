@@ -23,6 +23,11 @@ import texttable
 from dateutil import parser
 
 from configs import LONG_LINE
+from tools.texts import Texts
+
+TEXTS = Texts()
+SCHAIN_STATUSES = ['left', 'leaving', 'active']
+NODE_EXIT_STATUSES = ['active', 'in_progress', 'completed']
 
 
 def get_tty_width():
@@ -161,4 +166,12 @@ def print_dict(title, rows, headers=['Key', 'Value']):
 
 
 def print_exit_status(exit_status):
-    print(exit_status)
+    headers = [
+        'Schain name',
+        'Status'
+    ]
+    logs = exit_status['data']
+    rows = [[log['name'], SCHAIN_STATUSES[log['status']]] for log in logs]
+    print(f'\n{Formatter().table(headers, rows)}\n')
+    status_info = TEXTS['exit']['status'][NODE_EXIT_STATUSES[exit_status['status']]]
+    print(f'\n{status_info}\n')
