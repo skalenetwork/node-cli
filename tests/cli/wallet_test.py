@@ -63,7 +63,7 @@ def test_wallet_info(config):
     assert result.output == expected
 
 
-def test_set_wallet(skip_auth):
+def test_set_wallet():
     with mock.patch('skale.utils.web3_utils.private_key_to_address',
                     MagicMock(return_value='0xaddress')):
         with mock.patch('core.wallet.write_json'):

@@ -27,7 +27,7 @@ from skale.utils.random_names.generator import generate_random_node_name
 from core.core import get_node_info, get_node_about
 from core.node import register_node as register, init, purge, update
 from core.host import install_host_dependencies
-from core.helper import (abort_if_false, login_required, safe_load_texts)
+from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
 from tools.helper import session_config
 
@@ -78,7 +78,6 @@ def node():
 
 @node.command('info', help="Get info about SKALE node")
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
-@login_required
 def node_info(format):
     config = session_config()
     get_node_info(config, format)
@@ -86,7 +85,6 @@ def node_info(format):
 
 @node.command('about', help="Get service info about SKALE node")
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
-@login_required
 def node_about(format):
     config = session_config()
     get_node_about(config, format)
@@ -110,7 +108,6 @@ def node_about(format):
     type=int,
     help='Base port for node sChains'
 )
-@login_required
 def register_node(name, ip, port):
     config = session_config()
     register(config, name, ip, ip, port)
