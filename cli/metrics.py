@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from core.helper import login_required, get
+from core.helper import get
 from core.print_formatters import print_metrics
 
 
@@ -34,7 +34,6 @@ def metrics():
 
 @metrics.command(help="List of all bounties and metrics from local db (fast method)")
 @click.option('--force', '-f', is_flag=True)
-@login_required
 def all(force):
     if force:
         print('Please wait - collecting metrics from blockchain...')
@@ -47,7 +46,6 @@ def all(force):
 
 @metrics.command(help="List of bounties and metrics for the first year")
 @click.option('--force', '-f', is_flag=True)
-@login_required
 def first(force):
     if force:
         print('Please wait - collecting metrics from blockchain...')
@@ -60,7 +58,6 @@ def first(force):
 
 @metrics.command(help="List of bounties and metrics for the last year")
 @click.option('--force', '-f', is_flag=True)
-@login_required
 def last(force):
     if force:
         print('Please wait - collecting metrics from blockchain...')

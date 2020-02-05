@@ -26,7 +26,7 @@ from tests.helper import response_mock, run_command_mock
 from cli.schains import get_schain_config, ls, dkg
 
 
-def test_ls(skip_auth, config):
+def test_ls(config):
     os.environ['TZ'] = 'Europe/London'
     time.tzset()
     response_data = [

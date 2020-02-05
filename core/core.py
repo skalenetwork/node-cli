@@ -20,24 +20,18 @@
 import inspect
 import requests
 from configs import LONG_LINE, ROUTES
-from core.helper import safe_load_texts, get_node_creds, construct_url, \
-    get_response_data, clean_cookies, get_request
+from core.helper import safe_load_texts, construct_url, \
+    get_response_data, get_request
 
 NODE_STATUSES = ['Not created', 'Requested', 'Active']
 TEXTS = safe_load_texts()
 
 
 def get_node_info(config, format):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES['node_info'])
-    response = get_request(url, cookies)
+    response = get_request(url)
     if response is None:
         return None
-
-    if response.status_code == requests.codes.unauthorized:
-        clean_cookies(config)
-        print(TEXTS['service']['unauthorized'])
-        return
 
     if response.status_code == requests.codes.ok:
         node_info = get_response_data(response)
@@ -51,17 +45,11 @@ def get_node_info(config, format):
 
 
 def get_node_about(config, format):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES['node_about'])
 
-    response = get_request(url, cookies)
+    response = get_request(url)
     if response is None:
         return None
-
-    if response.status_code == requests.codes.unauthorized:
-        clean_cookies(config)
-        print(TEXTS['service']['unauthorized'])
-        return
 
     if response.status_code == requests.codes.ok:
         node_about = get_response_data(response)
