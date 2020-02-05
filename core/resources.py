@@ -36,7 +36,7 @@ class ResourceAlloc():
     def __init__(self, value, fractional=False):
         self.values = {
             'part_test4': value / SMALL_DIVIDER,
-            'part_test': value / SMALL_DIVIDER,
+            'part_test': value / TINY_DIVIDER,
             'part_small': value / TINY_DIVIDER,
             'part_medium': value / SMALL_DIVIDER,
             'part_large': value / MEDIUM_DIVIDER
