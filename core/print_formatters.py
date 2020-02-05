@@ -24,10 +24,11 @@ from dateutil import parser
 
 from configs import LONG_LINE
 from tools.texts import Texts
+import datetime
 
 TEXTS = Texts()
 SCHAIN_STATUSES = ['left', 'leaving', 'active']
-NODE_EXIT_STATUSES = ['active', 'in_progress', 'completed']
+NODE_EXIT_STATUSES = ['active', 'in_progress', 'rotated', 'completed']
 
 
 def get_tty_width():
@@ -165,13 +166,18 @@ def print_dict(title, rows, headers=['Key', 'Value']):
     print(Formatter().table(headers, rows))
 
 
-def print_exit_status(exit_status):
+def print_exit_status(exit_status_info):
     headers = [
         'Schain name',
         'Status'
     ]
-    logs = exit_status['data']
+    logs = exit_status_info['data']
+    node_exit_status = NODE_EXIT_STATUSES[exit_status_info['status']]
     rows = [[log['name'], SCHAIN_STATUSES[log['status']]] for log in logs]
     print(f'\n{Formatter().table(headers, rows)}\n')
-    status_info = TEXTS['exit']['status'][NODE_EXIT_STATUSES[exit_status['status']]]
+    status_info = TEXTS['exit']['status'][node_exit_status]
     print(f'\n{status_info}\n')
+    if node_exit_status == 'rotated':
+        exit_time = exit_status_info['exit_time']
+        exit_time_utc = datetime.datetime.utcfromtimestamp(exit_time)
+        print(f'Rotation finish time: {exit_time_utc}')
