@@ -24,7 +24,6 @@ from dateutil import parser
 
 from configs import LONG_LINE
 from tools.texts import Texts
-import datetime
 
 TEXTS = Texts()
 SCHAIN_STATUSES = ['left', 'leaving', 'active']

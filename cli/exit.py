@@ -45,4 +45,4 @@ def status():
 @node_exit.command('finalize', help="Finalize exit process")
 @login_required
 def finalize():
-    post('finalize_exit')
+    pass
