@@ -1,6 +1,6 @@
 import click
 import logging
-from core.helper import login_required, get, post
+from core.helper import get, post
 from core.print_formatters import print_exit_status
 from tools.texts import Texts
 
@@ -19,7 +19,6 @@ def node_exit():
 
 
 @node_exit.command('start', help="Start exiting process")
-@login_required
 def start():
     response = post('start_exit')
     if response is None:
@@ -34,7 +33,6 @@ def start():
 
 
 @node_exit.command('status', help="Get exit process status")
-@login_required
 def status():
     exit_status = get('exit_status')
     if not exit_status:
@@ -43,6 +41,5 @@ def status():
 
 
 @node_exit.command('finalize', help="Finalize exit process")
-@login_required
 def finalize():
     pass
