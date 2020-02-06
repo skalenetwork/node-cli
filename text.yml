@@ -27,5 +27,5 @@ exit:
   status:
     active: "Exiting is not started. Node is active"
     in_progress: "Node exiting is in progress"
-    rotated: "Node is waiting to finish rotations"
+    wait_for_rotations: "Node is waiting to finish rotations"
     completed: "Node exiting is completed"
