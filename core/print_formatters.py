@@ -26,8 +26,6 @@ from configs import LONG_LINE
 from tools.texts import Texts
 
 TEXTS = Texts()
-SCHAIN_STATUSES = ['left', 'leaving', 'active']
-NODE_EXIT_STATUSES = ['active', 'in_progress', 'rotated', 'completed']
 
 
 def get_tty_width():
