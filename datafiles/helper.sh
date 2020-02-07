@@ -68,7 +68,9 @@ iptables_configure() {
     sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
     # Allow dns
     sudo iptables -A INPUT -p tcp --dport 53 -j ACCEPT
-    sudo iptables -A INPUT -p udp --dport 53 -j ACCEPT  # mb useless
+    sudo iptables -A INPUT -p udp --dport 53 -j ACCEPT
+    # Allow watchdog
+    sudo iptables -A INPUT -p tcp --dport 3009 -j ACCEPT
     # Drop all the rest
     sudo iptables -A INPUT -p tcp -j DROP
     sudo iptables -A INPUT -p udp -j DROP
