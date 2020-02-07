@@ -20,7 +20,7 @@
 import click
 from terminaltables import SingleTable
 
-from core.helper import login_required, get, safe_load_texts, upload_certs
+from core.helper import get, safe_load_texts, upload_certs
 
 
 TEXTS = safe_load_texts()
@@ -37,7 +37,6 @@ def ssl():
 
 
 @ssl.command(help="Status of the SSL certificates on the node")
-@login_required
 def status():
     result = get('ssl_status')
     if not result:
@@ -66,7 +65,6 @@ def status():
     help='Path to the certificate file'
 )
 @click.option('--force', '-f', is_flag=True, help='Overwrite existing certificates')
-@login_required
 def upload(key_path, cert_path, force):
     response = upload_certs(key_path, cert_path, force)
     if not response:

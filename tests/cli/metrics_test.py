@@ -23,7 +23,7 @@ from tests.helper import response_mock, run_command_mock
 from cli.metrics import first, last
 
 
-def test_metrics(skip_auth, config):
+def test_metrics(config):
     response_data = {
         'bounties': [
             ['2019-10-09 02:46:50', 4018775720164609053497, 0, 1],

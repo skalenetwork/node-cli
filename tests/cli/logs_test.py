@@ -28,7 +28,7 @@ from tests.helper import response_mock, run_command
 from cli.logs import dump
 
 
-def test_dump(config, skip_auth):
+def test_dump(config):
     archive_filename = 'skale-logs-dump-2019-10-08-17:40:00.tar.gz'
     resp_mock = response_mock(
         requests.codes.ok,

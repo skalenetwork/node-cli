@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from core.helper import download_dump, login_required
+from core.helper import download_dump
 from configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
 
 
@@ -48,7 +48,6 @@ def cli(debug):
     default=None
 )
 @click.argument('path')
-@login_required
 def dump(container, path):
     res = download_dump(path, container)
     if res:

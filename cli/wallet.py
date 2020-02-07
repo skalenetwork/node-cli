@@ -21,7 +21,7 @@ import logging
 
 import click
 
-from core.helper import login_required, no_node
+from core.helper import no_node
 from core.wallet import get_wallet_info, set_wallet_by_pk
 
 from tools.helper import session_config
@@ -42,7 +42,6 @@ def wallet():
 
 @wallet.command('info', help="Get info about SKALE node wallet")
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
-@login_required
 def wallet_info(format):
     config = session_config()
     get_wallet_info(config, format)
@@ -55,7 +54,6 @@ def wallet_info(format):
     help='Private key to be used as local wallet',
     hide_input=True
 )
-@login_required
 @no_node
 def set_wallet(private_key):
     set_wallet_by_pk(private_key)

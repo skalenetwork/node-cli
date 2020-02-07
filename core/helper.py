@@ -20,7 +20,6 @@
 import json
 import os
 import re
-import pickle
 import shutil
 from functools import wraps
 import urllib.parse
@@ -55,22 +54,6 @@ def safe_get_config(config, key):
         return None
 
 
-def cookies_exists():
-    return safe_get_config(config, 'cookies') is not None
-
-
-def login_required(f):
-    @wraps(f)
-    def inner(*args, **kwargs):
-        if cookies_exists():
-            return f(*args, **kwargs)
-        else:
-            TEXTS = safe_load_texts()
-            print(TEXTS['service']['unauthorized'])
-
-    return inner
-
-
 def no_node(f):
     @wraps(f)
     def inner(*args, **kwargs):
@@ -88,14 +71,6 @@ def safe_load_texts():
             print(exc)
 
 
-def get_node_creds(config):
-    cookies_text = safe_get_config(config, 'cookies')
-    if not cookies_text:
-        raise Exception('Cookies is not set')
-    cookies = pickle.loads(cookies_text)
-    return cookies
-
-
 def construct_url(route):
     return urllib.parse.urljoin(HOST, route)
 
@@ -105,28 +80,23 @@ def get_response_data(response):
     return json['data']
 
 
-def clean_cookies(config):
-    if safe_get_config(config, 'cookies'):
-        del config["cookies"]
-
-
 def abort_if_false(ctx, param, value):
     if not value:
         ctx.abort()
 
 
-def get_request(url, cookies=None, params=None):
+def get_request(url, params=None):
     try:
-        return requests.get(url, cookies=cookies, params=params)
+        return requests.get(url, params=params)
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         print(f'Could not connect to {url}')
         return None
 
 
-def post_request(url, json=None, files=None, cookies=None):
+def post_request(url, json=None, files=None):
     try:
-        return requests.post(url, json=json, files=files, cookies=cookies)
+        return requests.post(url, json=json, files=files)
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         print(f'Could not connect to {url}')
@@ -141,19 +111,17 @@ def print_err_response(err_response):
 
 
 def post(url_name, json=None, files=None):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES[url_name])
-    response = post_request(url, json=json, files=files, cookies=cookies)
+    response = post_request(url, json=json, files=files)
     if response is None:
         return None
     return response.json()
 
 
 def get(url_name, params=None):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES[url_name])
 
-    response = get_request(url, cookies, params)
+    response = get_request(url, params)
     if response is None:
         return None
 
@@ -170,12 +138,11 @@ def get(url_name, params=None):
 
 
 def download_dump(path, container_name=None):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES['logs_dump'])
     params = {}
     if container_name:
         params['container_name'] = container_name
-    with requests.get(url, params=params, cookies=cookies, stream=True) as r:
+    with requests.get(url, params=params, stream=True) as r:
         if r is None:
             return None
         if r.status_code != requests.codes.ok:

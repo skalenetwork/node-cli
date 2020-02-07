@@ -30,10 +30,10 @@ from cli.logs import logs_cli
 from cli.metrics import metrics_cli
 from cli.node import node_cli
 from cli.schains import schains_cli
-from cli.user import user_cli
 from cli.wallet import wallet_cli
 from cli.ssl import ssl_cli
 from cli.sgx import sgx_cli
+from cli.exit import exit_cli
 
 from core.helper import (safe_load_texts, init_default_logger)
 from configs import LONG_LINE
@@ -91,7 +91,8 @@ if __name__ == '__main__':
 
     cmd_collection = click.CommandCollection(
         sources=[cli, schains_cli, containers_cli, logs_cli,
-                 node_cli, metrics_cli, user_cli, wallet_cli, ssl_cli, sgx_cli])
+                 node_cli, metrics_cli, wallet_cli, ssl_cli, sgx_cli,
+                 exit_cli])
     try:
         cmd_collection()
     except Exception as err:

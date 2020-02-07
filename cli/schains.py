@@ -19,7 +19,7 @@
 
 import click
 import pprint
-from core.helper import login_required, get
+from core.helper import get
 from core.print_formatters import print_schains, print_dkg_statuses
 
 
@@ -34,7 +34,6 @@ def schains():
 
 
 @schains.command(help="List of sChains served by connected node")
-@login_required
 def ls():
     schains_list = get('node_schains')
     if not schains_list:
@@ -44,7 +43,6 @@ def ls():
 
 
 @schains.command(help="DKG statuses for each sChain on the node")
-@login_required
 def dkg():
     dkg_statuses = get('dkg_statuses')
     if not dkg_statuses:
@@ -54,7 +52,6 @@ def dkg():
 
 @schains.command('config', help="sChain config")
 @click.argument('schain_name')
-@login_required
 def get_schain_config(schain_name):
     schain_config = get('schain_config', {'schain-name': schain_name})
     if not schain_config:

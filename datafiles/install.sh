@@ -1,37 +1,43 @@
 #!/usr/bin/env bash
+set -e
 
-SKALE_DIR="$HOME"/.skale
-SKALE_NODE_DIR_NAME=.skale-node
-SKALE_NODE_DIR="$SKALE_DIR"/"$SKALE_NODE_DIR_NAME"
+CONFIG_DIR="$SKALE_DIR"/config
+CONTRACTS_DIR="$SKALE_DIR"/contracts_info
+NODE_DATA_DIR=$SKALE_DIR/node_data
 
-mkdir -p $SKALE_DIR
-cd $SKALE_DIR
+source "$DATAFILES_FOLDER"/helper.sh
 
-rm -rf $SKALE_NODE_DIR
-
-if [[ -z $SKALE_NODE_SOURCE ]]; then
-    sudo git clone -b $GIT_BRANCH https://$GITHUB_TOKEN\@github.com/skalenetwork/skale-node.git .skale-node
+if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
+    cd $CONFIG_DIR
+    echo "Cloning container configs ..."
+    git clone https://github.com/skalenetwork/skale-node.git .
+    echo "Checkouting to container configs branch $CONTAINER_CONFIGS_STREAM ..."
+    git checkout $CONTAINER_CONFIGS_STREAM
 else
-    rsync -r $SKALE_NODE_SOURCE/* .skale-node
+    echo "Syncing container configs ..."
+    rsync -r $CONTAINER_CONFIGS_DIR/* $CONFIG_DIR
+    rsync -r $CONTAINER_CONFIGS_DIR/.git $CONFIG_DIR
 fi
 
-umount $DISK_MOUNTPOINT
+echo "Creating .env symlink to $CONFIG_DIR/.env ..."
+ln -s $SKALE_DIR/.env $CONFIG_DIR/.env
 
-cd "$SKALE_NODE_DIR"/scripts
+cd $SKALE_DIR
 
-export DOCKER_USERNAME=$DOCKER_USERNAME
-export DOCKER_PASSWORD=$DOCKER_PASSWORD
+download_contracts
+configure_filebeat
+configure_flask
+iptables_configure
 
-export DISK_MOUNTPOINT=$DISK_MOUNTPOINT
-export ENDPOINT=$ENDPOINT
-export IMA_ENDPOINT=$IMA_ENDPOINT
+if [[ -z $DRY_RUN ]]; then
+    docker_lvmpy_install
+    dockerhub_login # todo: remove after containers open-sourcing
+    cd $CONFIG_DIR
+    if [[ ! -z $CONTAINER_CONFIGS_DIR ]]; then
+        echo "Building containers ..."
+        SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml build
+    fi
+    echo "Creating containers ..."
+    SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d
+fi
 
-export MANAGER_CONTRACTS_INFO_URL=$MANAGER_CONTRACTS_INFO_URL
-export IMA_CONTRACTS_INFO_URL=$IMA_CONTRACTS_INFO_URL
-
-export DB_USER=$DB_USER
-export DB_PORT=$DB_PORT
-export DB_PASSWORD=$DB_PASSWORD
-export DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
-
-sudo -E bash install.sh

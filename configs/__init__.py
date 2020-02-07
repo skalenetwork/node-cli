@@ -25,21 +25,25 @@ from configs.routes import ROUTES  # noqa: F401
 HOME_DIR = str(Path.home())
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 
-PROJECT_PATH = os.path.join(SKALE_DIR, '.skale-node')
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
+CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
+CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
+
+LOG_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'log')
+NODE_CERTS_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'ssl')
+SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
+SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
+
 CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
                               os.path.join(SKALE_DIR, '.skale-cli.yaml')
 
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
 LOCAL_WALLET_FILEPATH = os.path.join(NODE_DATA_PATH, 'local_wallet.json')
 
-UNINSTALL_SCRIPT = os.path.join(PROJECT_PATH, 'scripts', 'uninstall.sh')
-UPDATE_SCRIPT = os.path.join(PROJECT_PATH, 'scripts', 'update.sh')
-
-ENV = os.environ.get('ENV')
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
 
+ENV = os.environ.get('ENV')
 if ENV == 'dev':
     PARDIR = os.path.join(CURRENT_FILE_LOCATION, os.pardir)
 else:
@@ -52,8 +56,8 @@ THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
 
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
-INSTALL_CONVOY_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install_convoy.sh')
-UPDATE_NODE_PROJECT_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update_node_project.sh')
+UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
+UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
 
 LONG_LINE = '-' * 50
 

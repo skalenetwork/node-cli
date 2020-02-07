@@ -47,7 +47,7 @@ RESPONSE_DATA = [
 ]
 
 
-def test_schains(skip_auth, config):
+def test_schains(config):
     resp_mock = response_mock(
         requests.codes.ok,
         json_data={'data': RESPONSE_DATA, 'res': 1}
