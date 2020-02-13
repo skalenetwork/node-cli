@@ -20,7 +20,7 @@
 import click
 from terminaltables import SingleTable
 
-from core.helper import login_required, get, safe_load_texts
+from core.helper import get, safe_load_texts
 
 
 TEXTS = safe_load_texts()
@@ -37,7 +37,6 @@ def sgx():
 
 
 @sgx.command(help="Status of the SGX server")
-@login_required
 def status():
     result = get('sgx_status')
     if not result:

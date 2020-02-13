@@ -25,7 +25,7 @@ from cli.node import (register_node, init_node, purge_node, update_node,
                       node_about, node_info)
 
 
-def test_register_node(skip_auth, config):
+def test_register_node(config):
     result = run_command_mock(
         'core.node.post',
         {'res': 1},
@@ -43,7 +43,7 @@ def test_register_node(skip_auth, config):
     assert result.output == "Node registration failed with error: ['Strange error']\n"
 
 
-def test_register_node_with_prompted_ip(config, skip_auth):
+def test_register_node_with_prompted_ip(config):
     result = run_command_mock(
         'core.node.post',
         {'res': 1},
@@ -53,7 +53,7 @@ def test_register_node_with_prompted_ip(config, skip_auth):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_default_port_and_name(config, skip_auth):
+def test_register_node_with_default_port_and_name(config):
     result = run_command_mock(
         'core.node.post',
         {'res': 1},
@@ -68,15 +68,14 @@ def test_init_node(config):
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
-            mock.patch('core.node.init_data_dir'):
+            mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
             'core.node.post',
             resp_mock,
             init_node,
-            ['--env-file', './tests/test-env'],
-            input='/dev/sdp\nlocalhost')
+            ['--env-file', './tests/test-env'])
         assert result.exit_code == 0
-        assert result.output == 'Enter data disk mount point: /dev/sdp\nEnter URL of sgx server: localhost\n'  # noqa
+        assert result.output == ''  # noqa
 
 
 def test_purge(config):
@@ -98,8 +97,9 @@ def test_update_node(config):
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
-            mock.patch('core.node.prepare_host'), \
-            mock.patch('core.node.init_data_dir'):
+            mock.patch('core.node.get_flask_secret_key'), \
+            mock.patch('core.node.save_env_params'), \
+            mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
             'core.node.post',
             resp_mock,
@@ -110,7 +110,7 @@ def test_update_node(config):
         assert result.output == ''
 
 
-def test_node_info_node_about(skip_auth, config):
+def test_node_info_node_about(config):
     response_data = {
         'libraries': {
             'javascript': 'N/A', 'python': '0.89.0'},
@@ -138,7 +138,7 @@ def test_node_info_node_about(skip_auth, config):
     assert result.output == "{'libraries': {'javascript': 'N/A', 'python': '0.89.0'}, 'contracts': {'token': '0x3', 'manager': '0x23'}, 'network': {'endpoint': 'ws://0.0.0.0:8080'}, 'local_wallet': {'address': '0xf', 'eth_balance_wei': '15', 'skale_balance_wei': '84312304', 'eth_balance': '2.424', 'skale_balance': '323.123'}}\n"  # noqa
 
 
-def test_node_info_node_info(skip_auth, config):
+def test_node_info_node_info(config):
     response_data = {'name': 'test', 'ip': '0.0.0.0',
                      'publicIP': '1.1.1.1',
                      'port': 10001,

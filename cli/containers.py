@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from core.helper import login_required, get
+from core.helper import get
 from core.print_formatters import print_containers
 
 
@@ -34,7 +34,6 @@ def containers():
 
 @containers.command(help="List of sChain containers running on connected node")
 @click.option('--all', '-a', is_flag=True)
-@login_required
 def schains(all):
     schain_containers = get('schains_containers', {'all': all})
     if schain_containers is None:
@@ -44,7 +43,6 @@ def schains(all):
 
 @containers.command(help="List of SKALE containers running on connected node")
 @click.option('--all', '-a', is_flag=True)
-@login_required
 def ls(all):
     containers_list = get('skale_containers', {'all': all})
     if not containers_list:

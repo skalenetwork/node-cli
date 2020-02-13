@@ -26,7 +26,7 @@ from time import sleep
 from tools.schain_types import SchainTypes
 from tools.helper import write_json, read_json, run_cmd, format_output
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
-    TINY_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
+    TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
     DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK
 
 logger = logging.getLogger(__name__)
@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 class ResourceAlloc():
     def __init__(self, value, fractional=False):
         self.values = {
-            'part_test4': value / SMALL_DIVIDER,
-            'part_test': value / SMALL_DIVIDER,
+            'part_test4': value / TEST_DIVIDER,
+            'part_test': value / TEST_DIVIDER,
             'part_small': value / TINY_DIVIDER,
             'part_medium': value / SMALL_DIVIDER,
             'part_large': value / MEDIUM_DIVIDER

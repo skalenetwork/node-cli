@@ -18,14 +18,13 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from configs import ROUTES
-from core.helper import get_node_creds, construct_url, get_request
+from core.helper import construct_url, get_request
 
 
 def get_validators_info(config, format):
-    cookies = get_node_creds(config)
     url = construct_url(ROUTES['validators_info'])
 
-    response = get_request(url, cookies)
+    response = get_request(url)
     if response is None:
         return None
 
