@@ -26,7 +26,7 @@ import click
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER)
 
-from configs.env import (apsent_params as apsent_env_params,
+from configs.env import (absent_params as absent_env_params,
                          get_params as get_env_params)
 from core.helper import post
 from core.host import prepare_host, save_env_params, get_flask_secret_key
