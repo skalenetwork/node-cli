@@ -69,7 +69,11 @@ def test_dkg():
         json_data={'data': response_data, 'res': 1}
     )
     result = run_command_mock('core.helper.get_request', resp_mock, dkg)
+    print(result)
+    assert result.exit_code == 0
+    assert result.output == '  sChain Name      DKG Status          Added At      \n-----------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52\n'  # noqa
 
+    result = run_command_mock('core.helper.get_request', resp_mock, dkg, ['--all'])
     print(result)
     assert result.exit_code == 0
     assert result.output == '  sChain Name      DKG Status          Added At      \n-----------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52\n'  # noqa
