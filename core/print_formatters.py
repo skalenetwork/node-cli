@@ -116,15 +116,27 @@ def print_dkg_statuses(statuses):
     print(Formatter().table(headers, rows))
 
 
-def print_metrics(metrics):
+def print_metrics(rows, total):
     headers = [
         'Date',
         'Bounty',
         'Downtime',
         'Latency'
     ]
-    rows = metrics['bounties']
-    print(Formatter().table(headers, rows))
+    table = texttable.Texttable(max_width=get_tty_width())
+    table.set_cols_align(["l", "r", "r", "r"])
+    table.set_cols_dtype(["t", "a", "i", "f"])
+    table.set_precision(1)
+    table.add_rows([headers] + rows)
+    table.set_deco(table.HEADER)
+    table.set_chars(['-', '|', '+', '-'])
+    print(table.draw())
+    print_total_info(total)
+
+
+def print_total_info(total):
+    total_string = f'Total bounty per the given period: {total:.3f} SKL'
+    print(total_string)
 
 
 def print_logs(logs):
