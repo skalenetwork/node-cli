@@ -103,15 +103,18 @@ def print_dkg_statuses(statuses):
     headers = [
         'sChain Name',
         'DKG Status',
-        'Added At'
+        'Added At',
+        'sChain Status'
     ]
     rows = []
     for status in statuses:
         date = datetime.datetime.fromtimestamp(status['added_at'])
+        schain_status = 'Deleted' if status['is_deleted'] else 'Active'
         rows.append([
             status['name'],
             status['dkg_status_name'],
             format_date(date),
+            schain_status
         ])
     print(Formatter().table(headers, rows))
 
