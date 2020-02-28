@@ -5,9 +5,23 @@ export DISK_MOUNTPOINT_FILE=$NODE_DATA_DIR/disk_mountpoint.txt
 export SGX_CERTIFICATES_DIR_NAME=sgx_certs
 
 remove_dynamic_containers () {
-    echo 'Removing schains and ima containers ...'
-    docker ps -a --format '{{.Names}}' | grep "^skale_schain_" | awk '{print $1}' | xargs -I {} docker rm -f {}
-    docker ps -a --format '{{.Names}}' | grep "^skale_ima_" | awk '{print $1}' | xargs -I {} docker rm -f {}
+    echo 'Removing schains containers ...'
+    SCHAIN_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep '^skale_schain_' | awk '{print $1}' | xargs)"
+    for CONTAINER in $SCHAIN_CONTAINERS; do
+        echo 'Stopping' $CONTAINER
+        docker stop $CONTAINER -t 20
+        echo 'Removing' $CONTAINER
+        docker rm $CONTAINER
+    done
+
+    echo 'Removing ima containers...'
+    IMA_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep '^skale_ima_' | awk '{print $1}' | xargs)"
+    for CONTAINER in $IMA_CONTAINERS; do
+        echo 'Stopping' $CONTAINER
+        docker stop $CONTAINER -t 20
+        echo 'Removing' $CONTAINER
+        docker rm $CONTAINER
+    done
 }
 
 remove_compose_containers () {
