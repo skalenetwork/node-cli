@@ -43,6 +43,7 @@ LOCAL_WALLET_FILEPATH = os.path.join(NODE_DATA_PATH, 'local_wallet.json')
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
 
+
 def _get_env():
     try:
         sys._MEIPASS
