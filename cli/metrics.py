@@ -31,7 +31,7 @@ def metrics_cli():
     pass
 
 
-@metrics_cli.group('metrics', invoke_without_command=True, help="Node metrics commands")
+@metrics_cli.group('metrics', invoke_without_command=True, help=TEXTS['help'])
 @click.option(
     '--since', '-s',
     type=click.DateTime(formats=['%Y-%m-%d']),
@@ -47,12 +47,19 @@ def metrics_cli():
     type=int,
     help=TEXTS['limit']['help']
 )
-@click.option('--fast', '-f', is_flag=True)
+@click.option('--fast', '-f', is_flag=True, help=TEXTS['fast']['help'])
+@click.option('--wei', '-w', is_flag=True, help=TEXTS['wei']['help'])
 @click.pass_context
-def metrics(ctx, since, till, limit, fast):
+def metrics(ctx, since, till, limit, fast, wei):
     if ctx.invoked_subcommand is None:
-        print(TEXTS['wait_msg'])
-        data = get('metrics', {'since': since, 'till': till, 'limit': limit, 'fast': fast})
-        metrics = data['metrics']
-        total_bounty = data['total']
-        print_metrics(metrics, total_bounty)
+        if since and till and since > till:
+            print(TEXTS['warning_msg'])
+            return
+        if not fast:
+            print(TEXTS['wait_msg'])
+        data = get('metrics', {'since': since, 'till': till, 'limit': limit,
+                               'fast': fast, 'wei': wei})
+        if data is not None:
+            metrics = data['metrics']
+            total_bounty = data['total']
+            print_metrics(metrics, total_bounty, wei)
