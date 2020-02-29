@@ -31,7 +31,8 @@ def test_metrics(config):
             ['2019-10-09 04:47:11', 4018775720164609053497, 0, 1],
             ['2019-10-09 05:47:21', 4018775720164609053497, 0, 1],
             ['2019-10-09 06:47:32', 4018775720164609053497, 0, 1]
-        ]
+        ],
+        'total': 0
     }
     resp_mock = response_mock(
         requests.codes.ok,
@@ -43,7 +44,7 @@ def test_metrics(config):
 
     resp_mock = response_mock(
         requests.codes.ok,
-        json_data={'data': {'metrics': []}, 'res': 1}
+        json_data={'data': {'metrics': [], 'total': 0}, 'res': 1}
     )
     result = run_command_mock('core.helper.get_request', resp_mock, metrics)
     assert result.exit_code == 0
