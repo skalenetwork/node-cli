@@ -32,7 +32,7 @@ def test_metrics(config):
             ['2019-10-09 05:47:21', 4018775720164609053497, 0, 1],
             ['2019-10-09 06:47:32', 4018775720164609053497, 0, 1]
         ],
-        'total': 0
+        'total': 4018.7759
     }
     resp_mock = response_mock(
         requests.codes.ok,
@@ -40,12 +40,30 @@ def test_metrics(config):
     )
     result = run_command_mock('core.helper.get_request', resp_mock, metrics)
     assert result.exit_code == 0
-    # assert result.output == 'Please wait - collecting metrics from blockchain...\n       Date                   Bounty           Downtime   Latency\n-----------------------------------------------------------------\n2019-10-09 02:46:50   4018775720164609053497   0          1      \n2019-10-09 03:47:00   4018775720164609053497   0          1      \n2019-10-09 04:47:11   4018775720164609053497   0          1      \n2019-10-09 05:47:21   4018775720164609053497   0          1      \n2019-10-09 06:47:32   4018775720164609053497   0          1      \n'  # noqa
 
+    expected_output = f'Please wait - collecting metrics data from blockchain...\n' \
+                      f'+---------------------------------------------------------------------+\n'\
+                      f'|        Date                    Bounty            Downtime   Latency |\n'\
+                      f'+---------------------------------------------------------------------+\n'\
+                      f'| 2019-10-09 02:46:50   4018775720164608966656.0          0       1.0 |\n'\
+                      f'| 2019-10-09 03:47:00   4018775720164608966656.0          0       1.0 |\n'\
+                      f'| 2019-10-09 04:47:11   4018775720164608966656.0          0       1.0 |\n'\
+                      f'| 2019-10-09 05:47:21   4018775720164608966656.0          0       1.0 |\n'\
+                      f'| 2019-10-09 06:47:32   4018775720164608966656.0          0       1.0 |\n'\
+                      f'+---------------------------------------------------------------------+\n'\
+                      f'Total bounty per the given period: 4018.776 SKL\n'
+    assert result.output == expected_output
     resp_mock = response_mock(
         requests.codes.ok,
         json_data={'data': {'metrics': [], 'total': 0}, 'res': 1}
     )
     result = run_command_mock('core.helper.get_request', resp_mock, metrics)
+    print(result.output)
     assert result.exit_code == 0
-    # assert result.output == 'Please wait - collecting metrics from blockchain...\nNo bounties found\n'  # noqa
+    expected_output = f'Please wait - collecting metrics data from blockchain...\n' \
+                      f'+------------------------------------+\n'\
+                      f'| Date   Bounty   Downtime   Latency |\n'\
+                      f'+------------------------------------+\n' \
+                      f'+------------------------------------+\n' \
+                      f'Total bounty per the given period: 0.000 SKL\n'
+    assert result.output == expected_output
