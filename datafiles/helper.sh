@@ -9,7 +9,7 @@ remove_dynamic_containers () {
     SCHAIN_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep '^skale_schain_' | awk '{print $1}' | xargs)"
     for CONTAINER in $SCHAIN_CONTAINERS; do
         echo 'Stopping' $CONTAINER
-        docker stop $CONTAINER -t 20
+        docker stop $CONTAINER -t 40
         echo 'Removing' $CONTAINER
         docker rm $CONTAINER
     done
@@ -18,7 +18,7 @@ remove_dynamic_containers () {
     IMA_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep '^skale_ima_' | awk '{print $1}' | xargs)"
     for CONTAINER in $IMA_CONTAINERS; do
         echo 'Stopping' $CONTAINER
-        docker stop $CONTAINER -t 20
+        docker stop $CONTAINER -t 40
         echo 'Removing' $CONTAINER
         docker rm $CONTAINER
     done
