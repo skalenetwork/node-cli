@@ -18,13 +18,12 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import mock
 import requests
 
 from mock import MagicMock, Mock
 
 from cli.wallet import wallet_info
-from tests.helper import run_command, run_command_mock
+from tests.helper import run_command_mock
 
 
 def test_wallet_info(config):

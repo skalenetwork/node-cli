@@ -22,7 +22,6 @@ import logging
 import click
 
 from core.wallet import get_wallet_info
-from tools.helper import session_config
 
 
 logger = logging.getLogger(__name__)
@@ -41,5 +40,4 @@ def wallet():
 @wallet.command('info', help="Get info about SKALE node wallet")
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 def wallet_info(format):
-    config = session_config()
     get_wallet_info(format)
