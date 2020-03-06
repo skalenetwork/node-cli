@@ -38,7 +38,6 @@ CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
                               os.path.join(SKALE_DIR, '.skale-cli.yaml')
 
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
-LOCAL_WALLET_FILEPATH = os.path.join(NODE_DATA_PATH, 'local_wallet.json')
 
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
