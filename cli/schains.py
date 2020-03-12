@@ -43,8 +43,16 @@ def ls():
 
 
 @schains.command(help="DKG statuses for each sChain on the node")
-def dkg():
-    dkg_statuses = get('dkg_statuses')
+@click.option(
+    '--all',
+    help='Shows active and deleted sChains',
+    is_flag=True
+)
+def dkg(all):
+    if all:
+        dkg_statuses = get('dkg_statuses', params={'all': True})
+    else:
+        dkg_statuses = get('dkg_statuses')
     if not dkg_statuses:
         return
     print_dkg_statuses(dkg_statuses)

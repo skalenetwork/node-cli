@@ -61,7 +61,8 @@ def test_dkg():
             'name': 'melodic-aldhibah',
             'added_at': 1578497212.645233,
             'dkg_status': 2,
-            'dkg_status_name': 'IN_PROGRESS'
+            'dkg_status_name': 'IN_PROGRESS',
+            'is_deleted': False
         }
     ]
     resp_mock = response_mock(
@@ -69,10 +70,14 @@ def test_dkg():
         json_data={'data': response_data, 'res': 1}
     )
     result = run_command_mock('core.helper.get_request', resp_mock, dkg)
-
     print(result)
     assert result.exit_code == 0
-    assert result.output == '  sChain Name      DKG Status          Added At      \n-----------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52\n'  # noqa
+    assert result.output == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Active       \n'  # noqa
+
+    result = run_command_mock('core.helper.get_request', resp_mock, dkg, ['--all'])
+    print(result)
+    assert result.exit_code == 0
+    assert result.output == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Active       \n'  # noqa
 
 
 def test_get_schain_config():

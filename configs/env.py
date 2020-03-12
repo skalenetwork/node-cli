@@ -22,7 +22,7 @@ base_params = {
 }
 
 
-def apsent_params(params):
+def absent_params(params):
     return list(filter(
         lambda key: key != 'CONTAINER_CONFIGS_DIR' and not params[key],
         params)

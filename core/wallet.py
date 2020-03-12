@@ -17,25 +17,14 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import inspect
 
-from skale.utils.web3_utils import private_key_to_address
-from web3 import Web3
-
-from configs import ROUTES, LONG_LINE, LOCAL_WALLET_FILEPATH
+from configs import ROUTES, LONG_LINE
 from core.helper import construct_url, get_request
-from tools.helper import write_json
 
 
-def set_wallet_by_pk(private_key):
-    address = private_key_to_address(private_key)
-    address_fx = Web3.toChecksumAddress(address)
-    local_wallet = {'address': address_fx, 'private_key': private_key}
-    write_json(LOCAL_WALLET_FILEPATH, local_wallet)
-    print(f'Local wallet updated: {local_wallet["address"]}')
-
-
-def get_wallet_info(config, format):
+def get_wallet_info(_format):
     url = construct_url(ROUTES['wallet_info'])
 
     response = get_request(url)
@@ -44,8 +33,8 @@ def get_wallet_info(config, format):
 
     json_data = response.json()
     data = json_data['data']
-    if format == 'json':
-        print(data)
+    if _format == 'json':
+        print(json.dumps(data))
     else:
         print_wallet_info(data)
 
