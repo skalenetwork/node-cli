@@ -1,3 +1,22 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of skale-node-cli
+#
+#   Copyright (C) 2019 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import os
 import logging
 import psutil
@@ -7,7 +26,8 @@ from time import sleep
 from tools.schain_types import SchainTypes
 from tools.helper import write_json, read_json, run_cmd, format_output
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
-    TINY_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, DISK_MOUNTPOINT_FILEPATH
+    TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
+    DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +35,8 @@ logger = logging.getLogger(__name__)
 class ResourceAlloc():
     def __init__(self, value, fractional=False):
         self.values = {
-            'part_test4': value / SMALL_DIVIDER,
-            'part_test': value / SMALL_DIVIDER,
+            'part_test4': value / TEST_DIVIDER,
+            'part_test': value / TEST_DIVIDER,
             'part_small': value / TINY_DIVIDER,
             'part_medium': value / SMALL_DIVIDER,
             'part_large': value / MEDIUM_DIVIDER
@@ -79,9 +99,9 @@ def get_disk_alloc(disk_path):
         disk_size = get_disk_size(disk_path)
     except subprocess.CalledProcessError:
         raise Exception("Couldn't get disk size, check disk mountpoint option.")
-    #if check_is_partition(disk_path):
+    # if check_is_partition(disk_path):
     #    raise Exception("You provided partition path instead of disk mountpoint.")
-    free_space = disk_size * DISK_FACTOR
+    free_space = int(disk_size * DISK_FACTOR) // VOLUME_CHUNK * VOLUME_CHUNK
     return ResourceAlloc(free_space)
 
 
@@ -94,17 +114,20 @@ def get_disk_size(disk_path):
 
 def construct_disk_size_cmd(disk_path):
     return f'sudo blockdev --getsize64 {disk_path}'
-    # return f'fdisk -l  {disk_path} | sed -n \'1p\' | grep -oP \', \K[^,]+\' | sed -n \'1p\'' # alternate version
+
 
 def check_is_partition(disk_path):
     res = run_cmd(['blkid', disk_path])
     output = str(res.stdout)
-    if 'PARTUUID' in output: return True
+    if 'PARTUUID' in output:
+        return True
     return False
+
 
 def get_allocation_option_name(schain):
     part_of_node = int(schain['partOfNode'])
     return SchainTypes(part_of_node).name
+
 
 def get_disk_path():
     f = open(DISK_MOUNTPOINT_FILEPATH, "r")

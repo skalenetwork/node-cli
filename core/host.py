@@ -1,60 +1,54 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of skale-node-cli
+#
+#   Copyright (C) 2019 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import os
 import logging
 import subprocess
-import requests
+from shutil import copyfile
 from urllib.parse import urlparse
 
 from core.resources import save_resource_allocation_config
 
-from core.config import DEPENDENCIES_SCRIPT, URLS, SKALE_NODE_UI_PORT, DEFAULT_URL_SCHEME, \
-    INSTALL_CONVOY_SCRIPT
-from configs.node import NODE_DATA_PATH
+from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
+                     DEFAULT_URL_SCHEME, NODE_DATA_PATH,
+                     SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
+                     NODE_CERTS_PATH, SGX_CERTS_PATH,
+                     SCHAINS_DATA_PATH, LOG_PATH)
 from configs.cli_logger import LOG_DATA_PATH
-from configs.resource_allocation import DISK_MOUNTPOINT_FILEPATH, \
-    CONVOY_HELPER_SCRIPT_FILEPATH, CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH
+from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
+                                         SGX_SERVER_URL_FILEPATH)
 
-from core.helper import safe_get_config, safe_load_texts, construct_url, clean_cookies, clean_host, get_localhost_endpoint
-from tools.helper import run_cmd, process_template, get_username
+from core.helper import safe_load_texts
+
 
 TEXTS = safe_load_texts()
 
 logger = logging.getLogger(__name__)
+
 
 def install_host_dependencies():
     env = {
         **os.environ,
         'SKALE_CMD': 'host_deps'
     }
-    res = subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
+    subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
     # todo: check execution status
-
-
-def show_host(config):
-    host = safe_get_config(config, 'host')
-    if host:
-        print(f'SKALE node host: {host}')
-    else:
-        print(TEXTS['service']['no_node_host'])
-
-
-def reset_host(config):
-    clean_cookies(config)
-    clean_host(config)
-    logging.info(f'Resetting host to defaut: {get_localhost_endpoint()}')
-    print('Host removed, cookies cleaned.')
-
-
-def test_host(host):
-    url = construct_url(host, URLS['test_host'])
-
-    try:
-        response = requests.get(url)
-    except requests.exceptions.ConnectionError:
-        return False  # todo: return different error messages
-    except requests.exceptions.InvalidURL:
-        return False  # todo: return different error messages
-
-    return response.status_code == requests.codes.ok
 
 
 def fix_url(url):
@@ -62,45 +56,35 @@ def fix_url(url):
         result = urlparse(url)
         if not result.scheme:
             url = f'{DEFAULT_URL_SCHEME}{url}'
-        if not url.endswith(str(SKALE_NODE_UI_PORT)):
-            return f'{url}:{SKALE_NODE_UI_PORT}'
+        if not url.endswith(str(ADMIN_PORT)):
+            return f'{url}:{ADMIN_PORT}'
         return url
     except ValueError:
         return False
 
 
-def prepare_host(test_mode, disk_mountpoint):
+def get_flask_secret_key():
+    secret_key_filepath = os.path.join(NODE_DATA_PATH, 'flask_db_key.txt')
+    with open(secret_key_filepath) as key_file:
+        return key_file.read().strip()
+
+
+def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
+    make_dirs()
+    save_env_params(env_filepath)
     save_disk_mountpoint(disk_mountpoint)
+    save_sgx_server_url(sgx_server_url)
     save_resource_allocation_config()
-    if not test_mode:
-        init_convoy(disk_mountpoint)
-
-def init_convoy(disk_mountpoint):
-    print(f'Installing convoy...')
-    run_cmd(['bash', INSTALL_CONVOY_SCRIPT], shell=False)
-    print(f'Downloading convoy disk helper...')
-    convoy_prepare_disk(disk_mountpoint)
-    start_convoy_daemon(disk_mountpoint)
 
 
-def start_convoy_daemon(disk_mountpoint):
-    template_data = {
-        #'user': get_username(),
-        'cmd': f'/bin/umount {disk_mountpoint} || /usr/local/bin/convoy daemon --drivers devicemapper --driver-opts dm.datadev={disk_mountpoint}1 --driver-opts dm.metadatadev={disk_mountpoint}2'
-    }
-    msg = f'Starting convoy daemon, template data: {template_data}'
-    logger.info(msg), print(msg)
-    process_template(CONVOY_SERVICE_TEMPLATE_PATH, CONVOY_SERVICE_PATH, template_data)
-    run_cmd(['systemctl', 'enable', 'convoy'], shell=False)
-    run_cmd(['systemctl', 'start', 'convoy'], shell=False)
-
-
-def convoy_prepare_disk(disk_mountpoint):
-    msg = 'Applying disk partitioning...'
-    logger.info(msg), print(msg)
-    run_cmd(['bash', CONVOY_HELPER_SCRIPT_FILEPATH, '--write-to-disk', f'{disk_mountpoint}'],
-            shell=False)
+def make_dirs():
+    for dir_path in (
+        SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
+        CONTRACTS_PATH, NODE_CERTS_PATH,
+        SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH
+    ):
+        safe_mk_dirs(dir_path)
 
 
 def save_disk_mountpoint(disk_mountpoint):
@@ -109,10 +93,27 @@ def save_disk_mountpoint(disk_mountpoint):
         f.write(disk_mountpoint)
 
 
+def save_sgx_server_url(sgx_server_url):
+    logger.info(f'Saving disk_mountpoint option to {SGX_SERVER_URL_FILEPATH}')
+    with open(SGX_SERVER_URL_FILEPATH, 'w') as f:
+        f.write(sgx_server_url)
+
+
+def save_env_params(env_filepath):
+    copyfile(env_filepath, os.path.join(SKALE_DIR, '.env'))
+
+
+def init_logs_dir():
+    safe_mk_dirs(LOG_DATA_PATH)
+
+
 def init_data_dir():
-    if os.path.exists(LOG_DATA_PATH):
+    safe_mk_dirs(NODE_DATA_PATH)
+
+
+def safe_mk_dirs(path):
+    if os.path.exists(path):
         return
-    msg = f'Creating {NODE_DATA_PATH} directory...'
+    msg = f'Creating {path} directory...'
     logger.info(msg), print(msg)
-    os.makedirs(NODE_DATA_PATH, exist_ok=True)
-    os.makedirs(LOG_DATA_PATH, exist_ok=True)
+    os.makedirs(path, exist_ok=True)

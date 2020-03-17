@@ -12,20 +12,40 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU Affero General Public License for more details.
+#   GNU General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-from configs import SKALE_DIR
+import click
+from terminaltables import SingleTable
 
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+from core.helper import get, safe_load_texts
 
-LOG_FILE_SIZE_MB = 300
-LOG_FILE_SIZE_BYTES = LOG_FILE_SIZE_MB * 1000000
 
-LOG_BACKUP_COUNT = 1
-LOG_DATA_PATH = os.path.join(SKALE_DIR, '.skale-cli-log')
-LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'node-cli.log')
-DEBUG_LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'debug-node-cli.log')
+TEXTS = safe_load_texts()
+
+
+@click.group()
+def sgx_cli():
+    pass
+
+
+@sgx_cli.group('sgx', help="SGX commands")
+def sgx():
+    pass
+
+
+@sgx.command(help="Status of the SGX server")
+def status():
+    result = get('sgx_status')
+    if not result:
+        return
+    else:
+        table_data = [
+            ['SGX server URL', result['sgx_server_url']],
+            ['Status', result['status_name']]
+        ]
+        table = SingleTable(table_data)
+        print('SGX server status:')
+        print(table.table)

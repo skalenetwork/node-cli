@@ -6,10 +6,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+
+### Added 
+
+
+### Changed
+
+- `--dkg-url` option for `node init` and `node update` commands removed
+ 
+
+
+## [0.4.0] - 2019-10-03
+
+
+### Added 
+
+- `--manager-url` option for `node init` and `node update` commands 
+- `--ima-url` option for `node init` and `node update` commands 
+- `--dkg-url` option for `node init` and `node update` commands
+- `--filebeat-url` option for `node init` and `node update` commands
+
+### Changed
+
+- `--endpoint` and `--ima-endpoint` options for `node init` and `node update` commands now required
+- `ima` renamed to `mta`
+- Support for the new SKALE node architecture
+
+
+
+## [0.2.0 - 0.3.0] - 2019-09-10
+
+
+### Added 
+- Exception handler now logs error stacktrace
+- `--endpoint` option for `node init` and `node update` commands
+- `skale info` command with information about current build
+- `skale logs container` command that fetches logs from one of the node containers
+- `skale logs dump` command that dumps all logs from the connected node
+
+
 ### Changed
 
 - `--git-branch` option for `skale node init` command replaced with `--stream` and it's now required
 - `name` and `port` params are no longer required
+- build script updates info.py file
 
 ## [0.1.1] - 2019-08-06
 

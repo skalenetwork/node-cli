@@ -1,74 +1,93 @@
-import os
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of skale-node-cli
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import logging
-import requests
 import subprocess
-from core.config import INSTALL_SCRIPT, UNINSTALL_SCRIPT, UPDATE_SCRIPT, UPDATE_NODE_PROJECT_SCRIPT
-from core.config import URLS
-from core.helper import get_node_creds, construct_url, post_request, print_err_response
-from core.host import prepare_host
-from core.resources import check_is_partition
+
+import click
+
+from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
+                     UPDATE_SCRIPT, DATAFILES_FOLDER)
+
+from configs.env import (apsent_params as apsent_env_params,
+                         get_params as get_env_params)
+from core.helper import post
+from core.host import prepare_host, save_env_params, get_flask_secret_key
+from tools.texts import Texts
 
 logger = logging.getLogger(__name__)
+TEXTS = Texts()
 
 
-def create_node(config, name, p2p_ip, public_ip, port):
+def register_node(config, name, p2p_ip, public_ip, port):
     # todo: add name, ips and port checks
-    host, cookies = get_node_creds(config)
-    data = {
+    json_data = {
         'name': name,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port
     }
-    url = construct_url(host, URLS['create_node'])
-
-    try: # todo: tmp fix!
-        response = post_request(url, data, cookies)
-    except:
-        response = post_request(url, data, cookies)
-
+    response = post('create_node', json=json_data)
     if response is None:
+        print(TEXTS['service']['empty_response'])
         return None
-    if response.status_code == requests.codes.created:
-        msg = 'Node registered in SKALE manager. For more info run: skale node info'
-        logging.info(msg)
+    if response.get('errors') is not None:
+        print(f'Node registration failed with error: {response["errors"]}')
+        logger.error(f'Registration error {response["errors"]}')
+        return
+    if response['res']:
+        msg = TEXTS['node']['registered']
+        logger.info(msg)
         print(msg)
     else:
-        logging.info(response.json())
-        print_err_response(response.json())
+        logger.info('Bad response. Something went wrong. Try again')
 
 
-def init(mta_endpoint, git_branch, github_token, docker_username, docker_password, rpc_ip, rpc_port,
-         db_user,
-         db_password, db_root_password, db_port, disk_mountpoint, test_mode):
-    env = {
-        **os.environ,
-        'MTA_ENDPOINT': mta_endpoint,
-        'GIT_BRANCH': git_branch,
-        'GITHUB_TOKEN': github_token,
-        'DOCKER_USERNAME': docker_username,
-        'DOCKER_PASSWORD': str(docker_password),
-        'RPC_IP': rpc_ip,
-        'RPC_PORT': str(rpc_port),
-        'DB_USER': db_user,
-        'DB_PASSWORD': db_password,
-        'DB_ROOT_PASSWORD': db_root_password,
-        'DB_PORT': str(db_port),
-        'DISK_MOUNTPOINT': disk_mountpoint
-    }
+def extract_env_params(env_filepath):
+    env_params = get_env_params(env_filepath)
 
-    #if check_is_partition(disk_mountpoint):
-    #    raise Exception("You provided partition path instead of disk mountpoint.")
+    if not env_params.get('DB_ROOT_PASSWORD'):
+        env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
-    prepare_host(test_mode, disk_mountpoint)
-    res = subprocess.run(['bash', INSTALL_SCRIPT], env=env)
+    apsent_params = ', '.join(apsent_env_params(env_params))
+    if apsent_params:
+        click.echo(f"Your env file({env_filepath}) have some apsent params: "
+                   f"{apsent_params}.\n"
+                   f"You should specify them to make sure that "
+                   f"all services are working",
+                   err=True)
+        return
+    return env_params
+
+
+def init(env_filepath, dry_run=False):
+    env_params = extract_env_params(env_filepath)
+    prepare_host(
+        env_filepath,
+        env_params['DISK_MOUNTPOINT'],
+        env_params['SGX_SERVER_URL']
+    )
+    dry_run = 'yes' if dry_run else ''
+    res = subprocess.run(['bash', INSTALL_SCRIPT], env={
+        'SKALE_DIR': SKALE_DIR,
+        'DATAFILES_FOLDER': DATAFILES_FOLDER,
+        'DRY_RUN': dry_run,
+        **env_params
+    })
     logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
 
 
 def purge():
     # todo: check that node is installed
-    res = subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
+    subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
     # todo: check execution result
 
 
@@ -76,28 +95,21 @@ def deregister():
     pass
 
 
-def update(mta_endpoint, github_token, docker_username, docker_password, rpc_ip, rpc_port, db_user,
-           db_password,
-           db_root_password, db_port):
-    env = {
-        **os.environ,
-        'MTA_ENDPOINT': mta_endpoint,
-        'GITHUB_TOKEN': github_token,
-        'DOCKER_USERNAME': docker_username,
-        'DOCKER_PASSWORD': str(docker_password),
-        'RPC_IP': rpc_ip,
-        'RPC_PORT': str(rpc_port),
-        'DB_USER': db_user,
-        'DB_PASSWORD': db_password,
-        'DB_ROOT_PASSWORD': db_root_password,
-        'DB_PORT': str(db_port),
-        'DISK_MOUNTPOINT': '/',
-        'RUN_MODE': 'prod'
-    }
-    res_update_project = subprocess.run(['sudo', '-E', 'bash', UPDATE_NODE_PROJECT_SCRIPT], env=env)
-    logging.info(
-        f'Update node project script result: {res_update_project.stderr}, {res_update_project.stdout}')
-    res_update_node = subprocess.run(['sudo', '-E', 'bash', UPDATE_SCRIPT], env=env)
-    logging.info(
-        f'Update node script result: {res_update_node.stderr}, {res_update_node.stdout}')
+def update(env_filepath):
+    if env_filepath is not None:
+        env_params = extract_env_params(env_filepath)
+        save_env_params(env_filepath)
+    else:
+        env_params = {}
+
+    flask_secret_key = get_flask_secret_key()
+    res_update_node = subprocess.run(['bash', UPDATE_SCRIPT], env={
+        'SKALE_DIR': SKALE_DIR,
+        'FLASK_SECRET_KEY': flask_secret_key,
+        'DATAFILES_FOLDER': DATAFILES_FOLDER,
+        **env_params
+    })
+    logger.info(
+        f'Update node script result: '
+        f'{res_update_node.stderr}, {res_update_node.stdout}')
     # todo: check execution result

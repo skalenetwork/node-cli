@@ -104,5 +104,9 @@ venv.bak/
 .mypy_cache/
 
 .idea/
+.vscode/
 
 .DS_Store
+
+# info.py file generated automatically during package build
+cli/info.py

@@ -1,9 +1,31 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of skale-node-cli
+#
+#   Copyright (C) 2019 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import os
 import datetime
 import texttable
 from dateutil import parser
 
-from core.config import LONG_LINE
+from configs import LONG_LINE
+from tools.texts import Texts
+
+TEXTS = Texts()
 
 
 def get_tty_width():
@@ -77,6 +99,34 @@ def print_schains(schains):
     print(Formatter().table(headers, rows))
 
 
+def print_dkg_statuses(statuses):
+    headers = [
+        'sChain Name',
+        'DKG Status',
+        'Added At'
+    ]
+    rows = []
+    for status in statuses:
+        date = datetime.datetime.fromtimestamp(status['added_at'])
+        rows.append([
+            status['name'],
+            status['dkg_status_name'],
+            format_date(date),
+        ])
+    print(Formatter().table(headers, rows))
+
+
+def print_metrics(metrics):
+    headers = [
+        'Date',
+        'Bounty',
+        'Downtime',
+        'Latency'
+    ]
+    rows = metrics['bounties']
+    print(Formatter().table(headers, rows))
+
+
 def print_logs(logs):
     print('Base logs\n')
     print_log_list(logs['base'])
@@ -106,3 +156,25 @@ def print_log_list(logs):
             format_date(date)
         ])
     print(Formatter().table(headers, rows))
+
+
+def print_dict(title, rows, headers=['Key', 'Value']):
+    print(title)
+    print(Formatter().table(headers, rows))
+
+
+def print_exit_status(exit_status_info):
+    headers = [
+        'Schain name',
+        'Status'
+    ]
+    logs = exit_status_info['data']
+    node_exit_status = exit_status_info['status'].lower()
+    rows = [[log['name'], log['status'].lower()] for log in logs]
+    print(f'\n{Formatter().table(headers, rows)}\n')
+    status_info = TEXTS['exit']['status'][node_exit_status]
+    print(f'\n{status_info}\n')
+    if node_exit_status == 'wait_for_rotations':
+        exit_time = exit_status_info['exit_time']
+        exit_time_utc = datetime.datetime.utcfromtimestamp(exit_time)
+        print(f'Rotation finish time: {exit_time_utc}')
