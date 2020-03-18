@@ -1,6 +1,16 @@
 #   -*- coding: utf-8 -*-
 #
 #   This file is part of skale-node-cli
+#
+#   Copyright (C) 2019 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU Affero General Public License for more details.
 #
@@ -16,7 +26,7 @@ import click
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER)
 
-from configs.env import (apsent_params as apsent_env_params,
+from configs.env import (absent_params as absent_env_params,
                          get_params as get_env_params)
 from core.helper import post
 from core.host import prepare_host, save_env_params, get_flask_secret_key
@@ -56,10 +66,10 @@ def extract_env_params(env_filepath):
     if not env_params.get('DB_ROOT_PASSWORD'):
         env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
-    apsent_params = ', '.join(apsent_env_params(env_params))
-    if apsent_params:
-        click.echo(f"Your env file({env_filepath}) have some apsent params: "
-                   f"{apsent_params}.\n"
+    absent_params = ', '.join(absent_env_params(env_params))
+    if absent_params:
+        click.echo(f"Your env file({env_filepath}) have some absent params: "
+                   f"{absent_params}.\n"
                    f"You should specify them to make sure that "
                    f"all services are working",
                    err=True)

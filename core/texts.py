@@ -1,8 +1,8 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of validator-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2020 SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -12,32 +12,25 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging
-
-import click
-
-from core.wallet import get_wallet_info
+import yaml
+from configs import TEXT_FILE
 
 
-logger = logging.getLogger(__name__)
+class Texts():
+    def __init__(self):
+        self._texts = self._load()
 
+    def __getitem__(self, key):
+        return self._texts.get(key)
 
-@click.group()
-def wallet_cli():
-    pass
-
-
-@wallet_cli.group('wallet', help="Node wallet commands")
-def wallet():
-    pass
-
-
-@wallet.command('info', help="Get info about SKALE node wallet")
-@click.option('--format', '-f', type=click.Choice(['json', 'text']))
-def wallet_info(format):
-    get_wallet_info(format)
+    def _load(self):
+        with open(TEXT_FILE, 'r') as stream:
+            try:
+                return yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)

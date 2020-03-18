@@ -58,10 +58,10 @@ setup(
         "web3==5.2.2",
         "texttable==1.6.2",
         "python-dateutil==2.8.1",
-        "Jinja2==2.10.3",
+        "Jinja2==2.11.1",
         "skale-py==2.0b0",
         "psutil==5.6.5",
-        "pycryptodome==3.9.2",
+        "pycryptodome==3.9.7",
         "python-dotenv==0.10.3",
         "terminaltables==3.1.0"
     ],

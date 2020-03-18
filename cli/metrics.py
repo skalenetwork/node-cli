@@ -2,7 +2,7 @@
 #
 #   This file is part of skale-node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2019-2020 SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -20,6 +20,10 @@
 import click
 from core.helper import get
 from core.print_formatters import print_metrics
+from core.texts import Texts
+
+G_TEXTS = Texts()
+TEXTS = G_TEXTS['metrics']
 
 
 @click.group()
@@ -27,42 +31,35 @@ def metrics_cli():
     pass
 
 
-@metrics_cli.group('metrics', help="Node metrics commands")
-def metrics():
-    pass
-
-
-@metrics.command(help="List of all bounties and metrics from local db (fast method)")
-@click.option('--force', '-f', is_flag=True)
-def all(force):
-    if force:
-        print('Please wait - collecting metrics from blockchain...')
-    bounty_data = get('all-bounties', {'force': force})
-    if not bounty_data:
-        print('No bounties found')
-        return
-    print_metrics(bounty_data)
-
-
-@metrics.command(help="List of bounties and metrics for the first year")
-@click.option('--force', '-f', is_flag=True)
-def first(force):
-    if force:
-        print('Please wait - collecting metrics from blockchain...')
-    bounty_data = get('first-bounties', {'force': force})
-    if not bounty_data:
-        print('No bounties found')
-        return
-    print_metrics(bounty_data)
-
-
-@metrics.command(help="List of bounties and metrics for the last year")
-@click.option('--force', '-f', is_flag=True)
-def last(force):
-    if force:
-        print('Please wait - collecting metrics from blockchain...')
-    bounty_data = get('last-bounties', {'force': force})
-    if not bounty_data:
-        print('No bounties found')
-        return
-    print_metrics(bounty_data)
+@metrics_cli.group('metrics', invoke_without_command=True, help=TEXTS['help'])
+@click.option(
+    '--since', '-s',
+    type=click.DateTime(formats=['%Y-%m-%d']),
+    help=TEXTS['since']['help']
+)
+@click.option(
+    '--till', '-t',
+    type=click.DateTime(formats=['%Y-%m-%d']),
+    help=TEXTS['till']['help']
+)
+@click.option(
+    '--limit', '-l',
+    type=int,
+    help=TEXTS['limit']['help']
+)
+@click.option('--fast', '-f', is_flag=True, help=TEXTS['fast']['help'])
+@click.option('--wei', '-w', is_flag=True, help=TEXTS['wei']['help'])
+@click.pass_context
+def metrics(ctx, since, till, limit, fast, wei):
+    if ctx.invoked_subcommand is None:
+        if since and till and since > till:
+            print(TEXTS['warning_msg'])
+            return
+        if not fast:
+            print(TEXTS['wait_msg'])
+        data = get('metrics', {'since': since, 'till': till, 'limit': limit,
+                               'fast': fast, 'wei': wei})
+        if data is not None:
+            metrics = data['metrics']
+            total_bounty = data['total']
+            print_metrics(metrics, total_bounty, wei)
