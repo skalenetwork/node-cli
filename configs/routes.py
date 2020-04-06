@@ -11,6 +11,7 @@ ROUTES = {
     'validators_info': '/validators-info',
 
     'schains_containers': '/containers/schains/list',
+    'schains_healthchecks': '/api/schains/healthchecks',
     'node_schains': '/schains/list',
     'schain_config': '/schain-config',
     'skale_containers': '/containers/list',
