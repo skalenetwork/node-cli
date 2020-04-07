@@ -146,7 +146,6 @@ def print_schains_healthchecks(schains):
     print(Formatter().table(headers, rows))
 
 
-
 def print_metrics(rows, total, wei):
     headers = [
         'Date',
