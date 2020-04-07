@@ -17,8 +17,9 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import click
+import json
 import pprint
+import click
 from core.helper import get
 from core.print_formatters import print_schains, print_dkg_statuses, print_schains_healthchecks
 
@@ -81,6 +82,6 @@ def checks(json_format):
         return
 
     if json_format:
-        print(schains_healthchecks_list)
+        print(json.dumps(schains_healthchecks_list))
     else:
         print_schains_healthchecks(schains_healthchecks_list)

@@ -256,6 +256,18 @@ DKG statuses for each sChain on the node
 skale schains dkg
 ```
 
+#### sChains healthchecks
+
+Healthchecks for all sChains on the node
+
+```bash
+skale schains checks
+```
+
+Options:
+
+- `--json` - Show data in JSON format
+
 ### Containers commands
 
 Node containers commands
@@ -272,7 +284,7 @@ skale containers ls
 
 Options:
 
--   `-a/--all` - list all containers (by default - only running) 
+-   `-a/--all` - list all containers (by default - only running)
 
 #### sChain containers
 

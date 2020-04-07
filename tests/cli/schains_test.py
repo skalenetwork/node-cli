@@ -23,7 +23,7 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import get_schain_config, ls, dkg
+from cli.schains import get_schain_config, ls, dkg, checks
 
 
 def test_ls(config):
@@ -123,3 +123,33 @@ def test_get_schain_config():
                               get_schain_config, ['test1'])
     assert result.exit_code == 0
     assert result.output == "{'nodeInfo': {'basePort': 10011,\n              'bindIP': '123.123.123.123',\n              'httpRpcPort': 10009,\n              'httpsRpcPort': 11118,\n              'nodeID': 2,\n              'nodeName': 'testnet-1',\n              'wsRpcPort': 10118,\n              'wssRpcPort': 13219},\n 'sChain': {'nodes': [{'basePort': 10011,\n                       'httpRpcPort': 10013,\n                       'httpsRpcPort': 10018,\n                       'ip': '213.13.123.13',\n                       'nodeID': 2,\n                       'nodeName': 'testnet-1',\n                       'owner': '0xe3213',\n                       'publicIP': '1.1.1.1',\n                       'publicKey': 'public_key',\n                       'schainIndex': 1,\n                       'wsRpcPort': 10014,\n                       'wssRpcPort': 10019},\n                      {'basePort': 10077,\n                       'httpRpcPort': 10079,\n                       'httpsRpcPort': 10084,\n                       'ip': '2.2.2.2',\n                       'nodeID': 0,\n                       'nodeName': 'testnet-2',\n                       'owner': '0x323',\n                       'publicIP': '3.3.3.3',\n                       'publicKey': 'public_key352',\n                       'schainIndex': 2,\n                       'wsRpcPort': 10080,\n                       'wssRpcPort': 10085}],\n            'schainID': 1,\n            'schainName': 'test1'}}\n"  # noqa
+
+
+def test_checks():
+    response_data = [
+        {
+            "name": "test_schain",
+            "healthchecks": {
+                "data_dir": True,
+                "dkg": False,
+                "config": False,
+                "volume": False,
+                "container": False,
+                "ima_container": False,
+                "firewall_rules": False
+            }
+        }
+    ]
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'data': response_data, 'res': 1}
+    )
+    result = run_command_mock('core.helper.get_request', resp_mock, checks)
+
+    assert result.exit_code == 0
+    assert result.output == 'sChain Name   Data directory    DKG    Config file   Volume   Container    IMA    Firewall\n------------------------------------------------------------------------------------------\ntest_schain   True             False   False         False    False       False   False   \n'  # noqa
+
+    result = run_command_mock('core.helper.get_request', resp_mock, checks, ['--json'])
+
+    assert result.exit_code == 0
+    assert result.output == '[{"name": "test_schain", "healthchecks": {"data_dir": true, "dkg": false, "config": false, "volume": false, "container": false, "ima_container": false, "firewall_rules": false}}]\n'  # noqa
