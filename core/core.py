@@ -33,7 +33,7 @@ def get_node_info(config, format):
     if response is None:
         return None
 
-    if response.status_code == requests.codes.ok:
+    if response.status_code == requests.codes.ok: # pylint: disable=no-member
         node_info = get_response_data(response)
         if node_info['status'] == 0:
             print(TEXTS['service']['node_not_registered'])
@@ -51,7 +51,7 @@ def get_node_about(config, format):
     if response is None:
         return None
 
-    if response.status_code == requests.codes.ok:
+    if response.status_code == requests.codes.ok: # pylint: disable=no-member
         node_about = get_response_data(response)
         print(node_about)
 
