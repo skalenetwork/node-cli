@@ -125,7 +125,7 @@ def get(url_name, params=None):
     if response is None:
         return None
 
-    if response.status_code != requests.codes.ok: # pylint: disable=no-member
+    if response.status_code != requests.codes.ok:  # pylint: disable=no-member
         print('Request failed, status code:', response.status_code)
         return None
 
@@ -145,7 +145,7 @@ def download_dump(path, container_name=None):
     with requests.get(url, params=params, stream=True) as r:
         if r is None:
             return None
-        if r.status_code != requests.codes.ok: # pylint: disable=no-member
+        if r.status_code != requests.codes.ok:  # pylint: disable=no-member
             print('Request failed, status code:', r.status_code)
             print_err_response(r.json())
             return None
