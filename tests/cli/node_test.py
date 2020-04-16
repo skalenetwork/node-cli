@@ -21,7 +21,7 @@ import mock
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.node import (register_node, init_node, purge_node, update_node,
+from cli.node import (register_node, init_node, update_node,
                       node_about, node_info)
 
 
@@ -78,18 +78,18 @@ def test_init_node(config):
         assert result.output == ''  # noqa
 
 
-def test_purge(config):
-    params = ['--yes']
-    resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.node.subprocess.run'):
-        result = run_command_mock(
-            'core.node.post',
-            resp_mock,
-            purge_node,
-            params
-        )
-        assert result.exit_code == 0
-        assert result.output == ''  # noqa
+# def test_purge(config):
+#     params = ['--yes']
+#     resp_mock = response_mock(requests.codes.created)
+#     with mock.patch('core.node.subprocess.run'):
+#         result = run_command_mock(
+#             'core.node.post',
+#             resp_mock,
+#             purge_node,
+#             params
+#         )
+#         assert result.exit_code == 0
+#         assert result.output == ''  # noqa
 
 
 def test_update_node(config):

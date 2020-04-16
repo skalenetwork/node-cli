@@ -25,7 +25,7 @@ import click
 from skale.utils.random_names.generator import generate_random_node_name
 
 from core.core import get_node_info, get_node_about
-from core.node import register_node as register, init, purge, update
+from core.node import register_node as register, init, update
 from core.host import install_host_dependencies
 from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
@@ -134,12 +134,12 @@ def init_node(install_deps, env_file, dry_run):
     init(env_file, dry_run)
 
 
-@node.command('purge', help="Uninstall SKALE node software from the machine")
-@click.option('--yes', is_flag=True, callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure you want to uninstall SKALE node?')
-def purge_node():
-    purge()
+# @node.command('purge', help="Uninstall SKALE node software from the machine")
+# @click.option('--yes', is_flag=True, callback=abort_if_false,
+#               expose_value=False,
+#               prompt='Are you sure you want to uninstall SKALE node?')
+# def purge_node():
+#     purge()
 
 
 # @node.command('deregister', help="De-register node from the SKALE Manager")

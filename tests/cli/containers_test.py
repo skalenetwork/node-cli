@@ -37,7 +37,7 @@ RESPONSE_DATA = [
     {
         'image': 'image-skale', 'name': 'skale_schain_test2',
         'state': {
-            'Status': 'running', 'Running': False, 'Paused':  True,
+            'Status': 'running', 'Running': False, 'Paused': True,
             'Restarting': False, 'OOMKilled': False, 'Dead': False,
             'Pid': 124, 'ExitCode': 0, 'Error': '',
             'StartedAt': '2019-10-08T13:59:54.52368099Z',
@@ -75,7 +75,7 @@ def test_schains(config):
 
     resp_mock = response_mock(
         -1,
-        {'data': RESPONSE_DATA, 'res': 1}
+        {'errors': ['Error test'], 'res': 1}
     )
     result = run_command_mock('core.helper.get_request', resp_mock, schains)
     assert result.exit_code == 0
