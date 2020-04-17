@@ -70,49 +70,6 @@ Options:
 
 -   `--short` - prints version only, without additional text.
 
-### User commands
-
-#### Token
-
-Show user registration token
-
-```bash
-skale user token
-```
-
-#### Register
-
-Interactive:
-
-```bash
-skale user register
-```
-
-Non-interactive:
-
-```bash
-skale user register -u/--username USERNAME -p/--password PASSWORD -t/--token TOKEN
-```
-
-#### Login
-
-Interactive:
-
-```bash
-skale user login
-```
-
-Non-interactive:
-
-```bash
-skale user login -u/--username user -p/--password pass
-```
-
-#### Logout
-
-```bash
-skale user logout
-```
 
 ### Node commands
 
@@ -137,8 +94,6 @@ You should also specify the following parameters through environment variables i
 -   `SGX_SERVER_URL` - sgx server url
 -   `DISK_MOUNTPOINT` - mount point of the disk to be used for storing sChains data
 -   `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
--   `DOCKER_USERNAME` - username for DockerHub
--   `DOCKER_PASSWORD` - password for DockerHub
 -   `DB_PASSWORD` - MySQL password for local node database
 -   `DISK_MOUNTPOINT` - Mount point of the disk to be used for storing sChains data
 -   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
@@ -154,10 +109,6 @@ You should also specify the following parameters through environment variables i
 
 #### Node Register
 
-Register SKALE node on SKALE Manager contracts
-
--   Login required
-
 ```bash
 skale node register
 ```
@@ -169,13 +120,11 @@ Required arguments:
 Optional arguments:
 
 -   `--name` - SKALE node name
--   `--port` - base port for node sChains (default: `10000`)
+-   `--port` - public port - beginning of the port range for node sChains (default: `10000`)
 
 #### Node info
 
 Get base info about SKALE node
-
--   Login required
 
 ```bash
 skale node info
@@ -210,8 +159,6 @@ Commands related to Ethereum wallet associated with SKALE node
 
 #### Wallet info
 
--   Login required
-
 ```bash
 skale wallet info
 ```
@@ -223,8 +170,6 @@ Options:
 #### Wallet set
 
 Set local wallet for the SKALE node
-
--   Login required
 
 ```bash
 skale wallet set --private-key $ETH_PRIVATE_KEY
