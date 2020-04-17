@@ -9,10 +9,14 @@ source "$DATAFILES_FOLDER"/helper.sh
 
 if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
     cd $CONFIG_DIR
-    echo "Cloning container configs ..."
-    git clone https://github.com/skalenetwork/skale-node.git .
+    if [[ ! -d .git ]]; then
+        echo "Cloning container configs ..."
+        git clone https://github.com/skalenetwork/skale-node.git $CONFIG_DIR
+    fi
     echo "Checkouting to container configs branch $CONTAINER_CONFIGS_STREAM ..."
     git checkout $CONTAINER_CONFIGS_STREAM
+    echo "Pulling recent changes from $CONTAINER_CONFIGS_STREAM ..."
+    git pull
 else
     echo "Syncing container configs ..."
     rsync -r $CONTAINER_CONFIGS_DIR/* $CONFIG_DIR
@@ -20,6 +24,9 @@ else
 fi
 
 echo "Creating .env symlink to $CONFIG_DIR/.env ..."
+if [[ -f $CONFIG_DIR/.env ]]; then
+    rm $CONFIG_DIR/.env
+fi
 ln -s $SKALE_DIR/.env $CONFIG_DIR/.env
 
 cd $SKALE_DIR
