@@ -73,12 +73,14 @@ def extract_env_params(env_filepath):
                    f"You should specify them to make sure that "
                    f"all services are working",
                    err=True)
-        return
+        return None
     return env_params
 
 
 def init(env_filepath, dry_run=False):
     env_params = extract_env_params(env_filepath)
+    if env_params is None:
+        return
     prepare_host(
         env_filepath,
         env_params['DISK_MOUNTPOINT'],
@@ -91,7 +93,7 @@ def init(env_filepath, dry_run=False):
         'DRY_RUN': dry_run,
         **env_params
     })
-    logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
+    logger.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
 
 
@@ -108,6 +110,8 @@ def deregister():
 def update(env_filepath):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath)
+        if env_params is None:
+            return
         save_env_params(env_filepath)
     else:
         env_params = {}

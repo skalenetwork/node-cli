@@ -31,7 +31,6 @@ iptables_configure
 
 if [[ -z $DRY_RUN ]]; then
     docker_lvmpy_install
-    dockerhub_login # todo: remove after containers open-sourcing
     cd $CONFIG_DIR
     if [[ ! -z $CONTAINER_CONFIGS_DIR ]]; then
         echo "Building containers ..."

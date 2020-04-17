@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 base_params = {
     'IMA_ENDPOINT': '',
     'CONTAINER_CONFIGS_STREAM': '',
-    'DOCKER_USERNAME': '',
-    'DOCKER_PASSWORD': '',
     'ENDPOINT': '',
     'DB_USER': 'root',
     'DB_PASSWORD': '',
