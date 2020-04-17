@@ -11,7 +11,7 @@ if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
     cd $CONFIG_DIR
     if [[ ! -d .git ]]; then
         echo "Cloning container configs ..."
-        git clone https://github.com/skalenetwork/skale-node.git $CONFIG_DIR
+        git clone "https://github.com/skalenetwork/skale-node.git" $CONFIG_DIR
     fi
     echo "Checkouting to container configs branch $CONTAINER_CONFIGS_STREAM ..."
     git checkout $CONTAINER_CONFIGS_STREAM
@@ -25,7 +25,7 @@ fi
 
 echo "Creating .env symlink to $CONFIG_DIR/.env ..."
 if [[ -f $CONFIG_DIR/.env ]]; then
-    rm $CONFIG_DIR/.env
+    rm "$CONFIG_DIR/.env"
 fi
 ln -s $SKALE_DIR/.env $CONFIG_DIR/.env
 
