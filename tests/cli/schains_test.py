@@ -23,7 +23,8 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import get_schain_config, ls, dkg
+from cli.schains import (get_schain_config, ls, dkg,
+                         show_rules, turn_off_rules, turn_on_rules)
 
 
 def test_ls(config):
@@ -74,7 +75,8 @@ def test_dkg():
     assert result.exit_code == 0
     assert result.output == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Active       \n'  # noqa
 
-    result = run_command_mock('core.helper.get_request', resp_mock, dkg, ['--all'])
+    result = run_command_mock(
+        'core.helper.get_request', resp_mock, dkg, ['--all'])
     print(result)
     assert result.exit_code == 0
     assert result.output == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Active       \n'  # noqa
@@ -123,3 +125,52 @@ def test_get_schain_config():
                               get_schain_config, ['test1'])
     assert result.exit_code == 0
     assert result.output == "{'nodeInfo': {'basePort': 10011,\n              'bindIP': '123.123.123.123',\n              'httpRpcPort': 10009,\n              'httpsRpcPort': 11118,\n              'nodeID': 2,\n              'nodeName': 'testnet-1',\n              'wsRpcPort': 10118,\n              'wssRpcPort': 13219},\n 'sChain': {'nodes': [{'basePort': 10011,\n                       'httpRpcPort': 10013,\n                       'httpsRpcPort': 10018,\n                       'ip': '213.13.123.13',\n                       'nodeID': 2,\n                       'nodeName': 'testnet-1',\n                       'owner': '0xe3213',\n                       'publicIP': '1.1.1.1',\n                       'publicKey': 'public_key',\n                       'schainIndex': 1,\n                       'wsRpcPort': 10014,\n                       'wssRpcPort': 10019},\n                      {'basePort': 10077,\n                       'httpRpcPort': 10079,\n                       'httpsRpcPort': 10084,\n                       'ip': '2.2.2.2',\n                       'nodeID': 0,\n                       'nodeName': 'testnet-2',\n                       'owner': '0x323',\n                       'publicIP': '3.3.3.3',\n                       'publicKey': 'public_key352',\n                       'schainIndex': 2,\n                       'wsRpcPort': 10080,\n                       'wssRpcPort': 10085}],\n            'schainID': 1,\n            'schainName': 'test1'}}\n"  # noqa
+
+
+def test_schain_rules():
+    response_data = {'status': 'ok',
+                     'payload': {'endpoints': [
+                         {'ip': '127.0.0.1', 'port': 10000},
+                         {'ip': '127.0.0.1', 'port': 10001},
+                         {'ip': '127.0.0.1', 'port': 10004},
+                         {'ip': '127.0.0.1', 'port': 10005},
+                         {'ip': None, 'port': 10003},
+                         {'ip': None, 'port': 10002},
+                         {'ip': None, 'port': 10008},
+                         {'ip': None, 'port': 10007}
+                     ]
+                     }}
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'data': response_data, 'res': 1}
+    )
+    result = run_command_mock(
+        'core.schains.get_request', resp_mock, show_rules, ['schain-test'])
+    assert result.exit_code == 0
+    assert result.output == 'Allowed endpoints\nIp: 127.0.0.1 Port: 10000\nIp: 127.0.0.1 Port: 10001\nIp: 127.0.0.1 Port: 10004\nIp: 127.0.0.1 Port: 10005\nPort: 10002\nPort: 10003\nPort: 10007\nPort: 10008\n'  # noqa
+
+
+def test_turn_on_schain_rules():
+    response_data = {'status': 'ok',
+                     'payload': {}}
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'data': response_data, 'res': 1}
+    )
+    result = run_command_mock(
+        'core.schains.post_request', resp_mock, turn_on_rules, ['schain-test'])
+    assert result.output == 'Success\n'
+    assert result.exit_code == 0
+
+
+def test_turn_off_schain_rules():
+    response_data = {'status': 'ok',
+                     'payload': {}}
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'data': response_data, 'res': 1}
+    )
+    result = run_command_mock(
+        'core.schains.post_request', resp_mock, turn_off_rules, ['schain-test'])
+    assert result.output == 'Success\n'
+    assert result.exit_code == 0

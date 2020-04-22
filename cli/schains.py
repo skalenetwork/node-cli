@@ -21,6 +21,8 @@ import click
 import pprint
 from core.helper import get
 from core.print_formatters import print_schains, print_dkg_statuses
+from core.schains import (get_schain_firewall_rules,
+                          turn_off_schain_firewall_rules, turn_on_schain_firewall_rules)
 
 
 @click.group()
@@ -65,3 +67,32 @@ def get_schain_config(schain_name):
     if not schain_config:
         return
     pprint.pprint(schain_config)
+
+
+@schains.command('show-rules', help='Show schain firewall rules')
+@click.argument('schain_name')
+def show_rules(schain_name):
+    rules = get_schain_firewall_rules(schain_name)
+    formated_rules = []
+    for r in rules:
+        if r["ip"] is not None:
+            formated_rules.append(f'Ip: {r["ip"]} Port: {r["port"]}')
+        else:
+            formated_rules.append(f'Port: {r["port"]}')
+
+    print('Allowed endpoints')
+    print('\n'.join(sorted(formated_rules)))
+
+
+@schains.command('turn-on-rules', help='Turn on schain firewall rules')
+@click.argument('schain_name')
+def turn_on_rules(schain_name):
+    turn_on_schain_firewall_rules(schain_name)
+    print('Success')
+
+
+@schains.command('turn-off-rules', help='Turn off schain firewall rules')
+@click.argument('schain_name')
+def turn_off_rules(schain_name):
+    turn_off_schain_firewall_rules(schain_name)
+    print('Success')
