@@ -5,6 +5,7 @@ ROUTES = {
     'node_info': '/node-info',
     'node_about': '/about-node',
     'create_node': '/create-node',
+    'node_signature': '/node-signature',
     'test_host': '/test-host',
 
     'wallet_info': '/load-wallet',
