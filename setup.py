@@ -26,7 +26,6 @@ extras_require = {
     'dev': [
         "boto3==1.12.39",
         "bumpversion==0.5.3",
-        "PyInstaller==3.5",
         "skale.py==3.4dev5",
         "pytest==5.4.1",
         "pytest-cov==2.8.1",
@@ -56,6 +55,7 @@ setup(
         "click==7.1.1",
         "confuse",
         "readsettings==3.4.5",
+        "PyInstaller==3.5",
         "texttable==1.6.2",
         "python-dateutil==2.8.1",
         "Jinja2==2.11.1",

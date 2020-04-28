@@ -28,7 +28,7 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
 
 from configs.env import (absent_params as absent_env_params,
                          get_params as get_env_params)
-from core.helper import post
+from core.helper import get, post
 from core.host import prepare_host, save_env_params, get_flask_secret_key
 from tools.texts import Texts
 
@@ -127,3 +127,12 @@ def update(env_filepath):
         f'Update node script result: '
         f'{res_update_node.stderr}, {res_update_node.stdout}')
     # todo: check execution result
+
+
+def get_node_signature(validator_id):
+    params = {'validator_id': validator_id}
+    data = get('node_signature', params=params)
+    if data['status'] == 'ok':
+        return data['payload']['signature']
+    else:
+        return data['errors']

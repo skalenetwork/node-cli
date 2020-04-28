@@ -141,7 +141,7 @@ def get(url_name, params=None):
         return {'errors': 'Response parsing failed. Check skale_admin container logs'}
 
     if json['res'] != 1:
-        print_err_response(response.json())
+        print_err_response(json)
         return None
     else:
         return json['data']
@@ -171,7 +171,8 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
-    logging.basicConfig(level=logging.DEBUG, handlers=[f_handler, debug_f_handler])
+    logging.basicConfig(level=logging.DEBUG, handlers=[
+                        f_handler, debug_f_handler])
 
 
 def get_file_handler(log_filepath, log_level):
