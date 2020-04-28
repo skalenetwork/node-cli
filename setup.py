@@ -58,7 +58,7 @@ setup(
         "PyInstaller==3.5",
         "texttable==1.6.2",
         "python-dateutil==2.8.1",
-        "Jinja2==2.11.1",
+        "Jinja2==2.11.2",
         "psutil==5.7.0",
         "pycryptodome==3.9.7",
         "python-dotenv==0.10.3",
