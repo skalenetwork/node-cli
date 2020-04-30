@@ -8,6 +8,7 @@ install:
   - pip install -e .[dev]
   - export ENV=dev
   - bash scripts/build.sh 1.0.0 test-branch
+  - pip install setuptools==39.0.1
 jobs:
   include:
     - stage: test

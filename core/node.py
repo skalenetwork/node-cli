@@ -28,7 +28,7 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
 
 from configs.env import (absent_params as absent_env_params,
                          get_params as get_env_params)
-from core.helper import post
+from core.helper import get, post
 from core.host import prepare_host, save_env_params, get_flask_secret_key
 from tools.texts import Texts
 
@@ -73,12 +73,14 @@ def extract_env_params(env_filepath):
                    f"You should specify them to make sure that "
                    f"all services are working",
                    err=True)
-        return
+        return None
     return env_params
 
 
 def init(env_filepath, dry_run=False):
     env_params = extract_env_params(env_filepath)
+    if env_params is None:
+        return
     prepare_host(
         env_filepath,
         env_params['DISK_MOUNTPOINT'],
@@ -91,7 +93,7 @@ def init(env_filepath, dry_run=False):
         'DRY_RUN': dry_run,
         **env_params
     })
-    logging.info(f'Node init install script result: {res.stderr}, {res.stdout}')
+    logger.info(f'Node init install script result: {res.stderr}, {res.stdout}')
     # todo: check execution result
 
 
@@ -108,6 +110,8 @@ def deregister():
 def update(env_filepath):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath)
+        if env_params is None:
+            return
         save_env_params(env_filepath)
     else:
         env_params = {}
@@ -123,3 +127,12 @@ def update(env_filepath):
         f'Update node script result: '
         f'{res_update_node.stderr}, {res_update_node.stdout}')
     # todo: check execution result
+
+
+def get_node_signature(validator_id):
+    params = {'validator_id': validator_id}
+    data = get('node_signature', params=params)
+    if data['status'] == 'ok':
+        return data['payload']['signature']
+    else:
+        return data['errors']

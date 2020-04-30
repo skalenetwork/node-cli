@@ -115,7 +115,12 @@ def post(url_name, json=None, files=None):
     response = post_request(url, json=json, files=files)
     if response is None:
         return None
-    return response.json()
+    try:
+        json_data = response.json()
+    except Exception as err:
+        logger.error('Response parsing failed', exc_info=err)
+        return {'errors': ['Response parsing failed. Check skale_admin container logs']}
+    return json_data
 
 
 def get(url_name, params=None):
@@ -125,13 +130,18 @@ def get(url_name, params=None):
     if response is None:
         return None
 
-    if response.status_code != requests.codes.ok:
+    if response.status_code != requests.codes.ok:  # pylint: disable=no-member
         print('Request failed, status code:', response.status_code)
         return None
 
-    json = response.json()
+    try:
+        json = response.json()
+    except Exception as err:
+        logger.error('Response parsing failed', exc_info=err)
+        return {'errors': 'Response parsing failed. Check skale_admin container logs'}
+
     if json['res'] != 1:
-        print_err_response(response.json())
+        print_err_response(json)
         return None
     else:
         return json['data']
@@ -145,7 +155,7 @@ def download_dump(path, container_name=None):
     with requests.get(url, params=params, stream=True) as r:
         if r is None:
             return None
-        if r.status_code != requests.codes.ok:
+        if r.status_code != requests.codes.ok:  # pylint: disable=no-member
             print('Request failed, status code:', r.status_code)
             print_err_response(r.json())
             return None
@@ -161,7 +171,8 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
-    logging.basicConfig(level=logging.DEBUG, handlers=[f_handler, debug_f_handler])
+    logging.basicConfig(level=logging.DEBUG, handlers=[
+                        f_handler, debug_f_handler])
 
 
 def get_file_handler(log_filepath, log_level):

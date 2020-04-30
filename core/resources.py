@@ -77,7 +77,7 @@ def save_resource_allocation_config():
 
 def get_available_memory():
     memory = []
-    for i in range(0, TIMES):
+    for _ in range(0, TIMES):
         mem_info = psutil.virtual_memory()
         memory.append(mem_info.available)
         sleep(TIMEOUT)
