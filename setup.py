@@ -61,7 +61,7 @@ setup(
         "Jinja2==2.11.2",
         "psutil==5.7.0",
         "pycryptodome==3.9.7",
-        "python-dotenv==0.10.3",
+        "python-dotenv==0.13.0",
         "terminaltables==3.1.0"
     ],
     python_requires='>=3.6,<4',
