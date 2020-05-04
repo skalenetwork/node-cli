@@ -35,12 +35,6 @@ download_contracts () {
     curl -L $IMA_CONTRACTS_ABI_URL > $CONTRACTS_DIR/ima.json
 }
 
-dockerhub_login () {
-    echo "Loging in to dockerhub ..."
-    echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USERNAME --password-stdin # todo: remove after containers open-sourcing
-}
-
-
 docker_lvmpy_install () {
     if [[ ! -d docker-lvmpy ]]; then
         git clone "https://github.com/skalenetwork/docker-lvmpy.git"

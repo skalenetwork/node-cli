@@ -20,17 +20,17 @@ def find_version(*file_paths):
 
 extras_require = {
     'linter': [
-        "flake8==3.4.1",
+        "flake8==3.7.9",
         "isort>=4.2.15,<4.3.22",
     ],
     'dev': [
-        "boto3==1.9.233",
+        "boto3==1.12.47",
         "bumpversion==0.5.3",
-        "PyInstaller==3.5",
-        "pytest==5.2.1",
+        "skale.py==3.4dev5",
+        "pytest==5.4.1",
         "pytest-cov==2.8.1",
         "twine==2.0.0",
-        "mock==3.0.5",
+        "mock==4.0.2",
         "when-changed"
     ]
 }
@@ -52,17 +52,16 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/skale-node-cli',
     install_requires=[
-        "click==7.0",
+        "click==7.1.1",
         "confuse",
         "readsettings==3.4.5",
-        "web3==5.2.2",
+        "PyInstaller==3.5",
         "texttable==1.6.2",
         "python-dateutil==2.8.1",
-        "Jinja2==2.11.1",
-        "skale-py==2.0b0",
+        "Jinja2==2.11.2",
         "psutil==5.7.0",
         "pycryptodome==3.9.7",
-        "python-dotenv==0.10.3",
+        "python-dotenv==0.13.0",
         "terminaltables==3.1.0"
     ],
     python_requires='>=3.6,<4',
@@ -73,7 +72,7 @@ setup(
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
+        'License :: OSI Approved :: GNU Affero General Public License v3',
         'Natural Language :: English',
         'Programming Language :: Python :: 3.6',
     ],

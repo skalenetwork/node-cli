@@ -21,8 +21,9 @@ import mock
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.node import (register_node, init_node, purge_node, update_node,
-                      node_about, node_info)
+from cli.node import (init_node,
+                      node_about, node_info, register_node, signature,
+                      update_node)
 
 
 def test_register_node(config):
@@ -75,21 +76,21 @@ def test_init_node(config):
             init_node,
             ['--env-file', './tests/test-env'])
         assert result.exit_code == 0
-        assert result.output == ''  # noqa
+        assert result.output == 'Waiting for transaction manager initialization ...\n'  # noqa
 
 
-def test_purge(config):
-    params = ['--yes']
-    resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.node.subprocess.run'):
-        result = run_command_mock(
-            'core.node.post',
-            resp_mock,
-            purge_node,
-            params
-        )
-        assert result.exit_code == 0
-        assert result.output == ''  # noqa
+# def test_purge(config):
+#     params = ['--yes']
+#     resp_mock = response_mock(requests.codes.created)
+#     with mock.patch('core.node.subprocess.run'):
+#         result = run_command_mock(
+#             'core.node.post',
+#             resp_mock,
+#             purge_node,
+#             params
+#         )
+#         assert result.exit_code == 0
+#         assert result.output == ''  # noqa
 
 
 def test_update_node(config):
@@ -107,7 +108,7 @@ def test_update_node(config):
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
-        assert result.output == ''
+        assert result.output == 'Waiting for transaction manager initialization ...\n'
 
 
 def test_node_info_node_about(config):
@@ -155,3 +156,14 @@ def test_node_info_node_info(config):
     result = run_command_mock('core.core.get_request', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Active\n--------------------------------------------------\n'  # noqa
+
+
+def test_node_signature():
+    signature_sample = '0x1231231231'
+    response_data = {'res': 1, 'data': {
+        'status': 'ok', 'payload': {'signature': signature_sample}}}
+    resp_mock = response_mock(requests.codes.ok, json_data=response_data)
+    result = run_command_mock('core.helper.get_request',
+                              resp_mock, signature, ['1'])
+    assert result.exit_code == 0
+    assert result.output == f'Signature: {signature_sample}\n'
