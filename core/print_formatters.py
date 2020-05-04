@@ -119,6 +119,33 @@ def print_dkg_statuses(statuses):
     print(Formatter().table(headers, rows))
 
 
+def print_schains_healthchecks(schains):
+    headers = [
+        'sChain Name',
+        'Data directory',
+        'DKG',
+        'Config file',
+        'Volume',
+        'Container',
+        'IMA',
+        'Firewall'
+    ]
+    rows = []
+    for schain in schains:
+        healthchecks = schain['healthchecks']
+        rows.append([
+            schain['name'],
+            healthchecks['data_dir'],
+            healthchecks['dkg'],
+            healthchecks['config'],
+            healthchecks['volume'],
+            healthchecks['container'],
+            healthchecks['ima_container'],
+            healthchecks['firewall_rules']
+        ])
+    print(Formatter().table(headers, rows))
+
+
 def print_metrics(rows, total, wei):
     headers = [
         'Date',

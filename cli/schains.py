@@ -17,10 +17,11 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import click
+import json
 import pprint
+import click
 from core.helper import get
-from core.print_formatters import print_schains, print_dkg_statuses
+from core.print_formatters import print_schains, print_dkg_statuses, print_schains_healthchecks
 
 
 @click.group()
@@ -65,3 +66,22 @@ def get_schain_config(schain_name):
     if not schain_config:
         return
     pprint.pprint(schain_config)
+
+
+@schains.command(help="List of healthchecks for sChains served by connected node")
+@click.option(
+    '--json',
+    'json_format',
+    help='Show data in JSON format',
+    is_flag=True
+)
+def checks(json_format):
+    schains_healthchecks_list = get('schains_healthchecks')
+    if not schains_healthchecks_list:
+        print('No sChains found')
+        return
+
+    if json_format:
+        print(json.dumps(schains_healthchecks_list))
+    else:
+        print_schains_healthchecks(schains_healthchecks_list)
