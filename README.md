@@ -214,7 +214,7 @@ Options:
 
 - `--json` - Show data in JSON format
 
-### Container commands
+### Containers commands
 
 Node container commands
 
