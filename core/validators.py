@@ -17,17 +17,17 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 from core.helper import get_request
+from core.print_formatters import print_err_response
 
 
 def get_validators_info(config, format):
-    response = get_request('validators_info')
-    if response['status'] == 'ok':
-        data = response['payload']
+    status, payload = get_request('validators_info')
+    if status == 'ok':
         if format == 'json':
-            print(data)
+            print(json.dumps({'validators_info': payload}))
         else:
-            print(data)
+            print(payload)
     else:
-        error_msg = response['payload']
-        print(error_msg)
+        print_err_response(payload)
