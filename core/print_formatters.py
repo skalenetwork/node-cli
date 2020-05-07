@@ -22,10 +22,34 @@ import datetime
 import texttable
 from dateutil import parser
 
+import inspect
+
 from configs import LONG_LINE
 from tools.texts import Texts
 
 TEXTS = Texts()
+
+
+def print_err_response(error_payload):
+    if isinstance(error_payload, list):
+        error_msg = '\n'.join(error_payload)
+    else:
+        error_msg = error_payload
+
+    print('Command failed with following errors:')
+    print(LONG_LINE)
+    print(error_msg)
+    print(LONG_LINE)
+
+
+def print_wallet_info(wallet):
+    print(inspect.cleandoc(f'''
+        {LONG_LINE}
+        Address: {wallet['address'].lower()}
+        ETH balance: {wallet['eth_balance']} ETH
+        SKALE balance: {wallet['skale_balance']} SKALE
+        {LONG_LINE}
+    '''))
 
 
 def get_tty_width():

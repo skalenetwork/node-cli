@@ -18,32 +18,17 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-import inspect
 
-from configs import ROUTES, LONG_LINE
-from core.helper import construct_url, get_request
+from core.helper import get_request
+from core.print_formatters import print_err_response, print_wallet_info
 
 
 def get_wallet_info(_format):
-    url = construct_url(ROUTES['wallet_info'])
-
-    response = get_request(url)
-    if response is None:
-        return None
-
-    json_data = response.json()
-    data = json_data['data']
-    if _format == 'json':
-        print(json.dumps(data))
+    status, payload = get_request('wallet_info')
+    if status == 'ok':
+        if _format == 'json':
+            print(json.dumps(payload))
+        else:
+            print_wallet_info(payload)
     else:
-        print_wallet_info(data)
-
-
-def print_wallet_info(wallet):
-    print(inspect.cleandoc(f'''
-        {LONG_LINE}
-        Address: {wallet['address'].lower()}
-        ETH balance: {wallet['eth_balance']} ETH
-        SKALE balance: {wallet['skale_balance']} SKALE
-        {LONG_LINE}
-    '''))
+        print_err_response(payload)

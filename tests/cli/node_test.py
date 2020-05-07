@@ -27,27 +27,41 @@ from cli.node import (init_node,
 
 
 def test_register_node(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
     result = run_command_mock(
-        'core.node.post',
-        {'res': 1},
+        'core.helper.requests.post',
+        resp_mock,
         register_node,
         ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080'])
     assert result.exit_code == 0
     assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
+
+def test_register_node_with_error(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'error', 'payload': ['Strange error']},
+    )
     result = run_command_mock(
-        'core.node.post',
-        {'errors': ['Strange error']},
+        'core.helper.requests.post',
+        resp_mock,
         register_node,
         ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80'])
     assert result.exit_code == 0
-    assert result.output == "Node registration failed with error: ['Strange error']\n"
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\n'  # noqa
 
 
 def test_register_node_with_prompted_ip(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
     result = run_command_mock(
-        'core.node.post',
-        {'res': 1},
+        'core.helper.requests.post',
+        resp_mock,
         register_node,
         ['--name', 'test-node', '--port', '8080'], input='0.0.0.0\n')
     assert result.exit_code == 0
@@ -55,9 +69,13 @@ def test_register_node_with_prompted_ip(config):
 
 
 def test_register_node_with_default_port_and_name(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
     result = run_command_mock(
-        'core.node.post',
-        {'res': 1},
+        'core.helper.requests.post',
+        resp_mock,
         register_node,
         input='0.0.0.0\n')
     assert result.exit_code == 0
@@ -71,7 +89,7 @@ def test_init_node(config):
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
-            'core.node.post',
+            'core.helper.post_request',
             resp_mock,
             init_node,
             ['--env-file', './tests/test-env'])
@@ -102,7 +120,7 @@ def test_update_node(config):
             mock.patch('core.node.save_env_params'), \
             mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
-            'core.node.post',
+            'core.helper.post_request',
             resp_mock,
             update_node,
             params,
@@ -112,7 +130,7 @@ def test_update_node(config):
 
 
 def test_node_info_node_about(config):
-    response_data = {
+    payload = {
         'libraries': {
             'javascript': 'N/A', 'python': '0.89.0'},
         'contracts': {
@@ -132,38 +150,44 @@ def test_node_info_node_about(config):
     }
     resp_mock = response_mock(
         requests.codes.ok,
-        json_data={'data': response_data, 'res': 1}
+        {'status': 'ok', 'payload': payload}
     )
-    result = run_command_mock('core.core.get_request', resp_mock, node_about)
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_about)
     assert result.exit_code == 0
     assert result.output == "{'libraries': {'javascript': 'N/A', 'python': '0.89.0'}, 'contracts': {'token': '0x3', 'manager': '0x23'}, 'network': {'endpoint': 'ws://0.0.0.0:8080'}, 'local_wallet': {'address': '0xf', 'eth_balance_wei': '15', 'skale_balance_wei': '84312304', 'eth_balance': '2.424', 'skale_balance': '323.123'}}\n"  # noqa
 
 
 def test_node_info_node_info(config):
-    response_data = {'name': 'test', 'ip': '0.0.0.0',
-                     'publicIP': '1.1.1.1',
-                     'port': 10001,
-                     'publicKey': '0x7',
-                     'start_date': 1570114466,
-                     'leaving_date': 0,
-                     'last_reward_date': 1570628924, 'second_address': 0,
-                     'status': 2, 'id': 32, 'owner': '0x23'}
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 2, 'id': 32, 'owner': '0x23'
+        }
+    }
 
     resp_mock = response_mock(
         requests.codes.ok,
-        json_data={'data': response_data, 'res': 1}
+        json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.core.get_request', resp_mock, node_info)
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Active\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_signature():
     signature_sample = '0x1231231231'
-    response_data = {'res': 1, 'data': {
-        'status': 'ok', 'payload': {'signature': signature_sample}}}
+    response_data = {
+        'status': 'ok',
+        'payload': {'signature': signature_sample}
+    }
     resp_mock = response_mock(requests.codes.ok, json_data=response_data)
-    result = run_command_mock('core.helper.get_request',
+    result = run_command_mock('core.helper.requests.get',
                               resp_mock, signature, ['1'])
     assert result.exit_code == 0
     assert result.output == f'Signature: {signature_sample}\n'
