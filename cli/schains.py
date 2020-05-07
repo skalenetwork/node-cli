@@ -20,8 +20,9 @@
 import json
 import pprint
 import click
-from core.helper import get
-from core.print_formatters import print_schains, print_dkg_statuses, print_schains_healthchecks
+from core.helper import get_request
+from core.print_formatters import (print_err_response, print_schains,
+                                   print_dkg_statuses, print_schains_healthchecks)
 
 
 @click.group()
@@ -36,11 +37,16 @@ def schains():
 
 @schains.command(help="List of sChains served by connected node")
 def ls():
-    schains_list = get('node_schains')
-    if not schains_list:
-        print('No sChains found')
-        return
-    print_schains(schains_list)
+    status, payload = get_request('node_schains')
+
+    if status == 'ok':
+        schains_list = payload
+        if not schains_list:
+            print('No sChains found')
+            return
+        print_schains(schains_list)
+    else:
+        print_err_response(payload)
 
 
 @schains.command(help="DKG statuses for each sChain on the node")
@@ -50,22 +56,22 @@ def ls():
     is_flag=True
 )
 def dkg(all):
-    if all:
-        dkg_statuses = get('dkg_statuses', params={'all': True})
+    params = {'all': all}
+    status, payload = get_request('dkg_statuses', params=params)
+    if status == 'ok':
+        print_dkg_statuses(payload)
     else:
-        dkg_statuses = get('dkg_statuses')
-    if not dkg_statuses:
-        return
-    print_dkg_statuses(dkg_statuses)
+        print_err_response(payload)
 
 
 @schains.command('config', help="sChain config")
 @click.argument('schain_name')
 def get_schain_config(schain_name):
-    schain_config = get('schain_config', {'schain-name': schain_name})
-    if not schain_config:
-        return
-    pprint.pprint(schain_config)
+    status, payload = get_request('schain_config', {'schain-name': schain_name})
+    if status == 'ok':
+        pprint.pprint(payload)
+    else:
+        print_err_response(payload)
 
 
 @schains.command(help="List of healthchecks for sChains served by connected node")
@@ -76,12 +82,14 @@ def get_schain_config(schain_name):
     is_flag=True
 )
 def checks(json_format):
-    schains_healthchecks_list = get('schains_healthchecks')
-    if not schains_healthchecks_list:
-        print('No sChains found')
-        return
-
-    if json_format:
-        print(json.dumps(schains_healthchecks_list))
+    status, payload = get_request('schains_healthchecks')
+    if status == 'ok':
+        if not payload:
+            print('No sChains found')
+            return
+        if json_format:
+            print(json.dumps(payload))
+        else:
+            print_schains_healthchecks(payload)
     else:
-        print_schains_healthchecks(schains_healthchecks_list)
+        print_err_response(payload)

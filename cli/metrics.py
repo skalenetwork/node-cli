@@ -18,8 +18,8 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from core.helper import get
-from core.print_formatters import print_metrics
+from core.helper import get_request
+from core.print_formatters import print_err_response, print_metrics
 from core.texts import Texts
 
 G_TEXTS = Texts()
@@ -57,9 +57,16 @@ def metrics(ctx, since, till, limit, fast, wei):
             return
         if not fast:
             print(TEXTS['wait_msg'])
-        data = get('metrics', {'since': since, 'till': till, 'limit': limit,
-                               'fast': fast, 'wei': wei})
-        if data is not None:
-            metrics = data['metrics']
-            total_bounty = data['total']
+        data = {
+            'since': since,
+            'till': till,
+            'limit': limit,
+            'fast': fast, 'wei': wei
+        }
+        status, payload = get_request('metrics', data)
+        if status == 'ok':
+            metrics = payload['metrics']
+            total_bounty = payload['total']
             print_metrics(metrics, total_bounty, wei)
+        else:
+            print_err_response(payload)

@@ -20,7 +20,8 @@
 import click
 from terminaltables import SingleTable
 
-from core.helper import get, safe_load_texts
+from core.helper import get_request, safe_load_texts
+from core.print_formatters import print_err_response
 
 
 TEXTS = safe_load_texts()
@@ -38,14 +39,15 @@ def sgx():
 
 @sgx.command(help="Status of the SGX server")
 def status():
-    result = get('sgx_status')
-    if not result:
-        return
-    else:
+    status, payload = get_request('sgx_status')
+    if status == 'ok':
+        data = payload
         table_data = [
-            ['SGX server URL', result['sgx_server_url']],
-            ['Status', result['status_name']]
+            ['SGX server URL', data['sgx_server_url']],
+            ['Status', data['status_name']]
         ]
         table = SingleTable(table_data)
         print('SGX server status:')
         print(table.table)
+    else:
+        print_err_response(payload)

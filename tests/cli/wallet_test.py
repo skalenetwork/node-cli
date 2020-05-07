@@ -28,7 +28,8 @@ from tests.helper import run_command_mock
 
 def test_wallet_info(config):
     response_data = {
-        'data': {
+        'status': 'ok',
+        'payload': {
             'address': 'simple_address',
             'eth_balance': 13,
             'skale_balance': 123
@@ -37,7 +38,7 @@ def test_wallet_info(config):
     response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
     response_mock.json = Mock(return_value=response_data)
-    result = run_command_mock('core.wallet.get_request',
+    result = run_command_mock('core.helper.requests.get',
                               response_mock,
                               wallet_info)
     assert result.exit_code == 0
@@ -50,7 +51,7 @@ def test_wallet_info(config):
     )
     assert result.output == expected
 
-    result = run_command_mock('core.wallet.get_request',
+    result = run_command_mock('core.helper.requests.get',
                               response_mock,
                               wallet_info,
                               ['--format', 'json'])

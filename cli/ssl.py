@@ -20,7 +20,8 @@
 import click
 from terminaltables import SingleTable
 
-from core.helper import get, safe_load_texts, upload_certs
+from core.helper import (get_request, safe_load_texts, upload_certs,
+                         print_err_response)
 
 
 TEXTS = safe_load_texts()
@@ -38,19 +39,20 @@ def ssl():
 
 @ssl.command(help="Status of the SSL certificates on the node")
 def status():
-    result = get('ssl_status')
-    if not result:
-        return
-    if not result['status']:
-        print(TEXTS['ssl']['no_cert'])
+    status, payload = get_request('ssl_status')
+    if status == 'ok':
+        if payload['status']:
+            print(TEXTS['ssl']['no_cert'])
+        else:
+            table_data = [
+                ['Issued to', payload['issued_to']],
+                ['Expiration date', payload['expiration_date']]
+            ]
+            table = SingleTable(table_data)
+            print('SSL certificates status:')
+            print(table.table)
     else:
-        table_data = [
-            ['Issued to', result['issued_to']],
-            ['Expiration date', result['expiration_date']]
-        ]
-        table = SingleTable(table_data)
-        print('SSL certificates status:')
-        print(table.table)
+        print_err_response(payload)
 
 
 @ssl.command(help="Upload new SSL certificates")
@@ -66,11 +68,8 @@ def status():
 )
 @click.option('--force', '-f', is_flag=True, help='Overwrite existing certificates')
 def upload(key_path, cert_path, force):
-    response = upload_certs(key_path, cert_path, force)
-    if not response:
-        print('Someting went wrong, sorry')
-        return
-    if response['res'] == 0:
-        print(response['error_msg'])
-        return
-    print(TEXTS['ssl']['uploaded'])
+    status, payload = upload_certs(key_path, cert_path, force)
+    if status == 'ok':
+        print(TEXTS['ssl']['uploaded'])
+    else:
+        print_err_response(payload)
