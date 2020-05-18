@@ -28,8 +28,9 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
 
 from configs.env import (absent_params as absent_env_params,
                          get_params as get_env_params)
-from core.helper import post
+from core.helper import get_request, post_request
 from core.host import prepare_host, save_env_params, get_flask_secret_key
+from core.print_formatters import print_err_response
 from tools.texts import Texts
 
 logger = logging.getLogger(__name__)
@@ -44,20 +45,16 @@ def register_node(config, name, p2p_ip, public_ip, port):
         'publicIP': public_ip,
         'port': port
     }
-    response = post('create_node', json=json_data)
-    if response is None:
-        print(TEXTS['service']['empty_response'])
-        return None
-    if response.get('errors') is not None:
-        print(f'Node registration failed with error: {response["errors"]}')
-        logger.error(f'Registration error {response["errors"]}')
-        return
-    if response['res']:
+    status, payload = post_request('create_node',
+                                   json=json_data)
+    if status == 'ok':
         msg = TEXTS['node']['registered']
         logger.info(msg)
         print(msg)
     else:
-        logger.info('Bad response. Something went wrong. Try again')
+        error_msg = payload
+        logger.error(f'Registration error {error_msg}')
+        print_err_response(error_msg)
 
 
 def extract_env_params(env_filepath):
@@ -127,3 +124,12 @@ def update(env_filepath):
         f'Update node script result: '
         f'{res_update_node.stderr}, {res_update_node.stdout}')
     # todo: check execution result
+
+
+def get_node_signature(validator_id):
+    params = {'validator_id': validator_id}
+    status, payload = get_request('node_signature', params=params)
+    if status == 'ok':
+        return payload['signature']
+    else:
+        return payload

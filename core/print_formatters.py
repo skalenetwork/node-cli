@@ -22,10 +22,34 @@ import datetime
 import texttable
 from dateutil import parser
 
+import inspect
+
 from configs import LONG_LINE
 from tools.texts import Texts
 
 TEXTS = Texts()
+
+
+def print_err_response(error_payload):
+    if isinstance(error_payload, list):
+        error_msg = '\n'.join(error_payload)
+    else:
+        error_msg = error_payload
+
+    print('Command failed with following errors:')
+    print(LONG_LINE)
+    print(error_msg)
+    print(LONG_LINE)
+
+
+def print_wallet_info(wallet):
+    print(inspect.cleandoc(f'''
+        {LONG_LINE}
+        Address: {wallet['address'].lower()}
+        ETH balance: {wallet['eth_balance']} ETH
+        SKALE balance: {wallet['skale_balance']} SKALE
+        {LONG_LINE}
+    '''))
 
 
 def get_tty_width():
@@ -115,6 +139,33 @@ def print_dkg_statuses(statuses):
             status['dkg_status_name'],
             format_date(date),
             schain_status
+        ])
+    print(Formatter().table(headers, rows))
+
+
+def print_schains_healthchecks(schains):
+    headers = [
+        'sChain Name',
+        'Data directory',
+        'DKG',
+        'Config file',
+        'Volume',
+        'Container',
+        'IMA',
+        'Firewall'
+    ]
+    rows = []
+    for schain in schains:
+        healthchecks = schain['healthchecks']
+        rows.append([
+            schain['name'],
+            healthchecks['data_dir'],
+            healthchecks['dkg'],
+            healthchecks['config'],
+            healthchecks['volume'],
+            healthchecks['container'],
+            healthchecks['ima_container'],
+            healthchecks['firewall_rules']
         ])
     print(Formatter().table(headers, rows))
 

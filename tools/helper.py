@@ -85,4 +85,5 @@ def get_username():
 
 
 def session_config():
+
     return ReadSettings(CONFIG_FILEPATH)

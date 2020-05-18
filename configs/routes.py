@@ -5,12 +5,14 @@ ROUTES = {
     'node_info': '/node-info',
     'node_about': '/about-node',
     'create_node': '/create-node',
+    'node_signature': '/node-signature',
     'test_host': '/test-host',
 
     'wallet_info': '/load-wallet',
     'validators_info': '/validators-info',
 
     'schains_containers': '/containers/schains/list',
+    'schains_healthchecks': '/api/schains/healthchecks',
     'node_schains': '/schains/list',
     'schain_config': '/schain-config',
     'skale_containers': '/containers/list',
