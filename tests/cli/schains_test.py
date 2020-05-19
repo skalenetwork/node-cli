@@ -130,52 +130,51 @@ def test_get_schain_config():
 
 
 def test_schain_rules():
-    response_data = {'status': 'ok',
-                     'payload': {'endpoints': [
-                         {'ip': '127.0.0.1', 'port': 10000},
-                         {'ip': '127.0.0.1', 'port': 10001},
-                         {'ip': '127.0.0.1', 'port': 10004},
-                         {'ip': '127.0.0.1', 'port': 10005},
-                         {'ip': None, 'port': 10003},
-                         {'ip': None, 'port': 10002},
-                         {'ip': None, 'port': 10008},
-                         {'ip': None, 'port': 10007}
-                     ]
-                     }}
+    payload = {
+        'endpoints': [
+            {'ip': '127.0.0.1', 'port': 10000},
+            {'ip': '127.0.0.1', 'port': 10001},
+            {'ip': '127.0.0.1', 'port': 10004},
+            {'ip': '127.0.0.1', 'port': 10005},
+            {'ip': None, 'port': 10003},
+            {'ip': None, 'port': 10002},
+            {'ip': None, 'port': 10008},
+            {'ip': None, 'port': 10007}
+        ]
+    }
     resp_mock = response_mock(
         requests.codes.ok,
-        json_data={'data': response_data, 'res': 1}
+        json_data={'payload': payload, 'status': 'ok'}
     )
     result = run_command_mock(
-        'core.schains.get_request', resp_mock, show_rules, ['schain-test'])
+        'core.helper.requests.get', resp_mock, show_rules, ['schain-test'])
     assert result.exit_code == 0
-    assert result.output == 'Allowed endpoints\nIp: 127.0.0.1 Port: 10000\nIp: 127.0.0.1 Port: 10001\nIp: 127.0.0.1 Port: 10004\nIp: 127.0.0.1 Port: 10005\nPort: 10002\nPort: 10003\nPort: 10007\nPort: 10008\n'  # noqa
+    print(repr(result.output))
+    assert result.output == 'Port       Ip    \n-----------------\n10000   127.0.0.1\n10001   127.0.0.1\n10002   None     \n10003   None     \n10004   127.0.0.1\n10005   127.0.0.1\n10007   None     \n10008   None     \n'  # noqa
 
 
 def test_turn_on_schain_rules():
-    response_data = {'status': 'ok',
-                     'payload': {}}
     resp_mock = response_mock(
         requests.codes.ok,
-        json_data={'data': response_data, 'res': 1}
+        json_data={'payload': [], 'status': 'ok'}
     )
     result = run_command_mock(
-        'core.schains.post_request', resp_mock, turn_on_rules, ['schain-test'])
-    assert result.output == 'Success\n'
+        'core.helper.requests.post', resp_mock,
+        turn_on_rules, ['schain-test'])
     assert result.exit_code == 0
+    assert result.output == 'Success\n'
 
 
 def test_turn_off_schain_rules():
-    response_data = {'status': 'ok',
-                     'payload': {}}
     resp_mock = response_mock(
         requests.codes.ok,
-        json_data={'data': response_data, 'res': 1}
+        json_data={'payload': [], 'status': 'ok'}
     )
     result = run_command_mock(
-        'core.schains.post_request', resp_mock, turn_off_rules, ['schain-test'])
-    assert result.output == 'Success\n'
+        'core.helper.requests.post', resp_mock,
+        turn_off_rules, ['schain-test', '--yes'])
     assert result.exit_code == 0
+    assert result.output == 'WARNING: Closing endpoints for schain. Ctrl-C to abort\nSuccess\n'
 
 
 def test_checks():

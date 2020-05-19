@@ -47,7 +47,7 @@ HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
 
 DEFAULT_ERROR_DATA = {
     'status': 'error',
-    'payload': 'Request failed. Check skale_admin container logs'
+    'payload': 'Request failed. Check skale_api container logs'
 }
 
 
