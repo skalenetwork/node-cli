@@ -13,8 +13,6 @@ export $(grep -v '^#' .env | xargs)
 
 docker_lvmpy_update
 
-dockerhub_login # todo: remove after containers open-sourcing
-
 remove_compose_containers
 remove_dynamic_containers
 
