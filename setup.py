@@ -28,7 +28,7 @@ extras_require = {
         "bumpversion==0.5.3",
         "skale.py==3.4dev5",
         "pytest==5.4.2",
-        "pytest-cov==2.8.1",
+        "pytest-cov==2.9.0",
         "twine==2.0.0",
         "mock==4.0.2",
         "when-changed"
