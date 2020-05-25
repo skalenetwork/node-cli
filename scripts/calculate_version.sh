@@ -17,7 +17,7 @@ fi
 
 if [[ $BRANCH == 'stable' ]]; then
     echo $VERSION
-    exit 1
+    exit 0
 fi
 
 git fetch --tags > /dev/null
