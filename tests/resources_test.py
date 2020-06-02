@@ -24,12 +24,10 @@ def test_generate_resource_allocation_config():
 
         assert resource_allocation_config['schain'] == {
             'storage_limit': {
-                'storage_limit': {
-                    'test4': 655360000,
-                    'test': 655360000,
-                    'tiny': 655360000,
-                    'small': 10737418240,
-                    'medium': 85899345920
-                }
+                'test4': 655360000,
+                'test': 655360000,
+                'tiny': 655360000,
+                'small': 10737418240,
+                'medium': 85899345920
             }
         }

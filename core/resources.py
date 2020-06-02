@@ -74,7 +74,7 @@ def generate_resource_allocation_config():
 
 def get_storage_limit_alloc(testnet=True):
     network = 'testnet' if testnet else 'mainnet'
-    return ALLOCATION_DATA[network]
+    return ALLOCATION_DATA[network]['storage_limit']
 
 
 def save_resource_allocation_config():
