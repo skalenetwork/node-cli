@@ -29,5 +29,8 @@ ROUTES = {
 
     'start_exit': '/api/exit/start',
     'exit_status': '/api/exit/status',
-    'finalize_exit': '/api/exit/finalize'
+    'finalize_exit': '/api/exit/finalize',
+    'get_schain_firewall_rules': '/api/schains/firewall/show',
+    'turn_on_schain_firewall_rules': '/api/schains/firewall/on',
+    'turn_off_schain_firewall_rules': '/api/schains/firewall/off'
 }

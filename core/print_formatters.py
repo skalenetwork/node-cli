@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import os
 import datetime
 import texttable
@@ -244,3 +245,22 @@ def print_exit_status(exit_status_info):
         exit_time = exit_status_info['exit_time']
         exit_time_utc = datetime.datetime.utcfromtimestamp(exit_time)
         print(f'Rotation finish time: {exit_time_utc}')
+
+
+def print_firewall_rules(rules, raw=False):
+    if len(rules) == 0:
+        print('No allowed endpoints')
+        return
+    if raw:
+        print(json.dumpes(rules))
+    headers = [
+        'Port',
+        'Ip'
+    ]
+    rows = []
+    for rule in sorted(rules, key=lambda r: r['port']):
+        rows.append([
+            rule['port'],
+            rule['ip']
+        ])
+    print(Formatter().table(headers, rows))

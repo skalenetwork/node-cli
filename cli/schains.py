@@ -19,10 +19,15 @@
 
 import json
 import pprint
+import time
+
 import click
-from core.helper import get_request
+
+from core.helper import abort_if_false, get_request
 from core.print_formatters import (print_err_response, print_schains,
                                    print_dkg_statuses, print_schains_healthchecks)
+from core.schains import (get_schain_firewall_rules,
+                          turn_off_schain_firewall_rules, turn_on_schain_firewall_rules)
 
 
 @click.group()
@@ -72,6 +77,32 @@ def get_schain_config(schain_name):
         pprint.pprint(payload)
     else:
         print_err_response(payload)
+
+
+@schains.command('show-rules', help='Show schain firewall rules')
+@click.argument('schain_name')
+def show_rules(schain_name):
+    get_schain_firewall_rules(schain_name)
+
+
+@schains.command('turn-on-rules', help='Turn on schain firewall rules',
+                 hidden=True)
+@click.argument('schain_name')
+def turn_on_rules(schain_name):
+    turn_on_schain_firewall_rules(schain_name)
+
+
+@schains.command('turn-off-rules', help='Turn off schain firewall rules',
+                 hidden=True)
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want disable firewall rules. '
+                     'It may cause serios issues')
+@click.argument('schain_name')
+def turn_off_rules(schain_name):
+    print('WARNING: Closing endpoints for schain. Ctrl-C to abort')
+    time.sleep(10)
+    turn_off_schain_firewall_rules(schain_name)
 
 
 @schains.command(help="List of healthchecks for sChains served by connected node")
