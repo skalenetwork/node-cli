@@ -69,6 +69,8 @@ INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
 UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
 UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
 
+ALLOCATION_FILEPATH = os.path.join(DATAFILES_FOLDER, 'allocation.yml')
+
 LONG_LINE = '-' * 50
 
 ADMIN_PORT = 3007

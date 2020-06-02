@@ -16,6 +16,7 @@ a = Analysis(
        ("./datafiles/install.sh", "data/datafiles"),
        ("./datafiles/update.sh", "data/datafiles"),
        ("./datafiles/helper.sh", "data/datafiles"),
+       ("./datafiles/allocation.yml", "data/datafiles"),
     ],
     hiddenimports=[],
     hookspath=[],
