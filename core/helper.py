@@ -77,6 +77,14 @@ def safe_load_texts():
             print(exc)
 
 
+def safe_load_yml(filepath):
+    with open(filepath, 'r') as stream:
+        try:
+            return yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+
 def construct_url(route):
     return urllib.parse.urljoin(HOST, route)
 

@@ -25,11 +25,15 @@ from time import sleep
 
 from tools.schain_types import SchainTypes
 from tools.helper import write_json, read_json, run_cmd, format_output
+from core.helper import safe_load_yml
+from configs import ALLOCATION_FILEPATH
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
     TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
     DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK
 
 logger = logging.getLogger(__name__)
+
+ALLOCATION_DATA = safe_load_yml(ALLOCATION_FILEPATH)
 
 
 class ResourceAlloc():
@@ -57,13 +61,20 @@ def generate_resource_allocation_config():
     cpu_alloc = get_cpu_alloc()
     mem_alloc = get_memory_alloc()
 
-    disk_path = get_disk_path()
-    disk_alloc = get_disk_alloc(disk_path)
+    disk_alloc = get_disk_alloc()
     return {
         'cpu': cpu_alloc.dict(),
         'mem': mem_alloc.dict(),
-        'disk': disk_alloc.dict()
+        'disk': disk_alloc.dict(),
+        'schain': {
+            'storage_limit': get_storage_limit_alloc()
+        }
     }
+
+
+def get_storage_limit_alloc(testnet=True):
+    network = 'testnet' if testnet else 'mainnet'
+    return ALLOCATION_DATA[network]
 
 
 def save_resource_allocation_config():
@@ -94,7 +105,8 @@ def get_cpu_alloc():
     return ResourceAlloc(cpu_count, fractional=True)
 
 
-def get_disk_alloc(disk_path):
+def get_disk_alloc():
+    disk_path = get_disk_path()
     try:
         disk_size = get_disk_size(disk_path)
     except subprocess.CalledProcessError:
