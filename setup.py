@@ -29,7 +29,7 @@ extras_require = {
         "skale.py==3.7.dev1",
         "pytest==5.4.3",
         "pytest-cov==2.9.0",
-        "twine==2.0.0",
+        "twine==3.1.1",
         "mock==4.0.2",
         "when-changed"
     ]
