@@ -23,6 +23,10 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 
 ## Installation
 
+-   Prerequisites
+
+Ensure that the following package is installed: docker
+
 -   Download the executable
 
 ```bash
