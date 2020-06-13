@@ -21,11 +21,11 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     3.0 [Metrics](#metrics-commands)
 3.  [Development](#development)
 
-## Preinstallation steps
-Make sure that the following packages is installed:
-- docker
-
 ## Installation
+
+-   Prerequisites
+
+Ensure that the following package is installed: docker
 
 -   Download the executable
 
