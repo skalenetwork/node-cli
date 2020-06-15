@@ -18,7 +18,6 @@ ROUTES = {
     'skale_containers': '/containers/list',
 
     'logs_dump': '/logs/dump',
-    'metrics': '/metrics',
 
     'ssl_status': '/api/ssl/status',
     'ssl_upload': '/api/ssl/upload',

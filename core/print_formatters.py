@@ -171,29 +171,6 @@ def print_schains_healthchecks(schains):
     print(Formatter().table(headers, rows))
 
 
-def print_metrics(rows, total, wei):
-    headers = [
-        'Date',
-        'Bounty',
-        'Downtime',
-        'Latency'
-    ]
-    table = texttable.Texttable(max_width=get_tty_width())
-    table.set_cols_align(["l", "r", "r", "r"])
-    total_info = f'Total bounty per the given period: {total:.3f} SKL'
-    if wei:
-        total_info = f'Total bounty per the given period: {total} wei'
-        table.set_cols_dtype(["t", "i", "i", "f"])
-    else:
-        table.set_cols_dtype(["t", "f", "i", "f"])
-    table.set_precision(1)
-    table.add_rows([headers] + rows)
-    table.set_deco(table.HEADER | table.BORDER)
-    table.set_chars(['-', '|', '+', '-'])
-    print(table.draw())
-    print(total_info)
-
-
 def print_logs(logs):
     print('Base logs\n')
     print_log_list(logs['base'])
