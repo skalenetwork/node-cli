@@ -26,8 +26,8 @@ import click
 from skale.utils.random_names.generator import generate_random_node_name
 
 from core.core import get_node_info, get_node_about
-from core.node import (get_node_signature, init,
-                       register_node as register, update)
+from core.node import (get_node_signature, init, init_backup,
+                       register_node as register, update, backup)
 from core.host import install_host_dependencies
 from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
@@ -116,6 +116,7 @@ def register_node(name, ip, port):
 
 
 @node.command('init', help="Initialize SKALE node")
+@click.argument('env_file')
 @click.option(
     '--install-deps',
     is_flag=True,
@@ -126,11 +127,7 @@ def register_node(name, ip, port):
     is_flag=True,
     help="Dry run node init (don't setup containers)"
 )
-@click.option(
-    '--env-file',
-    help='Path to .env file with additional config'
-)
-def init_node(install_deps, env_file, dry_run):
+def init_node(env_file, install_deps, dry_run):
     if install_deps:
         install_host_dependencies()
     init(env_file, dry_run)
@@ -174,3 +171,16 @@ def update_node(env_file):
 def signature(validator_id):
     res = get_node_signature(validator_id)
     print(f'Signature: {res}')
+
+
+@node.command('backup', help="Generate backup file to restore SKALE node on another machine")
+@click.argument('backup_folder_path')
+def backup_node(backup_folder_path):
+    backup(backup_folder_path)
+
+
+@node.command('init-backup', help="Restore SKALE node on another machine")
+@click.argument('backup_path')
+@click.argument('env_file')
+def init_backup_node(backup_path, env_file):
+    init_backup(backup_path, env_file)

@@ -66,6 +66,7 @@ THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
 
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
+BACKUP_INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'backup-install.sh')
 UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
 UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
 
@@ -78,3 +79,5 @@ ADMIN_HOST = 'localhost'
 DEFAULT_URL_SCHEME = 'http://'
 
 DEFAULT_NODE_BASE_PORT = 10000
+
+BACKUP_ARCHIVE_NAME = 'skale-node-backup'

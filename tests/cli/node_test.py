@@ -20,10 +20,10 @@
 import mock
 import requests
 
-from tests.helper import response_mock, run_command_mock
+from tests.helper import response_mock, run_command_mock, run_command
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
-                      update_node)
+                      update_node, backup_node, init_backup_node)
 
 
 def test_register_node(config):
@@ -92,7 +92,7 @@ def test_init_node(config):
             'core.helper.post_request',
             resp_mock,
             init_node,
-            ['--env-file', './tests/test-env'])
+            ['./tests/test-env'])
         assert result.exit_code == 0
         assert result.output == 'Waiting for transaction manager initialization ...\n'  # noqa
 
@@ -191,3 +191,29 @@ def test_node_signature():
                               resp_mock, signature, ['1'])
     assert result.exit_code == 0
     assert result.output == f'Signature: {signature_sample}\n'
+
+
+def test_backup():
+    result = run_command(
+        backup_node,
+        ['/tmp']
+    )
+    assert result.exit_code == 0
+    assert 'Backup archive succesfully created: /tmp/skale-node-backup-' in result.output
+
+
+def test_init_backup():
+    result = run_command(
+        backup_node,
+        ['/tmp']
+    )
+    backup_path = result.output.replace(
+        'Backup archive succesfully created: ', '').replace('\n', '')
+    resp_mock = response_mock(requests.codes.created)
+    with mock.patch('subprocess.run'):
+        result = run_command(
+            init_backup_node,
+            [backup_path, './tests/test-env']
+        )
+        assert result.exit_code == 0
+        assert result.output == 'Node restored from backup\n'  # noqa
