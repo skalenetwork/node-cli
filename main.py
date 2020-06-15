@@ -27,7 +27,6 @@ from cli import __version__
 from cli.containers import containers_cli
 from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
 from cli.logs import logs_cli
-from cli.metrics import metrics_cli
 from cli.node import node_cli
 from cli.schains import schains_cli
 from cli.wallet import wallet_cli
@@ -91,7 +90,7 @@ if __name__ == '__main__':
 
     cmd_collection = click.CommandCollection(
         sources=[cli, schains_cli, containers_cli, logs_cli,
-                 node_cli, metrics_cli, wallet_cli, ssl_cli, sgx_cli, exit_cli])
+                 node_cli, wallet_cli, ssl_cli, sgx_cli, exit_cli])
     try:
         cmd_collection()
     except Exception as err:
