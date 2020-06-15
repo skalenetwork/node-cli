@@ -19,7 +19,9 @@
 
 import mock
 import requests
+from pathlib import Path
 
+from configs import SKALE_DIR
 from tests.helper import response_mock, run_command_mock, run_command
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
@@ -194,6 +196,7 @@ def test_node_signature():
 
 
 def test_backup():
+    Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(
         backup_node,
         ['/tmp']
@@ -203,6 +206,7 @@ def test_backup():
 
 
 def test_init_backup():
+    Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(
         backup_node,
         ['/tmp']
