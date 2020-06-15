@@ -209,7 +209,6 @@ def test_init_backup():
     )
     backup_path = result.output.replace(
         'Backup archive succesfully created: ', '').replace('\n', '')
-    resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'):
         result = run_command(
             init_backup_node,
