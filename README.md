@@ -18,7 +18,6 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     2.7 [SGX](#sgx-commands)  
     2.8 [SSL](#ssl-commands)  
     2.9 [Logs](#logs-commands)  
-    3.0 [Metrics](#metrics-commands)
 3.  [Development](#development)
 
 ## Installation
@@ -326,22 +325,6 @@ Optional arguments:
 
 -   `--container`, `-c` - Dump logs only from specified container
 
-### Metrics commands
-
-Shows a list of metrics and bounties for a node
-
-```bash
-skale metrics
-```
-
-Collecting metrics from the SKALE Manager may take a long time. It is therefore recommended to use optional arguments to limit the output by filtering by time period or limiting the number of records to show.
-
-Optional arguments:
-
--   `--since/-s` - Show requested data since a given date inclusively (e.g. 2020-01-20)
--   `--till/-t` - Show requested data before a given date not inclusively (e.g. 2020-01-21)
--   `--limit/-l` - Number of records to show
--   `--wei/-w` - Show bounty amount in wei
 
 ## Development
 
