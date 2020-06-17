@@ -112,7 +112,7 @@ You should also specify the following environment variables:
 Restore SKALE node on another machine
 
 ```bash
-skale node init-backup [BACKUP_PATH] [ENV_FILE]
+skale node restore [BACKUP_PATH] [ENV_FILE]
 ```
 
 Arguments:

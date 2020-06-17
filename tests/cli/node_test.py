@@ -25,7 +25,7 @@ from configs import SKALE_DIR
 from tests.helper import response_mock, run_command_mock, run_command
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
-                      update_node, backup_node, init_backup_node)
+                      update_node, backup_node, restore_node)
 
 
 def test_register_node(config):
@@ -205,7 +205,7 @@ def test_backup():
     assert 'Backup archive succesfully created: /tmp/skale-node-backup-' in result.output
 
 
-def test_init_backup():
+def test_restore():
     Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(
         backup_node,
@@ -215,7 +215,7 @@ def test_init_backup():
         'Backup archive succesfully created: ', '').replace('\n', '')
     with mock.patch('subprocess.run'):
         result = run_command(
-            init_backup_node,
+            restore_node,
             [backup_path, './tests/test-env']
         )
         assert result.exit_code == 0

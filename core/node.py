@@ -97,7 +97,7 @@ def init(env_filepath, dry_run=False):
     # todo: check execution result
 
 
-def init_backup(backup_path, env_filepath):
+def restore(backup_path, env_filepath):
     env_params = extract_env_params(env_filepath)
     if env_params is None:
         return
@@ -110,9 +110,11 @@ def init_backup(backup_path, env_filepath):
         'HOME_DIR': HOME_DIR,
         **env_params
     })
-    logger.info(f'Node init from backup script result: {res.stderr}, {res.stdout}')
-    print('Node restored from backup')
-    # todo: check execution result
+    logger.info(f'Node restore from backup script result: {res.stderr}, {res.stdout}')
+    if res.returncode != 0:
+        print('Restore script failed, check node-cli logs')
+    else:
+        print('Node restored from backup')
 
 
 def purge():
