@@ -219,4 +219,4 @@ def test_restore():
             [backup_path, './tests/test-env']
         )
         assert result.exit_code == 0
-        assert result.output == 'Node restored from backup\n'  # noqa
+        assert result.output == 'Restore script failed, check node-cli logs\n'  # noqa
