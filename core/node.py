@@ -17,18 +17,21 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
+import os
+import shlex
 import logging
+import datetime
 import subprocess
 
 import click
 
-from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
-                     UPDATE_SCRIPT, DATAFILES_FOLDER)
+from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
+                     UPDATE_SCRIPT, DATAFILES_FOLDER, BACKUP_ARCHIVE_NAME, HOME_DIR)
 
 from configs.env import (absent_params as absent_env_params,
                          get_params as get_env_params)
 from core.helper import get_request, post_request
+from tools.helper import run_cmd
 from core.host import prepare_host, save_env_params, get_flask_secret_key
 from core.print_formatters import print_err_response
 from tools.texts import Texts
@@ -94,6 +97,26 @@ def init(env_filepath, dry_run=False):
     # todo: check execution result
 
 
+def restore(backup_path, env_filepath):
+    env_params = extract_env_params(env_filepath)
+    if env_params is None:
+        return
+    save_env_params(env_filepath)
+    res = subprocess.run(['bash', BACKUP_INSTALL_SCRIPT], env={
+        'SKALE_DIR': SKALE_DIR,
+        'DATAFILES_FOLDER': DATAFILES_FOLDER,
+        'BACKUP_RUN': 'True',
+        'BACKUP_PATH': backup_path,
+        'HOME_DIR': HOME_DIR,
+        **env_params
+    })
+    logger.info(f'Node restore from backup script result: {res.stderr}, {res.stdout}')
+    if res.returncode != 0:
+        print('Restore script failed, check node-cli logs')
+    else:
+        print('Node restored from backup')
+
+
 def purge():
     # todo: check that node is installed
     subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
@@ -133,3 +156,27 @@ def get_node_signature(validator_id):
         return payload['signature']
     else:
         return payload
+
+
+def backup(path):
+    backup_filepath = get_backup_filepath(path)
+    create_backup_archive(backup_filepath)
+
+
+def get_backup_filename():
+    time = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%M:%S")
+    return f'{BACKUP_ARCHIVE_NAME}-{time}.tar.gz'
+
+
+def get_backup_filepath(base_path):
+    return os.path.join(base_path, get_backup_filename())
+
+
+def create_backup_archive(backup_filepath):
+    cmd = shlex.split(f'tar -zcvf {backup_filepath} -C {HOME_DIR} .skale')
+    try:
+        run_cmd(cmd)
+        print(f'Backup archive succesfully created: {backup_filepath}')
+    except subprocess.CalledProcessError as e:
+        logger.error(e)
+        print('Something went wrong while trying to create backup archive, check out CLI logs')
