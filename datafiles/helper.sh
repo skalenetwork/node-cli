@@ -114,4 +114,6 @@ configure_flask () {
 configure_filebeat () {
     echo "Configuring filebeat ..."
     cp $CONFIG_DIR/filebeat.yml $NODE_DATA_DIR/
+    sudo chown root $NODE_DATA_DIR/filebeat.yml
+    sudo chmod go-w $NODE_DATA_DIR/filebeat.yml
 }
