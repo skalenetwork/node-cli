@@ -26,7 +26,14 @@ remove_dynamic_containers () {
 
 remove_compose_containers () {
     echo 'Removing node containers ...'
-    DB_PORT=0 docker-compose -f $SKALE_DIR/config/docker-compose.yml rm  -s -f
+    COMPOSE_PATH=$SKALE_DIR/config/docker-compose.yml
+    echo 'Removing api, sla, bounty, admin containers ...'
+    DB_PORT=0 docker-compose -f  $COMPOSE_PATH rm  -s -f skale-api sla bounty skale-admin
+    echo 'Api, sla, bounty, admin containers were removed. Sleeping ...'
+    sleep 7
+    echo 'Removing transaction-manager, mysql and rest ...'
+    DB_PORT=0 docker-compose -f $COMPOSE_PATH  rm  -s -f
+    echo 'Done'
 }
 
 download_contracts () {
