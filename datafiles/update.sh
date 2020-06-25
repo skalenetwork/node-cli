@@ -11,10 +11,10 @@ cd $SKALE_DIR
 
 export $(grep -v '^#' .env | xargs)
 
-docker_lvmpy_update
-
 remove_compose_containers
 remove_dynamic_containers
+
+docker_lvmpy_update
 
 cd $CONFIG_DIR
 if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
