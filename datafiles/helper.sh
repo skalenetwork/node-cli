@@ -57,9 +57,11 @@ docker_lvmpy_install () {
 docker_lvmpy_update () {
     echo 'Updating docker-lvmpy ...'
     cd docker-lvmpy
+    echo "Pulling changes ..."
+    git pull
     echo "Checkouting to $DOCKER_LVMPY_STREAM ..."
     git checkout $DOCKER_LVMPY_STREAM
-    echo "Pulling changes ..."
+    echo "Pulling changes from $DOCKER_LVMPY_STREAM ..."
     git pull
     echo "Running update.sh script ..."
     PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/update.sh
