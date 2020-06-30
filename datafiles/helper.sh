@@ -4,6 +4,9 @@ export FLASK_SECRET_KEY_FILE=$NODE_DATA_DIR/flask_db_key.txt
 export DISK_MOUNTPOINT_FILE=$NODE_DATA_DIR/disk_mountpoint.txt
 export SGX_CERTIFICATES_DIR_NAME=sgx_certs
 
+export CONTRACTS_DIR="$SKALE_DIR"/contracts_info
+export BACKUP_CONTRACTS_DIR="$SKALE_DIR"/.old_contracts_info
+
 remove_dynamic_containers () {
     echo 'Removing schains containers ...'
     SCHAIN_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep '^skale_schain_' | awk '{print $1}' | xargs)"
@@ -37,9 +40,14 @@ remove_compose_containers () {
 }
 
 download_contracts () {
-    echo "Downloading contracts abi ..."
+    echo "Downloading contracts ABI ..."
     curl -L $MANAGER_CONTRACTS_ABI_URL > $CONTRACTS_DIR/manager.json
     curl -L $IMA_CONTRACTS_ABI_URL > $CONTRACTS_DIR/ima.json
+}
+
+backup_old_contracts () {
+    echo "Copying old contracts ABI ..."
+    cp -R $CONTRACTS_DIR $BACKUP_CONTRACTS_DIR
 }
 
 docker_lvmpy_install () {

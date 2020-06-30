@@ -14,6 +14,8 @@ export $(grep -v '^#' .env | xargs)
 remove_compose_containers
 remove_dynamic_containers
 
+backup_old_contracts
+download_contracts
 docker_lvmpy_update
 
 cd $CONFIG_DIR
