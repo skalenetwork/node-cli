@@ -107,8 +107,12 @@ You should also specify the following environment variables:
 -   `DB_PASSWORD` - Password for root user of node internal database
       (equal to user password by default)
 -   `DB_PORT` - Port for node internal database (default is `3306`)
--   `TG_API_KEY` - Telegram API key (optional)
--   `TG_CHAT_ID` - Telegram chat ID (optional)
+
+Optional variables:
+
+-   `TG_API_KEY` - Telegram API key
+-   `TG_CHAT_ID` - Telegram chat ID
+-   `MONITORING_CONTAINERS` - will enable monitoring containers (`filebeat`, `cadvisor`, `prometheus`)
 
 #### Node initialization from backup
 

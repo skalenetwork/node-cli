@@ -21,6 +21,7 @@ base_params = {
 
 
 optional_params = {
+    'MONITORING_CONTAINERS': '',
     'TG_API_KEY': '',
     'TG_CHAT_ID': '',
     'CONTAINER_CONFIGS_DIR': ''

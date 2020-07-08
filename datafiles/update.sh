@@ -30,5 +30,4 @@ else
     echo "Building containers ..."
     SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml build
 fi
-echo "Creating containers ..."
-SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d
+up_compose
