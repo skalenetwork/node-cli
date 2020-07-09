@@ -37,17 +37,19 @@ def sgx():
     pass
 
 
-@sgx.command(help="Status of the SGX server")
-def status():
-    status, payload = get_request('sgx_status')
+@sgx.command(help="Info about connected SGX server")
+def info():
+    status, payload = get_request('sgx_info')
     if status == 'ok':
         data = payload
         table_data = [
-            ['SGX server URL', data['sgx_server_url']],
+            ['SGX info', ''],
+            ['Server URL', data['sgx_server_url']],
+            ['SGXWallet Version', data['sgx_wallet_version']],
+            ['Node SGX keyname', data['sgx_keyname']],
             ['Status', data['status_name']]
         ]
         table = SingleTable(table_data)
-        print('SGX server status:')
         print(table.table)
     else:
         print_err_response(payload)

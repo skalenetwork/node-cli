@@ -24,7 +24,7 @@ ROUTES = {
 
     'dkg_statuses': '/api/dkg/statuses',
 
-    'sgx_status': '/api/sgx/status',
+    'sgx_info': '/api/sgx/info',
 
     'start_exit': '/api/exit/start',
     'exit_status': '/api/exit/status',
