@@ -131,11 +131,11 @@ configure_filebeat () {
 }
 
 up_compose() {
-    if [[ ! -z $MONITORING_CONTAINERS ]]; then
+    if [[ "$MONITORING_CONTAINERS" == "True"  ]]; then
         echo "Running SKALE Node with monitoring containers..."
         SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d
     else
         echo "Running SKALE Node with base set of containers..."
-        SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up $BASE_SERVICES -d
+        SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d $BASE_SERVICES
     fi
 }
