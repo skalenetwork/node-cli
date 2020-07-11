@@ -21,7 +21,7 @@ def find_version(*file_paths):
 extras_require = {
     'linter': [
         "flake8==3.7.9",
-        "isort>=4.2.15,<4.3.22",
+        "isort>=4.2.15,<5.0.8",
     ],
     'dev': [
         "boto3==1.13.19",
