@@ -24,7 +24,7 @@ extras_require = {
         "isort>=4.2.15,<4.3.22",
     ],
     'dev': [
-        "boto3==1.13.19",
+        "boto3==1.14.20",
         "bumpversion==0.6.0",
         "skale.py==3.10dev1",
         "pytest==5.4.3",
