@@ -7,6 +7,8 @@ export SGX_CERTIFICATES_DIR_NAME=sgx_certs
 export CONTRACTS_DIR="$SKALE_DIR"/contracts_info
 export BACKUP_CONTRACTS_DIR="$SKALE_DIR"/.old_contracts_info
 
+export BASE_SERVICES="transaction-manager skale-admin skale-api mysql sla bounty watchdog"
+
 remove_dynamic_containers () {
     echo 'Removing schains containers ...'
     SCHAIN_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep '^skale_schain_' | awk '{print $1}' | xargs)"
@@ -126,4 +128,14 @@ configure_filebeat () {
     cp $CONFIG_DIR/filebeat.yml $NODE_DATA_DIR/
     sudo chown root $NODE_DATA_DIR/filebeat.yml
     sudo chmod go-w $NODE_DATA_DIR/filebeat.yml
+}
+
+up_compose() {
+    if [[ "$MONITORING_CONTAINERS" == "True"  ]]; then
+        echo "Running SKALE Node with monitoring containers..."
+        SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d
+    else
+        echo "Running SKALE Node with base set of containers..."
+        SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d $BASE_SERVICES
+    fi
 }
