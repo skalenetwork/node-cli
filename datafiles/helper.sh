@@ -8,6 +8,7 @@ export CONTRACTS_DIR="$SKALE_DIR"/contracts_info
 export BACKUP_CONTRACTS_DIR="$SKALE_DIR"/.old_contracts_info
 
 export BASE_SERVICES="transaction-manager skale-admin skale-api mysql sla bounty watchdog"
+export NOTIFICATION_SERVICES="celery redis"
 
 remove_dynamic_containers () {
     echo 'Removing schains containers ...'
@@ -137,5 +138,9 @@ up_compose() {
     else
         echo "Running SKALE Node with base set of containers..."
         SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d $BASE_SERVICES
+    fi
+    if [[ ! -z "$TG_API_KEY" && ! -z "$TG_CHAT_ID" ]]; then
+        echo "Running containers for telegram notifications..."
+        SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d $NOTIFICATION_SERVICES
     fi
 }
