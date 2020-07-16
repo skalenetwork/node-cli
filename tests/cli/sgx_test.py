@@ -17,13 +17,11 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import time
-
 import requests
 
 from tests.helper import response_mock, run_command_mock
 from cli.sgx import info
+
 
 def test_sgx_status():
     payload = {
