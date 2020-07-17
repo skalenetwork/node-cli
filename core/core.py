@@ -22,7 +22,7 @@ from configs import LONG_LINE
 from core.helper import get_request, safe_load_texts
 from core.print_formatters import print_err_response
 
-NODE_STATUSES = ['Not created', 'Requested', 'Active']
+NODE_STATUSES = ['Active', 'Leaving', 'Frozen', 'Left', 'Not created']
 TEXTS = safe_load_texts()
 
 
