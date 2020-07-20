@@ -5,6 +5,11 @@ node:
   registered: |-
     Node registered in SKALE manager.
     For more info run < skale node info >
+  status:
+    ACTIVE: Active
+    LEAVING: Leaving
+    FROZEN: Frozen
+    LEFT: Left
 setHost: "Set SKALE node endpoint"
 
 service:
