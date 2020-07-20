@@ -23,6 +23,7 @@ from core.helper import get_request, safe_load_texts
 from core.print_formatters import print_err_response
 
 NODE_STATUSES = ['Active', 'Leaving', 'Frozen', 'Left', 'Not created']
+NOT_CREATED_STATUS = 4
 TEXTS = safe_load_texts()
 
 
@@ -30,7 +31,7 @@ def get_node_info(config, format):
     status, payload = get_request('node_info')
     if status == 'ok':
         node_info = payload['node_info']
-        if node_info['status'] == 0:
+        if node_info['status'] == NOT_CREATED_STATUS:
             print(TEXTS['service']['node_not_registered'])
         elif format == 'json':
             print(node_info)
