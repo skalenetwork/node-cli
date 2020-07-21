@@ -140,7 +140,7 @@ up_compose() {
         SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d $BASE_SERVICES
     fi
     if [[ ! -z "$TG_API_KEY" && ! -z "$TG_CHAT_ID" ]]; then
-        echo "Running containers for telegram notifications..."
         SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d $NOTIFICATION_SERVICES
+        echo "Running containers for telegram notifications..."
     fi
 }
