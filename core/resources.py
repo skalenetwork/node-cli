@@ -19,13 +19,14 @@
 
 import os
 import logging
-import psutil
 import subprocess
 from time import sleep
 
+import psutil
+
 from tools.schain_types import SchainTypes
 from tools.helper import write_json, read_json, run_cmd, format_output
-from core.helper import safe_load_yml
+from core.helper import safe_load_yml, to_camel_case
 from configs import ALLOCATION_FILEPATH
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
     TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
@@ -53,23 +54,47 @@ class ResourceAlloc():
         return self.values
 
 
+class SChainVolumeAlloc():
+    def __init__(self, disk_alloc: ResourceAlloc, proportions: dict):
+        self.volume_alloc = {}
+        disk_alloc_dict = disk_alloc.dict()
+        for size_name in disk_alloc_dict:
+            self.volume_alloc[size_name] = {}
+            for key, value in proportions.items():
+                lim = int(value * disk_alloc_dict[size_name])
+                self.volume_alloc[size_name][to_camel_case(key)] = lim
+
+
 def get_resource_allocation_info():
-    return read_json(RESOURCE_ALLOCATION_FILEPATH)
+    try:
+        return read_json(RESOURCE_ALLOCATION_FILEPATH)
+    except FileNotFoundError:
+        return None
 
 
 def generate_resource_allocation_config():
     cpu_alloc = get_cpu_alloc()
     mem_alloc = get_memory_alloc()
-
     disk_alloc = get_disk_alloc()
+    schain_volume_alloc = get_schain_volume_alloc(disk_alloc)
     return {
         'cpu': cpu_alloc.dict(),
         'mem': mem_alloc.dict(),
         'disk': disk_alloc.dict(),
         'schain': {
-            'storage_limit': get_storage_limit_alloc()
+            'storage_limit': get_storage_limit_alloc(),
+            **schain_volume_alloc.volume_alloc
         }
     }
+
+
+def get_schain_volume_alloc(disk_alloc: ResourceAlloc) -> SChainVolumeAlloc:
+    proportions = get_schain_volume_proportions()
+    return SChainVolumeAlloc(disk_alloc, proportions)
+
+
+def get_schain_volume_proportions():
+    return ALLOCATION_DATA['schain_volume_proportions']
 
 
 def get_storage_limit_alloc(testnet=True):
@@ -77,8 +102,8 @@ def get_storage_limit_alloc(testnet=True):
     return ALLOCATION_DATA[network]['storage_limit']
 
 
-def save_resource_allocation_config():
-    if os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
+def save_resource_allocation_config(exist_ok=False):
+    if os.path.isfile(RESOURCE_ALLOCATION_FILEPATH) and not exist_ok:
         logger.debug('Resource allocation file is already exists')
         return
     logger.info('Generating resource allocation file')

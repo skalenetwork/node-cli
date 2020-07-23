@@ -184,3 +184,8 @@ def upload_certs(key_path, cert_path, force):
             'application/json'
         )
         return post_request('ssl_upload', files=files_data)
+
+
+def to_camel_case(snake_str):
+    components = snake_str.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
