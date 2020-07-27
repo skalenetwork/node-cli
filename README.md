@@ -83,14 +83,17 @@ Options:
 Initialize a SKALE node on current machine
 
 ```bash
-skale node init
+skale node init [ENV_FILE]
 ```
 
-Required arguments:
+Arguments:
+
+- `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
+
+Required options:
 
 -   `--install-deps` - install docker and other dependencies
 -   `--dry-run` - create only needed files and directories and don't create containers
--   `--env-file` - path to .env file (required parameters are listed below)
 
 You should also specify the following environment variables:
 
@@ -326,7 +329,7 @@ skale ssl upload
 
 Admin API URL: \[GET] `/api/ssl/upload`
 
-### Log commands
+### Logs commands
 
 > Prefix: `skale logs`
 
@@ -354,6 +357,29 @@ Optional arguments:
 
 -   `--container`, `-c` - Dump logs only from specified container
 
+
+### Resources allocation commands
+
+> Prefix: `skale resources-allocation`
+
+#### Show allocation file
+
+Show resources allocation file:
+
+```bash
+skale resources-allocation show
+```
+#### Generate/update
+
+Generate/update allocation file:
+
+```bash
+skale resources-allocation generate
+```
+
+Options:
+
+-   `--yes` - generate without additional confirmation
 
 ## Development
 
