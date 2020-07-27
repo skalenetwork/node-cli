@@ -137,10 +137,10 @@ up_compose() {
         SKALE_DIR="$SKALE_DIR" docker-compose -f docker-compose.yml up -d
     else
         echo "Running SKALE Node with base set of containers..."
-        SKALE_DIR="$SKALE_DIR" docker-compose -f docker-compose.yml up -d "$BASE_SERVICES"
+        SKALE_DIR="$SKALE_DIR" docker-compose -f docker-compose.yml up -d $BASE_SERVICES
     fi
     if [[ ! -z "$TG_API_KEY" && ! -z "$TG_CHAT_ID" ]]; then
-        SKALE_DIR="$SKALE_DIR" docker-compose -f docker-compose.yml up -d "$NOTIFICATION_SERVICES"
+        SKALE_DIR="$SKALE_DIR" docker-compose -f docker-compose.yml up -d $NOTIFICATION_SERVICES
         echo "Running containers for telegram notifications..."
     fi
 }
