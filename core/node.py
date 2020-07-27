@@ -24,7 +24,8 @@ import datetime
 import subprocess
 
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
-                     UPDATE_SCRIPT, DATAFILES_FOLDER, BACKUP_ARCHIVE_NAME, HOME_DIR)
+                     UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
+                     BACKUP_ARCHIVE_NAME, HOME_DIR)
 
 
 from core.helper import get_request, post_request
@@ -124,8 +125,13 @@ def update(env_filepath):
             return
         save_env_params(env_filepath)
     else:
-        env_params = {}
+        env_params = extract_env_params(INIT_ENV_FILEPATH)
 
+    prepare_host(
+        env_filepath,
+        env_params['DISK_MOUNTPOINT'],
+        env_params['SGX_SERVER_URL']
+    )
     flask_secret_key = get_flask_secret_key()
     res_update_node = subprocess.run(['bash', UPDATE_SCRIPT], env={
         'SKALE_DIR': SKALE_DIR,

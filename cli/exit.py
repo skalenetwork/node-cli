@@ -1,6 +1,6 @@
 import click
 import logging
-from core.helper import get_request, post_request
+from core.helper import get_request, post_request, abort_if_false
 from core.print_formatters import print_err_response, print_exit_status
 from tools.texts import Texts
 
@@ -19,6 +19,9 @@ def node_exit():
 
 
 @node_exit.command('start', help="Start exiting process")
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to destroy your SKALE node?')
 def start():
     status, payload = post_request('start_exit')
     if status == 'ok':
