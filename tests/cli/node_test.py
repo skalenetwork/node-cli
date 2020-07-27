@@ -289,15 +289,16 @@ def test_node_signature():
 
 def test_backup():
     Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
-    result = run_command(
-        backup_node,
-        [
-            '/tmp',
-            './tests/test-env'
-        ]
-    )
-    assert result.exit_code == 0
-    assert 'Backup archive succesfully created: /tmp/skale-node-backup-' in result.output
+    with mock.patch('core.mysql_backup.run_mysql_cmd'):
+        result = run_command(
+            backup_node,
+            [
+                '/tmp',
+                './tests/test-env'
+            ]
+        )
+        assert result.exit_code == 0
+        assert 'Backup archive succesfully created: /tmp/skale-node-backup-' in result.output
 
 
 def test_restore():
