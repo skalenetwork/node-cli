@@ -156,10 +156,7 @@ def init_node(env_file, install_deps, dry_run):
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
-@click.option(
-    '--env-file',
-    help='Path to .env file with additional config'
-)
+@click.argument('env_file')
 def update_node(env_file):
     update(env_file)
     print('Waiting for transaction manager initialization ...')
@@ -175,8 +172,9 @@ def signature(validator_id):
 
 @node.command('backup', help="Generate backup file to restore SKALE node on another machine")
 @click.argument('backup_folder_path')
-def backup_node(backup_folder_path):
-    backup(backup_folder_path)
+@click.argument('env_file')
+def backup_node(backup_folder_path, env_file):
+    backup(backup_folder_path, env_file)
 
 
 @node.command('restore', help="Restore SKALE node on another machine")

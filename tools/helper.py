@@ -17,16 +17,20 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 import os
+import json
 import logging
 import subprocess
 import urllib.request
 from subprocess import PIPE
 
+import click
+
 from jinja2 import Environment
 from readsettings import ReadSettings
 
+from configs.env import (absent_params as absent_env_params,
+                         get_params as get_env_params)
 from configs import CONFIG_FILEPATH
 
 logger = logging.getLogger(__name__)
@@ -42,11 +46,15 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
-def run_cmd(cmd, env={}, shell=False):
-    logger.info(f'Running: {cmd}')
+def run_cmd(cmd, env={}, shell=False, secure=False):
+    if not secure:
+        logger.info(f'Running: {cmd}')
+    else:
+        logger.info(f'Running some secure command')
     res = subprocess.run(cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ})
     if res.returncode:
         logger.error('Error during shell execution:')
+        logger.error(res.stdout.decode('UTF-8').rstrip())
         logger.error(res.stderr.decode('UTF-8').rstrip())
         raise subprocess.CalledProcessError(res.returncode, cmd)
     return res
@@ -85,5 +93,20 @@ def get_username():
 
 
 def session_config():
-
     return ReadSettings(CONFIG_FILEPATH)
+
+
+def extract_env_params(env_filepath):
+    env_params = get_env_params(env_filepath)
+    if not env_params.get('DB_ROOT_PASSWORD'):
+        env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
+
+    absent_params = ', '.join(absent_env_params(env_params))
+    if absent_params:
+        click.echo(f"Your env file({env_filepath}) have some absent params: "
+                   f"{absent_params}.\n"
+                   f"You should specify them to make sure that "
+                   f"all services are working",
+                   err=True)
+        return None
+    return env_params
