@@ -28,8 +28,8 @@ from core.resources import save_resource_allocation_config
 from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
-                     NODE_CERTS_PATH, SGX_CERTS_PATH,
-                     SCHAINS_DATA_PATH, LOG_PATH, MYSQL_BACKUP_FOLDER, REDIS_DATA_PATH
+                     NODE_CERTS_PATH, SGX_CERTS_PATH, REDIS_DATA_PATH,
+                     SCHAINS_DATA_PATH, LOG_PATH, MYSQL_BACKUP_FOLDER)
 from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
