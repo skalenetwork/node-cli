@@ -102,13 +102,20 @@ def get_storage_limit_alloc(testnet=True):
     return ALLOCATION_DATA[network]['storage_limit']
 
 
-def save_resource_allocation_config(exist_ok=False):
+def save_resource_allocation_config(exist_ok=False) -> bool:
     if os.path.isfile(RESOURCE_ALLOCATION_FILEPATH) and not exist_ok:
-        logger.debug('Resource allocation file is already exists')
-        return
+        msg = 'Resource allocation file is already exists'
+        print(msg)
+        logger.debug(msg)
+        return True
     logger.info('Generating resource allocation file')
-    resource_allocation_config = generate_resource_allocation_config()
-    write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
+    try:
+        resource_allocation_config = generate_resource_allocation_config()
+        write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
+    except Exception as e:
+        logger.exception(e)
+        return False
+    return True
 
 
 def get_available_memory():

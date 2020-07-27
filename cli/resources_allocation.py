@@ -53,5 +53,8 @@ def show():
               expose_value=False,
               prompt='Are you sure you want to generate/update resource allocation file?')
 def generate():
-    save_resource_allocation_config(exist_ok=True)
-    print('Resource allocation file generated!')
+    res = save_resource_allocation_config(exist_ok=True)
+    if res:
+        print('Resource allocation file generated!')
+    else:
+        print('Can\'t generate resource allocation file, check out CLI logs')
