@@ -28,7 +28,11 @@ ssl:
     You can check status by running < skale ssl status >
 
 exit:
-  start: "Node exit process is started"
+  start: |
+    Node exit process is started. Please, wait until exiting process will be completed
+    To check current state of exiting process try:
+
+      skale exit status
   status:
     active: "Exiting is not started. Node is active"
     in_progress: "Node exiting is in progress"
