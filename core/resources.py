@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 ALLOCATION_DATA = safe_load_yml(ALLOCATION_FILEPATH)
 
 
-class ResourceAlloc():
+class ResourceAlloc:
     def __init__(self, value, fractional=False):
         self.values = {
             'part_test4': value / TEST_DIVIDER,

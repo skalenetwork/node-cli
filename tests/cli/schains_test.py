@@ -23,8 +23,7 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import (get_schain_config, ls, dkg, checks,
-                         show_rules, turn_off_rules, turn_on_rules)
+from cli.schains import get_schain_config, ls, dkg, checks, show_rules
 
 
 def test_ls(config):
@@ -151,30 +150,6 @@ def test_schain_rules():
     assert result.exit_code == 0
     print(repr(result.output))
     assert result.output == 'Port       Ip    \n-----------------\n10000   127.0.0.1\n10001   127.0.0.1\n10002   None     \n10003   None     \n10004   127.0.0.1\n10005   127.0.0.1\n10007   None     \n10008   None     \n'  # noqa
-
-
-def test_turn_on_schain_rules():
-    resp_mock = response_mock(
-        requests.codes.ok,
-        json_data={'payload': [], 'status': 'ok'}
-    )
-    result = run_command_mock(
-        'core.helper.requests.post', resp_mock,
-        turn_on_rules, ['schain-test'])
-    assert result.exit_code == 0
-    assert result.output == 'Success\n'
-
-
-def test_turn_off_schain_rules():
-    resp_mock = response_mock(
-        requests.codes.ok,
-        json_data={'payload': [], 'status': 'ok'}
-    )
-    result = run_command_mock(
-        'core.helper.requests.post', resp_mock,
-        turn_off_rules, ['schain-test', '--yes'])
-    assert result.exit_code == 0
-    assert result.output == 'WARNING: Closing endpoints for schain. Ctrl-C to abort\nSuccess\n'
 
 
 def test_checks():
