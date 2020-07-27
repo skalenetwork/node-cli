@@ -114,7 +114,7 @@ def test_init_node(config):
 
 
 def test_update_node(config):
-    params = ['--env-file', './tests/test-env', '--yes']
+    params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run'), \
             mock.patch('cli.node.install_host_dependencies'), \
@@ -291,7 +291,10 @@ def test_backup():
     Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(
         backup_node,
-        ['/tmp']
+        [
+            '/tmp',
+            './tests/test-env'
+        ]
     )
     assert result.exit_code == 0
     assert 'Backup archive succesfully created: /tmp/skale-node-backup-' in result.output
