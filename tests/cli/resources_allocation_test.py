@@ -63,5 +63,5 @@ def test_generate():
             generate,
             ['--yes']
         )
-    assert result.output == 'Resource allocation file generated!\n'
+    assert result.output == f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}\n'
     assert result.exit_code == 0

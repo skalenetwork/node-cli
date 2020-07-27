@@ -23,7 +23,7 @@ import click
 from core.resources import get_resource_allocation_info, save_resource_allocation_config
 from core.helper import abort_if_false, safe_load_texts
 from tools.helper import session_config
-
+from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 
 config = session_config()
 TEXTS = safe_load_texts()
@@ -55,6 +55,6 @@ def show():
 def generate():
     res = save_resource_allocation_config(exist_ok=True)
     if res:
-        print('Resource allocation file generated!')
+        print(f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}')
     else:
         print('Can\'t generate resource allocation file, check out CLI logs')
