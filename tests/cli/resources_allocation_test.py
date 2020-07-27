@@ -17,11 +17,13 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import json
 import mock
 import requests
 
-from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from core.host import safe_mk_dirs
+from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
 from tools.helper import write_json
 from tests.resources_test import disk_alloc_mock
 from tests.helper import response_mock, run_command_mock
@@ -32,7 +34,13 @@ from cli.resources_allocation import show, generate
 TEST_CONFIG = {'test': 1}
 
 
+def check_node_dir():
+    if not os.path.exists(NODE_DATA_PATH):
+        safe_mk_dirs(NODE_DATA_PATH)
+
+
 def test_show(config):
+    check_node_dir()
     resp_mock = response_mock(requests.codes.created)
     write_json(RESOURCE_ALLOCATION_FILEPATH, TEST_CONFIG)
     result = run_command_mock(
@@ -45,6 +53,7 @@ def test_show(config):
 
 
 def test_generate():
+    check_node_dir()
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('core.resources.get_disk_alloc',
                     new=disk_alloc_mock):
