@@ -4,6 +4,9 @@ export FLASK_SECRET_KEY_FILE=$NODE_DATA_DIR/flask_db_key.txt
 export DISK_MOUNTPOINT_FILE=$NODE_DATA_DIR/disk_mountpoint.txt
 export SGX_CERTIFICATES_DIR_NAME=sgx_certs
 
+export FILESTORAGE_INFO_FILE=$SKALE_DIR/config/filestorage_info.json
+export FILESTORAGE_ARTIFACTS_FILE=$NODE_DATA_DIR/filestorage_artifacts.json
+
 export CONTRACTS_DIR="$SKALE_DIR"/contracts_info
 export BACKUP_CONTRACTS_DIR="$SKALE_DIR"/.old_contracts_info
 
@@ -46,6 +49,13 @@ download_contracts () {
     echo "Downloading contracts ABI ..."
     curl -L $MANAGER_CONTRACTS_ABI_URL > $CONTRACTS_DIR/manager.json
     curl -L $IMA_CONTRACTS_ABI_URL > $CONTRACTS_DIR/ima.json
+}
+
+download_filestorage_artifacts () {
+    echo "Downloading filestorage artifacts ..."
+    FS_ARTIFACTS_URL=$(cat $FILESTORAGE_INFO_FILE | sed -n 's/^[[:space:]]*"artifacts_url"[[:space:]]*:[[:space:]]*//p')
+    FS_ARTIFACTS_URL=$(echo "$FS_ARTIFACTS_URL" | sed -r 's/["]+//g')
+    curl -L $FS_ARTIFACTS_URL > $FILESTORAGE_ARTIFACTS_FILE
 }
 
 backup_old_contracts () {
