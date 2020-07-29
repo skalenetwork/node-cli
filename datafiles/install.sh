@@ -32,6 +32,7 @@ ln -s $SKALE_DIR/.env $CONFIG_DIR/.env
 cd $SKALE_DIR
 
 download_contracts
+download_filestorage_artifacts
 configure_filebeat
 configure_flask
 iptables_configure

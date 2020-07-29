@@ -16,6 +16,7 @@ remove_dynamic_containers
 
 backup_old_contracts
 download_contracts
+download_filestorage_artifacts
 docker_lvmpy_update
 
 cd $CONFIG_DIR
