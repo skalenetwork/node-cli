@@ -153,12 +153,13 @@ def init_node(env_file, install_deps, dry_run):
 
 
 @node.command('update', help='De-register node from the SKALE Manager')
+@click.option('--sync-schains', is_flag=True)
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.argument('env_file')
-def update_node(env_file):
-    update(env_file)
+def update_node(sync_schains, env_file):
+    update(env_file, sync_schains)
     print('Waiting for transaction manager initialization ...')
     time.sleep(20)
 
