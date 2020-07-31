@@ -41,7 +41,7 @@ def ssl():
 def status():
     status, payload = get_request('ssl_status')
     if status == 'ok':
-        if payload['status']:
+        if payload.get('is_empty'):
             print(TEXTS['ssl']['no_cert'])
         else:
             table_data = [

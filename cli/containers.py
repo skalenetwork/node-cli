@@ -48,6 +48,6 @@ def schains(all):
 def ls(all):
     status, payload = get_request('skale_containers', {'all': all})
     if status == 'ok':
-        print_containers(payload)
+        print_containers(payload.get('containers', []))
     else:
         print_err_response(payload)
