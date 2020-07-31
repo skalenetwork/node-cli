@@ -12,21 +12,24 @@ ROUTES = {
     'validators_info': '/validators-info',
 
     'schains_containers': '/containers/schains/list',
+    'schains_healthchecks': '/api/schains/healthchecks',
     'node_schains': '/schains/list',
     'schain_config': '/schain-config',
     'skale_containers': '/containers/list',
 
     'logs_dump': '/logs/dump',
-    'metrics': '/metrics',
 
     'ssl_status': '/api/ssl/status',
     'ssl_upload': '/api/ssl/upload',
 
     'dkg_statuses': '/api/dkg/statuses',
 
-    'sgx_status': '/api/sgx/status',
+    'sgx_info': '/api/sgx/info',
 
     'start_exit': '/api/exit/start',
     'exit_status': '/api/exit/status',
-    'finalize_exit': '/api/exit/finalize'
+    'finalize_exit': '/api/exit/finalize',
+    'get_schain_firewall_rules': '/api/schains/firewall/show',
+    'turn_on_schain_firewall_rules': '/api/schains/firewall/on',
+    'turn_off_schain_firewall_rules': '/api/schains/firewall/off'
 }

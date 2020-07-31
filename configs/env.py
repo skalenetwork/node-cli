@@ -20,9 +20,17 @@ base_params = {
 }
 
 
+optional_params = {
+    'MONITORING_CONTAINERS': '',
+    'TG_API_KEY': '',
+    'TG_CHAT_ID': '',
+    'CONTAINER_CONFIGS_DIR': ''
+}
+
+
 def absent_params(params):
     return list(filter(
-        lambda key: key != 'CONTAINER_CONFIGS_DIR' and not params[key],
+        lambda key: key not in optional_params and not params[key],
         params)
     )
 
@@ -30,6 +38,7 @@ def absent_params(params):
 def get_params(env_filepath):
     load_dotenv(dotenv_path=env_filepath)
     params = base_params.copy()
+    params.update(optional_params)
     for option_name in params:
         env_param = os.getenv(option_name)
         if env_param is not None:

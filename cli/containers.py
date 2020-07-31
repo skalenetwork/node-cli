@@ -18,8 +18,9 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from core.helper import get
-from core.print_formatters import print_containers
+from core.helper import get_request
+from core.print_formatters import (print_containers,
+                                   print_err_response)
 
 
 @click.group()
@@ -35,18 +36,18 @@ def containers():
 @containers.command(help="List of sChain containers running on connected node")
 @click.option('--all', '-a', is_flag=True)
 def schains(all):
-    response = get('schains_containers', {'all': all})
-    if response is None:
-        return
-    if 'errors' in response:
-        print(response['errors'])
-    print_containers(response)
+    status, payload = get_request('schains_containers', {'all': all})
+    if status == 'ok':
+        print_containers(payload)
+    else:
+        print_err_response(payload)
 
 
 @containers.command(help="List of SKALE containers running on connected node")
 @click.option('--all', '-a', is_flag=True)
 def ls(all):
-    containers_list = get('skale_containers', {'all': all})
-    if not containers_list:
-        return
-    print_containers(containers_list)
+    status, payload = get_request('skale_containers', {'all': all})
+    if status == 'ok':
+        print_containers(payload.get('containers', []))
+    else:
+        print_err_response(payload)

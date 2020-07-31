@@ -27,13 +27,13 @@ from cli import __version__
 from cli.containers import containers_cli
 from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
 from cli.logs import logs_cli
-from cli.metrics import metrics_cli
 from cli.node import node_cli
 from cli.schains import schains_cli
 from cli.wallet import wallet_cli
 from cli.ssl import ssl_cli
 from cli.sgx import sgx_cli
-# from cli.exit import exit_cli
+from cli.exit import exit_cli
+from cli.resources_allocation import resources_allocation_cli
 
 from core.helper import (safe_load_texts, init_default_logger)
 from configs import LONG_LINE
@@ -90,8 +90,8 @@ if __name__ == '__main__':
     logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
 
     cmd_collection = click.CommandCollection(
-        sources=[cli, schains_cli, containers_cli, logs_cli,
-                 node_cli, metrics_cli, wallet_cli, ssl_cli, sgx_cli])
+        sources=[cli, schains_cli, containers_cli, logs_cli, resources_allocation_cli,
+                 node_cli, wallet_cli, ssl_cli, sgx_cli, exit_cli])
     try:
         cmd_collection()
     except Exception as err:

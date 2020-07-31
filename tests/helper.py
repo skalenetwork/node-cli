@@ -26,6 +26,7 @@ def response_mock(status_code=0, json_data=None,
                   headers=None, raw=None):
     result = MagicMock()
     result.status_code = status_code
+
     result.json = MagicMock(return_value=json_data)
     result.headers = headers
     result.raw = raw

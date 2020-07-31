@@ -31,10 +31,11 @@ from logging import Formatter
 import requests
 import yaml
 
-from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, LONG_LINE, ROUTES
+from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, ROUTES
 from configs.cli_logger import (LOG_FORMAT, LOG_BACKUP_COUNT,
                                 LOG_FILE_SIZE_BYTES,
                                 LOG_FILEPATH, DEBUG_LOG_FILEPATH)
+from core.print_formatters import print_err_response
 from tools.helper import session_config
 
 
@@ -43,6 +44,11 @@ logger = logging.getLogger(__name__)
 
 
 HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
+
+DEFAULT_ERROR_DATA = {
+    'status': 'error',
+    'payload': 'Request failed. Check skale_api container logs'
+}
 
 
 def safe_get_config(config, key):
@@ -71,13 +77,16 @@ def safe_load_texts():
             print(exc)
 
 
+def safe_load_yml(filepath):
+    with open(filepath, 'r') as stream:
+        try:
+            return yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+
 def construct_url(route):
     return urllib.parse.urljoin(HOST, route)
-
-
-def get_response_data(response):
-    json = response.json()
-    return json['data']
 
 
 def abort_if_false(ctx, param, value):
@@ -85,66 +94,31 @@ def abort_if_false(ctx, param, value):
         ctx.abort()
 
 
-def get_request(url, params=None):
-    try:
-        return requests.get(url, params=params)
-    except requests.exceptions.ConnectionError as e:
-        logger.error(e)
-        print(f'Could not connect to {url}')
-        return None
-
-
-def post_request(url, json=None, files=None):
-    try:
-        return requests.post(url, json=json, files=files)
-    except requests.exceptions.ConnectionError as e:
-        logger.error(e)
-        print(f'Could not connect to {url}')
-        return None
-
-
-def print_err_response(err_response):
-    print(LONG_LINE)
-    for error in err_response['errors']:
-        print(error)
-    print(LONG_LINE)
-
-
-def post(url_name, json=None, files=None):
+def post_request(url_name, json=None, files=None):
     url = construct_url(ROUTES[url_name])
-    response = post_request(url, json=json, files=files)
-    if response is None:
-        return None
     try:
-        json_data = response.json()
+        response = requests.post(url, json=json, files=files)
+        data = response.json()
     except Exception as err:
-        logger.error('Response parsing failed', exc_info=err)
-        return {'errors': ['Response parsing failed. Check skale_admin container logs']}
-    return json_data
+        logger.error('Request failed', exc_info=err)
+        data = DEFAULT_ERROR_DATA
+    status = data['status']
+    payload = data['payload']
+    return status, payload
 
 
-def get(url_name, params=None):
+def get_request(url_name, params=None):
     url = construct_url(ROUTES[url_name])
-
-    response = get_request(url, params)
-    if response is None:
-        return None
-
-    if response.status_code != requests.codes.ok:  # pylint: disable=no-member
-        print('Request failed, status code:', response.status_code)
-        return None
-
     try:
-        json = response.json()
+        response = requests.get(url, params=params)
+        data = response.json()
     except Exception as err:
-        logger.error('Response parsing failed', exc_info=err)
-        return {'errors': 'Response parsing failed. Check skale_admin container logs'}
+        logger.error('Request failed', exc_info=err)
+        data = DEFAULT_ERROR_DATA
 
-    if json['res'] != 1:
-        print_err_response(json)
-        return None
-    else:
-        return json['data']
+    status = data['status']
+    payload = data['payload']
+    return status, payload
 
 
 def download_dump(path, container_name=None):
@@ -209,4 +183,9 @@ def upload_certs(key_path, cert_path, force):
             None, json.dumps({'force': force}),
             'application/json'
         )
-        return post('ssl_upload', files=files_data)
+        return post_request('ssl_upload', files=files_data)
+
+
+def to_camel_case(snake_str):
+    components = snake_str.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])

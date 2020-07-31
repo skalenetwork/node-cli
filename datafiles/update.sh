@@ -11,10 +11,12 @@ cd $SKALE_DIR
 
 export $(grep -v '^#' .env | xargs)
 
-docker_lvmpy_update
-
 remove_compose_containers
 remove_dynamic_containers
+
+backup_old_contracts
+download_contracts
+docker_lvmpy_update
 
 cd $CONFIG_DIR
 if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
@@ -28,5 +30,4 @@ else
     echo "Building containers ..."
     SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml build
 fi
-echo "Creating containers ..."
-SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml up -d
+up_compose

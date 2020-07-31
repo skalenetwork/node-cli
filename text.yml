@@ -5,6 +5,11 @@ node:
   registered: |-
     Node registered in SKALE manager.
     For more info run < skale node info >
+  status:
+    ACTIVE: Active
+    LEAVING: Leaving
+    FROZEN: Frozen
+    LEFT: Left
 setHost: "Set SKALE node endpoint"
 
 service:
@@ -23,24 +28,13 @@ ssl:
     You can check status by running < skale ssl status >
 
 exit:
-  start: "Node exit process is started"
+  start: |
+    Node exit process is started. Please, wait until exiting process will be completed
+    To check current state of exiting process try:
+
+      skale exit status
   status:
     active: "Exiting is not started. Node is active"
     in_progress: "Node exiting is in progress"
     wait_for_rotations: "Node is waiting to finish rotations"
     completed: "Node exiting is completed"
-
-metrics:
-  help: Show node bounties and metrics for a given period
-  limit:
-    help: Number of records to show
-  since:
-    help: Show requested data since timestamp (e.g. 2020-01-20), incl. given date
-  till:
-    help: Show requested data before timestamp (e.g. 2020-01-21), not incl. given date
-  fast:
-    help: Get metrics and bounty data from local database (faster but less reliable)
-  wei:
-    help: Show bounty in wei
-  warning_msg: --till value must be greater than --since
-  wait_msg: Please wait - collecting metrics data from blockchain...
