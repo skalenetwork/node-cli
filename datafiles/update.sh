@@ -21,6 +21,8 @@ docker_lvmpy_update
 
 cd $CONFIG_DIR
 if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
+    echo "Fetching new branches and tags..."
+    git fetch
     echo "Checkouting to container configs branch $CONTAINER_CONFIGS_STREAM ..."
     git checkout $CONTAINER_CONFIGS_STREAM
     echo "Pulling changes ..."
