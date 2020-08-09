@@ -26,7 +26,7 @@ import psutil
 
 from tools.schain_types import SchainTypes
 from tools.helper import write_json, read_json, run_cmd, format_output
-from core.helper import safe_load_yml, to_camel_case
+from core.helper import safe_load_yml
 from configs import ALLOCATION_FILEPATH
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
     TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
@@ -62,7 +62,7 @@ class SChainVolumeAlloc():
             self.volume_alloc[size_name] = {}
             for key, value in proportions.items():
                 lim = int(value * disk_alloc_dict[size_name])
-                self.volume_alloc[size_name][to_camel_case(key)] = lim
+                self.volume_alloc[size_name][key] = lim
 
 
 def get_resource_allocation_info():
