@@ -15,8 +15,11 @@ if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
     fi
     echo "Checkouting to container configs branch $CONTAINER_CONFIGS_STREAM ..."
     git checkout $CONTAINER_CONFIGS_STREAM
-    echo "Pulling recent changes from $CONTAINER_CONFIGS_STREAM ..."
-    git pull
+    is_branch="$(git show-ref --verify refs/heads/$CONTAINER_CONFIGS_STREAM >/dev/null 2>&1; echo $?)"
+    if [[ $is_branch -eq 0 ]] ; then
+      echo "Pulling recent changes from $CONTAINER_CONFIGS_STREAM ..."
+      git pull
+    fi
 else
     echo "Syncing container configs ..."
     rsync -r $CONTAINER_CONFIGS_DIR/* $CONFIG_DIR
