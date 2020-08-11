@@ -40,10 +40,10 @@ def get_node_info(config, format):
     status, payload = get_request('node_info')
     if status == 'ok':
         node_info = payload['node_info']
-        if node_info['status'] == NodeStatuses.NOT_CREATED.value:
-            print(TEXTS['service']['node_not_registered'])
-        elif format == 'json':
+        if format == 'json':
             print(node_info)
+        elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
+            print(TEXTS['service']['node_not_registered'])
         else:
             print_node_info(node_info)
     else:
