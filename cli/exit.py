@@ -33,11 +33,15 @@ def start():
 
 
 @node_exit.command('status', help="Get exit process status")
-def status():
+@click.option('--format', '-f', type=click.Choice(['json', 'text']))
+def status(format):
     status, payload = get_request('exit_status')
     if status == 'ok':
         exit_status = payload
-        print_exit_status(exit_status)
+        if format == 'json':
+            print(exit_status)
+        else:
+            print_exit_status(exit_status)
     else:
         print_err_response(payload)
 
