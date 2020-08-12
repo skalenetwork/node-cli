@@ -16,6 +16,7 @@ remove_dynamic_containers
 
 backup_old_contracts
 download_contracts
+download_filestorage_artifacts
 docker_lvmpy_update
 
 cd $CONFIG_DIR
@@ -24,8 +25,11 @@ if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
     git fetch
     echo "Checkouting to container configs branch $CONTAINER_CONFIGS_STREAM ..."
     git checkout $CONTAINER_CONFIGS_STREAM
-    echo "Pulling changes ..."
-    git pull
+    is_branch="$(git show-ref --verify refs/heads/$CONTAINER_CONFIGS_STREAM >/dev/null 2>&1; echo $?)"
+    if [[ $is_branch -eq 0 ]] ; then
+      echo "Pulling changes ..."
+      git pull
+    fi
     echo "Pulling new version of images ..."
     SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml pull
 else

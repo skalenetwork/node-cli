@@ -179,6 +179,7 @@ skale node update
 
 Options:
 
+-   `--sync-schains` - run sChains in the backup recovery mode after restart
 -   `--yes` - remove without additional confirmation
 
 You can also specify a file with environment variables 

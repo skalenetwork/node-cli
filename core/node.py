@@ -118,7 +118,7 @@ def deregister():
     pass
 
 
-def update(env_filepath):
+def update(env_filepath, sync_schains):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath)
         if env_params is None:
@@ -133,12 +133,16 @@ def update(env_filepath):
         env_params['SGX_SERVER_URL']
     )
     flask_secret_key = get_flask_secret_key()
-    res_update_node = subprocess.run(['bash', UPDATE_SCRIPT], env={
+    update_cmd_env = {
         'SKALE_DIR': SKALE_DIR,
         'FLASK_SECRET_KEY': flask_secret_key,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
         **env_params
-    })
+    }
+    if sync_schains:
+        update_cmd_env['BACKUP_RUN'] = 'True'
+
+    res_update_node = subprocess.run(['bash', UPDATE_SCRIPT], env=update_cmd_env)
     logger.info(
         f'Update node script result: '
         f'{res_update_node.stderr}, {res_update_node.stdout}')
