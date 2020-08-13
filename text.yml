@@ -11,6 +11,8 @@ node:
     FROZEN: Frozen
     LEFT: Left
 setHost: "Set SKALE node endpoint"
+wallet:
+  successful_transfer: "Funds were successfully transferred"
 
 service:
   unauthorized: 'You should login first: skale user login'
