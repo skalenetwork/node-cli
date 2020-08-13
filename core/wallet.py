@@ -47,5 +47,5 @@ def send_eth(address, amount):
         print(msg)
     else:
         error_msg = payload
-        logger.error(f'Transfer funds error {error_msg}')
+        logger.error(f'Sending error {error_msg}')
         print_err_response(error_msg)
