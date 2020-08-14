@@ -63,7 +63,7 @@ def test_wallet_info(config):
     assert result.output == expected
 
 
-def test_register_node():
+def test_wallet_send():
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -72,7 +72,7 @@ def test_register_node():
         'core.helper.requests.post',
         resp_mock,
         send,
-        ['0x00000000000000000000000000000000', '10'])
+        ['0x00000000000000000000000000000000', '10', '--yes'])
     assert result.exit_code == 0
     assert result.output == 'Funds were successfully transferred\n'  # noqa
 
@@ -86,6 +86,6 @@ def test_wallet_send_with_error():
         'core.helper.requests.post',
         resp_mock,
         send,
-        ['0x00000000000000000000000000000000', '10'])
+        ['0x00000000000000000000000000000000', '10', '--yes'])
     assert result.exit_code == 0
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\n'  # noqa
