@@ -10,6 +10,7 @@ ROUTES = {
 
     'wallet_info': '/load-wallet',
     'validators_info': '/validators-info',
+    'send_eth': '/api/send-eth',
 
     'schains_containers': '/containers/schains/list',
     'schains_healthchecks': '/api/schains/healthchecks',

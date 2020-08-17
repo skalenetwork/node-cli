@@ -22,8 +22,8 @@ import requests
 
 from mock import MagicMock, Mock
 
-from cli.wallet import wallet_info
-from tests.helper import run_command_mock
+from cli.wallet import wallet_info, send
+from tests.helper import run_command_mock, response_mock
 
 
 def test_wallet_info(config):
@@ -61,3 +61,31 @@ def test_wallet_info(config):
         "\"eth_balance\": 13, \"skale_balance\": 123}\n"
     )
     assert result.output == expected
+
+
+def test_wallet_send():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        send,
+        ['0x00000000000000000000000000000000', '10', '--yes'])
+    assert result.exit_code == 0
+    assert result.output == 'Funds were successfully transferred\n'  # noqa
+
+
+def test_wallet_send_with_error():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'error', 'payload': ['Strange error']},
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        send,
+        ['0x00000000000000000000000000000000', '10', '--yes'])
+    assert result.exit_code == 0
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\n'  # noqa
