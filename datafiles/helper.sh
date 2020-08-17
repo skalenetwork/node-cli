@@ -70,6 +70,11 @@ docker_lvmpy_install () {
     cd docker-lvmpy
     echo "Checkouting to $DOCKER_LVMPY_STREAM ..."
     git checkout $DOCKER_LVMPY_STREAM
+    is_branch="$(git show-ref --verify refs/heads/$CONTAINER_CONFIGS_STREAM >/dev/null 2>&1; echo $?)"
+    if [[ $is_branch -eq 0 ]] ; then
+      echo "Pulling recent changes from $CONTAINER_CONFIGS_STREAM ..."
+      git pull
+    fi
     echo "Running install.sh script ..."
     PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/install.sh
     cd -
