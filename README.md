@@ -211,6 +211,23 @@ Set local wallet for the SKALE node
 skale wallet set --private-key $ETH_PRIVATE_KEY
 ```
 
+#### Send ETH tokens
+
+Send ETH tokens from SKALE node wallet to specific address
+
+```bash
+skale wallet send [ADDRESS] [AMOUNT]
+```
+
+Arguments:
+
+- `ADDRESS` - Ethereum receiver address
+- `AMOUNT` - Amount of ETH tokens to send
+
+Optional arguments:
+
+`--yes` - Send without additional confirmation
+
 ### SKALE Chain commands
 
 > Prefix: `skale schains`
