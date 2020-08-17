@@ -64,12 +64,20 @@ backup_old_contracts () {
 }
 
 docker_lvmpy_install () {
+    echo 'Installing docker-lvmpy ...'
     if [[ ! -d docker-lvmpy ]]; then
         git clone "https://github.com/skalenetwork/docker-lvmpy.git"
     fi
     cd docker-lvmpy
+    echo "Fetching changes ..."
+    git fetch
     echo "Checkouting to $DOCKER_LVMPY_STREAM ..."
     git checkout $DOCKER_LVMPY_STREAM
+    is_branch="$(git show-ref --verify refs/heads/$CONTAINER_CONFIGS_STREAM >/dev/null 2>&1; echo $?)"
+    if [[ $is_branch -eq 0 ]] ; then
+      echo "Pulling recent changes from $CONTAINER_CONFIGS_STREAM ..."
+      git pull
+    fi
     echo "Running install.sh script ..."
     PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/install.sh
     cd -
@@ -78,12 +86,15 @@ docker_lvmpy_install () {
 docker_lvmpy_update () {
     echo 'Updating docker-lvmpy ...'
     cd docker-lvmpy
-    echo "Pulling changes ..."
-    git pull
+    echo "Fetching changes ..."
+    git fetch
     echo "Checkouting to $DOCKER_LVMPY_STREAM ..."
     git checkout $DOCKER_LVMPY_STREAM
-    echo "Pulling changes from $DOCKER_LVMPY_STREAM ..."
-    git pull
+    is_branch="$(git show-ref --verify refs/heads/$CONTAINER_CONFIGS_STREAM >/dev/null 2>&1; echo $?)"
+    if [[ $is_branch -eq 0 ]] ; then
+      echo "Pulling recent changes from $CONTAINER_CONFIGS_STREAM ..."
+      git pull
+    fi
     echo "Running update.sh script ..."
     PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/update.sh
     cd -
