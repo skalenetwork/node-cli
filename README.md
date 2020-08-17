@@ -221,8 +221,8 @@ skale wallet send [ADDRESS] [AMOUNT]
 
 Arguments:
 
-- `ADDRESS` - Ethereum receiver address
-- `AMOUNT` - Amount of ETH tokens to send
+-   `ADDRESS` - Ethereum receiver address
+-   `AMOUNT` - Amount of ETH tokens to send
 
 Optional arguments:
 
