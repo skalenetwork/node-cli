@@ -193,7 +193,7 @@ def set_maintenance_mode_on():
         print(msg)
     else:
         error_msg = payload
-        logger.error(f'Set maintenance status error {error_msg}')
+        logger.error(f'Set maintenance mode error {error_msg}')
         print_err_response(error_msg)
 
 
@@ -205,5 +205,5 @@ def set_maintenance_mode_off():
         print(msg)
     else:
         error_msg = payload
-        logger.error(f'Remove maintenance status error {error_msg}')
+        logger.error(f'Remove from maintenance mode error {error_msg}')
         print_err_response(error_msg)

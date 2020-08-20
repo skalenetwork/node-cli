@@ -25,7 +25,8 @@ from configs import SKALE_DIR
 from tests.helper import response_mock, run_command_mock, run_command
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
-                      update_node, backup_node, restore_node)
+                      update_node, backup_node, restore_node,
+                      set_node_in_maintenance, remove_node_from_maintenance)
 
 
 def test_register_node(config):
@@ -317,3 +318,30 @@ def test_restore():
         )
         assert result.exit_code == 0
         assert result.output == 'Restore script failed, check node-cli logs\n'  # noqa
+
+
+def test_maintenance_on():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        set_node_in_maintenance,
+        ['--yes'])
+    assert result.exit_code == 0
+    assert result.output == 'Node is successfully set in maintenance mode\n'
+
+
+def test_maintenance_off():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        remove_node_from_maintenance)
+    assert result.exit_code == 0
+    assert result.output == 'Node is successfully removed from maintenance mode\n'
