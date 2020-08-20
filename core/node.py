@@ -183,3 +183,11 @@ def create_backup_archive(backup_filepath):
     except subprocess.CalledProcessError as e:
         logger.error(e)
         print('Something went wrong while trying to create backup archive, check out CLI logs')
+
+
+def set_maintenance_mode_on():
+    pass
+
+
+def set_maintenance_mode_off():
+    pass
