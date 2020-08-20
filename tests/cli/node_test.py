@@ -194,7 +194,7 @@ def test_node_info_node_info_not_created(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 4, 'id': 32, 'owner': '0x23'
+            'status': 5, 'id': 32, 'owner': '0x23'
         }
     }
 
@@ -240,7 +240,7 @@ def test_node_info_node_info_left(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 3, 'id': 32, 'owner': '0x23'
+            'status': 4, 'id': 32, 'owner': '0x23'
         }
     }
 
@@ -274,6 +274,29 @@ def test_node_info_node_info_leaving(config):
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
+
+
+def test_node_info_node_info_in_maintenance(config):
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 3, 'id': 32, 'owner': '0x23'
+        }
+    }
+
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    assert result.exit_code == 0
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: In maintenance\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_signature():
