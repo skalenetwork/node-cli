@@ -186,8 +186,24 @@ def create_backup_archive(backup_filepath):
 
 
 def set_maintenance_mode_on():
-    pass
+    status, payload = post_request('maintenance_on')
+    if status == 'ok':
+        msg = TEXTS['node']['maintenance_on']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Set maintenance status error {error_msg}')
+        print_err_response(error_msg)
 
 
 def set_maintenance_mode_off():
-    pass
+    status, payload = post_request('maintenance_off')
+    if status == 'ok':
+        msg = TEXTS['node']['maintenance_off']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Remove maintenance status error {error_msg}')
+        print_err_response(error_msg)
