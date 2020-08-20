@@ -296,7 +296,7 @@ def test_node_info_node_info_in_maintenance(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: In maintenance\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_signature():

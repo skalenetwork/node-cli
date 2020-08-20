@@ -187,6 +187,24 @@ which will update parameters in env file used during skale node init
 
 -   `--env-file` - path to env file where parameters are defined
 
+#### Node maintenance
+
+Set SKALE node into maintenance mode
+
+```
+skale node maintenance-on
+```
+
+Options:
+
+-   `--yes` - set without additional confirmation
+
+Switch off maintenance mode
+
+```
+skale node maintenance-off
+```
+
 ### Wallet commands
 
 > Prefix: `skale wallet`

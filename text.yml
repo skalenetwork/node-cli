@@ -10,7 +10,7 @@ node:
     LEAVING: Leaving
     FROZEN: Frozen
     LEFT: Left
-    IN_MAINTENANCE: In maintenance
+    IN_MAINTENANCE: In Maintenance
   maintenance_on: Node is successfully set in maintenance mode
   maintenance_off: Node is successfully removed from maintenance mode
 setHost: "Set SKALE node endpoint"
