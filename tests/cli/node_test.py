@@ -25,7 +25,8 @@ from configs import SKALE_DIR
 from tests.helper import response_mock, run_command_mock, run_command
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
-                      update_node, backup_node, restore_node)
+                      update_node, backup_node, restore_node,
+                      set_node_in_maintenance, remove_node_from_maintenance)
 
 
 def test_register_node(config):
@@ -193,7 +194,7 @@ def test_node_info_node_info_not_created(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 4, 'id': 32, 'owner': '0x23'
+            'status': 5, 'id': 32, 'owner': '0x23'
         }
     }
 
@@ -239,7 +240,7 @@ def test_node_info_node_info_left(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 3, 'id': 32, 'owner': '0x23'
+            'status': 4, 'id': 32, 'owner': '0x23'
         }
     }
 
@@ -273,6 +274,29 @@ def test_node_info_node_info_leaving(config):
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
+
+
+def test_node_info_node_info_in_maintenance(config):
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 3, 'id': 32, 'owner': '0x23'
+        }
+    }
+
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    assert result.exit_code == 0
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_signature():
@@ -317,3 +341,30 @@ def test_restore():
         )
         assert result.exit_code == 0
         assert result.output == 'Restore script failed, check node-cli logs\n'  # noqa
+
+
+def test_maintenance_on():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        set_node_in_maintenance,
+        ['--yes'])
+    assert result.exit_code == 0
+    assert result.output == 'Node is successfully set in maintenance mode\n'
+
+
+def test_maintenance_off():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        remove_node_from_maintenance)
+    assert result.exit_code == 0
+    assert result.output == 'Node is successfully removed from maintenance mode\n'

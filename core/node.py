@@ -183,3 +183,27 @@ def create_backup_archive(backup_filepath):
     except subprocess.CalledProcessError as e:
         logger.error(e)
         print('Something went wrong while trying to create backup archive, check out CLI logs')
+
+
+def set_maintenance_mode_on():
+    status, payload = post_request('maintenance_on')
+    if status == 'ok':
+        msg = TEXTS['node']['maintenance_on']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Set maintenance mode error {error_msg}')
+        print_err_response(error_msg)
+
+
+def set_maintenance_mode_off():
+    status, payload = post_request('maintenance_off')
+    if status == 'ok':
+        msg = TEXTS['node']['maintenance_off']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Remove from maintenance mode error {error_msg}')
+        print_err_response(error_msg)
