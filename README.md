@@ -191,7 +191,7 @@ which will update parameters in env file used during skale node init
 
 Set SKALE node into maintenance mode
 
-```
+```bash
 skale node maintenance-on
 ```
 
@@ -201,7 +201,7 @@ Options:
 
 Switch off maintenance mode
 
-```
+```bash
 skale node maintenance-off
 ```
 
