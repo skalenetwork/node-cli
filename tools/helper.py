@@ -46,12 +46,18 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
-def run_cmd(cmd, env={}, shell=False, secure=False):
+def run_cmd(cmd, env={}, shell=False, secure=False, log_file_path=None):
     if not secure:
         logger.info(f'Running: {cmd}')
     else:
         logger.info(f'Running some secure command')
-    res = subprocess.run(cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ})
+    if log_file_path:
+        with open(log_file_path, 'a+') as log_file:
+            res = subprocess.run(cmd, shell=shell, stdout=log_file,
+                                 stderr=log_file, env={**env, **os.environ})
+    else:
+        res = subprocess.run(cmd, shell=shell, stdout=PIPE,
+                             stderr=PIPE, env={**env, **os.environ})
     if res.returncode:
         logger.error('Error during shell execution:')
         logger.error(res.stdout.decode('UTF-8').rstrip())
