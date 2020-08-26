@@ -69,7 +69,7 @@ def init(env_filepath, dry_run=False):
         env_params['SGX_SERVER_URL']
     )
     dry_run = 'yes' if dry_run else ''
-    res = subprocess.run(['bash', INSTALL_SCRIPT], env={
+    res = run_cmd(['bash', INSTALL_SCRIPT], env={
         'SKALE_DIR': SKALE_DIR,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
         'DRY_RUN': dry_run,
@@ -92,7 +92,7 @@ def restore(backup_path, env_filepath):
 
 
 def run_restore_script(backup_path, env_params) -> bool:
-    res = subprocess.run(['bash', BACKUP_INSTALL_SCRIPT], env={
+    res = run_cmd(['bash', BACKUP_INSTALL_SCRIPT], env={
         'SKALE_DIR': SKALE_DIR,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
         'BACKUP_RUN': 'True',
@@ -110,7 +110,7 @@ def run_restore_script(backup_path, env_params) -> bool:
 
 def purge():
     # todo: check that node is installed
-    subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
+    run_cmd(['sudo', 'bash', UNINSTALL_SCRIPT])
     # todo: check execution result
 
 
@@ -142,7 +142,7 @@ def update(env_filepath, sync_schains):
     if sync_schains:
         update_cmd_env['BACKUP_RUN'] = 'True'
 
-    res_update_node = subprocess.run(['bash', UPDATE_SCRIPT], env=update_cmd_env)
+    res_update_node = run_cmd(['bash', UPDATE_SCRIPT], env=update_cmd_env)
     logger.info(
         f'Update node script result: '
         f'{res_update_node.stderr}, {res_update_node.stdout}')
