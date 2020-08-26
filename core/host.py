@@ -29,7 +29,7 @@ from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
                      NODE_CERTS_PATH, SGX_CERTS_PATH, REDIS_DATA_PATH,
                      SCHAINS_DATA_PATH, LOG_PATH, MYSQL_BACKUP_FOLDER)
-from configs.cli_logger import LOG_DATA_PATH, SCRIPTS_LOG_FILEPATH
+from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
@@ -46,9 +46,7 @@ def install_host_dependencies():
         **os.environ,
         'SKALE_CMD': 'host_deps'
     }
-    run_cmd(["sudo", "bash", DEPENDENCIES_SCRIPT],
-            env=env,
-            log_file_path=SCRIPTS_LOG_FILEPATH)
+    run_cmd(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
     # todo: check execution status
 
 
