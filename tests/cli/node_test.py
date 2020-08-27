@@ -22,7 +22,7 @@ import requests
 from pathlib import Path
 
 from configs import SKALE_DIR
-from tests.helper import response_mock, run_command_mock, run_command
+from tests.helper import response_mock, run_command_mock, run_command, subprocess_run_mock
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
                       update_node, backup_node, restore_node,
@@ -87,7 +87,7 @@ def test_register_node_with_default_port_and_name(config):
 
 def test_init_node(config):
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('subprocess.run'), \
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.host.init_data_dir'):
@@ -117,7 +117,7 @@ def test_init_node(config):
 def test_update_node(config):
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('subprocess.run'), \
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.get_flask_secret_key'), \
             mock.patch('core.node.save_env_params'), \
@@ -334,13 +334,13 @@ def test_restore():
     )
     backup_path = result.output.replace(
         'Backup archive succesfully created: ', '').replace('\n', '')
-    with mock.patch('subprocess.run'):
+    with mock.patch('subprocess.run', new=subprocess_run_mock):
         result = run_command(
             restore_node,
             [backup_path, './tests/test-env']
         )
         assert result.exit_code == 0
-        assert result.output == 'Restore script failed, check node-cli logs\n'  # noqa
+        assert 'Node succesfully restored from backup\n' in result.output  # noqa
 
 
 def test_maintenance_on():

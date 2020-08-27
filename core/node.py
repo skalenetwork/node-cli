@@ -26,7 +26,6 @@ import subprocess
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
                      BACKUP_ARCHIVE_NAME, HOME_DIR)
-from configs.cli_logger import SCRIPTS_LOG_FILEPATH
 
 from core.helper import get_request, post_request
 from tools.helper import run_cmd, extract_env_params
@@ -175,7 +174,7 @@ def create_backup_archive(backup_filepath):
     print('Creating backup archive...')
     cmd = shlex.split(f'tar -zcvf {backup_filepath} -C {HOME_DIR} .skale')
     try:
-        run_cmd(cmd, log_file_path=SCRIPTS_LOG_FILEPATH)
+        run_cmd(cmd)
         print(f'Backup archive succesfully created: {backup_filepath}')
     except subprocess.CalledProcessError as e:
         logger.error(e)

@@ -29,4 +29,3 @@ LOG_BACKUP_COUNT = 1
 LOG_DATA_PATH = os.path.join(SKALE_DIR, '.skale-cli-log')
 LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'node-cli.log')
 DEBUG_LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'debug-node-cli.log')
-SCRIPTS_LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'node-cli-scripts.log')
