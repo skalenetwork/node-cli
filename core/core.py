@@ -29,8 +29,9 @@ class NodeStatuses(Enum):
     ACTIVE = 0
     LEAVING = 1
     FROZEN = 2
-    LEFT = 3
-    NOT_CREATED = 4
+    IN_MAINTENANCE = 3
+    LEFT = 4
+    NOT_CREATED = 5
 
 
 TEXTS = safe_load_texts()

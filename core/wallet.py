@@ -19,8 +19,8 @@
 
 import json
 
-from core.helper import get_request
-from core.print_formatters import print_err_response, print_wallet_info
+from core.helper import get_request, post_request, logger
+from core.print_formatters import print_err_response, print_wallet_info, TEXTS
 
 
 def get_wallet_info(_format):
@@ -32,3 +32,20 @@ def get_wallet_info(_format):
             print_wallet_info(payload)
     else:
         print_err_response(payload)
+
+
+def send_eth(address, amount):
+    json_data = {
+        'address': address,
+        'amount': amount,
+    }
+    status, payload = post_request('send_eth',
+                                   json=json_data)
+    if status == 'ok':
+        msg = TEXTS['wallet']['successful_transfer']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Sending error {error_msg}')
+        print_err_response(error_msg)

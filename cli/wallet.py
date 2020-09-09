@@ -21,8 +21,8 @@ import logging
 
 import click
 
-from core.wallet import get_wallet_info
-
+from core.helper import abort_if_false
+from core.wallet import get_wallet_info, send_eth
 
 logger = logging.getLogger(__name__)
 
@@ -41,3 +41,13 @@ def wallet():
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 def wallet_info(format):
     get_wallet_info(format)
+
+
+@wallet.command('send', help="Send ETH from SKALE node wallet to address")
+@click.argument('address')
+@click.argument('amount')
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to send ETH tokens?')
+def send(address, amount):
+    send_eth(address, amount)

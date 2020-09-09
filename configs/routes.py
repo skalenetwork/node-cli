@@ -10,6 +10,7 @@ ROUTES = {
 
     'wallet_info': '/load-wallet',
     'validators_info': '/validators-info',
+    'send_eth': '/api/send-eth',
 
     'schains_containers': '/containers/schains/list',
     'schains_healthchecks': '/api/schains/healthchecks',
@@ -31,5 +32,8 @@ ROUTES = {
     'finalize_exit': '/api/exit/finalize',
     'get_schain_firewall_rules': '/api/schains/firewall/show',
     'turn_on_schain_firewall_rules': '/api/schains/firewall/on',
-    'turn_off_schain_firewall_rules': '/api/schains/firewall/off'
+    'turn_off_schain_firewall_rules': '/api/schains/firewall/off',
+
+    'maintenance_on': '/api/node/maintenance-on',
+    'maintenance_off': '/api/node/maintenance-off'
 }

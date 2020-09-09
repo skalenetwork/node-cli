@@ -27,7 +27,8 @@ from skale.utils.random_names.generator import generate_random_node_name
 
 from core.core import get_node_info, get_node_about
 from core.node import (get_node_signature, init, restore,
-                       register_node as register, update, backup)
+                       register_node as register, update, backup,
+                       set_maintenance_mode_on, set_maintenance_mode_off)
 from core.host import install_host_dependencies
 from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
@@ -183,3 +184,16 @@ def backup_node(backup_folder_path, env_file):
 @click.argument('env_file')
 def restore_node(backup_path, env_file):
     restore(backup_path, env_file)
+
+
+@node.command('maintenance-on', help="Set SKALE node into maintenance mode")
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to set SKALE node into maintenance mode?')
+def set_node_in_maintenance():
+    set_maintenance_mode_on()
+
+
+@node.command('maintenance-off', help="Remove SKALE node from maintenance mode")
+def remove_node_from_maintenance():
+    set_maintenance_mode_off()

@@ -187,6 +187,24 @@ which will update parameters in env file used during skale node init
 
 -   `--env-file` - path to env file where parameters are defined
 
+#### Node maintenance
+
+Set SKALE node into maintenance mode
+
+```bash
+skale node maintenance-on
+```
+
+Options:
+
+-   `--yes` - set without additional confirmation
+
+Switch off maintenance mode
+
+```bash
+skale node maintenance-off
+```
+
 ### Wallet commands
 
 > Prefix: `skale wallet`
@@ -210,6 +228,23 @@ Set local wallet for the SKALE node
 ```bash
 skale wallet set --private-key $ETH_PRIVATE_KEY
 ```
+
+#### Send ETH tokens
+
+Send ETH tokens from SKALE node wallet to specific address
+
+```bash
+skale wallet send [ADDRESS] [AMOUNT]
+```
+
+Arguments:
+
+-   `ADDRESS` - Ethereum receiver address
+-   `AMOUNT` - Amount of ETH tokens to send
+
+Optional arguments:
+
+`--yes` - Send without additional confirmation
 
 ### SKALE Chain commands
 

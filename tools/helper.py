@@ -54,9 +54,11 @@ def run_cmd(cmd, env={}, shell=False, secure=False):
     res = subprocess.run(cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ})
     if res.returncode:
         logger.error('Error during shell execution:')
-        logger.error(res.stdout.decode('UTF-8').rstrip())
         logger.error(res.stderr.decode('UTF-8').rstrip())
         raise subprocess.CalledProcessError(res.returncode, cmd)
+    else:
+        logger.info('Command is executed successfully. Command log:')
+        logger.info(res.stdout.decode('UTF-8').rstrip())
     return res
 
 

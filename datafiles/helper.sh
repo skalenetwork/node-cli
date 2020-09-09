@@ -10,7 +10,7 @@ export FILESTORAGE_ARTIFACTS_FILE=$NODE_DATA_DIR/filestorage_artifacts.json
 export CONTRACTS_DIR="$SKALE_DIR"/contracts_info
 export BACKUP_CONTRACTS_DIR="$SKALE_DIR"/.old_contracts_info
 
-export BASE_SERVICES="transaction-manager skale-admin skale-api mysql sla bounty watchdog"
+export BASE_SERVICES="transaction-manager skale-admin skale-api mysql sla bounty watchdog filebeat"
 export NOTIFICATION_SERVICES="celery redis"
 
 remove_dynamic_containers () {
@@ -64,12 +64,20 @@ backup_old_contracts () {
 }
 
 docker_lvmpy_install () {
+    echo 'Installing docker-lvmpy ...'
     if [[ ! -d docker-lvmpy ]]; then
         git clone "https://github.com/skalenetwork/docker-lvmpy.git"
     fi
     cd docker-lvmpy
+    echo "Fetching changes ..."
+    git fetch
     echo "Checkouting to $DOCKER_LVMPY_STREAM ..."
     git checkout $DOCKER_LVMPY_STREAM
+    is_branch="$(git show-ref --verify refs/heads/$CONTAINER_CONFIGS_STREAM >/dev/null 2>&1; echo $?)"
+    if [[ $is_branch -eq 0 ]] ; then
+      echo "Pulling recent changes from $CONTAINER_CONFIGS_STREAM ..."
+      git pull
+    fi
     echo "Running install.sh script ..."
     PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/install.sh
     cd -
@@ -78,12 +86,15 @@ docker_lvmpy_install () {
 docker_lvmpy_update () {
     echo 'Updating docker-lvmpy ...'
     cd docker-lvmpy
-    echo "Pulling changes ..."
-    git pull
+    echo "Fetching changes ..."
+    git fetch
     echo "Checkouting to $DOCKER_LVMPY_STREAM ..."
     git checkout $DOCKER_LVMPY_STREAM
-    echo "Pulling changes from $DOCKER_LVMPY_STREAM ..."
-    git pull
+    is_branch="$(git show-ref --verify refs/heads/$CONTAINER_CONFIGS_STREAM >/dev/null 2>&1; echo $?)"
+    if [[ $is_branch -eq 0 ]] ; then
+      echo "Pulling recent changes from $CONTAINER_CONFIGS_STREAM ..."
+      git pull
+    fi
     echo "Running update.sh script ..."
     PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/update.sh
     cd -
@@ -112,7 +123,7 @@ iptables_configure() {
     # Allow watchdog
     sudo iptables -A INPUT -p tcp --dport 3009 -j ACCEPT
     # Allow monitor node exporter
-    sudo iptables -A INPUT -p tcp --dport 9001 -j ACCEPT
+    sudo iptables -A INPUT -p tcp --dport 9100 -j ACCEPT
     # Drop all the rest
     sudo iptables -A INPUT -p tcp -j DROP
     sudo iptables -A INPUT -p udp -j DROP

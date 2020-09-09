@@ -3,7 +3,7 @@ from core.resources import (generate_resource_allocation_config, get_schain_volu
                             ResourceAlloc, SChainVolumeAlloc)
 
 
-SCHAIN_VOLUME_PARTS = {'part_test4': {'maxConsensusStorageBytes': 4, 'maxSkaledLeveldbStorageBytes': 4, 'maxFileStorageBytes': 4, 'maxReservedStorageBytes': 1}, 'part_test': {'maxConsensusStorageBytes': 4, 'maxSkaledLeveldbStorageBytes': 4, 'maxFileStorageBytes': 4, 'maxReservedStorageBytes': 1}, 'part_small': {'maxConsensusStorageBytes': 0, 'maxSkaledLeveldbStorageBytes': 0, 'maxFileStorageBytes': 0, 'maxReservedStorageBytes': 0}, 'part_medium': {'maxConsensusStorageBytes': 4, 'maxSkaledLeveldbStorageBytes': 4, 'maxFileStorageBytes': 4, 'maxReservedStorageBytes': 1}, 'part_large': {'maxConsensusStorageBytes': 38, 'maxSkaledLeveldbStorageBytes': 38, 'maxFileStorageBytes': 38, 'maxReservedStorageBytes': 12}}  # noqa
+SCHAIN_VOLUME_PARTS = {'part_test4': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'part_test': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'part_small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'part_medium': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'part_large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
 
 
 def disk_alloc_mock():

@@ -19,7 +19,6 @@
 
 import os
 import logging
-import subprocess
 from shutil import copyfile
 from urllib.parse import urlparse
 
@@ -35,7 +34,7 @@ from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
 from core.helper import safe_load_texts
-
+from tools.helper import run_cmd
 
 TEXTS = safe_load_texts()
 
@@ -47,7 +46,7 @@ def install_host_dependencies():
         **os.environ,
         'SKALE_CMD': 'host_deps'
     }
-    subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
+    run_cmd(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
     # todo: check execution status
 
 

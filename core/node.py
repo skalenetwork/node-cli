@@ -27,7 +27,6 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
                      BACKUP_ARCHIVE_NAME, HOME_DIR)
 
-
 from core.helper import get_request, post_request
 from tools.helper import run_cmd, extract_env_params
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
@@ -69,13 +68,13 @@ def init(env_filepath, dry_run=False):
         env_params['SGX_SERVER_URL']
     )
     dry_run = 'yes' if dry_run else ''
-    res = subprocess.run(['bash', INSTALL_SCRIPT], env={
+    env = {
         'SKALE_DIR': SKALE_DIR,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
         'DRY_RUN': dry_run,
         **env_params
-    })
-    logger.info(f'Node init install script result: {res.stderr}, {res.stdout}')
+    }
+    run_cmd(['bash', INSTALL_SCRIPT], env=env)
     # todo: check execution result
 
 
@@ -92,15 +91,15 @@ def restore(backup_path, env_filepath):
 
 
 def run_restore_script(backup_path, env_params) -> bool:
-    res = subprocess.run(['bash', BACKUP_INSTALL_SCRIPT], env={
+    env = {
         'SKALE_DIR': SKALE_DIR,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
         'BACKUP_RUN': 'True',
         'BACKUP_PATH': backup_path,
         'HOME_DIR': HOME_DIR,
         **env_params
-    })
-    logger.info(f'Node restore from backup script result: {res.stderr}, {res.stdout}')
+    }
+    res = run_cmd(['bash', BACKUP_INSTALL_SCRIPT], env=env)
     if res.returncode != 0:
         print('Restore script failed, check node-cli logs')
         return False
@@ -110,7 +109,7 @@ def run_restore_script(backup_path, env_params) -> bool:
 
 def purge():
     # todo: check that node is installed
-    subprocess.run(['sudo', 'bash', UNINSTALL_SCRIPT])
+    run_cmd(['sudo', 'bash', UNINSTALL_SCRIPT])
     # todo: check execution result
 
 
@@ -142,10 +141,7 @@ def update(env_filepath, sync_schains):
     if sync_schains:
         update_cmd_env['BACKUP_RUN'] = 'True'
 
-    res_update_node = subprocess.run(['bash', UPDATE_SCRIPT], env=update_cmd_env)
-    logger.info(
-        f'Update node script result: '
-        f'{res_update_node.stderr}, {res_update_node.stdout}')
+    run_cmd(['bash', UPDATE_SCRIPT], env=update_cmd_env)
     # todo: check execution result
 
 
@@ -183,3 +179,27 @@ def create_backup_archive(backup_filepath):
     except subprocess.CalledProcessError as e:
         logger.error(e)
         print('Something went wrong while trying to create backup archive, check out CLI logs')
+
+
+def set_maintenance_mode_on():
+    status, payload = post_request('maintenance_on')
+    if status == 'ok':
+        msg = TEXTS['node']['maintenance_on']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Set maintenance mode error {error_msg}')
+        print_err_response(error_msg)
+
+
+def set_maintenance_mode_off():
+    status, payload = post_request('maintenance_off')
+    if status == 'ok':
+        msg = TEXTS['node']['maintenance_off']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Remove from maintenance mode error {error_msg}')
+        print_err_response(error_msg)
