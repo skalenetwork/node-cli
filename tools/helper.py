@@ -50,9 +50,10 @@ def run_cmd(cmd, env={}, shell=False, secure=False):
     if not secure:
         logger.info(f'Running: {cmd}')
     else:
-        logger.info(f'Running some secure command')
+        logger.info('Running some secure command')
     res = subprocess.run(cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ})
     if res.returncode:
+        logger.info(res.stdout.decode('UTF-8').rstrip())
         logger.error('Error during shell execution:')
         logger.error(res.stderr.decode('UTF-8').rstrip())
         raise subprocess.CalledProcessError(res.returncode, cmd)

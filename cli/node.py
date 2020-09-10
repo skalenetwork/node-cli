@@ -18,7 +18,6 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import ipaddress
-import time
 from urllib.parse import urlparse
 
 import click
@@ -132,8 +131,6 @@ def init_node(env_file, install_deps, dry_run):
     if install_deps:
         install_host_dependencies()
     init(env_file, dry_run)
-    print('Waiting for transaction manager initialization ...')
-    time.sleep(20)
 
 
 # @node.command('purge', help="Uninstall SKALE node software from the machine")
@@ -161,8 +158,6 @@ def init_node(env_file, install_deps, dry_run):
 @click.argument('env_file')
 def update_node(sync_schains, env_file):
     update(env_file, sync_schains)
-    print('Waiting for transaction manager initialization ...')
-    time.sleep(20)
 
 
 @node.command('signature', help='Get node signature for given validator id')

@@ -17,11 +17,12 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import mock
 import requests
 from pathlib import Path
 
-from configs import SKALE_DIR
+from configs import NODE_DATA_PATH, SKALE_DIR
 from tests.helper import response_mock, run_command_mock, run_command, subprocess_run_mock
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
@@ -97,7 +98,7 @@ def test_init_node(config):
             init_node,
             ['./tests/test-env'])
         assert result.exit_code == 0
-        assert result.output == 'Waiting for transaction manager initialization ...\n'  # noqa
+        assert result.output == 'Waiting for transaction manager initialization ...\nInit procedure finished\n'  # noqa
 
 
 # def test_purge(config):
@@ -115,6 +116,7 @@ def test_init_node(config):
 
 
 def test_update_node(config):
+    os.makedirs(NODE_DATA_PATH, exist_ok=True)
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
@@ -130,7 +132,28 @@ def test_update_node(config):
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
-        assert result.output == 'Waiting for transaction manager initialization ...\n'
+        assert result.output == 'Waiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
+
+
+def test_update_node_without_init(config):
+    params = ['./tests/test-env', '--yes']
+    resp_mock = response_mock(requests.codes.created)
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('cli.node.install_host_dependencies'), \
+            mock.patch('core.node.get_flask_secret_key'), \
+            mock.patch('core.node.save_env_params'), \
+            mock.patch('core.node.prepare_host'), \
+            mock.patch('core.host.init_data_dir'), \
+            mock.patch('core.node.is_node_inited', return_value=False):
+        result = run_command_mock(
+            'core.helper.post_request',
+            resp_mock,
+            update_node,
+            params,
+            input='/dev/sdp')
+        print(repr(result.output))
+        assert result.exit_code == 0
+        assert result.output == "Node hasn't been inited before. You should run <skale node init>\n"  # noqa
 
 
 def test_node_info_node_about(config):
