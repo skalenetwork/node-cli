@@ -75,7 +75,7 @@ def init(env_filepath, dry_run=False):
         **env_params
     }
     run_cmd(['bash', INSTALL_SCRIPT], env=env)
-    # todo: check execution result
+    print('Init procedure finished')
 
 
 def restore(backup_path, env_filepath):
@@ -110,7 +110,7 @@ def run_restore_script(backup_path, env_params) -> bool:
 def purge():
     # todo: check that node is installed
     run_cmd(['sudo', 'bash', UNINSTALL_SCRIPT])
-    # todo: check execution result
+    print('Success')
 
 
 def deregister():
@@ -142,7 +142,7 @@ def update(env_filepath, sync_schains):
         update_cmd_env['BACKUP_RUN'] = 'True'
 
     run_cmd(['bash', UPDATE_SCRIPT], env=update_cmd_env)
-    # todo: check execution result
+    print('Update procedure finished')
 
 
 def get_node_signature(validator_id):

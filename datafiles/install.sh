@@ -13,6 +13,8 @@ if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
         echo "Cloning container configs ..."
         git clone "https://github.com/skalenetwork/skale-node.git" "$CONFIG_DIR"
     fi
+    echo "Fetching new branches and tags..."
+    git fetch
     echo "Checkouting to container configs branch $CONTAINER_CONFIGS_STREAM ..."
     git checkout $CONTAINER_CONFIGS_STREAM
     is_branch="$(git show-ref --verify refs/heads/$CONTAINER_CONFIGS_STREAM >/dev/null 2>&1; echo $?)"
