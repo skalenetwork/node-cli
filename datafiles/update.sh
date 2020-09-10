@@ -16,7 +16,6 @@ remove_dynamic_containers
 
 backup_old_contracts
 download_contracts
-download_filestorage_artifacts
 docker_lvmpy_update
 
 cd $CONFIG_DIR
@@ -36,4 +35,7 @@ else
     echo "Building containers ..."
     SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml build
 fi
+
+download_filestorage_artifacts
+
 up_compose
