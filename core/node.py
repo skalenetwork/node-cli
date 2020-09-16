@@ -17,11 +17,12 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
+import logging
 import os
 import shlex
-import logging
-import datetime
 import subprocess
+import time
 
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
@@ -30,7 +31,8 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL
 from core.helper import get_request, post_request
 from tools.helper import run_cmd, extract_env_params
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
-from core.host import prepare_host, save_env_params, get_flask_secret_key
+from core.host import (is_node_inited, prepare_host,
+                       save_env_params, get_flask_secret_key)
 from core.print_formatters import print_err_response
 from tools.texts import Texts
 
@@ -75,7 +77,9 @@ def init(env_filepath, dry_run=False):
         **env_params
     }
     run_cmd(['bash', INSTALL_SCRIPT], env=env)
-    # todo: check execution result
+    print('Waiting for transaction manager initialization ...')
+    time.sleep(20)
+    print('Init procedure finished')
 
 
 def restore(backup_path, env_filepath):
@@ -110,7 +114,7 @@ def run_restore_script(backup_path, env_params) -> bool:
 def purge():
     # todo: check that node is installed
     run_cmd(['sudo', 'bash', UNINSTALL_SCRIPT])
-    # todo: check execution result
+    print('Success')
 
 
 def deregister():
@@ -125,6 +129,11 @@ def update(env_filepath, sync_schains):
         save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH)
+
+    if not is_node_inited():
+        print("Node hasn't been inited before. "
+              "You should run <skale node init>")
+        return
 
     prepare_host(
         env_filepath,
@@ -142,7 +151,9 @@ def update(env_filepath, sync_schains):
         update_cmd_env['BACKUP_RUN'] = 'True'
 
     run_cmd(['bash', UPDATE_SCRIPT], env=update_cmd_env)
-    # todo: check execution result
+    print('Waiting for transaction manager initialization ...')
+    time.sleep(20)
+    print('Update procedure finished')
 
 
 def get_node_signature(validator_id):

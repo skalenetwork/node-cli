@@ -77,6 +77,10 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
     save_resource_allocation_config()
 
 
+def is_node_inited():
+    return os.path.isdir(NODE_DATA_PATH)
+
+
 def make_dirs():
     for dir_path in (
             SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
