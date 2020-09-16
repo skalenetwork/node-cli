@@ -17,19 +17,17 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from configs import ROUTES
-from core.helper import construct_url, get_request
+import json
+from core.helper import get_request
+from core.print_formatters import print_err_response
 
 
 def get_validators_info(config, format):
-    url = construct_url(ROUTES['validators_info'])
-
-    response = get_request(url)
-    if response is None:
-        return None
-
-    json = response.json()
-    data = json['data']
-
-    if format == 'json':
-        print(data)
+    status, payload = get_request('validators_info')
+    if status == 'ok':
+        if format == 'json':
+            print(json.dumps({'validators_info': payload}))
+        else:
+            print(payload)
+    else:
+        print_err_response(payload)

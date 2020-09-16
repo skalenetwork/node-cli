@@ -17,15 +17,40 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import os
 import datetime
 import texttable
 from dateutil import parser
 
+import inspect
+
 from configs import LONG_LINE
 from tools.texts import Texts
 
 TEXTS = Texts()
+
+
+def print_err_response(error_payload):
+    if isinstance(error_payload, list):
+        error_msg = '\n'.join(error_payload)
+    else:
+        error_msg = error_payload
+
+    print('Command failed with following errors:')
+    print(LONG_LINE)
+    print(error_msg)
+    print(LONG_LINE)
+
+
+def print_wallet_info(wallet):
+    print(inspect.cleandoc(f'''
+        {LONG_LINE}
+        Address: {wallet['address'].lower()}
+        ETH balance: {wallet['eth_balance']} ETH
+        SKALE balance: {wallet['skale_balance']} SKALE
+        {LONG_LINE}
+    '''))
 
 
 def get_tty_width():
@@ -119,27 +144,31 @@ def print_dkg_statuses(statuses):
     print(Formatter().table(headers, rows))
 
 
-def print_metrics(rows, total, wei):
+def print_schains_healthchecks(schains):
     headers = [
-        'Date',
-        'Bounty',
-        'Downtime',
-        'Latency'
+        'sChain Name',
+        'Data directory',
+        'DKG',
+        'Config file',
+        'Volume',
+        'Container',
+        'IMA',
+        'Firewall'
     ]
-    table = texttable.Texttable(max_width=get_tty_width())
-    table.set_cols_align(["l", "r", "r", "r"])
-    total_info = f'Total bounty per the given period: {total:.3f} SKL'
-    if wei:
-        total_info = f'Total bounty per the given period: {total} wei'
-        table.set_cols_dtype(["t", "i", "i", "f"])
-    else:
-        table.set_cols_dtype(["t", "f", "i", "f"])
-    table.set_precision(1)
-    table.add_rows([headers] + rows)
-    table.set_deco(table.HEADER | table.BORDER)
-    table.set_chars(['-', '|', '+', '-'])
-    print(table.draw())
-    print(total_info)
+    rows = []
+    for schain in schains:
+        healthchecks = schain['healthchecks']
+        rows.append([
+            schain['name'],
+            healthchecks['data_dir'],
+            healthchecks['dkg'],
+            healthchecks['config'],
+            healthchecks['volume'],
+            healthchecks['container'],
+            healthchecks['ima_container'],
+            healthchecks['firewall_rules']
+        ])
+    print(Formatter().table(headers, rows))
 
 
 def print_logs(logs):
@@ -193,3 +222,22 @@ def print_exit_status(exit_status_info):
         exit_time = exit_status_info['exit_time']
         exit_time_utc = datetime.datetime.utcfromtimestamp(exit_time)
         print(f'Rotation finish time: {exit_time_utc}')
+
+
+def print_firewall_rules(rules, raw=False):
+    if len(rules) == 0:
+        print('No allowed endpoints')
+        return
+    if raw:
+        print(json.dumpes(rules))
+    headers = [
+        'Port',
+        'Ip'
+    ]
+    rows = []
+    for rule in sorted(rules, key=lambda r: r['port']):
+        rows.append([
+            rule['port'],
+            rule['ip']
+        ])
+    print(Formatter().table(headers, rows))

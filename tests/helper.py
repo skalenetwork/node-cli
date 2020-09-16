@@ -26,6 +26,7 @@ def response_mock(status_code=0, json_data=None,
                   headers=None, raw=None):
     result = MagicMock()
     result.status_code = status_code
+
     result.json = MagicMock(return_value=json_data)
     result.headers = headers
     result.raw = raw
@@ -47,3 +48,12 @@ def run_command_mock(mock_call_path, response_mock,
     with mock.patch(mock_call_path,
                     new=request_mock(response_mock)):
         return run_command(command, params, input=input)
+
+
+def subprocess_run_mock(cmd=None, shell=None, stdout=None,
+                        stderr=None, env=None, returncode=0):
+    result = MagicMock()
+    result.returncode = returncode
+    result.stdout = MagicMock()
+    result.stderr = MagicMock()
+    return result

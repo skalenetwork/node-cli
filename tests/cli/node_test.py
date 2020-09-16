@@ -17,37 +17,55 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import mock
 import requests
+from pathlib import Path
 
-from tests.helper import response_mock, run_command_mock
+from configs import NODE_DATA_PATH, SKALE_DIR
+from tests.helper import response_mock, run_command_mock, run_command, subprocess_run_mock
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
-                      update_node)
+                      update_node, backup_node, restore_node,
+                      set_node_in_maintenance, remove_node_from_maintenance)
 
 
 def test_register_node(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
     result = run_command_mock(
-        'core.node.post',
-        {'res': 1},
+        'core.helper.requests.post',
+        resp_mock,
         register_node,
         ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080'])
     assert result.exit_code == 0
     assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
+
+def test_register_node_with_error(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'error', 'payload': ['Strange error']},
+    )
     result = run_command_mock(
-        'core.node.post',
-        {'errors': ['Strange error']},
+        'core.helper.requests.post',
+        resp_mock,
         register_node,
         ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80'])
     assert result.exit_code == 0
-    assert result.output == "Node registration failed with error: ['Strange error']\n"
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\n'  # noqa
 
 
 def test_register_node_with_prompted_ip(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
     result = run_command_mock(
-        'core.node.post',
-        {'res': 1},
+        'core.helper.requests.post',
+        resp_mock,
         register_node,
         ['--name', 'test-node', '--port', '8080'], input='0.0.0.0\n')
     assert result.exit_code == 0
@@ -55,9 +73,13 @@ def test_register_node_with_prompted_ip(config):
 
 
 def test_register_node_with_default_port_and_name(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
     result = run_command_mock(
-        'core.node.post',
-        {'res': 1},
+        'core.helper.requests.post',
+        resp_mock,
         register_node,
         input='0.0.0.0\n')
     assert result.exit_code == 0
@@ -66,17 +88,17 @@ def test_register_node_with_default_port_and_name(config):
 
 def test_init_node(config):
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('subprocess.run'), \
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
-            'core.node.post',
+            'core.helper.post_request',
             resp_mock,
             init_node,
-            ['--env-file', './tests/test-env'])
+            ['./tests/test-env'])
         assert result.exit_code == 0
-        assert result.output == 'Waiting for transaction manager initialization ...\n'  # noqa
+        assert result.output == 'Waiting for transaction manager initialization ...\nInit procedure finished\n'  # noqa
 
 
 # def test_purge(config):
@@ -94,25 +116,48 @@ def test_init_node(config):
 
 
 def test_update_node(config):
-    params = ['--env-file', './tests/test-env', '--yes']
+    os.makedirs(NODE_DATA_PATH, exist_ok=True)
+    params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('subprocess.run'), \
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.get_flask_secret_key'), \
             mock.patch('core.node.save_env_params'), \
+            mock.patch('core.node.prepare_host'), \
             mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
-            'core.node.post',
+            'core.helper.post_request',
             resp_mock,
             update_node,
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
-        assert result.output == 'Waiting for transaction manager initialization ...\n'
+        assert result.output == 'Waiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
+
+
+def test_update_node_without_init(config):
+    params = ['./tests/test-env', '--yes']
+    resp_mock = response_mock(requests.codes.created)
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('cli.node.install_host_dependencies'), \
+            mock.patch('core.node.get_flask_secret_key'), \
+            mock.patch('core.node.save_env_params'), \
+            mock.patch('core.node.prepare_host'), \
+            mock.patch('core.host.init_data_dir'), \
+            mock.patch('core.node.is_node_inited', return_value=False):
+        result = run_command_mock(
+            'core.helper.post_request',
+            resp_mock,
+            update_node,
+            params,
+            input='/dev/sdp')
+        print(repr(result.output))
+        assert result.exit_code == 0
+        assert result.output == "Node hasn't been inited before. You should run <skale node init>\n"  # noqa
 
 
 def test_node_info_node_about(config):
-    response_data = {
+    payload = {
         'libraries': {
             'javascript': 'N/A', 'python': '0.89.0'},
         'contracts': {
@@ -132,38 +177,217 @@ def test_node_info_node_about(config):
     }
     resp_mock = response_mock(
         requests.codes.ok,
-        json_data={'data': response_data, 'res': 1}
+        {'status': 'ok', 'payload': payload}
     )
-    result = run_command_mock('core.core.get_request', resp_mock, node_about)
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_about)
     assert result.exit_code == 0
     assert result.output == "{'libraries': {'javascript': 'N/A', 'python': '0.89.0'}, 'contracts': {'token': '0x3', 'manager': '0x23'}, 'network': {'endpoint': 'ws://0.0.0.0:8080'}, 'local_wallet': {'address': '0xf', 'eth_balance_wei': '15', 'skale_balance_wei': '84312304', 'eth_balance': '2.424', 'skale_balance': '323.123'}}\n"  # noqa
 
 
 def test_node_info_node_info(config):
-    response_data = {'name': 'test', 'ip': '0.0.0.0',
-                     'publicIP': '1.1.1.1',
-                     'port': 10001,
-                     'publicKey': '0x7',
-                     'start_date': 1570114466,
-                     'leaving_date': 0,
-                     'last_reward_date': 1570628924, 'second_address': 0,
-                     'status': 2, 'id': 32, 'owner': '0x23'}
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 0, 'id': 32, 'owner': '0x23'
+        }
+    }
 
     resp_mock = response_mock(
         requests.codes.ok,
-        json_data={'data': response_data, 'res': 1}
+        json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.core.get_request', resp_mock, node_info)
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Active\n--------------------------------------------------\n'  # noqa
 
 
+def test_node_info_node_info_not_created(config):
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 5, 'id': 32, 'owner': '0x23'
+        }
+    }
+
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    assert result.exit_code == 0
+    assert result.output == 'This SKALE node is not registered on SKALE Manager yet\n'
+
+
+def test_node_info_node_info_frozen(config):
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 2, 'id': 32, 'owner': '0x23'
+        }
+    }
+
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    assert result.exit_code == 0
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Frozen\n--------------------------------------------------\n'  # noqa
+
+
+def test_node_info_node_info_left(config):
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 4, 'id': 32, 'owner': '0x23'
+        }
+    }
+
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    assert result.exit_code == 0
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Left\n--------------------------------------------------\n'  # noqa
+
+
+def test_node_info_node_info_leaving(config):
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 1, 'id': 32, 'owner': '0x23'
+        }
+    }
+
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    assert result.exit_code == 0
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
+
+
+def test_node_info_node_info_in_maintenance(config):
+    payload = {
+        'node_info': {
+            'name': 'test', 'ip': '0.0.0.0',
+            'publicIP': '1.1.1.1',
+            'port': 10001,
+            'publicKey': '0x7',
+            'start_date': 1570114466,
+            'leaving_date': 0,
+            'last_reward_date': 1570628924, 'second_address': 0,
+            'status': 3, 'id': 32, 'owner': '0x23'
+        }
+    }
+
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    assert result.exit_code == 0
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
+
+
 def test_node_signature():
     signature_sample = '0x1231231231'
-    response_data = {'res': 1, 'data': {
-        'status': 'ok', 'payload': {'signature': signature_sample}}}
+    response_data = {
+        'status': 'ok',
+        'payload': {'signature': signature_sample}
+    }
     resp_mock = response_mock(requests.codes.ok, json_data=response_data)
-    result = run_command_mock('core.helper.get_request',
+    result = run_command_mock('core.helper.requests.get',
                               resp_mock, signature, ['1'])
     assert result.exit_code == 0
     assert result.output == f'Signature: {signature_sample}\n'
+
+
+def test_backup():
+    Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
+    with mock.patch('core.mysql_backup.run_mysql_cmd'):
+        result = run_command(
+            backup_node,
+            [
+                '/tmp',
+                './tests/test-env'
+            ]
+        )
+        assert result.exit_code == 0
+        assert 'Backup archive succesfully created: /tmp/skale-node-backup-' in result.output
+
+
+def test_restore():
+    Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
+    result = run_command(
+        backup_node,
+        ['/tmp']
+    )
+    backup_path = result.output.replace(
+        'Backup archive succesfully created: ', '').replace('\n', '')
+    with mock.patch('subprocess.run', new=subprocess_run_mock):
+        result = run_command(
+            restore_node,
+            [backup_path, './tests/test-env']
+        )
+        assert result.exit_code == 0
+        assert 'Node succesfully restored from backup\n' in result.output  # noqa
+
+
+def test_maintenance_on():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        set_node_in_maintenance,
+        ['--yes'])
+    assert result.exit_code == 0
+    assert result.output == 'Node is successfully set in maintenance mode\n'
+
+
+def test_maintenance_off():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        remove_node_from_maintenance)
+    assert result.exit_code == 0
+    assert result.output == 'Node is successfully removed from maintenance mode\n'

@@ -18,52 +18,50 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import inspect
-import requests
-from configs import LONG_LINE, ROUTES
-from core.helper import safe_load_texts, construct_url, \
-    get_response_data, get_request
+from enum import Enum
+from configs import LONG_LINE
+from core.helper import get_request, safe_load_texts
+from core.print_formatters import print_err_response
 
-NODE_STATUSES = ['Not created', 'Requested', 'Active']
+
+class NodeStatuses(Enum):
+    """This class contains possible node statuses"""
+    ACTIVE = 0
+    LEAVING = 1
+    FROZEN = 2
+    IN_MAINTENANCE = 3
+    LEFT = 4
+    NOT_CREATED = 5
+
+
 TEXTS = safe_load_texts()
 
 
 def get_node_info(config, format):
-    url = construct_url(ROUTES['node_info'])
-    response = get_request(url)
-    if response is None:
-        return None
-
-    if response.status_code == requests.codes.ok:  # pylint: disable=no-member
-        node_info = get_response_data(response)
-        if node_info['status'] == 0:
+    status, payload = get_request('node_info')
+    if status == 'ok':
+        node_info = payload['node_info']
+        if format == 'json':
+            print(node_info)
+        elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
             print(TEXTS['service']['node_not_registered'])
         else:
-            if format == 'json':
-                print(node_info)
-            else:
-                print_node_info(node_info)
+            print_node_info(node_info)
+    else:
+        print_err_response(payload)
 
 
 def get_node_about(config, format):
-    url = construct_url(ROUTES['node_about'])
-
-    response = get_request(url)
-    if response is None:
-        return None
-
-    if response.status_code == requests.codes.ok:  # pylint: disable=no-member
-        node_about = get_response_data(response)
-        print(node_about)
-
-        # todo
-        # if format == 'json':
-        #     print(node_info)
-        # else:
-        #     print_node_info(node_info)
+    status, payload = get_request('node_about')
+    if status == 'ok':
+        print(payload)
+    else:
+        print_err_response(payload)
 
 
 def get_node_status(status):
-    return NODE_STATUSES[status]
+    node_status = NodeStatuses(status).name
+    return TEXTS['node']['status'][node_status]
 
 
 def print_node_info(node):

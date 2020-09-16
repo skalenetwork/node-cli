@@ -19,7 +19,6 @@
 
 import os
 import logging
-import subprocess
 from shutil import copyfile
 from urllib.parse import urlparse
 
@@ -28,14 +27,14 @@ from core.resources import save_resource_allocation_config
 from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
-                     NODE_CERTS_PATH, SGX_CERTS_PATH,
-                     SCHAINS_DATA_PATH, LOG_PATH)
+                     NODE_CERTS_PATH, SGX_CERTS_PATH, REDIS_DATA_PATH,
+                     SCHAINS_DATA_PATH, LOG_PATH, MYSQL_BACKUP_FOLDER)
 from configs.cli_logger import LOG_DATA_PATH
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
 from core.helper import safe_load_texts
-
+from tools.helper import run_cmd
 
 TEXTS = safe_load_texts()
 
@@ -47,7 +46,7 @@ def install_host_dependencies():
         **os.environ,
         'SKALE_CMD': 'host_deps'
     }
-    subprocess.run(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
+    run_cmd(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
     # todo: check execution status
 
 
@@ -78,11 +77,15 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
     save_resource_allocation_config()
 
 
+def is_node_inited():
+    return os.path.isdir(NODE_DATA_PATH)
+
+
 def make_dirs():
     for dir_path in (
-        SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
-        CONTRACTS_PATH, NODE_CERTS_PATH,
-        SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH
+            SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
+            CONTRACTS_PATH, NODE_CERTS_PATH, MYSQL_BACKUP_FOLDER,
+            SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH, REDIS_DATA_PATH
     ):
         safe_mk_dirs(dir_path)
 

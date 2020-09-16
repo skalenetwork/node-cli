@@ -28,6 +28,7 @@ SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
+INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 
 LOG_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'log')
 NODE_CERTS_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'ssl')
@@ -66,8 +67,12 @@ THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
 
 DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
+BACKUP_INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'backup-install.sh')
 UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
 UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
+REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
+
+ALLOCATION_FILEPATH = os.path.join(DATAFILES_FOLDER, 'allocation.yml')
 
 LONG_LINE = '-' * 50
 
@@ -76,3 +81,10 @@ ADMIN_HOST = 'localhost'
 DEFAULT_URL_SCHEME = 'http://'
 
 DEFAULT_NODE_BASE_PORT = 10000
+
+BACKUP_ARCHIVE_NAME = 'skale-node-backup'
+MYSQL_BACKUP_FILE_NAME = 'backup.sql'
+MYSQL_BACKUP_FOLDER = os.path.join(SKALE_DIR, NODE_DATA_PATH, '.mysql-backup')
+MYSQL_BACKUP_CONTAINER_FOLDER = '/mysql-backup'
+MYSQL_BACKUP_PATH = os.path.join(MYSQL_BACKUP_FOLDER, MYSQL_BACKUP_FILE_NAME)
+MYSQL_BACKUP_CONTAINER_PATH = os.path.join(MYSQL_BACKUP_CONTAINER_FOLDER, MYSQL_BACKUP_FILE_NAME)
