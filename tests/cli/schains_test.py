@@ -23,7 +23,7 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import get_schain_config, ls, dkg, checks, show_rules
+from cli.schains import get_schain_config, ls, dkg, checks, show_rules, repair
 
 
 def test_ls(config):
@@ -182,3 +182,28 @@ def test_checks():
 
     assert result.exit_code == 0
     assert result.output == '[{"name": "test_schain", "healthchecks": {"data_dir": true, "dkg": false, "config": false, "volume": false, "container": false, "ima_container": false, "firewall_rules": false}}]\n'  # noqa
+
+
+def test_repair():
+    os.environ['TZ'] = 'Europe/London'
+    time.tzset()
+    payload = []
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.post', resp_mock, repair,
+                              ['test-schain', '--yes'])
+    assert result.exit_code == 0
+    assert result.output == 'Schain has been set for repair\n'
+
+    payload = ['error']
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'error'}
+    )
+    result = run_command_mock('core.helper.requests.post', resp_mock, repair,
+                              ['test-schain', '--yes'])
+    print(repr(result.output))
+    assert result.exit_code == 0
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\n'  # noqa
