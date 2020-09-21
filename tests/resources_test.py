@@ -36,9 +36,9 @@ def test_generate_resource_allocation_config():
             'storage_limit': {
                 'test4': 655360000,
                 'test': 655360000,
-                'tiny': 655360000,
-                'small': 10737418240,
-                'medium': 85899345920
+                'small': 655360000,
+                'medium': 10737418240,
+                'large': 85899345920
             },
             **SCHAIN_VOLUME_PARTS
         }
