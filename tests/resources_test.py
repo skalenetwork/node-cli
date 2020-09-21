@@ -22,7 +22,7 @@ def test_generate_resource_allocation_config():
                     new=disk_alloc_mock):
         resource_allocation_config = generate_resource_allocation_config()
 
-        assert resource_allocation_config.get('cpu', None)
+        assert resource_allocation_config.get('cpu_shares', None)
         assert resource_allocation_config.get('mem', None)
         assert resource_allocation_config.get('disk', None)
 
