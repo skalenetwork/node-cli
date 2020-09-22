@@ -30,7 +30,7 @@ from core.helper import safe_load_yml
 from configs import ALLOCATION_FILEPATH
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
     TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
-    DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK
+    DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK, MAX_CPU_SHARES
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ def generate_resource_allocation_config():
     disk_alloc = get_disk_alloc()
     schain_volume_alloc = get_schain_volume_alloc(disk_alloc)
     return {
-        'cpu': cpu_alloc.dict(),
+        'cpu_shares': cpu_alloc.dict(),
         'mem': mem_alloc.dict(),
         'disk': disk_alloc.dict(),
         'schain': {
@@ -133,8 +133,7 @@ def get_memory_alloc():
 
 
 def get_cpu_alloc():
-    cpu_count = psutil.cpu_count()
-    return ResourceAlloc(cpu_count, fractional=True)
+    return ResourceAlloc(MAX_CPU_SHARES)
 
 
 def get_disk_alloc():
