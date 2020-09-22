@@ -127,7 +127,7 @@ iptables_configure() {
     sudo iptables -I INPUT -p icmp --icmp-type destination-unreachable -j ACCEPT
     sudo iptables -I INPUT -p icmp --icmp-type source-quench -j ACCEPT
     sudo iptables -I INPUT -p icmp --icmp-type time-exceeded -j ACCEPT
-    sudo iptables-save > /etc/iptables/rules.v4
+    sudo bash -c 'iptables-save > /etc/iptables/rules.v4'
 }
 
 configure_flask () {
