@@ -135,12 +135,13 @@ Arguments:
 Generate backup file to restore SKALE node on another machine
 
 ```bash
-skale node backup [BACKUP_FOLDER_PATH]
+skale node backup [BACKUP_FOLDER_PATH] [ENV_FILE]
 ```
 
 Arguments:
 
 - `BACKUP_FOLDER_PATH` - path to the folder where the backup file will be saved
+- `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
 `
 #### Node Registration
 
