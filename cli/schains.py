@@ -21,6 +21,7 @@ import click
 
 from core.helper import abort_if_false
 from core.schains import (
+    describe,
     get_schain_firewall_rules,
     show_checks,
     show_config,
@@ -83,5 +84,11 @@ def checks(json_format: bool) -> None:
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure. Repair mode may corrupt working SKALE chain data?')
-def repair(schain_name: str):
+def repair(schain_name: str) -> None:
     toggle_schain_repair_mode(schain_name)
+
+
+@schains.command('describe', help='Show schain info')
+@click.argument('schain_name')
+def describe_(schain_name: str) -> None:
+    describe(schain_name)

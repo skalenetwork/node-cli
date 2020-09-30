@@ -7,6 +7,7 @@ from core.print_formatters import (
     print_dkg_statuses,
     print_err_response,
     print_firewall_rules,
+    print_schain_info,
     print_schains,
     print_schains_healthchecks
 )
@@ -71,5 +72,13 @@ def toggle_schain_repair_mode(schain: str) -> None:
     status, payload = post_request('repair_schain', {'schain': schain})
     if status == 'ok':
         print('Schain has been set for repair')
+    else:
+        print_err_response(payload)
+
+
+def describe(schain: str, raw=False) -> None:
+    status, payload = get_request('describe_schain', {'schain': schain})
+    if status == 'ok':
+        print_schain_info(payload, raw=raw)
     else:
         print_err_response(payload)

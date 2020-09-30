@@ -36,5 +36,6 @@ ROUTES = {
 
     'maintenance_on': '/api/node/maintenance-on',
     'maintenance_off': '/api/node/maintenance-off',
-    'repair_schain': '/api/schains/repair'
+    'repair_schain': '/api/schains/repair',
+    'describe_schain': '/api/schains/get'
 }

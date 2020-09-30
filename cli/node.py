@@ -150,7 +150,7 @@ def init_node(env_file, install_deps, dry_run):
 #     deregister()
 
 
-@node.command('update', help='De-register node from the SKALE Manager')
+@node.command('update', help='Update node from .env file')
 @click.option('--sync-schains', is_flag=True)
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
