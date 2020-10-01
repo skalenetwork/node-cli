@@ -37,8 +37,8 @@ def show_schains() -> None:
         print_err_response(payload)
 
 
-def show_dkg_info(all: bool = False) -> None:
-    params = {'all': all}
+def show_dkg_info(all_: bool = False) -> None:
+    params = {'all': all_}
     status, payload = get_request('dkg_statuses', params=params)
     if status == 'ok':
         print_dkg_statuses(payload)
