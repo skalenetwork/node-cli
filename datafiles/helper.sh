@@ -85,14 +85,14 @@ docker_lvmpy_install () {
     fi
     update_docker_lvmpy_sources
     echo "Running install.sh script ..."
-    PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/install.sh
+    sudo -H PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/install.sh
     cd -
 }
 
 docker_lvmpy_update () {
     update_docker_lvmpy_sources
     echo "Running update.sh script ..."
-    PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/update.sh
+    sudo -H PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/update.sh
     cd -
 }
 
@@ -143,7 +143,7 @@ configure_flask () {
 
 configure_filebeat () {
     echo "Configuring filebeat ..."
-    cp $CONFIG_DIR/filebeat.yml $NODE_DATA_DIR/
+    sudo cp $CONFIG_DIR/filebeat.yml $NODE_DATA_DIR/
     sudo chown root $NODE_DATA_DIR/filebeat.yml
     sudo chmod go-w $NODE_DATA_DIR/filebeat.yml
 }
