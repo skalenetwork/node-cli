@@ -25,7 +25,7 @@ def mysql_creds_for_cmd(env_filepath: str) -> str:
     :rtype: str
     """
     env_params = extract_env_params(env_filepath)
-    return f'-u {env_params["DB_USER"]} -p{env_params["DB_PASSWORD"]}'
+    return f'-u \'{env_params["DB_USER"]}\' -p\'{env_params["DB_PASSWORD"]}\''
 
 
 def create_mysql_backup(env_filepath: str) -> bool:
