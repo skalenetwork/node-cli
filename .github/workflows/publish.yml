@@ -1,17 +1,16 @@
 name: Build and publish
-on: [push, pull_request]
-# on:
-#   pull_request:
-#     types: [closed]
-#     branches:
-#       - master
-#       - develop
-#       - beta
-#       - stable
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+      - develop
+      - beta
+      - stable
 
 jobs:
   create_release:
-    # if: github.event.pull_request.merged
+    if: github.event.pull_request.merged
     name: Create release
     runs-on: ubuntu-latest
     outputs:
@@ -50,7 +49,7 @@ jobs:
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=branch::$BRANCH"
   build_and_publish:
-    # if: github.event.pull_request.merged
+    if: github.event.pull_request.merged
     needs: create_release
     name: Build and publish for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
