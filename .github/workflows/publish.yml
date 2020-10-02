@@ -75,6 +75,7 @@ jobs:
         pip install -e .
         pip install -e .[dev]
         pip install wheel
+        pip install --upgrade 'setuptools<45.0.0'
     - name: Checkout submodules
       run: git submodule update --init
     - name: Build library
