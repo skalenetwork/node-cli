@@ -273,11 +273,11 @@ List DKG status for each SKALE Chain on the node
 skale schains dkg
 ```
 
-#### SKALE Chain describe
+#### SKALE Chain info
 
 Show information about SKALE Chain on node
 ```bash
-skale schains describe SCHAIN_NAME
+skale schains info SCHAIN_NAME
 ```
 
 Options:

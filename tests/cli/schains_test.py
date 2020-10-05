@@ -23,7 +23,8 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import get_schain_config, ls, dkg, checks, show_rules, repair, describe_
+from cli.schains import (get_schain_config, ls, dkg, checks, show_rules,
+                         repair, info_)
 
 
 def test_ls(config):
@@ -209,7 +210,7 @@ def test_repair():
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\n'  # noqa
 
 
-def test_describe():
+def test_info():
     payload = {
         'name': 'attractive-ed-asich',
         'id': '0xfb3b68013fa494407b691b4b603d84c66076c0a5ac96a7d6b162d7341d74fa61',
@@ -221,7 +222,7 @@ def test_describe():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.helper.requests.get', resp_mock, describe_,
+    result = run_command_mock('core.helper.requests.get', resp_mock, info_,
                               ['attractive-ed-asich'])
     assert result.output == '       Name                                           Id                                                     Owner                      Part_of_node   Dkg_status   Is_deleted   First_run   Repair_mode\n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nattractive-ed-asich   0xfb3b68013fa494407b691b4b603d84c66076c0a5ac96a7d6b162d7341d74fa61   0x1111111111111111111111111111111111111111   0              3            False        False       False      \n'  # noqa
     assert result.exit_code == 0
@@ -231,7 +232,7 @@ def test_describe():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'error'}
     )
-    result = run_command_mock('core.helper.requests.get', resp_mock, describe_,
+    result = run_command_mock('core.helper.requests.get', resp_mock, info_,
                               ['schain not found'])
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\n'  # noqa
     assert result.exit_code == 0

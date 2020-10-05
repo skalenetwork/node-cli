@@ -88,7 +88,7 @@ def repair(schain_name: str) -> None:
     toggle_schain_repair_mode(schain_name)
 
 
-@schains.command('describe', help='Show schain info')
+@schains.command('info', help='Show info about schain')
 @click.argument('schain_name')
 @click.option(
     '--json',
@@ -96,5 +96,5 @@ def repair(schain_name: str) -> None:
     help='Show info in JSON format',
     is_flag=True
 )
-def describe_(schain_name: str, json_format: bool) -> None:
+def info_(schain_name: str, json_format: bool) -> None:
     describe(schain_name, raw=json_format)
