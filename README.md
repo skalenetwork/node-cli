@@ -8,16 +8,16 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 ## Table of Contents
 
 1.  [Installation](#installation)
-2.  [CLI usage](#cli-usage)  
-    2.1 [Top level commands](#top-level-commands)  
-    2.2 [User](#user-commands)  
-    2.3 [Node](#node-commands)  
-    2.4 [Wallet](#wallet-commands)  
-    2.5 [sChains](#schain-commands)  
-    2.6 [Containers](#containers-commands)  
-    2.7 [SGX](#sgx-commands)  
-    2.8 [SSL](#ssl-commands)  
-    2.9 [Logs](#logs-commands)  
+2.  [CLI usage](#cli-usage)
+    2.1 [Top level commands](#top-level-commands)
+    2.2 [User](#user-commands)
+    2.3 [Node](#node-commands)
+    2.4 [Wallet](#wallet-commands)
+    2.5 [sChains](#schain-commands)
+    2.6 [Containers](#containers-commands)
+    2.7 [SGX](#sgx-commands)
+    2.8 [SSL](#ssl-commands)
+    2.9 [Logs](#logs-commands)
 3.  [Development](#development)
 
 ## Installation
@@ -103,8 +103,8 @@ You should also specify the following environment variables:
 -   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
 -   `IMA_ENDPOINT` - IMA endpoint to connect
 -   `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
--   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses  
--   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses  
+-   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
+-   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
 -   `FILEBEAT_URL` - URL to the Filebeat log server
 -   `DB_USER`'  - MySQL user for local node database
 -   `DB_PASSWORD` - Password for root user of node internal database
@@ -183,8 +183,8 @@ Options:
 -   `--sync-schains` - run sChains in the backup recovery mode after restart
 -   `--yes` - remove without additional confirmation
 
-You can also specify a file with environment variables 
-which will update parameters in env file used during skale node init 
+You can also specify a file with environment variables
+which will update parameters in env file used during skale node init
 
 -   `--env-file` - path to env file where parameters are defined
 
@@ -271,6 +271,25 @@ List DKG status for each SKALE Chain on the node
 
 ```bash
 skale schains dkg
+```
+
+#### SKALE Chain describe
+
+Show information about SKALE Chain on node
+```bash
+skale schains describe SCHAIN_NAME
+```
+
+Options:
+
+-   `--json` - Show info in JSON format
+
+#### SKALE Chain repair
+
+Turn on repair mode for SKALE Chain
+
+```bash
+skale schains repair SCHAIN_NAME
 ```
 
 #### SKALE Chain healthcheck
