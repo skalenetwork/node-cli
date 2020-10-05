@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -131,8 +131,7 @@ def update(env_filepath, sync_schains):
         env_params = extract_env_params(INIT_ENV_FILEPATH)
 
     if not is_node_inited():
-        print("Node hasn't been inited before. "
-              "You should run <skale node init>")
+        print(TEXTS['node']['not_inited'])
         return
 
     prepare_host(
@@ -214,3 +213,19 @@ def set_maintenance_mode_off():
         error_msg = payload
         logger.error(f'Remove from maintenance mode error {error_msg}')
         print_err_response(error_msg)
+
+
+def run_turn_off_script():
+    print('Turing off the node...')
+    cmd_env = {}
+    run_cmd(['bash', UPDATE_SCRIPT], env=cmd_env)
+    print('Node was successfully turned off')
+
+
+def turn_off(maintenance_on):
+    if not is_node_inited():
+        print(TEXTS['node']['not_inited'])
+        return
+    if maintenance_on:
+        set_maintenance_mode_on()
+    run_turn_off_script()

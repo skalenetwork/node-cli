@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -27,7 +27,7 @@ from skale.utils.random_names.generator import generate_random_node_name
 from core.core import get_node_info, get_node_about
 from core.node import (get_node_signature, init, restore,
                        register_node as register, update, backup,
-                       set_maintenance_mode_on, set_maintenance_mode_off)
+                       set_maintenance_mode_on, set_maintenance_mode_off, turn_off)
 from core.host import install_host_dependencies
 from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
@@ -192,3 +192,16 @@ def set_node_in_maintenance():
 @node.command('maintenance-off', help="Remove SKALE node from maintenance mode")
 def remove_node_from_maintenance():
     set_maintenance_mode_off()
+
+
+@node.command('turn-off', help='Turn off the node')
+@click.option(
+    '--maintenance-on',
+    help='Set SKALE node into maintenance mode before turning off',
+    is_flag=True
+)
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to turn off the node?')
+def _turn_off(maintenance_on):
+    turn_off(maintenance_on)

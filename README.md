@@ -1,6 +1,7 @@
-# SKALE Node CLI
+# Node CLI
 
-[![Build Status](https://travis-ci.com/skalenetwork/skale-node-cli.svg?token=tLesVRTSHvWZxoyqXdoA&branch=develop)](https://travis-ci.com/skalenetwork/skale-node-cli)
+![Build and publish](https://github.com/skalenetwork/node-cli/workflows/Build%20and%20publish/badge.svg)
+![Test](https://github.com/skalenetwork/node-cli/workflows/Test/badge.svg)
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
 SKALE Node CLI, part of the SKALE suite of validator tools, is the command line to setup, register and maintain your SKALE node.
@@ -29,7 +30,7 @@ Ensure that the following package is installed: docker
 -   Download the executable
 
 ```bash
-VERSION_NUM={put the version number here} && sudo -E bash -c "curl -L https://github.com/skalenetwork/skale-node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
+VERSION_NUM={put the version number here} && sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
 ```
 
 For versions `<1.1.0`:
@@ -64,7 +65,7 @@ skale info
 
 #### Version
 
-Print the version of the `skale-node-cli` tool
+Print version number
 
 ```bash
 skale version
@@ -462,6 +463,6 @@ Required environment variables:
 
 ## License
 
-[![License](https://img.shields.io/github/license/skalenetwork/skale-node-cli.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/skalenetwork/node-cli.svg)](LICENSE)
 
 Copyright (C) 2018-present SKALE Labs
