@@ -26,7 +26,8 @@ import time
 
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
-                     BACKUP_ARCHIVE_NAME, HOME_DIR)
+                     BACKUP_ARCHIVE_NAME, HOME_DIR, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
+                     TM_INIT_TIMEOUT)
 
 from core.helper import get_request, post_request
 from tools.helper import run_cmd, extract_env_params
@@ -78,7 +79,7 @@ def init(env_filepath, dry_run=False):
     }
     run_cmd(['bash', INSTALL_SCRIPT], env=env)
     print('Waiting for transaction manager initialization ...')
-    time.sleep(20)
+    time.sleep(TM_INIT_TIMEOUT)
     print('Init procedure finished')
 
 
@@ -117,11 +118,7 @@ def purge():
     print('Success')
 
 
-def deregister():
-    pass
-
-
-def update(env_filepath, sync_schains):
+def get_inited_node_env(env_filepath, sync_schains):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath)
         if env_params is None:
@@ -140,18 +137,23 @@ def update(env_filepath, sync_schains):
         env_params['SGX_SERVER_URL']
     )
     flask_secret_key = get_flask_secret_key()
-    update_cmd_env = {
+    env = {
         'SKALE_DIR': SKALE_DIR,
         'FLASK_SECRET_KEY': flask_secret_key,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
         **env_params
     }
     if sync_schains:
-        update_cmd_env['BACKUP_RUN'] = 'True'
+        env['BACKUP_RUN'] = 'True'
+    return env
 
-    run_cmd(['bash', UPDATE_SCRIPT], env=update_cmd_env)
+
+def update(env_filepath, sync_schains):
+    print('Updating the node...')
+    env = get_inited_node_env(env_filepath, sync_schains)
+    run_cmd(['bash', UPDATE_SCRIPT], env=env)
     print('Waiting for transaction manager initialization ...')
-    time.sleep(20)
+    time.sleep(TM_INIT_TIMEOUT)
     print('Update procedure finished')
 
 
@@ -192,6 +194,7 @@ def create_backup_archive(backup_filepath):
 
 
 def set_maintenance_mode_on():
+    print('Setting maintenance mode on...')
     status, payload = post_request('maintenance_on')
     if status == 'ok':
         msg = TEXTS['node']['maintenance_on']
@@ -204,6 +207,7 @@ def set_maintenance_mode_on():
 
 
 def set_maintenance_mode_off():
+    print('Setting maintenance mode off...')
     status, payload = post_request('maintenance_off')
     if status == 'ok':
         msg = TEXTS['node']['maintenance_off']
@@ -217,9 +221,21 @@ def set_maintenance_mode_off():
 
 def run_turn_off_script():
     print('Turing off the node...')
-    cmd_env = {}
-    run_cmd(['bash', UPDATE_SCRIPT], env=cmd_env)
+    cmd_env = {
+        'SKALE_DIR': SKALE_DIR,
+        'DATAFILES_FOLDER': DATAFILES_FOLDER
+    }
+    run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
     print('Node was successfully turned off')
+
+
+def run_turn_on_script(sync_schains, env_filepath):
+    print('Turning on the node...')
+    env = get_inited_node_env(env_filepath, sync_schains)
+    run_cmd(['bash', TURN_ON_SCRIPT], env=env)
+    print('Waiting for transaction manager initialization ...')
+    time.sleep(TM_INIT_TIMEOUT)
+    print('Node was successfully turned on')
 
 
 def turn_off(maintenance_on):
@@ -229,3 +245,12 @@ def turn_off(maintenance_on):
     if maintenance_on:
         set_maintenance_mode_on()
     run_turn_off_script()
+
+
+def turn_on(maintenance_off, sync_schains, env_file):
+    if not is_node_inited():
+        print(TEXTS['node']['not_inited'])
+        return
+    run_turn_on_script(sync_schains, env_file)
+    if maintenance_off:
+        set_maintenance_mode_off()

@@ -176,7 +176,7 @@ Options:
 Update SKALE node on current machine
 
 ```bash
-skale node update
+skale node update [ENV_FILEPATH]
 ```
 
 Options:
@@ -184,10 +184,46 @@ Options:
 -   `--sync-schains` - run sChains in the backup recovery mode after restart
 -   `--yes` - remove without additional confirmation
 
-You can also specify a file with environment variables 
-which will update parameters in env file used during skale node init 
+Arguments:
 
--   `--env-file` - path to env file where parameters are defined
+- `ENV_FILEPATH` - path to env file where parameters are defined
+
+You can also specify a file with environment variables 
+which will update parameters in env file used during skale node init.
+
+#### Node turn-off
+
+Turn-off SKALE node on current machine and optionally set it to the maintenance mode
+
+```bash
+skale node turn-off
+```
+
+Options:
+
+-   `--maintenance-on` - set SKALE node into maintenance mode before turning off
+-   `--yes` - remove without additional confirmation
+
+#### Node turn-on
+
+Turn on SKALE node on current machine and optionally disable maintenance mode
+
+```bash
+skale node turn-on [ENV_FILEPATH]
+```
+
+Options:
+
+-   `--maintenance-off` - turn off maintenance mode after turning on the node
+-   `--sync-schains` - run sChains in the backup recovery mode after restart
+-   `--yes` - remove without additional confirmation
+
+Arguments:
+
+- `ENV_FILEPATH` - path to env file where parameters are defined
+
+You can also specify a file with environment variables 
+which will update parameters in env file used during skale node init.
 
 #### Node maintenance
 
