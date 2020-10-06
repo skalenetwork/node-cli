@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -71,13 +71,11 @@ def test_dkg():
     )
     result = run_command_mock('core.helper.requests.get',
                               resp_mock, dkg)
-    print(result)
     assert result.exit_code == 0
     assert result.output == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Active       \n'  # noqa
 
     result = run_command_mock('core.helper.requests.get',
                               resp_mock, dkg, ['--all'])
-    print(result)
     assert result.exit_code == 0
     assert result.output == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Active       \n'  # noqa
 

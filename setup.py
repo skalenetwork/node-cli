@@ -41,7 +41,7 @@ extras_require['dev'] = (
 
 
 setup(
-    name='skale-node-cli',
+    name='node-cli',
     # *IMPORTANT*: Don't manually change the version here.
     # Use the 'bumpversion' utility instead.
     version=find_version("cli", "__init__.py"),
@@ -50,7 +50,7 @@ setup(
     long_description_markdown_filename='README.md',
     author='SKALE Labs',
     author_email='support@skalelabs.com',
-    url='https://github.com/skalenetwork/skale-node-cli',
+    url='https://github.com/skalenetwork/node-cli',
     install_requires=[
         "click==7.1.2",
         "confuse",

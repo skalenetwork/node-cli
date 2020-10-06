@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU Affero General Public License for more details.
 #

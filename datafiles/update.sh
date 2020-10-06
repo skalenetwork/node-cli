@@ -9,8 +9,6 @@ source "$DATAFILES_FOLDER"/helper.sh
 
 cd $SKALE_DIR
 
-export $(grep -v '^#' .env | xargs)
-
 remove_compose_containers
 remove_dynamic_containers
 

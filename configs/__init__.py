@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -70,6 +70,8 @@ INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
 BACKUP_INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'backup-install.sh')
 UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
 UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
+TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
+TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
 ALLOCATION_FILEPATH = os.path.join(DATAFILES_FOLDER, 'allocation.yml')
@@ -88,3 +90,5 @@ MYSQL_BACKUP_FOLDER = os.path.join(SKALE_DIR, NODE_DATA_PATH, '.mysql-backup')
 MYSQL_BACKUP_CONTAINER_FOLDER = '/mysql-backup'
 MYSQL_BACKUP_PATH = os.path.join(MYSQL_BACKUP_FOLDER, MYSQL_BACKUP_FILE_NAME)
 MYSQL_BACKUP_CONTAINER_PATH = os.path.join(MYSQL_BACKUP_CONTAINER_FOLDER, MYSQL_BACKUP_FILE_NAME)
+
+TM_INIT_TIMEOUT = 20

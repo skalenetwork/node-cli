@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -36,8 +36,6 @@ def test_sgx_status():
     )
     result = run_command_mock(
         'core.helper.requests.get', resp_mock, info)
-
-    print(result.output)
 
     assert result.exit_code == 0
     assert result.output == '\x1b(0lqqqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqk\x1b(B\n\x1b(0x\x1b(B SGX info          \x1b(0x\x1b(B                        \x1b(0x\x1b(B\n\x1b(0tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqu\x1b(B\n\x1b(0x\x1b(B Server URL        \x1b(0x\x1b(B https://127.0.0.1:1026 \x1b(0x\x1b(B\n\x1b(0x\x1b(B SGXWallet Version \x1b(0x\x1b(B 1.50.1-stable.0        \x1b(0x\x1b(B\n\x1b(0x\x1b(B Node SGX keyname  \x1b(0x\x1b(B test_keyname           \x1b(0x\x1b(B\n\x1b(0x\x1b(B Status            \x1b(0x\x1b(B CONNECTED              \x1b(0x\x1b(B\n\x1b(0mqqqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqj\x1b(B\n'  # noqa
