@@ -27,7 +27,7 @@ from tests.helper import response_mock, run_command_mock, run_command, subproces
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
                       update_node, backup_node, restore_node,
-                      set_node_in_maintenance, remove_node_from_maintenance)
+                      set_node_in_maintenance, remove_node_from_maintenance, _turn_off, _turn_on)
 
 
 def test_register_node(config):
@@ -132,7 +132,7 @@ def test_update_node(config):
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
-        assert result.output == 'Waiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
+        assert result.output == 'Updating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
 
 
 def test_update_node_without_init(config):
@@ -151,9 +151,8 @@ def test_update_node_without_init(config):
             update_node,
             params,
             input='/dev/sdp')
-        print(repr(result.output))
         assert result.exit_code == 0
-        assert result.output == "Node hasn't been inited before. You should run <skale node init>\n"  # noqa
+        assert result.output == "Node hasn't been inited before.\nYou should run < skale node init >\n"  # noqa
 
 
 def test_node_info_node_about(config):
@@ -377,7 +376,7 @@ def test_maintenance_on():
         set_node_in_maintenance,
         ['--yes'])
     assert result.exit_code == 0
-    assert result.output == 'Node is successfully set in maintenance mode\n'
+    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n' # noqa
 
 
 def test_maintenance_off():
@@ -390,4 +389,46 @@ def test_maintenance_off():
         resp_mock,
         remove_node_from_maintenance)
     assert result.exit_code == 0
-    assert result.output == 'Node is successfully removed from maintenance mode\n'
+    assert result.output == 'Setting maintenance mode off...\nNode is successfully removed from maintenance mode\n' # noqa
+
+
+def test_turn_off_maintenance_on():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    with mock.patch('subprocess.run', new=subprocess_run_mock):
+        result = run_command_mock(
+            'core.helper.requests.post',
+            resp_mock,
+            _turn_off,
+            [
+                '--maintenance-on',
+                '--yes'
+            ])
+    assert result.exit_code == 0
+    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\nTuring off the node...\nNode was successfully turned off\n' # noqa
+
+
+def test_turn_on_maintenance_off():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('core.node.get_flask_secret_key'):
+        result = run_command_mock(
+            'core.helper.requests.post',
+            resp_mock,
+            _turn_on,
+            [
+                './tests/test-env',
+                '--maintenance-off',
+                '--sync-schains',
+                '--yes'
+            ])
+
+    print('result.outputresult.output result.output result.output')
+    print(result.output)
+    assert result.exit_code == 0
+    assert result.output == 'Turning on the node...\nWaiting for transaction manager initialization ...\nNode was successfully turned on\nSetting maintenance mode off...\nNode is successfully removed from maintenance mode\n' # noqa

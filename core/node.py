@@ -126,16 +126,6 @@ def get_inited_node_env(env_filepath, sync_schains):
         save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH)
-
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
-
-    prepare_host(
-        env_filepath,
-        env_params['DISK_MOUNTPOINT'],
-        env_params['SGX_SERVER_URL']
-    )
     flask_secret_key = get_flask_secret_key()
     env = {
         'SKALE_DIR': SKALE_DIR,
@@ -149,8 +139,16 @@ def get_inited_node_env(env_filepath, sync_schains):
 
 
 def update(env_filepath, sync_schains):
+    if not is_node_inited():
+        print(TEXTS['node']['not_inited'])
+        return
     print('Updating the node...')
     env = get_inited_node_env(env_filepath, sync_schains)
+    prepare_host(
+        env_filepath,
+        env['DISK_MOUNTPOINT'],
+        env['SGX_SERVER_URL']
+    )
     run_cmd(['bash', UPDATE_SCRIPT], env=env)
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
