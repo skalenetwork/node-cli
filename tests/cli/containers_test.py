@@ -83,10 +83,10 @@ def test_schains_ok_response(config):
     assert result.exit_code == 0
 
     output_list = result.output.splitlines()
-    assert output_list[0] == '       Name                      Status                    Started At           Image   ' # noqa
-    assert output_list[1] == '----------------------------------------------------------------------------------------' # noqa
-    assert output_list[2] == 'skale_schain_test    Running                          Oct 08 2019 13:59:54   image-skale' # noqa
-    assert output_list[3] == 'skale_schain_test2   Running (Jan 01 0001 00:00:00)   Oct 08 2019 13:59:54   image-skale' # noqa
+    assert output_list[0] == '       Name                    Status                   Started At           Image   '  # noqa
+    assert output_list[1] == '-------------------------------------------------------------------------------------'  # noqa
+    assert output_list[2] == 'skale_schain_test    Running                       Oct 08 2019 13:59:54   image-skale'  # noqa
+    assert output_list[3] == 'skale_schain_test2   Running (Jan 01 1 00:00:00)   Oct 08 2019 13:59:54   image-skale'  # noqa
 
 
 def test_schain_error_response(config):
