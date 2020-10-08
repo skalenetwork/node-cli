@@ -62,6 +62,9 @@ def register_node(config, name, p2p_ip, public_ip, port):
 
 
 def init(env_filepath, dry_run=False):
+    if is_node_inited():
+        print(TEXTS['node']['already_inited'])
+        return
     env_params = extract_env_params(env_filepath)
     if env_params is None:
         return
