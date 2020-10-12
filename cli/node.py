@@ -133,7 +133,7 @@ def init_node(env_file, install_deps, dry_run):
     init(env_file, dry_run)
 
 
-@node.command('update', help='De-register node from the SKALE Manager')
+@node.command('update', help='Update node from .env file')
 @click.option(
     '--sync-schains',
     help='Run all sChains in the snapshot download mode',

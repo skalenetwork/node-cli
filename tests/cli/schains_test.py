@@ -23,7 +23,8 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import get_schain_config, ls, dkg, checks, show_rules
+from cli.schains import (get_schain_config, ls, dkg, checks, show_rules,
+                         repair, info_)
 
 
 def test_ls(config):
@@ -180,3 +181,56 @@ def test_checks():
 
     assert result.exit_code == 0
     assert result.output == '[{"name": "test_schain", "healthchecks": {"data_dir": true, "dkg": false, "config": false, "volume": false, "container": false, "ima_container": false, "firewall_rules": false}}]\n'  # noqa
+
+
+def test_repair():
+    os.environ['TZ'] = 'Europe/London'
+    time.tzset()
+    payload = []
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.post', resp_mock, repair,
+                              ['test-schain', '--yes'])
+    assert result.output == 'Schain has been set for repair\n'
+    assert result.exit_code == 0
+
+    payload = ['error']
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'error'}
+    )
+    result = run_command_mock('core.helper.requests.post', resp_mock, repair,
+                              ['test-schain', '--yes'])
+    print(repr(result.output))
+    assert result.exit_code == 0
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\n'  # noqa
+
+
+def test_info():
+    payload = {
+        'name': 'attractive-ed-asich',
+        'id': '0xfb3b68013fa494407b691b4b603d84c66076c0a5ac96a7d6b162d7341d74fa61',
+        'owner': '0x1111111111111111111111111111111111111111',
+        'part_of_node': 0, 'dkg_status': 3, 'is_deleted': False,
+        'first_run': False, 'repair_mode': False
+    }
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'ok'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, info_,
+                              ['attractive-ed-asich'])
+    assert result.output == '       Name                                           Id                                                     Owner                      Part_of_node   Dkg_status   Is_deleted   First_run   Repair_mode\n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nattractive-ed-asich   0xfb3b68013fa494407b691b4b603d84c66076c0a5ac96a7d6b162d7341d74fa61   0x1111111111111111111111111111111111111111   0              3            False        False       False      \n'  # noqa
+    assert result.exit_code == 0
+
+    payload = ['error']
+    resp_mock = response_mock(
+        requests.codes.ok,
+        json_data={'payload': payload, 'status': 'error'}
+    )
+    result = run_command_mock('core.helper.requests.get', resp_mock, info_,
+                              ['schain not found'])
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\n'  # noqa
+    assert result.exit_code == 0

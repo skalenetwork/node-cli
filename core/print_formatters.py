@@ -241,3 +241,12 @@ def print_firewall_rules(rules, raw=False):
             rule['ip']
         ])
     print(Formatter().table(headers, rows))
+
+
+def print_schain_info(info: dict, raw: bool = False) -> None:
+    if raw:
+        print(info)
+    else:
+        headers, rows = zip(*info.items())
+        headers = list(map(lambda h: h.capitalize(), headers))
+        print(Formatter().table(headers, [rows]))
