@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -27,7 +27,7 @@ from skale.utils.random_names.generator import generate_random_node_name
 from core.core import get_node_info, get_node_about
 from core.node import (get_node_signature, init, restore,
                        register_node as register, update, backup,
-                       set_maintenance_mode_on, set_maintenance_mode_off)
+                       set_maintenance_mode_on, set_maintenance_mode_off, turn_off, turn_on)
 from core.host import install_host_dependencies
 from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
@@ -133,25 +133,12 @@ def init_node(env_file, install_deps, dry_run):
     init(env_file, dry_run)
 
 
-# @node.command('purge', help="Uninstall SKALE node software from the machine")
-# @click.option('--yes', is_flag=True, callback=abort_if_false,
-#               expose_value=False,
-#               prompt='Are you sure you want to uninstall SKALE node?')
-# def purge_node():
-#     purge()
-
-
-# @node.command('deregister', help="De-register node from the SKALE Manager")
-# @click.option('--yes', is_flag=True, callback=abort_if_false,
-#               expose_value=False,
-#               prompt='Are you sure you want to de-register '
-#                      'this node from SKALE Manager?')
-# def deregister_node():
-#     deregister()
-
-
 @node.command('update', help='Update node from .env file')
-@click.option('--sync-schains', is_flag=True)
+@click.option(
+    '--sync-schains',
+    help='Run all sChains in the snapshot download mode',
+    is_flag=True
+)
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
@@ -192,3 +179,35 @@ def set_node_in_maintenance():
 @node.command('maintenance-off', help="Remove SKALE node from maintenance mode")
 def remove_node_from_maintenance():
     set_maintenance_mode_off()
+
+
+@node.command('turn-off', help='Turn off the node')
+@click.option(
+    '--maintenance-on',
+    help='Set SKALE node into maintenance mode before turning off',
+    is_flag=True
+)
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to turn off the node?')
+def _turn_off(maintenance_on):
+    turn_off(maintenance_on)
+
+
+@node.command('turn-on', help='Turn on the node')
+@click.option(
+    '--maintenance-off',
+    help='Turn off maintenance mode after turning on the node',
+    is_flag=True
+)
+@click.option(
+    '--sync-schains',
+    help='Run all sChains in the snapshot download mode',
+    is_flag=True
+)
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to turn on the node?')
+@click.argument('env_file')
+def _turn_on(maintenance_off, sync_schains, env_file):
+    turn_on(maintenance_off, sync_schains, env_file)
