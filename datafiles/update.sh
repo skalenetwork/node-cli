@@ -14,7 +14,7 @@ remove_dynamic_containers
 
 backup_old_contracts
 download_contracts
-docker_lvmpy_update
+# docker_lvmpy_update # todo: tmp, uncomment after fix!
 
 cd $CONFIG_DIR
 if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
