@@ -25,7 +25,7 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 
 -   Prerequisites
 
-Ensure that the following package is installed: docker
+Ensure that the following package is installed: **docker**, **docker-compose** (1.27.4+)
 
 -   Download the executable
 
@@ -93,7 +93,7 @@ Arguments:
 
 Required options:
 
--   `--install-deps` - install docker and other dependencies
+-   `--install-deps` - install dependencies
 -   `--dry-run` - create only needed files and directories and don't create containers
 
 You should also specify the following environment variables:
