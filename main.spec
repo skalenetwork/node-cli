@@ -17,6 +17,8 @@ a = Analysis(
        ("./datafiles/backup-install.sh", "data/datafiles"),
        ("./datafiles/update.sh", "data/datafiles"),
        ("./datafiles/helper.sh", "data/datafiles"),
+       ("./datafiles/turn-off.sh", "data/datafiles"),
+       ("./datafiles/turn-on.sh", "data/datafiles"),
        ("./datafiles/allocation.yml", "data/datafiles"),
     ],
     hiddenimports=[],
