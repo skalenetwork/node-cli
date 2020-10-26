@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -241,3 +241,12 @@ def print_firewall_rules(rules, raw=False):
             rule['ip']
         ])
     print(Formatter().table(headers, rows))
+
+
+def print_schain_info(info: dict, raw: bool = False) -> None:
+    if raw:
+        print(info)
+    else:
+        headers, rows = zip(*info.items())
+        headers = list(map(lambda h: h.capitalize(), headers))
+        print(Formatter().table(headers, [rows]))

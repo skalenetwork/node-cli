@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -17,69 +17,54 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
-import pprint
-
 import click
 
-from core.helper import get_request
-from core.print_formatters import (print_err_response, print_schains,
-                                   print_dkg_statuses, print_schains_healthchecks)
-from core.schains import get_schain_firewall_rules
+from core.helper import abort_if_false
+from core.schains import (
+    describe,
+    get_schain_firewall_rules,
+    show_checks,
+    show_config,
+    show_dkg_info,
+    show_schains,
+    toggle_schain_repair_mode
+)
 
 
 @click.group()
-def schains_cli():
+def schains_cli() -> None:
     pass
 
 
 @schains_cli.group('schains', help="Node sChains commands")
-def schains():
+def schains() -> None:
     pass
 
 
 @schains.command(help="List of sChains served by connected node")
-def ls():
-    status, payload = get_request('node_schains')
-
-    if status == 'ok':
-        schains_list = payload
-        if not schains_list:
-            print('No sChains found')
-            return
-        print_schains(schains_list)
-    else:
-        print_err_response(payload)
+def ls() -> None:
+    show_schains()
 
 
 @schains.command(help="DKG statuses for each sChain on the node")
 @click.option(
-    '--all',
+    '--all', '-a', 'all_',
     help='Shows active and deleted sChains',
     is_flag=True
 )
-def dkg(all):
-    params = {'all': all}
-    status, payload = get_request('dkg_statuses', params=params)
-    if status == 'ok':
-        print_dkg_statuses(payload)
-    else:
-        print_err_response(payload)
+def dkg(all_: bool) -> None:
+    show_dkg_info(all_)
 
 
 @schains.command('config', help="sChain config")
 @click.argument('schain_name')
-def get_schain_config(schain_name):
-    status, payload = get_request('schain_config', {'schain-name': schain_name})
-    if status == 'ok':
-        pprint.pprint(payload)
-    else:
-        print_err_response(payload)
+def get_schain_config(schain_name: str) -> None:
+    show_config(schain_name)
 
 
 @schains.command('show-rules', help='Show schain firewall rules')
 @click.argument('schain_name')
-def show_rules(schain_name):
+def show_rules(schain_name: str) -> None:
     get_schain_firewall_rules(schain_name)
 
 
@@ -90,15 +75,26 @@ def show_rules(schain_name):
     help='Show data in JSON format',
     is_flag=True
 )
-def checks(json_format):
-    status, payload = get_request('schains_healthchecks')
-    if status == 'ok':
-        if not payload:
-            print('No sChains found')
-            return
-        if json_format:
-            print(json.dumps(payload))
-        else:
-            print_schains_healthchecks(payload)
-    else:
-        print_err_response(payload)
+def checks(json_format: bool) -> None:
+    show_checks(json_format)
+
+
+@schains.command('repair', help='Toggle schain repair mode')
+@click.argument('schain_name')
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure. Repair mode may corrupt working SKALE chain data?')
+def repair(schain_name: str) -> None:
+    toggle_schain_repair_mode(schain_name)
+
+
+@schains.command('info', help='Show info about schain')
+@click.argument('schain_name')
+@click.option(
+    '--json',
+    'json_format',
+    help='Show info in JSON format',
+    is_flag=True
+)
+def info_(schain_name: str, json_format: bool) -> None:
+    describe(schain_name, raw=json_format)

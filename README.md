@@ -1,6 +1,7 @@
-# SKALE Node CLI
+# Node CLI
 
-[![Build Status](https://travis-ci.com/skalenetwork/skale-node-cli.svg?token=tLesVRTSHvWZxoyqXdoA&branch=develop)](https://travis-ci.com/skalenetwork/skale-node-cli)
+![Build and publish](https://github.com/skalenetwork/node-cli/workflows/Build%20and%20publish/badge.svg)
+![Test](https://github.com/skalenetwork/node-cli/workflows/Test/badge.svg)
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
 SKALE Node CLI, part of the SKALE suite of validator tools, is the command line to setup, register and maintain your SKALE node.
@@ -8,31 +9,31 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 ## Table of Contents
 
 1.  [Installation](#installation)
-2.  [CLI usage](#cli-usage)  
-    2.1 [Top level commands](#top-level-commands)  
-    2.2 [User](#user-commands)  
-    2.3 [Node](#node-commands)  
-    2.4 [Wallet](#wallet-commands)  
-    2.5 [sChains](#schain-commands)  
-    2.6 [Containers](#containers-commands)  
-    2.7 [SGX](#sgx-commands)  
-    2.8 [SSL](#ssl-commands)  
-    2.9 [Logs](#logs-commands)  
+2.  [CLI usage](#cli-usage)
+    2.1 [Top level commands](#top-level-commands)
+    2.2 [User](#user-commands)
+    2.3 [Node](#node-commands)
+    2.4 [Wallet](#wallet-commands)
+    2.5 [sChains](#schain-commands)
+    2.6 [Containers](#containers-commands)
+    2.7 [SGX](#sgx-commands)
+    2.8 [SSL](#ssl-commands)
+    2.9 [Logs](#logs-commands)
 3.  [Development](#development)
 
 ## Installation
 
 -   Prerequisites
 
-Ensure that the following package is installed: docker
+Ensure that the following package is installed: **docker**, **docker-compose** (1.27.4+)
 
 -   Download the executable
 
 ```bash
-VERSION_NUM=0.0.0 && curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` > /usr/local/bin/skale
+VERSION_NUM={put the version number here} && sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
 ```
 
-With `sudo`:
+For versions `<1.1.0`:
 
 ```bash
 VERSION_NUM=0.0.0 && sudo -E bash -c "curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
@@ -64,7 +65,7 @@ skale info
 
 #### Version
 
-Print the version of the `skale-node-cli` tool
+Print version number
 
 ```bash
 skale version
@@ -92,7 +93,7 @@ Arguments:
 
 Required options:
 
--   `--install-deps` - install docker and other dependencies
+-   `--install-deps` - install dependencies
 -   `--dry-run` - create only needed files and directories and don't create containers
 
 You should also specify the following environment variables:
@@ -103,8 +104,8 @@ You should also specify the following environment variables:
 -   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
 -   `IMA_ENDPOINT` - IMA endpoint to connect
 -   `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
--   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses  
--   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses  
+-   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
+-   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
 -   `FILEBEAT_URL` - URL to the Filebeat log server
 -   `DB_USER`'  - MySQL user for local node database
 -   `DB_PASSWORD` - Password for root user of node internal database
@@ -135,12 +136,13 @@ Arguments:
 Generate backup file to restore SKALE node on another machine
 
 ```bash
-skale node backup [BACKUP_FOLDER_PATH]
+skale node backup [BACKUP_FOLDER_PATH] [ENV_FILE]
 ```
 
 Arguments:
 
 - `BACKUP_FOLDER_PATH` - path to the folder where the backup file will be saved
+- `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
 `
 #### Node Registration
 
@@ -174,7 +176,7 @@ Options:
 Update SKALE node on current machine
 
 ```bash
-skale node update
+skale node update [ENV_FILEPATH]
 ```
 
 Options:
@@ -182,10 +184,46 @@ Options:
 -   `--sync-schains` - run sChains in the backup recovery mode after restart
 -   `--yes` - remove without additional confirmation
 
-You can also specify a file with environment variables 
-which will update parameters in env file used during skale node init 
+Arguments:
 
--   `--env-file` - path to env file where parameters are defined
+- `ENV_FILEPATH` - path to env file where parameters are defined
+
+You can also specify a file with environment variables 
+which will update parameters in env file used during skale node init.
+
+#### Node turn-off
+
+Turn-off SKALE node on current machine and optionally set it to the maintenance mode
+
+```bash
+skale node turn-off
+```
+
+Options:
+
+-   `--maintenance-on` - set SKALE node into maintenance mode before turning off
+-   `--yes` - remove without additional confirmation
+
+#### Node turn-on
+
+Turn on SKALE node on current machine and optionally disable maintenance mode
+
+```bash
+skale node turn-on [ENV_FILEPATH]
+```
+
+Options:
+
+-   `--maintenance-off` - turn off maintenance mode after turning on the node
+-   `--sync-schains` - run sChains in the backup recovery mode after restart
+-   `--yes` - remove without additional confirmation
+
+Arguments:
+
+- `ENV_FILEPATH` - path to env file where parameters are defined
+
+You can also specify a file with environment variables 
+which will update parameters in env file used during skale node init.
 
 #### Node maintenance
 
@@ -270,6 +308,25 @@ List DKG status for each SKALE Chain on the node
 
 ```bash
 skale schains dkg
+```
+
+#### SKALE Chain info
+
+Show information about SKALE Chain on node
+```bash
+skale schains info SCHAIN_NAME
+```
+
+Options:
+
+-   `--json` - Show info in JSON format
+
+#### SKALE Chain repair
+
+Turn on repair mode for SKALE Chain
+
+```bash
+skale schains repair SCHAIN_NAME
 ```
 
 #### SKALE Chain healthcheck
@@ -461,6 +518,6 @@ Required environment variables:
 
 ## License
 
-[![License](https://img.shields.io/github/license/skalenetwork/skale-node-cli.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/skalenetwork/node-cli.svg)](LICENSE)
 
 Copyright (C) 2018-present SKALE Labs

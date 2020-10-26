@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -29,6 +29,8 @@ TIMES = 1
 TIMEOUT = 1
 MEMORY_FACTOR = 0.9
 DISK_FACTOR = 0.95
+
+MAX_CPU_SHARES = 1024
 
 VOLUME_CHUNK = 512 * TINY_DIVIDER
 
