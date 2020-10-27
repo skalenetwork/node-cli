@@ -24,7 +24,9 @@ optional_params = {
     'MONITORING_CONTAINERS': '',
     'TG_API_KEY': '',
     'TG_CHAT_ID': '',
-    'CONTAINER_CONFIGS_DIR': ''
+    'CONTAINER_CONFIGS_DIR': '',
+    'DISABLE_DRY_RUN': '',
+    'DEFAULT_GAS_LIMIT': ''
 }
 
 
