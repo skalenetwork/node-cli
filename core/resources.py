@@ -73,17 +73,24 @@ def get_resource_allocation_info():
 
 
 def generate_resource_allocation_config():
-    cpu_alloc = get_cpu_alloc()
-    mem_alloc = get_memory_alloc()
+    schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc()
+    schain_mem_alloc, ima_mem_alloc = get_memory_alloc()
+
     disk_alloc = get_disk_alloc()
     schain_volume_alloc = get_schain_volume_alloc(disk_alloc)
     return {
-        'cpu_shares': cpu_alloc.dict(),
-        'mem': mem_alloc.dict(),
-        'disk': disk_alloc.dict(),
         'schain': {
-            'storage_limit': get_storage_limit_alloc(),
-            **schain_volume_alloc.volume_alloc
+            'cpu_shares': schain_cpu_alloc.dict(),
+            'mem': schain_mem_alloc.dict(),
+            'disk': disk_alloc.dict(),
+            'volume_limits': {
+                'storage_limit': get_storage_limit_alloc(),
+                **schain_volume_alloc.volume_alloc
+            }
+        },
+        'ima': {
+            'cpu_shares': ima_cpu_alloc.dict(),
+            'mem': ima_mem_alloc.dict()
         }
     }
 
@@ -94,7 +101,7 @@ def get_schain_volume_alloc(disk_alloc: ResourceAlloc) -> SChainVolumeAlloc:
 
 
 def get_schain_volume_proportions():
-    return ALLOCATION_DATA['schain_volume_proportions']
+    return ALLOCATION_DATA['schain_proportions']['volume']
 
 
 def get_storage_limit_alloc(testnet=True):
@@ -128,12 +135,20 @@ def get_available_memory():
 
 
 def get_memory_alloc():
+    mem_proportions = ALLOCATION_DATA['schain_proportions']['mem']
     available_memory = get_available_memory()
-    return ResourceAlloc(available_memory)
+
+    schain_memory = mem_proportions['skaled'] * available_memory
+    ima_memory = mem_proportions['ima'] * available_memory
+
+    return ResourceAlloc(schain_memory), ResourceAlloc(ima_memory)
 
 
 def get_cpu_alloc():
-    return ResourceAlloc(MAX_CPU_SHARES)
+    cpu_proportions = ALLOCATION_DATA['schain_proportions']['cpu']
+    schain_max_cpu_shares = int(cpu_proportions['skaled'] * MAX_CPU_SHARES)
+    ima_max_cpu_shares = int(cpu_proportions['ima'] * MAX_CPU_SHARES)
+    return ResourceAlloc(schain_max_cpu_shares), ResourceAlloc(ima_max_cpu_shares)
 
 
 def get_disk_alloc():
