@@ -149,7 +149,7 @@ def update(env_filepath, sync_schains):
 
     res = save_resource_allocation_config(exist_ok=True)
     if res:
-        print(f'Resource allocation file was updated')
+        print('Resource allocation file was updated')
     else:
         print('Can\'t update resource allocation file, check out CLI logs')
 

@@ -134,9 +134,18 @@ def get_available_memory():
     return sum(memory) / TIMES * MEMORY_FACTOR
 
 
+def get_total_memory():
+    memory = []
+    for _ in range(0, TIMES):
+        mem_info = psutil.virtual_memory()
+        memory.append(mem_info.total)
+        sleep(TIMEOUT)
+    return sum(memory) / TIMES * MEMORY_FACTOR
+
+
 def get_memory_alloc():
     mem_proportions = ALLOCATION_DATA['schain_proportions']['mem']
-    available_memory = get_available_memory()
+    available_memory = get_total_memory()
 
     schain_memory = mem_proportions['skaled'] * available_memory
     ima_memory = mem_proportions['ima'] * available_memory
