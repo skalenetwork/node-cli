@@ -3,7 +3,7 @@ from core.resources import (generate_resource_allocation_config, get_schain_volu
                             ResourceAlloc, SChainVolumeAlloc)
 
 
-SCHAIN_VOLUME_PARTS = {'part_test4': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'part_test': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'part_small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'part_medium': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'part_large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
+SCHAIN_VOLUME_PARTS = {'test4': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'test': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'medium': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
 
 
 def disk_alloc_mock():
@@ -22,25 +22,25 @@ def test_generate_resource_allocation_config():
                     new=disk_alloc_mock):
         resource_allocation_config = generate_resource_allocation_config()
 
-        assert resource_allocation_config['schain']['cpu_shares']['part_test4'] == 89
-        assert resource_allocation_config['schain']['cpu_shares']['part_test'] == 89
-        assert resource_allocation_config['schain']['cpu_shares']['part_small'] == 5
-        assert resource_allocation_config['schain']['cpu_shares']['part_medium'] == 89
-        assert resource_allocation_config['schain']['cpu_shares']['part_large'] == 716
+        assert resource_allocation_config['schain']['cpu_shares']['test4'] == 89
+        assert resource_allocation_config['schain']['cpu_shares']['test'] == 89
+        assert resource_allocation_config['schain']['cpu_shares']['small'] == 5
+        assert resource_allocation_config['schain']['cpu_shares']['medium'] == 89
+        assert resource_allocation_config['schain']['cpu_shares']['large'] == 716
 
-        assert isinstance(resource_allocation_config['schain']['mem']['part_test4'], int)
-        assert isinstance(resource_allocation_config['schain']['mem']['part_test'], int)
-        assert isinstance(resource_allocation_config['schain']['mem']['part_small'], int)
-        assert isinstance(resource_allocation_config['schain']['mem']['part_medium'], int)
-        assert isinstance(resource_allocation_config['schain']['mem']['part_large'], int)
+        assert isinstance(resource_allocation_config['schain']['mem']['test4'], int)
+        assert isinstance(resource_allocation_config['schain']['mem']['test'], int)
+        assert isinstance(resource_allocation_config['schain']['mem']['small'], int)
+        assert isinstance(resource_allocation_config['schain']['mem']['medium'], int)
+        assert isinstance(resource_allocation_config['schain']['mem']['large'], int)
 
-        assert resource_allocation_config['schain']['disk']['part_test4'] == 16
-        assert resource_allocation_config['schain']['disk']['part_test'] == 16
-        assert resource_allocation_config['schain']['disk']['part_small'] == 1
-        assert resource_allocation_config['schain']['disk']['part_medium'] == 16
-        assert resource_allocation_config['schain']['disk']['part_large'] == 128
+        assert resource_allocation_config['schain']['disk']['test4'] == 16
+        assert resource_allocation_config['schain']['disk']['test'] == 16
+        assert resource_allocation_config['schain']['disk']['small'] == 1
+        assert resource_allocation_config['schain']['disk']['medium'] == 16
+        assert resource_allocation_config['schain']['disk']['large'] == 128
 
-        assert resource_allocation_config['ima']['cpu_shares'] == {'part_test4': 38, 'part_test': 38, 'part_small': 2, 'part_medium': 38, 'part_large': 307} # noqa
+        assert resource_allocation_config['ima']['cpu_shares'] == {'test4': 38, 'test': 38, 'small': 2, 'medium': 38, 'large': 307} # noqa
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
         assert resource_allocation_config['schain']['volume_limits'] == {

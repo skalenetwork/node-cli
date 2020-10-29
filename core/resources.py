@@ -40,11 +40,11 @@ ALLOCATION_DATA = safe_load_yml(ALLOCATION_FILEPATH)
 class ResourceAlloc:
     def __init__(self, value, fractional=False):
         self.values = {
-            'part_test4': value / TEST_DIVIDER,
-            'part_test': value / TEST_DIVIDER,
-            'part_small': value / TINY_DIVIDER,
-            'part_medium': value / SMALL_DIVIDER,
-            'part_large': value / MEDIUM_DIVIDER
+            'test4': value / TEST_DIVIDER,
+            'test': value / TEST_DIVIDER,
+            'small': value / TINY_DIVIDER,
+            'medium': value / SMALL_DIVIDER,
+            'large': value / MEDIUM_DIVIDER
         }
         if not fractional:
             for k in self.values:
@@ -83,10 +83,8 @@ def generate_resource_allocation_config():
             'cpu_shares': schain_cpu_alloc.dict(),
             'mem': schain_mem_alloc.dict(),
             'disk': disk_alloc.dict(),
-            'volume_limits': {
-                'storage_limit': get_storage_limit_alloc(),
-                **schain_volume_alloc.volume_alloc
-            }
+            'volume_limits': schain_volume_alloc.volume_alloc,
+            'storage_limit': get_storage_limit_alloc()
         },
         'ima': {
             'cpu_shares': ima_cpu_alloc.dict(),
