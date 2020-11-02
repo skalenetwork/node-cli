@@ -49,7 +49,7 @@ def wallet_info(format):
 @click.option('--gas-limit', type=int, default=None,
               help='Gas limit value for transaction')
 @click.option('--gas-price', type=int, default=None,
-              help='Gas price value for transaction')
+              help='Gas price value in Gwei for transaction')
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to send ETH tokens?')
