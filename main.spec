@@ -18,8 +18,7 @@ a = Analysis(
        ("./datafiles/update.sh", "data/datafiles"),
        ("./datafiles/helper.sh", "data/datafiles"),
        ("./datafiles/turn-off.sh", "data/datafiles"),
-       ("./datafiles/turn-on.sh", "data/datafiles"),
-       ("./datafiles/allocation.yml", "data/datafiles"),
+       ("./datafiles/turn-on.sh", "data/datafiles")
     ],
     hiddenimports=[],
     hookspath=[],

@@ -23,11 +23,13 @@ import requests
 from pathlib import Path
 
 from configs import NODE_DATA_PATH, SKALE_DIR
-from tests.helper import response_mock, run_command_mock, run_command, subprocess_run_mock
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
                       update_node, backup_node, restore_node,
                       set_node_in_maintenance, remove_node_from_maintenance, _turn_off, _turn_on)
+
+from tests.helper import response_mock, run_command_mock, run_command, subprocess_run_mock
+from tests.resources_test import disk_alloc_mock
 
 
 def test_register_node(config):
@@ -91,7 +93,8 @@ def test_init_node(config):
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
-            mock.patch('core.host.init_data_dir'):
+            mock.patch('core.host.init_data_dir'), \
+            mock.patch('core.node.is_node_inited', return_value=False):
         result = run_command_mock(
             'core.helper.post_request',
             resp_mock,
@@ -124,6 +127,7 @@ def test_update_node(config):
             mock.patch('core.node.get_flask_secret_key'), \
             mock.patch('core.node.save_env_params'), \
             mock.patch('core.node.prepare_host'), \
+            mock.patch('core.resources.get_disk_alloc', new=disk_alloc_mock), \
             mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
             'core.helper.post_request',
@@ -132,7 +136,7 @@ def test_update_node(config):
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
-        assert result.output == 'Updating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
+        assert result.output == 'Resource allocation file was updated\nUpdating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
 
 
 def test_update_node_without_init(config):

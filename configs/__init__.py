@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 from configs.routes import ROUTES  # noqa: F401
 
-HOME_DIR = str(Path.home())
+HOME_DIR = os.getenv('HOME_DIR') or str(Path.home())
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
@@ -74,7 +74,7 @@ TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
 TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
-ALLOCATION_FILEPATH = os.path.join(DATAFILES_FOLDER, 'allocation.yml')
+ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'schain_allocation.yml')
 
 LONG_LINE = '-' * 50
 
