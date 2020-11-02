@@ -93,7 +93,6 @@ Arguments:
 
 Required options:
 
--   `--install-deps` - install dependencies
 -   `--dry-run` - create only needed files and directories and don't create containers
 
 You should also specify the following environment variables:
@@ -188,7 +187,7 @@ Arguments:
 
 - `ENV_FILEPATH` - path to env file where parameters are defined
 
-You can also specify a file with environment variables 
+You can also specify a file with environment variables
 which will update parameters in env file used during skale node init.
 
 #### Node turn-off
@@ -222,7 +221,7 @@ Arguments:
 
 - `ENV_FILEPATH` - path to env file where parameters are defined
 
-You can also specify a file with environment variables 
+You can also specify a file with environment variables
 which will update parameters in env file used during skale node init.
 
 #### Node maintenance

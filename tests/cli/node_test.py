@@ -89,7 +89,6 @@ def test_register_node_with_default_port_and_name(config):
 def test_init_node(config):
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
@@ -120,7 +119,6 @@ def test_update_node(config):
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.get_flask_secret_key'), \
             mock.patch('core.node.save_env_params'), \
             mock.patch('core.node.prepare_host'), \
@@ -139,7 +137,6 @@ def test_update_node_without_init(config):
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.get_flask_secret_key'), \
             mock.patch('core.node.save_env_params'), \
             mock.patch('core.node.prepare_host'), \
@@ -376,7 +373,7 @@ def test_maintenance_on():
         set_node_in_maintenance,
         ['--yes'])
     assert result.exit_code == 0
-    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n' # noqa
+    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'  # noqa
 
 
 def test_maintenance_off():
@@ -389,7 +386,7 @@ def test_maintenance_off():
         resp_mock,
         remove_node_from_maintenance)
     assert result.exit_code == 0
-    assert result.output == 'Setting maintenance mode off...\nNode is successfully removed from maintenance mode\n' # noqa
+    assert result.output == 'Setting maintenance mode off...\nNode is successfully removed from maintenance mode\n'  # noqa
 
 
 def test_turn_off_maintenance_on():
@@ -407,7 +404,7 @@ def test_turn_off_maintenance_on():
                 '--yes'
             ])
     assert result.exit_code == 0
-    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\nTuring off the node...\nNode was successfully turned off\n' # noqa
+    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\nTuring off the node...\nNode was successfully turned off\n'  # noqa
 
 
 def test_turn_on_maintenance_off():
@@ -431,4 +428,4 @@ def test_turn_on_maintenance_off():
     print('result.outputresult.output result.output result.output')
     print(result.output)
     assert result.exit_code == 0
-    assert result.output == 'Turning on the node...\nWaiting for transaction manager initialization ...\nNode was successfully turned on\nSetting maintenance mode off...\nNode is successfully removed from maintenance mode\n' # noqa
+    assert result.output == 'Turning on the node...\nWaiting for transaction manager initialization ...\nNode was successfully turned on\nSetting maintenance mode off...\nNode is successfully removed from maintenance mode\n'  # noqa
