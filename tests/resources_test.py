@@ -43,13 +43,11 @@ def test_generate_resource_allocation_config():
         assert resource_allocation_config['ima']['cpu_shares'] == {'test4': 38, 'test': 38, 'small': 2, 'medium': 38, 'large': 307} # noqa
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
-        assert resource_allocation_config['schain']['volume_limits'] == {
-            'storage_limit': {
-                'test4': 655360000,
-                'test': 655360000,
-                'small': 655360000,
-                'medium': 10737418240,
-                'large': 85899345920
-            },
-            **SCHAIN_VOLUME_PARTS
+        assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
+        assert resource_allocation_config['schain']['storage_limit'] == {
+            'test4': 655360000,
+            'test': 655360000,
+            'small': 655360000,
+            'medium': 10737418240,
+            'large': 85899345920
         }
