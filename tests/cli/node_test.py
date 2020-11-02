@@ -93,7 +93,8 @@ def test_init_node(config):
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
-            mock.patch('core.host.init_data_dir'):
+            mock.patch('core.host.init_data_dir'), \
+            mock.patch('core.node.is_node_inited', return_value=False):
         result = run_command_mock(
             'core.helper.post_request',
             resp_mock,
