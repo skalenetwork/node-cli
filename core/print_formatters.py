@@ -42,6 +42,7 @@ def print_err_response(error_payload):
     print(LONG_LINE)
     print(error_msg)
     print(LONG_LINE)
+    print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
 
 
 def print_wallet_info(wallet):

@@ -256,14 +256,24 @@ def run_turn_off_script():
         'SKALE_DIR': SKALE_DIR,
         'DATAFILES_FOLDER': DATAFILES_FOLDER
     }
-    run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
+    try:
+        run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
+    except Exception:
+        logger.exception('Turning off failed')
+        print_node_cmd_error()
+        return
     print('Node was successfully turned off')
 
 
 def run_turn_on_script(sync_schains, env_filepath):
     print('Turning on the node...')
     env = get_inited_node_env(env_filepath, sync_schains)
-    run_cmd(['bash', TURN_ON_SCRIPT], env=env)
+    try:
+        run_cmd(['bash', TURN_ON_SCRIPT], env=env)
+    except Exception:
+        logger.exception('Turning on failed')
+        print_node_cmd_error()
+        return
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
     print('Node was successfully turned on')
@@ -283,6 +293,7 @@ def turn_on(maintenance_off, sync_schains, env_file):
         print(TEXTS['node']['not_inited'])
         return
     run_turn_on_script(sync_schains, env_file)
+    # TODO: Handle error from turn on script
     if maintenance_off:
         set_maintenance_mode_off()
 
