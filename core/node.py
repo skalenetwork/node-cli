@@ -288,9 +288,8 @@ def turn_on(maintenance_off, sync_schains, env_file):
 
 def is_base_containers_alive():
     dclient = docker.from_env()
-    containers = dclient.containers.list(all=True)
+    containers = dclient.containers.list()
     skale_containers = list(filter(
-        lambda c: c.name.startswith('skale_') and c.status == 'running',
-        containers
+        lambda c: c.name.startswith('skale_'), containers
     ))
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
