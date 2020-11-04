@@ -54,6 +54,7 @@ setup(
     install_requires=[
         "click==7.1.2",
         "confuse",
+        "docker=4.2.2",
         "readsettings==3.4.5",
         "PyInstaller==3.6",
         "texttable==1.6.2",
