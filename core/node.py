@@ -204,7 +204,7 @@ def backup(path, env_filepath):
 
 
 def get_backup_filename():
-    time = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%M:%S")
+    time = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S")
     return f'{BACKUP_ARCHIVE_NAME}-{time}.tar.gz'
 
 
