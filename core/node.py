@@ -24,6 +24,8 @@ import shlex
 import subprocess
 import time
 
+import docker
+
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
                      BACKUP_ARCHIVE_NAME, HOME_DIR, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
@@ -35,11 +37,13 @@ from tools.helper import run_cmd, extract_env_params
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
-from core.print_formatters import print_err_response
+from core.print_formatters import print_err_response, print_node_cmd_error
 from tools.texts import Texts
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
+
+BASE_CONTAINERS_AMOUNT = 5
 
 
 def register_node(config, name, p2p_ip, public_ip, port):
@@ -81,9 +85,17 @@ def init(env_filepath, dry_run=False):
         'DRY_RUN': dry_run,
         **env_params
     }
-    run_cmd(['bash', INSTALL_SCRIPT], env=env)
+    try:
+        run_cmd(['bash', INSTALL_SCRIPT], env=env)
+    except Exception:
+        logger.exeception('Install script process errored')
+        print_node_cmd_error()
+        return
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        print_node_cmd_error()
+        pass
     print('Init procedure finished')
 
 
@@ -160,9 +172,17 @@ def update(env_filepath, sync_schains):
         env['DISK_MOUNTPOINT'],
         env['SGX_SERVER_URL']
     )
-    run_cmd(['bash', UPDATE_SCRIPT], env=env)
+    try:
+        run_cmd(['bash', UPDATE_SCRIPT], env=env)
+    except Exception:
+        logger.exeception('Update script process errored')
+        print_node_cmd_error()
+        return
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        print_node_cmd_error()
+        return
     print('Update procedure finished')
 
 
@@ -263,3 +283,13 @@ def turn_on(maintenance_off, sync_schains, env_file):
     run_turn_on_script(sync_schains, env_file)
     if maintenance_off:
         set_maintenance_mode_off()
+
+
+def is_base_containers_alive():
+    dclient = docker.from_env()
+    containers = dclient.containers.list(all=True)
+    skale_containers = list(filter(
+        lambda c: c.name.startswith('skale_') and c.status == 'running',
+        containers
+    ))
+    return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
