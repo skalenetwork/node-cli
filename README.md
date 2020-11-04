@@ -9,17 +9,17 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 ## Table of Contents
 
 1.  [Installation](#installation)
-2.  [CLI usage](#cli-usage)  
-    2.1 [Top level commands](#top-level-commands)  
-    2.2 [User](#user-commands)  
-    2.3 [Node](#node-commands)  
-    2.4 [Wallet](#wallet-commands)  
-    2.5 [sChains](#schain-commands)  
-    2.6 [Containers](#containers-commands)  
-    2.7 [SGX](#sgx-commands)  
-    2.8 [SSL](#ssl-commands)  
-    2.9 [Logs](#logs-commands)  
-3.  [Development](#development)  
+2.  [CLI usage](#cli-usage)
+    2.1 [Top level commands](#top-level-commands)
+    2.2 [User](#user-commands)
+    2.3 [Node](#node-commands)
+    2.4 [Wallet](#wallet-commands)
+    2.5 [sChains](#schain-commands)
+    2.6 [Containers](#containers-commands)
+    2.7 [SGX](#sgx-commands)
+    2.8 [SSL](#ssl-commands)
+    2.9 [Logs](#logs-commands)
+3.  [Development](#development)
 
 ## Installation
 
@@ -144,6 +144,11 @@ Arguments:
 - `BACKUP_FOLDER_PATH` - path to the folder where the backup file will be saved
 - `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
 `
+
+Optional arguments:
+
+-   `--no-database` - skip mysql database backup (in case if mysql container is not started)
+
 #### Node Registration
 
 ```bash
@@ -188,7 +193,7 @@ Arguments:
 
 - `ENV_FILEPATH` - path to env file where parameters are defined
 
-You can also specify a file with environment variables 
+You can also specify a file with environment variables
 which will update parameters in env file used during skale node init.
 
 #### Node turn-off
@@ -222,7 +227,7 @@ Arguments:
 
 - `ENV_FILEPATH` - path to env file where parameters are defined
 
-You can also specify a file with environment variables 
+You can also specify a file with environment variables
 which will update parameters in env file used during skale node init.
 
 #### Node maintenance
