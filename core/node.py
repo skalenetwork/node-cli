@@ -88,7 +88,7 @@ def init(env_filepath, dry_run=False):
     try:
         run_cmd(['bash', INSTALL_SCRIPT], env=env)
     except Exception:
-        logger.exeception('Install script process errored')
+        logger.exception('Install script process errored')
         print_node_cmd_error()
         return
     print('Waiting for transaction manager initialization ...')
@@ -120,12 +120,13 @@ def run_restore_script(backup_path, env_params) -> bool:
         'HOME_DIR': HOME_DIR,
         **env_params
     }
-    res = run_cmd(['bash', BACKUP_INSTALL_SCRIPT], env=env)
-    if res.returncode != 0:
-        print('Restore script failed, check node-cli logs')
+    try:
+        run_cmd(['bash', BACKUP_INSTALL_SCRIPT], env=env)
+    except Exception:
+        logger.exception('Restore script process errored')
+        print_node_cmd_error()
         return False
-    else:
-        return True
+    return True
 
 
 def purge():
@@ -175,7 +176,7 @@ def update(env_filepath, sync_schains):
     try:
         run_cmd(['bash', UPDATE_SCRIPT], env=env)
     except Exception:
-        logger.exeception('Update script process errored')
+        logger.exception('Update script process errored')
         print_node_cmd_error()
         return
     print('Waiting for transaction manager initialization ...')
