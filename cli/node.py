@@ -150,7 +150,7 @@ def signature(validator_id):
 @click.argument('backup_folder_path')
 @click.argument('env_file')
 @click.option('--no-database', is_flag=True,
-              help="Skaip mysql backup")
+              help="Skip mysql backup")
 def backup_node(backup_folder_path, env_file, no_database):
     backup_mysql = True if not no_database else False
     backup(backup_folder_path, env_file, backup_mysql)

@@ -9,16 +9,16 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 ## Table of Contents
 
 1.  [Installation](#installation)
-2.  [CLI usage](#cli-usage)
-    2.1 [Top level commands](#top-level-commands)
-    2.2 [User](#user-commands)
-    2.3 [Node](#node-commands)
-    2.4 [Wallet](#wallet-commands)
-    2.5 [sChains](#schain-commands)
-    2.6 [Containers](#containers-commands)
-    2.7 [SGX](#sgx-commands)
-    2.8 [SSL](#ssl-commands)
-    2.9 [Logs](#logs-commands)
+2.  [CLI usage](#cli-usage)  
+    2.1 [Top level commands](#top-level-commands)  
+    2.2 [User](#user-commands)  
+    2.3 [Node](#node-commands)  
+    2.4 [Wallet](#wallet-commands)  
+    2.5 [sChains](#schain-commands)  
+    2.6 [Containers](#containers-commands)  
+    2.7 [SGX](#sgx-commands)  
+    2.8 [SSL](#ssl-commands)  
+    2.9 [Logs](#logs-commands)  
 3.  [Development](#development)
 
 ## Installation
