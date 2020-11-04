@@ -196,9 +196,10 @@ def get_node_signature(validator_id):
         return payload
 
 
-def backup(path, env_filepath):
-    if not create_mysql_backup(env_filepath):
-        return
+def backup(path, env_filepath, mysql_backup=True):
+    if mysql_backup:
+        if not create_mysql_backup(env_filepath):
+            return
     backup_filepath = get_backup_filepath(path)
     create_backup_archive(backup_filepath)
 
