@@ -95,7 +95,7 @@ def init(env_filepath, dry_run=False):
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
         print_node_cmd_error()
-        pass
+        return
     print('Init procedure finished')
 
 
@@ -219,9 +219,9 @@ def create_backup_archive(backup_filepath):
     try:
         run_cmd(cmd)
         print(f'Backup archive succesfully created: {backup_filepath}')
-    except subprocess.CalledProcessError as e:
-        logger.error(e)
-        print('Something went wrong while trying to create backup archive, check out CLI logs')
+    except subprocess.CalledProcessError:
+        logger.exception('Backup archive creation failed')
+        print_node_cmd_error()
 
 
 def set_maintenance_mode_on():
