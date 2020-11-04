@@ -57,7 +57,7 @@ def test_register_node_with_error(config):
         register_node,
         ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80'])
     assert result.exit_code == 0
-    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\n'  # noqa
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
 def test_register_node_with_prompted_ip(config):
