@@ -93,7 +93,6 @@ Arguments:
 
 Required options:
 
--   `--install-deps` - install dependencies
 -   `--dry-run` - create only needed files and directories and don't create containers
 
 You should also specify the following environment variables:

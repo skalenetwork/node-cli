@@ -24,7 +24,7 @@ from urllib.parse import urlparse
 
 from core.resources import save_resource_allocation_config
 
-from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
+from configs import (ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
                      NODE_CERTS_PATH, SGX_CERTS_PATH, REDIS_DATA_PATH,
@@ -34,20 +34,10 @@ from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
 from core.helper import safe_load_texts
-from tools.helper import run_cmd
 
 TEXTS = safe_load_texts()
 
 logger = logging.getLogger(__name__)
-
-
-def install_host_dependencies():
-    env = {
-        **os.environ,
-        'SKALE_CMD': 'host_deps'
-    }
-    run_cmd(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
-    # todo: check execution status
 
 
 def fix_url(url):

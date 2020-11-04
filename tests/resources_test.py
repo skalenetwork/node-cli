@@ -2,6 +2,8 @@ import mock
 from core.resources import (generate_resource_allocation_config, get_schain_volume_proportions,
                             ResourceAlloc, SChainVolumeAlloc)
 
+from core.helper import safe_load_yml
+from configs import ALLOCATION_FILEPATH
 
 SCHAIN_VOLUME_PARTS = {'test4': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'test': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'medium': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
 
@@ -11,7 +13,8 @@ def disk_alloc_mock():
 
 
 def test_schain_resources_allocation():
-    proportions = get_schain_volume_proportions()
+    allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
+    proportions = get_schain_volume_proportions(allocation_data)
     res = ResourceAlloc(128)
     schain_volume_alloc = SChainVolumeAlloc(res, proportions)
     assert schain_volume_alloc.volume_alloc == SCHAIN_VOLUME_PARTS  # noqa
@@ -45,9 +48,9 @@ def test_generate_resource_allocation_config():
 
         assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
         assert resource_allocation_config['schain']['storage_limit'] == {
-            'test4': 655360000,
-            'test': 655360000,
-            'small': 655360000,
-            'medium': 10737418240,
-            'large': 85899345920
+            'test4': 4294967296,
+            'test': 4294967296,
+            'small': 4294967296,
+            'medium': 68719476736,
+            'large': 549755813888
         }

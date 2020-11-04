@@ -45,9 +45,13 @@ def wallet_info(format):
 
 @wallet.command('send', help="Send ETH from SKALE node wallet to address")
 @click.argument('address')
-@click.argument('amount')
+@click.argument('amount', type=float)
+@click.option('--gas-limit', type=int, default=None,
+              help='Gas limit value for transaction')
+@click.option('--gas-price', type=int, default=None,
+              help='Gas price value in Gwei for transaction')
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to send ETH tokens?')
-def send(address, amount):
-    send_eth(address, amount)
+def send(address, amount, gas_limit, gas_price):
+    send_eth(address, amount, gas_limit, gas_price)

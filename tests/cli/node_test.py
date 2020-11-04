@@ -91,7 +91,6 @@ def test_register_node_with_default_port_and_name(config):
 def test_init_node(config):
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.host.init_data_dir'), \
             mock.patch('core.node.is_base_containers_alive',
@@ -125,7 +124,6 @@ def test_update_node(config):
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.get_flask_secret_key'), \
             mock.patch('core.node.save_env_params'), \
             mock.patch('core.node.prepare_host'), \
@@ -147,7 +145,6 @@ def test_update_node_without_init(config):
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('cli.node.install_host_dependencies'), \
             mock.patch('core.node.get_flask_secret_key'), \
             mock.patch('core.node.save_env_params'), \
             mock.patch('core.node.prepare_host'), \
