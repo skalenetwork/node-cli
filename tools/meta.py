@@ -1,6 +1,7 @@
 import json
 import os
 from configs import META_FILEPATH
+from cli.info import VERSION
 
 DEFAULT_VERSION = '1.0.0'
 
@@ -32,3 +33,8 @@ def compose_meta(version: str) -> dict:
     return {
         'version': version
     }
+
+
+def update_meta():
+    meta = compose_meta(VERSION)
+    save_meta(meta)
