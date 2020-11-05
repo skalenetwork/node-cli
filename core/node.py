@@ -24,6 +24,8 @@ import shlex
 import subprocess
 import time
 
+import docker
+
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
                      BACKUP_ARCHIVE_NAME, HOME_DIR, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
@@ -35,11 +37,13 @@ from tools.helper import run_cmd, extract_env_params
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
-from core.print_formatters import print_err_response
+from core.print_formatters import print_err_response, print_node_cmd_error
 from tools.texts import Texts
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
+
+BASE_CONTAINERS_AMOUNT = 5
 
 
 def register_node(config, name, p2p_ip, public_ip, port):
@@ -81,9 +85,17 @@ def init(env_filepath, dry_run=False):
         'DRY_RUN': dry_run,
         **env_params
     }
-    run_cmd(['bash', INSTALL_SCRIPT], env=env)
+    try:
+        run_cmd(['bash', INSTALL_SCRIPT], env=env)
+    except Exception:
+        logger.exception('Install script process errored')
+        print_node_cmd_error()
+        return
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        print_node_cmd_error()
+        return
     print('Init procedure finished')
 
 
@@ -108,12 +120,13 @@ def run_restore_script(backup_path, env_params) -> bool:
         'HOME_DIR': HOME_DIR,
         **env_params
     }
-    res = run_cmd(['bash', BACKUP_INSTALL_SCRIPT], env=env)
-    if res.returncode != 0:
-        print('Restore script failed, check node-cli logs')
+    try:
+        run_cmd(['bash', BACKUP_INSTALL_SCRIPT], env=env)
+    except Exception:
+        logger.exception('Restore script process errored')
+        print_node_cmd_error()
         return False
-    else:
-        return True
+    return True
 
 
 def purge():
@@ -160,9 +173,17 @@ def update(env_filepath, sync_schains):
         env['DISK_MOUNTPOINT'],
         env['SGX_SERVER_URL']
     )
-    run_cmd(['bash', UPDATE_SCRIPT], env=env)
+    try:
+        run_cmd(['bash', UPDATE_SCRIPT], env=env)
+    except Exception:
+        logger.exception('Update script process errored')
+        print_node_cmd_error()
+        return
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        print_node_cmd_error()
+        return
     print('Update procedure finished')
 
 
@@ -175,15 +196,16 @@ def get_node_signature(validator_id):
         return payload
 
 
-def backup(path, env_filepath):
-    if not create_mysql_backup(env_filepath):
-        return
+def backup(path, env_filepath, mysql_backup=True):
+    if mysql_backup:
+        if not create_mysql_backup(env_filepath):
+            return
     backup_filepath = get_backup_filepath(path)
     create_backup_archive(backup_filepath)
 
 
 def get_backup_filename():
-    time = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%M:%S")
+    time = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S")
     return f'{BACKUP_ARCHIVE_NAME}-{time}.tar.gz'
 
 
@@ -197,9 +219,9 @@ def create_backup_archive(backup_filepath):
     try:
         run_cmd(cmd)
         print(f'Backup archive succesfully created: {backup_filepath}')
-    except subprocess.CalledProcessError as e:
-        logger.error(e)
-        print('Something went wrong while trying to create backup archive, check out CLI logs')
+    except subprocess.CalledProcessError:
+        logger.exception('Backup archive creation failed')
+        print_node_cmd_error()
 
 
 def set_maintenance_mode_on():
@@ -234,14 +256,24 @@ def run_turn_off_script():
         'SKALE_DIR': SKALE_DIR,
         'DATAFILES_FOLDER': DATAFILES_FOLDER
     }
-    run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
+    try:
+        run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
+    except Exception:
+        logger.exception('Turning off failed')
+        print_node_cmd_error()
+        return
     print('Node was successfully turned off')
 
 
 def run_turn_on_script(sync_schains, env_filepath):
     print('Turning on the node...')
     env = get_inited_node_env(env_filepath, sync_schains)
-    run_cmd(['bash', TURN_ON_SCRIPT], env=env)
+    try:
+        run_cmd(['bash', TURN_ON_SCRIPT], env=env)
+    except Exception:
+        logger.exception('Turning on failed')
+        print_node_cmd_error()
+        return
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
     print('Node was successfully turned on')
@@ -261,5 +293,15 @@ def turn_on(maintenance_off, sync_schains, env_file):
         print(TEXTS['node']['not_inited'])
         return
     run_turn_on_script(sync_schains, env_file)
+    # TODO: Handle error from turn on script
     if maintenance_off:
         set_maintenance_mode_off()
+
+
+def is_base_containers_alive():
+    dclient = docker.from_env()
+    containers = dclient.containers.list()
+    skale_containers = list(filter(
+        lambda c: c.name.startswith('skale_'), containers
+    ))
+    return len(skale_containers) >= BASE_CONTAINERS_AMOUNT

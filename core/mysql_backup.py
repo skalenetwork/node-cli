@@ -2,8 +2,9 @@ import logging
 import subprocess
 import shlex
 
-from tools.helper import run_cmd, extract_env_params
 from configs import MYSQL_BACKUP_CONTAINER_PATH, MYSQL_BACKUP_PATH
+from core.print_formatters import print_node_cmd_error
+from tools.helper import run_cmd, extract_env_params
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ def restore_mysql_backup(env_filepath: str) -> bool:
         )
         print(f'MySQL DB was succesfully restored from backup: {MYSQL_BACKUP_PATH}')
         return True
-    except subprocess.CalledProcessError as e:
-        logger.error(e)
-        print('Something went wrong while trying to restore MySQL from backup, check out CLI logs')
+    except subprocess.CalledProcessError:
+        logger.exception('Mysql restore command failed')
+        print_node_cmd_error()
         return False

@@ -17,7 +17,7 @@ node:
     Node hasn't been inited before.
     You should run < skale node init >
   already_inited: Node was already inited before.
-setHost: "Set SKALE node endpoint"
+  cmd_failed: "Command failed. Please check out {} and logs from docker containers"
 wallet:
   successful_transfer: "Funds were successfully transferred"
 

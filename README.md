@@ -19,7 +19,7 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     2.7 [SGX](#sgx-commands)  
     2.8 [SSL](#ssl-commands)  
     2.9 [Logs](#logs-commands)  
-3.  [Development](#development)  
+3.  [Development](#development)
 
 ## Installation
 
@@ -143,6 +143,11 @@ Arguments:
 - `BACKUP_FOLDER_PATH` - path to the folder where the backup file will be saved
 - `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
 `
+
+Optional arguments:
+
+-   `--no-database` - skip mysql database backup (in case if mysql container is not started)
+
 #### Node Registration
 
 ```bash

@@ -101,7 +101,8 @@ def test_schain_error_response(config):
     assert result.output == ('Command failed with following errors:\n'
                              '-----------------------------------------'
                              '---------\nOperation failed\n--------------------'
-                             '------------------------------\n')
+                             '------------------------------\n'
+                             'You can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n')  # noqa
 
 
 def test_schain_empty_response(config):
@@ -124,7 +125,7 @@ def test_schain_multi_error_response(config):
                               resp_mock, schains)
     assert result.exit_code == 0
     print(repr(result.output))
-    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nError test\nError test2\n--------------------------------------------------\n'  # noqa
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nError test\nError test2\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
 def test_ls():

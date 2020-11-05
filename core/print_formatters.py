@@ -26,6 +26,7 @@ from dateutil import parser
 import inspect
 
 from configs import LONG_LINE
+from configs.cli_logger import DEBUG_LOG_FILEPATH
 from tools.texts import Texts
 
 TEXTS = Texts()
@@ -41,6 +42,7 @@ def print_err_response(error_payload):
     print(LONG_LINE)
     print(error_msg)
     print(LONG_LINE)
+    print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
 
 
 def print_wallet_info(wallet):
@@ -250,3 +252,7 @@ def print_schain_info(info: dict, raw: bool = False) -> None:
         headers, rows = zip(*info.items())
         headers = list(map(lambda h: h.capitalize(), headers))
         print(Formatter().table(headers, [rows]))
+
+
+def print_node_cmd_error():
+    print(TEXTS['node']['cmd_failed'].format(DEBUG_LOG_FILEPATH))
