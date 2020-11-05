@@ -35,6 +35,7 @@ def compose_meta(version: str) -> dict:
     }
 
 
-def update_meta():
+def update_meta() -> None:
+    enure_meta()
     meta = compose_meta(VERSION)
     save_meta(meta)
