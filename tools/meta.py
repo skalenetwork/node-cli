@@ -26,13 +26,13 @@ def compose_default_meta() -> CliMeta:
     return CliMeta(version=DEFAULT_VERSION, config_stream=DEFAULT_CONFIG_STREAM)
 
 
-def enure_meta(meta: CliMeta = None) -> None:
+def ensure_meta(meta: CliMeta = None) -> None:
     if not get_meta_info():
         meta = meta or compose_default_meta()
         save_meta(meta)
 
 
 def update_meta(version: str, config_stream: str) -> None:
-    enure_meta()
+    ensure_meta()
     meta = CliMeta(version, config_stream)
     save_meta(meta)

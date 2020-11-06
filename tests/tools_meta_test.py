@@ -7,7 +7,7 @@ from configs import META_FILEPATH
 from tools.meta import (
     CliMeta, compose_default_meta,
     DEFAULT_CONFIG_STREAM, DEFAULT_VERSION,
-    enure_meta, get_meta_info,
+    ensure_meta, get_meta_info,
     save_meta, update_meta
 )
 
@@ -70,7 +70,7 @@ def test_update_meta(meta_file):
 
 
 def test_ensure_meta(ensure_meta_removed):
-    enure_meta()
+    ensure_meta()
     assert get_meta_info() == CliMeta(DEFAULT_VERSION, DEFAULT_CONFIG_STREAM)
-    enure_meta(CliMeta(version='1.1.1', config_stream='1.1.1'))
+    ensure_meta(CliMeta(version='1.1.1', config_stream='1.1.1'))
     assert get_meta_info() == CliMeta(DEFAULT_VERSION, DEFAULT_CONFIG_STREAM)
