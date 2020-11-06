@@ -1,41 +1,38 @@
 import json
 import os
+from collections import namedtuple
 from configs import META_FILEPATH
-from cli.info import VERSION
 
 DEFAULT_VERSION = '1.0.0'
+DEFAULT_CONFIG_STREAM = '1.0.0'
+
+CliMeta = namedtuple('CliMeta', ('version', 'config_stream'))
 
 
-def get_meta_info() -> dict:
+def get_meta_info() -> CliMeta:
     if not os.path.isfile(META_FILEPATH):
-        return {}
+        return None
     with open(META_FILEPATH) as meta_file:
-        meta = json.load(meta_file)
-    return meta
+        plain_meta = json.load(meta_file)
+    return CliMeta(**plain_meta)
 
 
-def save_meta(meta: dict) -> None:
-    with open(META_FILEPATH) as meta_file:
-        json.dump(meta, meta_file)
+def save_meta(meta: CliMeta) -> None:
+    with open(META_FILEPATH, 'w') as meta_file:
+        json.dump(meta._asdict(), meta_file)
 
 
-def get_default_meta() -> dict:
-    return compose_meta(DEFAULT_VERSION)
+def compose_default_meta() -> CliMeta:
+    return CliMeta(version=DEFAULT_VERSION, config_stream=DEFAULT_CONFIG_STREAM)
 
 
-def enure_meta(meta: dict = None) -> None:
+def enure_meta(meta: CliMeta = None) -> None:
     if not get_meta_info():
-        meta = meta or get_default_meta()
+        meta = meta or compose_default_meta()
         save_meta(meta)
 
 
-def compose_meta(version: str) -> dict:
-    return {
-        'version': version
-    }
-
-
-def update_meta() -> None:
+def update_meta(version: str, config_stream: str) -> None:
     enure_meta()
-    meta = compose_meta(VERSION)
+    meta = CliMeta(version, config_stream)
     save_meta(meta)
