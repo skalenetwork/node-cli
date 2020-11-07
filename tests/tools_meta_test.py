@@ -46,7 +46,7 @@ def test_get_meta_info_empty():
 def test_compose_default_meta():
     meta = compose_default_meta()
     assert meta.version == '1.0.0'
-    assert meta.config_stream == '1.0.0'
+    assert meta.config_stream == '1.1.0'
 
 
 def test_save_meta(meta_file):

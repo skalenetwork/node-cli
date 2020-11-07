@@ -4,7 +4,7 @@ from collections import namedtuple
 from configs import META_FILEPATH
 
 DEFAULT_VERSION = '1.0.0'
-DEFAULT_CONFIG_STREAM = '1.0.0'
+DEFAULT_CONFIG_STREAM = '1.1.0'
 
 CliMeta = namedtuple('CliMeta', ('version', 'config_stream'))
 
