@@ -26,6 +26,7 @@ import time
 
 import docker
 
+from cli.info import VERSION
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
                      BACKUP_ARCHIVE_NAME, HOME_DIR, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
@@ -33,11 +34,12 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL
 
 from core.resources import save_resource_allocation_config
 from core.helper import get_request, post_request
-from tools.helper import run_cmd, extract_env_params
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
 from core.print_formatters import print_err_response, print_node_cmd_error
+from tools.meta import update_meta
+from tools.helper import run_cmd, extract_env_params
 from tools.texts import Texts
 
 logger = logging.getLogger(__name__)
@@ -78,6 +80,7 @@ def init(env_filepath, dry_run=False):
         env_params['DISK_MOUNTPOINT'],
         env_params['SGX_SERVER_URL']
     )
+    update_meta(VERSION, env_params['CONTAINER_CONFIGS_STREAM'])
     dry_run = 'yes' if dry_run else ''
     env = {
         'SKALE_DIR': SKALE_DIR,
@@ -173,6 +176,7 @@ def update(env_filepath, sync_schains):
         env['DISK_MOUNTPOINT'],
         env['SGX_SERVER_URL']
     )
+    update_meta(VERSION, env['CONTAINER_CONFIGS_STREAM'])
     try:
         run_cmd(['bash', UPDATE_SCRIPT], env=env)
     except Exception:
