@@ -1,0 +1,80 @@
+{
+    "schain": {
+        "cpu_shares": {
+            "test4": 89,
+            "test": 89,
+            "small": 5,
+            "medium": 89,
+            "large": 716
+        },
+        "mem": {
+            "test4": 1166249656,
+            "test": 1166249656,
+            "small": 72890603,
+            "medium": 1166249656,
+            "large": 9329997250
+        },
+        "disk": {
+            "test4": 16,
+            "test": 16,
+            "small": 1,
+            "medium": 16,
+            "large": 128
+        },
+        "volume_limits": {
+            "test4": {
+                "max_consensus_storage_bytes": 4,
+                "max_skaled_leveldb_storage_bytes": 4,
+                "max_file_storage_bytes": 4,
+                "max_reserved_storage_bytes": 1
+            },
+            "test": {
+                "max_consensus_storage_bytes": 4,
+                "max_skaled_leveldb_storage_bytes": 4,
+                "max_file_storage_bytes": 4,
+                "max_reserved_storage_bytes": 1
+            },
+            "small": {
+                "max_consensus_storage_bytes": 0,
+                "max_skaled_leveldb_storage_bytes": 0,
+                "max_file_storage_bytes": 0,
+                "max_reserved_storage_bytes": 0
+            },
+            "medium": {
+                "max_consensus_storage_bytes": 4,
+                "max_skaled_leveldb_storage_bytes": 4,
+                "max_file_storage_bytes": 4,
+                "max_reserved_storage_bytes": 1
+            },
+            "large": {
+                "max_consensus_storage_bytes": 38,
+                "max_skaled_leveldb_storage_bytes": 38,
+                "max_file_storage_bytes": 38,
+                "max_reserved_storage_bytes": 12
+            }
+        },
+        "storage_limit": {
+            "test4": 655360000,
+            "test": 655360000,
+            "small": 655360000,
+            "medium": 10737418240,
+            "large": 85899345920
+        }
+    },
+    "ima": {
+        "cpu_shares": {
+            "test4": 38,
+            "test": 38,
+            "small": 2,
+            "medium": 38,
+            "large": 307
+        },
+        "mem": {
+            "test4": 499821281,
+            "test": 499821281,
+            "small": 31238830,
+            "medium": 499821281,
+            "large": 3998570250
+        }
+    }
+}

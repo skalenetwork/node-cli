@@ -34,17 +34,15 @@ from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIM
 
 logger = logging.getLogger(__name__)
 
-ALLOCATION_DATA = safe_load_yml(ALLOCATION_FILEPATH)
-
 
 class ResourceAlloc:
     def __init__(self, value, fractional=False):
         self.values = {
-            'part_test4': value / TEST_DIVIDER,
-            'part_test': value / TEST_DIVIDER,
-            'part_small': value / TINY_DIVIDER,
-            'part_medium': value / SMALL_DIVIDER,
-            'part_large': value / MEDIUM_DIVIDER
+            'test4': value / TEST_DIVIDER,
+            'test': value / TEST_DIVIDER,
+            'small': value / TINY_DIVIDER,
+            'medium': value / SMALL_DIVIDER,
+            'large': value / MEDIUM_DIVIDER
         }
         if not fractional:
             for k in self.values:
@@ -73,33 +71,39 @@ def get_resource_allocation_info():
 
 
 def generate_resource_allocation_config():
-    cpu_alloc = get_cpu_alloc()
-    mem_alloc = get_memory_alloc()
+    allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
+    schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(allocation_data)
+    schain_mem_alloc, ima_mem_alloc = get_memory_alloc(allocation_data)
+
     disk_alloc = get_disk_alloc()
-    schain_volume_alloc = get_schain_volume_alloc(disk_alloc)
+    schain_volume_alloc = get_schain_volume_alloc(disk_alloc, allocation_data)
     return {
-        'cpu_shares': cpu_alloc.dict(),
-        'mem': mem_alloc.dict(),
-        'disk': disk_alloc.dict(),
         'schain': {
-            'storage_limit': get_storage_limit_alloc(),
-            **schain_volume_alloc.volume_alloc
+            'cpu_shares': schain_cpu_alloc.dict(),
+            'mem': schain_mem_alloc.dict(),
+            'disk': disk_alloc.dict(),
+            'volume_limits': schain_volume_alloc.volume_alloc,
+            'storage_limit': get_storage_limit_alloc(allocation_data)
+        },
+        'ima': {
+            'cpu_shares': ima_cpu_alloc.dict(),
+            'mem': ima_mem_alloc.dict()
         }
     }
 
 
-def get_schain_volume_alloc(disk_alloc: ResourceAlloc) -> SChainVolumeAlloc:
-    proportions = get_schain_volume_proportions()
+def get_schain_volume_alloc(disk_alloc: ResourceAlloc, allocation_data: dict) -> SChainVolumeAlloc:
+    proportions = get_schain_volume_proportions(allocation_data)
     return SChainVolumeAlloc(disk_alloc, proportions)
 
 
-def get_schain_volume_proportions():
-    return ALLOCATION_DATA['schain_volume_proportions']
+def get_schain_volume_proportions(allocation_data):
+    return allocation_data['schain_proportions']['volume']
 
 
-def get_storage_limit_alloc(testnet=True):
+def get_storage_limit_alloc(allocation_data, testnet=False):
     network = 'testnet' if testnet else 'mainnet'
-    return ALLOCATION_DATA[network]['storage_limit']
+    return allocation_data[network]['storage_limit']
 
 
 def save_resource_allocation_config(exist_ok=False) -> bool:
@@ -127,13 +131,30 @@ def get_available_memory():
     return sum(memory) / TIMES * MEMORY_FACTOR
 
 
-def get_memory_alloc():
-    available_memory = get_available_memory()
-    return ResourceAlloc(available_memory)
+def get_total_memory():
+    memory = []
+    for _ in range(0, TIMES):
+        mem_info = psutil.virtual_memory()
+        memory.append(mem_info.total)
+        sleep(TIMEOUT)
+    return sum(memory) / TIMES * MEMORY_FACTOR
 
 
-def get_cpu_alloc():
-    return ResourceAlloc(MAX_CPU_SHARES)
+def get_memory_alloc(allocation_data):
+    mem_proportions = allocation_data['schain_proportions']['mem']
+    available_memory = get_total_memory()
+
+    schain_memory = mem_proportions['skaled'] * available_memory
+    ima_memory = mem_proportions['ima'] * available_memory
+
+    return ResourceAlloc(schain_memory), ResourceAlloc(ima_memory)
+
+
+def get_cpu_alloc(allocation_data):
+    cpu_proportions = allocation_data['schain_proportions']['cpu']
+    schain_max_cpu_shares = int(cpu_proportions['skaled'] * MAX_CPU_SHARES)
+    ima_max_cpu_shares = int(cpu_proportions['ima'] * MAX_CPU_SHARES)
+    return ResourceAlloc(schain_max_cpu_shares), ResourceAlloc(ima_max_cpu_shares)
 
 
 def get_disk_alloc():

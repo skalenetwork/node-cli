@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 from configs.routes import ROUTES  # noqa: F401
 
-HOME_DIR = str(Path.home())
+HOME_DIR = os.getenv('HOME_DIR') or str(Path.home())
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
@@ -65,7 +65,6 @@ DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
 THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
 
-DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
 BACKUP_INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'backup-install.sh')
 UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
@@ -74,7 +73,7 @@ TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
 TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
-ALLOCATION_FILEPATH = os.path.join(DATAFILES_FOLDER, 'allocation.yml')
+ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'schain_allocation.yml')
 
 LONG_LINE = '-' * 50
 
@@ -92,3 +91,5 @@ MYSQL_BACKUP_PATH = os.path.join(MYSQL_BACKUP_FOLDER, MYSQL_BACKUP_FILE_NAME)
 MYSQL_BACKUP_CONTAINER_PATH = os.path.join(MYSQL_BACKUP_CONTAINER_FOLDER, MYSQL_BACKUP_FILE_NAME)
 
 TM_INIT_TIMEOUT = 20
+
+META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')

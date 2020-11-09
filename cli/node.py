@@ -28,7 +28,6 @@ from core.core import get_node_info, get_node_about
 from core.node import (get_node_signature, init, restore,
                        register_node as register, update, backup,
                        set_maintenance_mode_on, set_maintenance_mode_off, turn_off, turn_on)
-from core.host import install_host_dependencies
 from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
 from tools.helper import session_config
@@ -118,18 +117,11 @@ def register_node(name, ip, port):
 @node.command('init', help="Initialize SKALE node")
 @click.argument('env_file')
 @click.option(
-    '--install-deps',
-    is_flag=True,
-    help='Install host dependencies'
-)
-@click.option(
     '--dry-run',
     is_flag=True,
     help="Dry run node init (don't setup containers)"
 )
-def init_node(env_file, install_deps, dry_run):
-    if install_deps:
-        install_host_dependencies()
+def init_node(env_file, dry_run):
     init(env_file, dry_run)
 
 
@@ -157,8 +149,11 @@ def signature(validator_id):
 @node.command('backup', help="Generate backup file to restore SKALE node on another machine")
 @click.argument('backup_folder_path')
 @click.argument('env_file')
-def backup_node(backup_folder_path, env_file):
-    backup(backup_folder_path, env_file)
+@click.option('--no-database', is_flag=True,
+              help="Skip mysql backup")
+def backup_node(backup_folder_path, env_file, no_database):
+    backup_mysql = True if not no_database else False
+    backup(backup_folder_path, env_file, backup_mysql)
 
 
 @node.command('restore', help="Restore SKALE node on another machine")
