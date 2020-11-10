@@ -29,25 +29,25 @@ Ensure that the following package is installed: **docker**, **docker-compose** (
 
 -   Download the executable
 
-```bash
+```shell
 VERSION_NUM={put the version number here} && sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
 ```
 
 For versions `<1.1.0`:
 
-```bash
+```shell
 VERSION_NUM=0.0.0 && sudo -E bash -c "curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
 ```
 
 -   Apply executable permissions to the downloaded binary:
 
-```bash
+```shell
 chmod +x /usr/local/bin/skale
 ```
 
 -   Test the installation
 
-```bash
+```shell
 skale --help
 ```
 
@@ -59,7 +59,7 @@ skale --help
 
 Print build info
 
-```bash
+```shell
 skale info
 ```
 
@@ -67,7 +67,7 @@ skale info
 
 Print version number
 
-```bash
+```shell
 skale version
 ```
 
@@ -79,11 +79,25 @@ Options:
 
 > Prefix: `skale node`
 
+#### Node information
+
+Get base info about SKALE node
+
+```shell
+skale node info
+```
+
+Options:
+
+`-f/--format json/text` - optional
+
 #### Node initialization
 
 Initialize a SKALE node on current machine
 
-```bash
+> :warning: **Please avoid re-initialization**: First run `skale node info` to confirm current state of intialization.
+
+```shell
 skale node init [ENV_FILE]
 ```
 
@@ -121,7 +135,7 @@ Optional variables:
 
 Restore SKALE node on another machine
 
-```bash
+```shell
 skale node restore [BACKUP_PATH] [ENV_FILE]
 ```
 
@@ -134,7 +148,7 @@ Arguments:
 
 Generate backup file to restore SKALE node on another machine
 
-```bash
+```shell
 skale node backup [BACKUP_FOLDER_PATH] [ENV_FILE]
 ```
 
@@ -150,7 +164,7 @@ Optional arguments:
 
 #### Node Registration
 
-```bash
+```shell
 skale node register
 ```
 
@@ -163,23 +177,11 @@ Optional arguments:
 -   `--name` - SKALE node name
 -   `--port` - public port - beginning of the port range for node SKALE Chains (default: `10000`)
 
-#### Node information
-
-Get base info about SKALE node
-
-```bash
-skale node info
-```
-
-Options:
-
-`-f/--format json/text` - optional
-
 #### Node update
 
 Update SKALE node on current machine
 
-```bash
+```shell
 skale node update [ENV_FILEPATH]
 ```
 
@@ -199,7 +201,7 @@ which will update parameters in env file used during skale node init.
 
 Turn-off SKALE node on current machine and optionally set it to the maintenance mode
 
-```bash
+```shell
 skale node turn-off
 ```
 
@@ -212,7 +214,7 @@ Options:
 
 Turn on SKALE node on current machine and optionally disable maintenance mode
 
-```bash
+```shell
 skale node turn-on [ENV_FILEPATH]
 ```
 
@@ -233,7 +235,7 @@ which will update parameters in env file used during skale node init.
 
 Set SKALE node into maintenance mode
 
-```bash
+```shell
 skale node maintenance-on
 ```
 
@@ -243,7 +245,7 @@ Options:
 
 Switch off maintenance mode
 
-```bash
+```shell
 skale node maintenance-off
 ```
 
@@ -255,7 +257,7 @@ Commands related to Ethereum wallet associated with SKALE node
 
 #### Wallet information
 
-```bash
+```shell
 skale wallet info
 ```
 
@@ -267,7 +269,7 @@ Options:
 
 Set local wallet for the SKALE node
 
-```bash
+```shell
 skale wallet set --private-key $ETH_PRIVATE_KEY
 ```
 
@@ -275,7 +277,7 @@ skale wallet set --private-key $ETH_PRIVATE_KEY
 
 Send ETH tokens from SKALE node wallet to specific address
 
-```bash
+```shell
 skale wallet send [ADDRESS] [AMOUNT]
 ```
 
@@ -296,13 +298,13 @@ Optional arguments:
 
 List of SKALE Chains served by connected node
 
-```bash
+```shell
 skale schains ls
 ```
 
 #### SKALE Chain configuration
 
-```bash
+```shell
 skale schains config SCHAIN_NAME
 ```
 
@@ -310,14 +312,15 @@ skale schains config SCHAIN_NAME
 
 List DKG status for each SKALE Chain on the node
 
-```bash
+```shell
 skale schains dkg
 ```
 
 #### SKALE Chain info
 
 Show information about SKALE Chain on node
-```bash
+
+```shell
 skale schains info SCHAIN_NAME
 ```
 
@@ -329,7 +332,7 @@ Options:
 
 Turn on repair mode for SKALE Chain
 
-```bash
+```shell
 skale schains repair SCHAIN_NAME
 ```
 
@@ -337,7 +340,7 @@ skale schains repair SCHAIN_NAME
 
 Show healthcheck results for all SKALE Chains on the node
 
-```bash
+```shell
 skale schains checks
 ```
 
@@ -355,7 +358,7 @@ Node container commands
 
 List all SKALE containers running on the connected node
 
-```bash
+```shell
 skale containers ls
 ```
 
@@ -367,7 +370,7 @@ Options:
 
 List of SKALE chain containers running on the connected node
 
-```bash
+```shell
 skale containers schains
 ```
 
@@ -383,7 +386,7 @@ Options:
 
 Status of the SGX server. Returns the SGX server URL and connection status.
 
-```bash
+```shell
 $ skale sgx status
 
 SGX server status:
@@ -404,7 +407,7 @@ Admin API URL: \[GET] `/api/ssl/sgx`
 
 Status of the SSL certificates on the node
 
-```bash
+```shell
 skale ssl status
 ```
 
@@ -414,7 +417,7 @@ Admin API URL: \[GET] `/api/ssl/status`
 
 Upload new SSL certificates
 
-```bash
+```shell
 skale ssl upload
 ```
 
@@ -434,7 +437,7 @@ Admin API URL: \[GET] `/api/ssl/upload`
 
 Fetch node CLI logs:
 
-```bash
+```shell
 skale logs cli
 ```
 
@@ -446,7 +449,7 @@ Options:
 
 Dump all logs from the connected node:
 
-```bash
+```shell
 skale logs dump [PATH]
 ```
 
@@ -463,14 +466,14 @@ Optional arguments:
 
 Show resources allocation file:
 
-```bash
+```shell
 skale resources-allocation show
 ```
 #### Generate/update
 
 Generate/update allocation file:
 
-```bash
+```shell
 skale resources-allocation generate
 ```
 
@@ -484,7 +487,7 @@ Options:
 
 #### Install development dependencies
 
-```bash
+```shell
 pip install -e .[dev]
 ```
 
@@ -492,7 +495,7 @@ pip install -e .[dev]
 
 In file `.git/hooks/pre-commit` add:
 
-```bash
+```shell
 #!/bin/sh
 flake8 .
 ```
@@ -501,7 +504,7 @@ flake8 .
 
 Run commands in dev mode:
 
-```bash
+```shell
 ENV=dev python main.py YOUR_COMMAND
 ```
 
