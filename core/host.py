@@ -104,9 +104,11 @@ def init_data_dir():
     safe_mk_dirs(NODE_DATA_PATH)
 
 
-def safe_mk_dirs(path):
+def safe_mk_dirs(path, print_res=False):
     if os.path.exists(path):
         return
     msg = f'Creating {path} directory...'
-    logger.info(msg), print(msg)
+    logger.info(msg)
+    if print_res:
+        print(msg)
     os.makedirs(path, exist_ok=True)
