@@ -17,19 +17,22 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import logging
+import os
 from shutil import copyfile
 from urllib.parse import urlparse
 
+from core.helper import validate_abi
 from core.resources import save_resource_allocation_config
 
 from configs import (ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
                      NODE_CERTS_PATH, SGX_CERTS_PATH, REDIS_DATA_PATH,
-                     SCHAINS_DATA_PATH, LOG_PATH, MYSQL_BACKUP_FOLDER)
+                     SCHAINS_DATA_PATH, LOG_PATH, MYSQL_BACKUP_FOLDER,
+                     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
 from configs.cli_logger import LOG_DATA_PATH
+from core.print_formatters import print_abi_validation_errors
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
@@ -112,3 +115,18 @@ def safe_mk_dirs(path, print_res=False):
     if print_res:
         print(msg)
     os.makedirs(path, exist_ok=True)
+
+
+def validate_abi_files():
+    results = [
+        validate_abi(abi_filepath)
+        for abi_filepath in [
+            MANAGER_CONTRACTS_FILEPATH,
+            IMA_CONTRACTS_FILEPATH
+        ]
+    ]
+    if any(r['status'] == 'error' for r in results):
+        print('Some files are not exist or incorrect')
+        print_abi_validation_errors(results)
+    else:
+        print('Ok')
