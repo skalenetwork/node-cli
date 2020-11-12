@@ -27,7 +27,7 @@ def validate_cli():
     pass
 
 
-@validate_cli.group(help="Resources allocation commands")
+@validate_cli.group(help="Validation commands")
 def validate():
     pass
 
