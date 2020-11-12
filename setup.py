@@ -72,7 +72,7 @@ setup(
     keywords=['skale', 'cli'],
     packages=find_packages(exclude=['tests']),
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Natural Language :: English',
