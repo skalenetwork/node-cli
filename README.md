@@ -19,6 +19,8 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     2.7 [SGX](#sgx-commands)  
     2.8 [SSL](#ssl-commands)  
     2.9 [Logs](#logs-commands)  
+    2.10 [Resources allocation](#resources-allocation-commands)  
+    2.11 [Validate](#validate-commands)  
 3.  [Development](#development)
 
 ## Installation
@@ -480,6 +482,19 @@ skale resources-allocation generate
 Options:
 
 -   `--yes` - generate without additional confirmation
+
+
+### Validate commands
+
+> Prefix: `skale validate`
+
+#### Validate abi
+
+Check if abi failes present and have valid json data 
+
+```shell
+skale validate abi
+```
 
 ## Development
 
