@@ -33,5 +33,11 @@ def validate():
 
 
 @validate.command('abi', help="Validate contracts abi")
-def abi():
-    validate_abi_files()
+@click.option(
+    '--json',
+    'json_format',
+    help='Show result in JSON format',
+    is_flag=True
+)
+def abi(json_format):
+    validate_abi_files(json_result=json_format)

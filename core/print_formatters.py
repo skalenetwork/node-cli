@@ -255,9 +255,10 @@ def print_schain_info(info: dict, raw: bool = False) -> None:
 
 
 def print_abi_validation_errors(info: list, raw: bool = False) -> None:
-    if raw or not info:
-        print(info)
+    if not info:
         return
+    if raw:
+        print(json.dumps(info))
     else:
         headers = info[0].keys()
         rows = [tuple(r.values()) for r in info]
