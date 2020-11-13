@@ -21,6 +21,7 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     2.9 [Logs](#logs-commands)  
     2.10 [Resources allocation](#resources-allocation-commands)  
     2.11 [Validate](#validate-commands)  
+
 3.  [Development](#development)
 
 ## Installation
@@ -482,7 +483,6 @@ skale resources-allocation generate
 Options:
 
 -   `--yes` - generate without additional confirmation
-
 
 ### Validate commands
 
