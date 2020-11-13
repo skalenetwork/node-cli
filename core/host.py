@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import logging
 import os
 from shutil import copyfile
@@ -117,7 +118,7 @@ def safe_mk_dirs(path, print_res=False):
     os.makedirs(path, exist_ok=True)
 
 
-def validate_abi_files():
+def validate_abi_files(json_result=False):
     results = [
         validate_abi(abi_filepath)
         for abi_filepath in [
@@ -127,6 +128,9 @@ def validate_abi_files():
     ]
     if any(r['status'] == 'error' for r in results):
         print('Some files are not exist or incorrect')
-        print_abi_validation_errors(results)
+        print_abi_validation_errors(results, raw=json_result)
     else:
-        print('Ok')
+        if json_result:
+            print(json.dumps({'result': 'ok'}))
+        else:
+            print('All abi files are correct json files')

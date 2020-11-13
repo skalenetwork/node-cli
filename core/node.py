@@ -32,7 +32,6 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL
                      BACKUP_ARCHIVE_NAME, HOME_DIR, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
                      TM_INIT_TIMEOUT)
 
-from core.resources import save_resource_allocation_config
 from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
@@ -162,12 +161,6 @@ def update(env_filepath, sync_schains):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
-
-    res = save_resource_allocation_config(exist_ok=True)
-    if res:
-        print('Resource allocation file was updated')
-    else:
-        print('Can\'t update resource allocation file, check out CLI logs')
 
     print('Updating the node...')
     env = get_inited_node_env(env_filepath, sync_schains)

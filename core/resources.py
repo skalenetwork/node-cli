@@ -107,7 +107,7 @@ def get_storage_limit_alloc(allocation_data, testnet=False):
 
 
 def save_resource_allocation_config(exist_ok=False) -> bool:
-    if os.path.isfile(RESOURCE_ALLOCATION_FILEPATH) and not exist_ok:
+    if os.path.isfile(RESOURCE_ALLOCATION_FILEPATH) and exist_ok:
         msg = 'Resource allocation file is already exists'
         print(msg)
         logger.debug(msg)
@@ -118,7 +118,7 @@ def save_resource_allocation_config(exist_ok=False) -> bool:
         write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
     except Exception as e:
         logger.exception(e)
-        return False
+        raise e
     return True
 
 
