@@ -496,6 +496,10 @@ Check if abi failes present and have valid json data
 skale validate abi
 ```
 
+Options:
+
+-   `--json` - show validation result in json format 
+
 ## Development
 
 ### Setup repo
