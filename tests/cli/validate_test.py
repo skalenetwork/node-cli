@@ -47,7 +47,7 @@ def contract_abi_file_empty(contracts_info_dir):
 
 def test_validate_abi(contract_valid_abi_files):
     result = run_command(abi)
-    assert result.output == 'Ok\n'
+    assert result.output == 'All abi files are correct json files!\n'
     assert result.exit_code == 0
 
 

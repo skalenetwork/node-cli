@@ -133,4 +133,4 @@ def validate_abi_files(json_result=False):
         if json_result:
             print(json.dumps({'result': 'ok'}))
         else:
-            print('All abi files are correct json files')
+            print('All abi files are correct json files!')
