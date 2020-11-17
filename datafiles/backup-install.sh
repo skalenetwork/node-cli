@@ -5,6 +5,7 @@ CONFIG_DIR="$SKALE_DIR"/config
 CONTRACTS_DIR="$SKALE_DIR"/contracts_info
 NODE_DATA_DIR=$SKALE_DIR/node_data
 
+
 source "$DATAFILES_FOLDER"/helper.sh
 
 tar -zxvf $BACKUP_PATH -C $HOME_DIR
@@ -13,7 +14,8 @@ echo "Creating .env symlink to $CONFIG_DIR/.env ..."
 if [[ -f $CONFIG_DIR/.env ]]; then
     rm "$CONFIG_DIR/.env"
 fi
-ln -s "$SKALE_DIR/.env" "$CONFIG_DIR/.env"
+
+ln -sf "$SKALE_DIR/.env" "$CONFIG_DIR/.env"
 
 cd $SKALE_DIR
 

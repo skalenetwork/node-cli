@@ -26,6 +26,7 @@ LOG_FILE_SIZE_MB = 300
 LOG_FILE_SIZE_BYTES = LOG_FILE_SIZE_MB * 1000000
 
 LOG_BACKUP_COUNT = 1
-LOG_DATA_PATH = os.path.join(SKALE_DIR, '.skale-cli-log')
+LOG_DIRNAME = '.skale-cli-log'
+LOG_DATA_PATH = os.path.join(SKALE_DIR, LOG_DIRNAME)
 LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'node-cli.log')
 DEBUG_LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'debug-node-cli.log')
