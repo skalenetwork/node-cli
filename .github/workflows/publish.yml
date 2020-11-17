@@ -32,7 +32,8 @@ jobs:
           else
             export PRERELEASE=true
           fi
-          echo "::set-env name=PRERELEASE::$PRERELEASE"
+          echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
