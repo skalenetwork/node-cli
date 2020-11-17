@@ -13,7 +13,7 @@ echo "Creating .env symlink to $CONFIG_DIR/.env ..."
 if [[ -f $CONFIG_DIR/.env ]]; then
     rm "$CONFIG_DIR/.env"
 fi
-ln -s $SKALE_DIR/.env $CONFIG_DIR/.env
+ln -s "$SKALE_DIR/.env" "$CONFIG_DIR/.env"
 
 cd $SKALE_DIR
 
