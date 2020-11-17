@@ -27,10 +27,12 @@ import time
 import docker
 
 from cli.info import VERSION
-from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT,
+from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
+                     BACKUP_INSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
-                     BACKUP_ARCHIVE_NAME, HOME_DIR, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
-                     TM_INIT_TIMEOUT)
+                     BACKUP_ARCHIVE_NAME, HOME_DIR,
+                     TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
+from configs.cli_logger import LOG_DIRNAME
 
 from core.resources import save_resource_allocation_config
 from core.helper import get_request, post_request
@@ -219,7 +221,11 @@ def get_backup_filepath(base_path):
 
 def create_backup_archive(backup_filepath):
     print('Creating backup archive...')
-    cmd = shlex.split(f'tar -zcvf {backup_filepath} -C {HOME_DIR} .skale')
+    log_skale_path = os.path.join('.skale', LOG_DIRNAME)
+    cmd = shlex.split(
+        f'tar -zcvf {backup_filepath} -C {HOME_DIR} '
+        f'--exclude {log_skale_path} .skale'
+    )
     try:
         run_cmd(cmd)
         print(f'Backup archive succesfully created: {backup_filepath}')
