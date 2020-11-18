@@ -28,9 +28,12 @@ from tools.schain_types import SchainTypes
 from tools.helper import write_json, read_json, run_cmd, format_output
 from core.helper import safe_load_yml
 from configs import ALLOCATION_FILEPATH
-from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
-    TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
-    DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK, MAX_CPU_SHARES
+from configs.resource_allocation import (
+    RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, TINY_DIVIDER,
+    TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER,
+    MEMORY_FACTOR, DISK_FACTOR, DISK_MOUNTPOINT_FILEPATH,
+    VOLUME_CHUNK, MAX_CPU_SHARES
+)
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +73,7 @@ def get_resource_allocation_info():
         return None
 
 
-def generate_resource_allocation_config():
+def compose_resource_allocation_config():
     allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
     schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(allocation_data)
     schain_mem_alloc, ima_mem_alloc = get_memory_alloc(allocation_data)
@@ -92,7 +95,8 @@ def generate_resource_allocation_config():
     }
 
 
-def get_schain_volume_alloc(disk_alloc: ResourceAlloc, allocation_data: dict) -> SChainVolumeAlloc:
+def get_schain_volume_alloc(disk_alloc: ResourceAlloc,
+                            allocation_data: dict) -> SChainVolumeAlloc:
     proportions = get_schain_volume_proportions(allocation_data)
     return SChainVolumeAlloc(disk_alloc, proportions)
 
@@ -106,20 +110,28 @@ def get_storage_limit_alloc(allocation_data, testnet=False):
     return allocation_data[network]['storage_limit']
 
 
-def save_resource_allocation_config(exist_ok=False) -> bool:
-    if os.path.isfile(RESOURCE_ALLOCATION_FILEPATH) and exist_ok:
+def generate_resource_allocation_config(force=False) -> None:
+    if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
         msg = 'Resource allocation file is already exists'
-        print(msg)
         logger.debug(msg)
-        return True
-    logger.info('Generating resource allocation file')
+        print(msg)
+        return
+    logger.info('Generating resource allocation file ...')
     try:
-        resource_allocation_config = generate_resource_allocation_config()
-        write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
+        update_resource_allocation()
     except Exception as e:
         logger.exception(e)
-        raise e
-    return True
+        print('Can\'t generate resource allocation file, check out CLI logs')
+    else:
+        print(
+            f'Resource allocation file generated: '
+            f'{RESOURCE_ALLOCATION_FILEPATH}'
+        )
+
+
+def update_resource_allocation() -> None:
+    resource_allocation_config = compose_resource_allocation_config()
+    write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
 
 
 def get_available_memory():
@@ -154,7 +166,10 @@ def get_cpu_alloc(allocation_data):
     cpu_proportions = allocation_data['schain_proportions']['cpu']
     schain_max_cpu_shares = int(cpu_proportions['skaled'] * MAX_CPU_SHARES)
     ima_max_cpu_shares = int(cpu_proportions['ima'] * MAX_CPU_SHARES)
-    return ResourceAlloc(schain_max_cpu_shares), ResourceAlloc(ima_max_cpu_shares)
+    return (
+        ResourceAlloc(schain_max_cpu_shares),
+        ResourceAlloc(ima_max_cpu_shares)
+    )
 
 
 def get_disk_alloc():
@@ -162,9 +177,13 @@ def get_disk_alloc():
     try:
         disk_size = get_disk_size(disk_path)
     except subprocess.CalledProcessError:
-        raise Exception("Couldn't get disk size, check disk mountpoint option.")
+        raise Exception(
+            "Couldn't get disk size, check disk mountpoint option."
+        )
     # if check_is_partition(disk_path):
-    #    raise Exception("You provided partition path instead of disk mountpoint.")
+    #    raise Exception(
+    #       "You provided partition path instead of disk mountpoint."
+    #    )
     free_space = int(disk_size * DISK_FACTOR) // VOLUME_CHUNK * VOLUME_CHUNK
     return ResourceAlloc(free_space)
 

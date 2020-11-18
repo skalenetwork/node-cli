@@ -24,7 +24,7 @@ from shutil import copyfile
 from urllib.parse import urlparse
 
 from core.helper import validate_abi
-from core.resources import save_resource_allocation_config
+from core.resources import update_resource_allocation
 
 from configs import (ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
@@ -68,7 +68,7 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
     save_env_params(env_filepath)
     save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
-    save_resource_allocation_config()
+    update_resource_allocation()
 
 
 def is_node_inited():

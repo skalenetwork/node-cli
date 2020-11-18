@@ -1,15 +1,36 @@
+import json
+import os
+
 import mock
-from core.resources import (generate_resource_allocation_config, get_schain_volume_proportions,
-                            ResourceAlloc, SChainVolumeAlloc)
+import pytest
+
+from configs import ALLOCATION_FILEPATH
+from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from core.resources import (
+    compose_resource_allocation_config,
+    get_schain_volume_proportions,
+    update_resource_allocation,
+    ResourceAlloc, SChainVolumeAlloc
+)
 
 from core.helper import safe_load_yml
-from configs import ALLOCATION_FILEPATH
+from tools.helper import write_json
 
 SCHAIN_VOLUME_PARTS = {'test4': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'test': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'medium': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
 
 
 def disk_alloc_mock():
     return ResourceAlloc(128)
+
+
+INITIAL_CONFIG = {'test': 1}
+
+
+@pytest.fixture
+def resource_alloc_config():
+    write_json(RESOURCE_ALLOCATION_FILEPATH, INITIAL_CONFIG)
+    yield RESOURCE_ALLOCATION_FILEPATH
+    os.remove(RESOURCE_ALLOCATION_FILEPATH)
 
 
 def test_schain_resources_allocation():
@@ -21,9 +42,8 @@ def test_schain_resources_allocation():
 
 
 def test_generate_resource_allocation_config():
-    with mock.patch('core.resources.get_disk_alloc',
-                    new=disk_alloc_mock):
-        resource_allocation_config = generate_resource_allocation_config()
+    with mock.patch('core.resources.get_disk_alloc', new=disk_alloc_mock):
+        resource_allocation_config = compose_resource_allocation_config()
 
         assert resource_allocation_config['schain']['cpu_shares']['test4'] == 89
         assert resource_allocation_config['schain']['cpu_shares']['test'] == 89
@@ -43,7 +63,7 @@ def test_generate_resource_allocation_config():
         assert resource_allocation_config['schain']['disk']['medium'] == 16
         assert resource_allocation_config['schain']['disk']['large'] == 128
 
-        assert resource_allocation_config['ima']['cpu_shares'] == {'test4': 38, 'test': 38, 'small': 2, 'medium': 38, 'large': 307} # noqa
+        assert resource_allocation_config['ima']['cpu_shares'] == {'test4': 38, 'test': 38, 'small': 2, 'medium': 38, 'large': 307}  # noqa
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
         assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
@@ -54,3 +74,11 @@ def test_generate_resource_allocation_config():
             'medium': 68719476736,
             'large': 549755813888
         }
+
+
+def test_update_allocation_config(resource_alloc_config):
+    with mock.patch('core.resources.get_disk_alloc',
+                    new=disk_alloc_mock):
+        update_resource_allocation()
+        with open(RESOURCE_ALLOCATION_FILEPATH) as jfile:
+            json.load(jfile) != INITIAL_CONFIG
