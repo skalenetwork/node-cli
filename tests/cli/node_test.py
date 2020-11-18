@@ -138,7 +138,7 @@ def test_update_node(config):
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
-        assert result.output == 'Resource allocation file was updated\nUpdating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
+        assert result.output == 'Updating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
 
 
 def test_update_node_without_init(config):
