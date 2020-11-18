@@ -29,7 +29,7 @@ from tools.helper import write_json, read_json, run_cmd, format_output
 from core.helper import safe_load_yml
 from configs import ALLOCATION_FILEPATH
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
-    TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
+    SMALL_DIVIDER, TEST_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
     DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK, MAX_CPU_SHARES
 
 logger = logging.getLogger(__name__)
@@ -40,9 +40,9 @@ class ResourceAlloc:
         self.values = {
             'test4': value / TEST_DIVIDER,
             'test': value / TEST_DIVIDER,
-            'small': value / TINY_DIVIDER,
-            'medium': value / SMALL_DIVIDER,
-            'large': value / MEDIUM_DIVIDER
+            'small': value / SMALL_DIVIDER,
+            'medium': value / MEDIUM_DIVIDER,
+            'large': value / LARGE_DIVIDER
         }
         if not fractional:
             for k in self.values:
