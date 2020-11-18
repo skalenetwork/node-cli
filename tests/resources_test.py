@@ -81,4 +81,4 @@ def test_update_allocation_config(resource_alloc_config):
                     new=disk_alloc_mock):
         update_resource_allocation()
         with open(RESOURCE_ALLOCATION_FILEPATH) as jfile:
-            json.load(jfile) != INITIAL_CONFIG
+            assert json.load(jfile) != INITIAL_CONFIG
