@@ -169,7 +169,8 @@ def update(env_filepath, sync_schains):
     prepare_host(
         env_filepath,
         env['DISK_MOUNTPOINT'],
-        env['SGX_SERVER_URL']
+        env['SGX_SERVER_URL'],
+        allocation=True
     )
     update_meta(VERSION, env['CONTAINER_CONFIGS_STREAM'])
     try:

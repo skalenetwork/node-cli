@@ -62,13 +62,15 @@ def get_flask_secret_key():
         return key_file.read().strip()
 
 
-def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
+def prepare_host(env_filepath, disk_mountpoint, sgx_server_url,
+                 allocation=False):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
     make_dirs()
     save_env_params(env_filepath)
     save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
-    update_resource_allocation()
+    if allocation:
+        update_resource_allocation()
 
 
 def is_node_inited():
