@@ -483,6 +483,7 @@ skale resources-allocation generate
 Options:
 
 -   `--yes` - generate without additional confirmation
+-   `-f/--force` - rewrite allocation file if it exists
 
 ### Validate commands
 
