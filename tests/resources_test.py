@@ -16,7 +16,7 @@ from core.resources import (
 from core.helper import safe_load_yml
 from tools.helper import write_json
 
-SCHAIN_VOLUME_PARTS = {'test4': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'test': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'medium': {'max_consensus_storage_bytes': 4, 'max_skaled_leveldb_storage_bytes': 4, 'max_file_storage_bytes': 4, 'max_reserved_storage_bytes': 1}, 'large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
+SCHAIN_VOLUME_PARTS = {'test4': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'test': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'medium': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
 
 
 def disk_alloc_mock():
@@ -45,10 +45,10 @@ def test_generate_resource_allocation_config():
     with mock.patch('core.resources.get_disk_alloc', new=disk_alloc_mock):
         resource_allocation_config = compose_resource_allocation_config()
 
-        assert resource_allocation_config['schain']['cpu_shares']['test4'] == 89
-        assert resource_allocation_config['schain']['cpu_shares']['test'] == 89
+        assert resource_allocation_config['schain']['cpu_shares']['test4'] == 22
+        assert resource_allocation_config['schain']['cpu_shares']['test'] == 22
         assert resource_allocation_config['schain']['cpu_shares']['small'] == 5
-        assert resource_allocation_config['schain']['cpu_shares']['medium'] == 89
+        assert resource_allocation_config['schain']['cpu_shares']['medium'] == 22
         assert resource_allocation_config['schain']['cpu_shares']['large'] == 716
 
         assert isinstance(resource_allocation_config['schain']['mem']['test4'], int)
@@ -57,13 +57,13 @@ def test_generate_resource_allocation_config():
         assert isinstance(resource_allocation_config['schain']['mem']['medium'], int)
         assert isinstance(resource_allocation_config['schain']['mem']['large'], int)
 
-        assert resource_allocation_config['schain']['disk']['test4'] == 16
-        assert resource_allocation_config['schain']['disk']['test'] == 16
+        assert resource_allocation_config['schain']['disk']['test4'] == 4
+        assert resource_allocation_config['schain']['disk']['test'] == 4
         assert resource_allocation_config['schain']['disk']['small'] == 1
-        assert resource_allocation_config['schain']['disk']['medium'] == 16
+        assert resource_allocation_config['schain']['disk']['medium'] == 4
         assert resource_allocation_config['schain']['disk']['large'] == 128
 
-        assert resource_allocation_config['ima']['cpu_shares'] == {'test4': 38, 'test': 38, 'small': 2, 'medium': 38, 'large': 307}  # noqa
+        assert resource_allocation_config['ima']['cpu_shares'] == {'test4': 9, 'test': 9, 'small': 2, 'medium': 9, 'large': 307}  # noqa
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
         assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
@@ -71,7 +71,7 @@ def test_generate_resource_allocation_config():
             'test4': 4294967296,
             'test': 4294967296,
             'small': 4294967296,
-            'medium': 68719476736,
+            'medium': 17179869184,
             'large': 549755813888
         }
 
