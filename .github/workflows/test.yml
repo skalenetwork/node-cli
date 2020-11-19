@@ -31,4 +31,4 @@ jobs:
         bash scripts/build.sh 1.0.0 test-branch
     - name: Run tests
       run: |
-        bash ./scripts/run_tests.sh
+        HOME_DIR=tests/ bash ./scripts/run_tests.sh
