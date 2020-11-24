@@ -26,6 +26,16 @@ def disk_alloc_mock():
 INITIAL_CONFIG = {'test': 1}
 
 
+def list_files(startpath):
+    for root, dirs, files in os.walk(startpath):
+        level = root.replace(startpath, '').count(os.sep)
+        indent = ' ' * 4 * (level)
+        print('{}{}/'.format(indent, os.path.basename(root)))
+        subindent = ' ' * 4 * (level + 1)
+        for f in files:
+            print('{}{}'.format(subindent, f))
+
+
 @pytest.fixture
 def resource_alloc_config():
     write_json(RESOURCE_ALLOCATION_FILEPATH, INITIAL_CONFIG)
@@ -34,6 +44,9 @@ def resource_alloc_config():
 
 
 def test_schain_resources_allocation():
+    from configs import SKALE_DIR
+    print(list_files(SKALE_DIR))
+    assert False, 'Test'
     allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
     proportions = get_schain_volume_proportions(allocation_data)
     res = ResourceAlloc(128)
