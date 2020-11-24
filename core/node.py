@@ -39,6 +39,7 @@ from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
 from core.print_formatters import print_err_response, print_node_cmd_error
+from core.resources import update_resource_allocation
 from tools.meta import update_meta
 from tools.helper import run_cmd, extract_env_params
 from tools.texts import Texts
@@ -100,6 +101,8 @@ def init(env_filepath, dry_run=False):
     if not is_base_containers_alive():
         print_node_cmd_error()
         return
+    logger.info('Generating resource allocation file ...')
+    update_resource_allocation()
     print('Init procedure finished')
 
 
