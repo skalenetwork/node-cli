@@ -18,22 +18,8 @@ TEST_META = {
 }
 
 
-def list_files(startpath):
-    for root, dirs, files in os.walk(startpath):
-        level = root.replace(startpath, '').count(os.sep)
-        indent = ' ' * 4 * (level)
-        print('{}{}/'.format(indent, os.path.basename(root)))
-        subindent = ' ' * 4 * (level + 1)
-        for f in files:
-            print('{}{}'.format(subindent, f))
-
-
 @pytest.fixture
 def meta_file():
-    from configs import SKALE_DIR
-    list_files(SKALE_DIR)
-    tmp = os.listdir(os.path.dirname(META_FILEPATH))
-    assert False, tmp
     with open(META_FILEPATH, 'w') as meta_f:
         json.dump(TEST_META, meta_f)
     yield META_FILEPATH
