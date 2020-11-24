@@ -25,10 +25,11 @@ jobs:
         pip install -e .
         pip install -e .[dev]
         pip install --upgrade 'setuptools<45.0.0'
-        ls -a
+        ls -a .skale
     - name: Lint with flake8
       run: |
         flake8 .
+        ls -a tests/.skale
     - name: Build binary
       run: |
         bash scripts/build.sh 1.0.0 test-branch
