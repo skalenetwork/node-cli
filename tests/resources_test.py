@@ -45,6 +45,7 @@ def resource_alloc_config():
 
 def test_schain_resources_allocation():
     from configs import SKALE_DIR
+    print(SKALE_DIR)
     print(list_files(SKALE_DIR))
     assert False, 'Test'
     allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
