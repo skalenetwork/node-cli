@@ -180,10 +180,6 @@ def get_disk_alloc():
         raise Exception(
             "Couldn't get disk size, check disk mountpoint option."
         )
-    # if check_is_partition(disk_path):
-    #    raise Exception(
-    #       "You provided partition path instead of disk mountpoint."
-    #    )
     free_space = int(disk_size * DISK_FACTOR) // VOLUME_CHUNK * VOLUME_CHUNK
     return ResourceAlloc(free_space)
 
