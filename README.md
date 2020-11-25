@@ -491,7 +491,7 @@ Options:
 
 #### Validate abi
 
-Check if abi failes present and have valid json data 
+Check whether ABI files contain valid JSON data
 
 ```shell
 skale validate abi

@@ -53,11 +53,11 @@ def test_validate_abi(contract_valid_abi_files):
 
 def test_validate_abi_invalid_file(contract_abi_file_invalid):
     result = run_command(abi)
-    assert result.output == 'Some files are not exist or incorrect\n                Filepath                   Status                 Msg              \n-----------------------------------------------------------------------------------\ntests/.skale/contracts_info/manager.json   error    Failed to load abi file as json\ntests/.skale/contracts_info/ima.json       ok                                      \n'  # noqa
+    assert result.output == 'Some files do not exist or are incorrect\n                Filepath                   Status                 Msg              \n-----------------------------------------------------------------------------------\ntests/.skale/contracts_info/manager.json   error    Failed to load abi file as json\ntests/.skale/contracts_info/ima.json       ok                                      \n'  # noqa
     assert result.exit_code == 0
 
 
 def test_validate_abi_empty_file(contract_abi_file_empty):
     result = run_command(abi)
-    assert result.output == 'Some files are not exist or incorrect\n                Filepath                   Status       Msg     \n----------------------------------------------------------------\ntests/.skale/contracts_info/manager.json   error    No such file\ntests/.skale/contracts_info/ima.json       ok                   \n'  # noqa
+    assert result.output == 'Some files do not exist or are incorrect\n                Filepath                   Status       Msg     \n----------------------------------------------------------------\ntests/.skale/contracts_info/manager.json   error    No such file\ntests/.skale/contracts_info/ima.json       ok                   \n'  # noqa
     assert result.exit_code == 0

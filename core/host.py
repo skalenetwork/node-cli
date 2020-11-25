@@ -129,7 +129,7 @@ def validate_abi_files(json_result=False):
         ]
     ]
     if any(r['status'] == 'error' for r in results):
-        print('Some files are not exist or incorrect')
+        print('Some files do not exist or are incorrect')
         print_abi_validation_errors(results, raw=json_result)
     else:
         if json_result:
