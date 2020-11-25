@@ -34,12 +34,12 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
 from configs.cli_logger import LOG_DIRNAME
 
-from core.resources import save_resource_allocation_config
 from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
 from core.print_formatters import print_err_response, print_node_cmd_error
+from core.resources import update_resource_allocation
 from tools.meta import update_meta
 from tools.helper import run_cmd, extract_env_params
 from tools.texts import Texts
@@ -101,6 +101,8 @@ def init(env_filepath, dry_run=False):
     if not is_base_containers_alive():
         print_node_cmd_error()
         return
+    logger.info('Generating resource allocation file ...')
+    update_resource_allocation()
     print('Init procedure finished')
 
 
@@ -165,18 +167,13 @@ def update(env_filepath, sync_schains):
         print(TEXTS['node']['not_inited'])
         return
 
-    res = save_resource_allocation_config(exist_ok=True)
-    if res:
-        print('Resource allocation file was updated')
-    else:
-        print('Can\'t update resource allocation file, check out CLI logs')
-
     print('Updating the node...')
     env = get_inited_node_env(env_filepath, sync_schains)
     prepare_host(
         env_filepath,
         env['DISK_MOUNTPOINT'],
-        env['SGX_SERVER_URL']
+        env['SGX_SERVER_URL'],
+        allocation=True
     )
     update_meta(VERSION, env['CONTAINER_CONFIGS_STREAM'])
     try:

@@ -258,5 +258,17 @@ def print_schain_info(info: dict, raw: bool = False) -> None:
         print(Formatter().table(headers, [rows]))
 
 
+def print_abi_validation_errors(info: list, raw: bool = False) -> None:
+    if not info:
+        return
+    if raw:
+        print(json.dumps(info))
+    else:
+        headers = info[0].keys()
+        rows = [tuple(r.values()) for r in info]
+        headers = list(map(lambda h: h.capitalize(), headers))
+        print(Formatter().table(headers, rows))
+
+
 def print_node_cmd_error():
     print(TEXTS['node']['cmd_failed'].format(DEBUG_LOG_FILEPATH))

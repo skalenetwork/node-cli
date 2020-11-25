@@ -151,8 +151,9 @@ def init_default_logger():
 
 def get_file_handler(log_filepath, log_level):
     formatter = Formatter(LOG_FORMAT)
-    f_handler = py_handlers.RotatingFileHandler(log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
-                                                backupCount=LOG_BACKUP_COUNT)
+    f_handler = py_handlers.RotatingFileHandler(
+        log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
+        backupCount=LOG_BACKUP_COUNT)
     f_handler.setFormatter(formatter)
     f_handler.setLevel(log_level)
 
@@ -161,8 +162,10 @@ def get_file_handler(log_filepath, log_level):
 
 def load_ssl_files(key_path, cert_path):
     return {
-        'ssl_key': (os.path.basename(key_path), read_file(key_path), 'application/octet-stream'),
-        'ssl_cert': (os.path.basename(cert_path), read_file(cert_path), 'application/octet-stream')
+        'ssl_key': (os.path.basename(key_path),
+                    read_file(key_path), 'application/octet-stream'),
+        'ssl_cert': (os.path.basename(cert_path),
+                     read_file(cert_path), 'application/octet-stream')
     }
 
 
@@ -189,3 +192,17 @@ def upload_certs(key_path, cert_path, force):
 def to_camel_case(snake_str):
     components = snake_str.split('_')
     return components[0] + ''.join(x.title() for x in components[1:])
+
+
+def validate_abi(abi_filepath: str) -> dict:
+    if not os.path.isfile(abi_filepath):
+        return {'filepath': abi_filepath,
+                'status': 'error',
+                'msg': 'No such file'}
+    try:
+        with open(abi_filepath) as abi_file:
+            json.load(abi_file)
+    except Exception:
+        return {'filepath': abi_filepath, 'status': 'error',
+                'msg': 'Failed to load abi file as json'}
+    return {'filepath': abi_filepath, 'status': 'ok', 'msg': ''}
