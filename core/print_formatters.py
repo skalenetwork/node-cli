@@ -155,7 +155,9 @@ def print_schains_healthchecks(schains):
         'Volume',
         'Container',
         'IMA',
-        'Firewall'
+        'Firewall',
+        'RPC',
+        'Blocks'
     ]
     rows = []
     for schain in schains:
@@ -168,7 +170,9 @@ def print_schains_healthchecks(schains):
             healthchecks['volume'],
             healthchecks['container'],
             healthchecks['ima_container'],
-            healthchecks['firewall_rules']
+            healthchecks['firewall_rules'],
+            healthchecks['rpc'],
+            healthchecks['blocks']
         ])
     print(Formatter().table(headers, rows))
 
