@@ -50,13 +50,19 @@ TEXTS = Texts()
 BASE_CONTAINERS_AMOUNT = 5
 
 
-def register_node(config, name, p2p_ip, public_ip, port):
+def register_node(config, name, p2p_ip,
+                  public_ip, port, gas_limit=None,
+                  gas_price=None,
+                  skip_dry_run=False):
     # todo: add name, ips and port checks
     json_data = {
         'name': name,
         'ip': p2p_ip,
         'publicIP': public_ip,
-        'port': port
+        'port': port,
+        'gas_limit': gas_limit,
+        'gas_price': gas_price,
+        'skip_dry_run': skip_dry_run
     }
     status, payload = post_request('create_node',
                                    json=json_data)

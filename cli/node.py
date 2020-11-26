@@ -109,9 +109,27 @@ def node_about(format):
     type=int,
     help='Base port for node sChains'
 )
-def register_node(name, ip, port):
+@click.option(
+    '--gas-limit',
+    default=None,
+    type=int,
+    help='Gas limit for registration transaction'
+)
+@click.option(
+    '--gas-price',
+    default=None,
+    type=int,
+    help='Gas price for registration transaction in Gwei'
+)
+@click.option(
+    '--skip-dry-run',
+    is_flag=True,
+    default=False,
+    help='Skip dry run for registration transaction'
+)
+def register_node(name, ip, port, gas_limit, gas_price, skip_dry_run):
     config = session_config()
-    register(config, name, ip, ip, port)
+    register(config, name, ip, ip, port, gas_limit, gas_price, skip_dry_run)
 
 
 @node.command('init', help="Initialize SKALE node")
