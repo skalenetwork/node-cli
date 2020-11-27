@@ -155,7 +155,9 @@ def print_schains_healthchecks(schains):
         'Volume',
         'Container',
         'IMA',
-        'Firewall'
+        'Firewall',
+        'RPC',
+        'Blocks'
     ]
     rows = []
     for schain in schains:
@@ -168,7 +170,9 @@ def print_schains_healthchecks(schains):
             healthchecks['volume'],
             healthchecks['container'],
             healthchecks['ima_container'],
-            healthchecks['firewall_rules']
+            healthchecks['firewall_rules'],
+            healthchecks['rpc'],
+            healthchecks['blocks']
         ])
     print(Formatter().table(headers, rows))
 
@@ -252,6 +256,18 @@ def print_schain_info(info: dict, raw: bool = False) -> None:
         headers, rows = zip(*info.items())
         headers = list(map(lambda h: h.capitalize(), headers))
         print(Formatter().table(headers, [rows]))
+
+
+def print_abi_validation_errors(info: list, raw: bool = False) -> None:
+    if not info:
+        return
+    if raw:
+        print(json.dumps(info))
+    else:
+        headers = info[0].keys()
+        rows = [tuple(r.values()) for r in info]
+        headers = list(map(lambda h: h.capitalize(), headers))
+        print(Formatter().table(headers, rows))
 
 
 def print_node_cmd_error():

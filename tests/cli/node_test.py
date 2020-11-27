@@ -18,18 +18,27 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import mock
-import requests
 from pathlib import Path
 
+import mock
+import requests
+
 from configs import NODE_DATA_PATH, SKALE_DIR
+from core.resources import ResourceAlloc
 from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
                       update_node, backup_node, restore_node,
-                      set_node_in_maintenance, remove_node_from_maintenance, _turn_off, _turn_on)
+                      set_node_in_maintenance,
+                      remove_node_from_maintenance, _turn_off, _turn_on)
 
-from tests.helper import response_mock, run_command_mock, run_command, subprocess_run_mock
-from tests.resources_test import disk_alloc_mock
+from tests.helper import (
+    response_mock, run_command_mock,
+    run_command, subprocess_run_mock
+)
+
+
+def disk_alloc_mock():
+    return ResourceAlloc(128)
 
 
 def test_register_node(config):
@@ -91,6 +100,7 @@ def test_register_node_with_default_port_and_name(config):
 def test_init_node(config):
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('core.resources.get_disk_alloc', new=disk_alloc_mock), \
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.host.init_data_dir'), \
             mock.patch('core.node.is_base_containers_alive',
@@ -101,8 +111,8 @@ def test_init_node(config):
             resp_mock,
             init_node,
             ['./tests/test-env'])
-        assert result.exit_code == 0
         assert result.output == 'Waiting for transaction manager initialization ...\nInit procedure finished\n'  # noqa
+        assert result.exit_code == 0
 
 
 # def test_purge(config):
@@ -138,7 +148,7 @@ def test_update_node(config):
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
-        assert result.output == 'Resource allocation file was updated\nUpdating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
+        assert result.output == 'Updating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
 
 
 def test_update_node_without_init(config):
@@ -435,7 +445,5 @@ def test_turn_on_maintenance_off():
                 '--yes'
             ])
 
-    print('result.outputresult.output result.output result.output')
-    print(result.output)
     assert result.exit_code == 0
     assert result.output == 'Turning on the node...\nWaiting for transaction manager initialization ...\nNode was successfully turned on\nSetting maintenance mode off...\nNode is successfully removed from maintenance mode\n'  # noqa

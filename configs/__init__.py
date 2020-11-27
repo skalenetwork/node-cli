@@ -73,7 +73,8 @@ TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
 TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
-ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'schain_allocation.yml')
+ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH,
+                                   'schain_allocation.yml')
 
 LONG_LINE = '-' * 50
 
@@ -88,8 +89,12 @@ MYSQL_BACKUP_FILE_NAME = 'backup.sql'
 MYSQL_BACKUP_FOLDER = os.path.join(SKALE_DIR, NODE_DATA_PATH, '.mysql-backup')
 MYSQL_BACKUP_CONTAINER_FOLDER = '/mysql-backup'
 MYSQL_BACKUP_PATH = os.path.join(MYSQL_BACKUP_FOLDER, MYSQL_BACKUP_FILE_NAME)
-MYSQL_BACKUP_CONTAINER_PATH = os.path.join(MYSQL_BACKUP_CONTAINER_FOLDER, MYSQL_BACKUP_FILE_NAME)
+MYSQL_BACKUP_CONTAINER_PATH = os.path.join(MYSQL_BACKUP_CONTAINER_FOLDER,
+                                           MYSQL_BACKUP_FILE_NAME)
 
 TM_INIT_TIMEOUT = 20
+
+MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
+IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
