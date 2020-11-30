@@ -26,7 +26,8 @@ optional_params = {
     'TG_CHAT_ID': '',
     'CONTAINER_CONFIGS_DIR': '',
     'DISABLE_DRY_RUN': '',
-    'DEFAULT_GAS_LIMIT': ''
+    'DEFAULT_GAS_LIMIT': '',
+    'DEFAULT_GAS_PRICE': ''
 }
 
 
