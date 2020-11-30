@@ -23,7 +23,6 @@ from core.helper import abort_if_false
 from core.schains import (
     describe,
     get_schain_firewall_rules,
-    show_checks,
     show_config,
     show_dkg_info,
     show_schains,
@@ -66,17 +65,6 @@ def get_schain_config(schain_name: str) -> None:
 @click.argument('schain_name')
 def show_rules(schain_name: str) -> None:
     get_schain_firewall_rules(schain_name)
-
-
-@schains.command(help="List of healthchecks for sChains served by connected node")
-@click.option(
-    '--json',
-    'json_format',
-    help='Show data in JSON format',
-    is_flag=True
-)
-def checks(json_format: bool) -> None:
-    show_checks(json_format)
 
 
 @schains.command('repair', help='Toggle schain repair mode')
