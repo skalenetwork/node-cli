@@ -27,7 +27,7 @@ optional_params = {
     'CONTAINER_CONFIGS_DIR': '',
     'DISABLE_DRY_RUN': '',
     'DEFAULT_GAS_LIMIT': '',
-    'DEFAULT_GAS_PRICE': ''
+    'DEFAULT_GAS_PRICE_WEI': ''
 }
 
 
