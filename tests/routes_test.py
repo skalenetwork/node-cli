@@ -20,8 +20,8 @@ ALL_V1_ROUTES = [
     '/api/v1/schains/dkg-statuses',
     '/api/v1/schains/firewall-rules',
     '/api/v1/schains/repair', '/api/v1/schains/get',
-    '/api/v1/security/status',
-    '/api/v1/security/upload',
+    '/api/v1/ssl/status',
+    '/api/v1/ssl/upload',
     '/api/v1/wallet/info',
     '/api/v1/wallet/upload'
 ]

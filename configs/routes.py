@@ -27,10 +27,11 @@ ROUTES = {
     'v1': {
         'logs': ['dump'],
         'exit': ['start', 'status'],
-        'node': ['info', 'register', 'maintenance-on', 'maintenance-off', 'send-tg-notification'],
+        'node': ['info', 'register', 'maintenance-on', 'maintenance-off', 'signature',
+                 'send-tg-notification'],
         'health': ['containers', 'schains-checks', 'sgx'],
         'schains': ['config', 'list', 'dkg-statuses', 'firewall-rules', 'repair', 'get'],
-        'security': ['status', 'upload'],
+        'ssl': ['status', 'upload'],
         'wallet': ['info', 'send-eth']
     }
 }

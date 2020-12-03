@@ -190,7 +190,11 @@ def upload_certs(key_path, cert_path, force):
             None, json.dumps({'force': force}),
             'application/json'
         )
-        return post_request('ssl_upload', files=files_data)
+        return post_request(
+            blueprint='ssl',
+            method='upload',
+            files=files_data
+        )
 
 
 def to_camel_case(snake_str):

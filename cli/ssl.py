@@ -25,6 +25,7 @@ from core.helper import (get_request, safe_load_texts, upload_certs,
 
 
 TEXTS = safe_load_texts()
+BLUEPRINT_NAME = 'ssl'
 
 
 @click.group()
@@ -39,7 +40,10 @@ def ssl():
 
 @ssl.command(help="Status of the SSL certificates on the node")
 def status():
-    status, payload = get_request('ssl_status')
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='status'
+    )
     if status == 'ok':
         if payload.get('is_empty'):
             print(TEXTS['ssl']['no_cert'])

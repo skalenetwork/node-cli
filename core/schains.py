@@ -69,7 +69,11 @@ def show_config(name: str) -> None:
 
 
 def toggle_schain_repair_mode(schain: str) -> None:
-    status, payload = post_request('repair_schain', {'schain': schain})
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='repair',
+        json={'schain_name': schain}
+    )
     if status == 'ok':
         print('Schain has been set for repair')
     else:
@@ -77,7 +81,11 @@ def toggle_schain_repair_mode(schain: str) -> None:
 
 
 def describe(schain: str, raw=False) -> None:
-    status, payload = get_request('describe_schain', {'schain': schain})
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='get',
+        params={'schain_name': schain}
+    )
     if status == 'ok':
         print_schain_info(payload, raw=raw)
     else:
