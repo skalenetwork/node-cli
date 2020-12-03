@@ -25,8 +25,7 @@ import requests
 
 from configs import NODE_DATA_PATH, SKALE_DIR
 from core.resources import ResourceAlloc
-from cli.node import (init_node,
-                      node_about, node_info, register_node, signature,
+from cli.node import (init_node, node_info, register_node, signature,
                       update_node, backup_node, restore_node,
                       set_node_in_maintenance,
                       remove_node_from_maintenance, _turn_off, _turn_on)
@@ -170,34 +169,6 @@ def test_update_node_without_init(config):
             input='/dev/sdp')
         assert result.exit_code == 0
         assert result.output == "Node hasn't been inited before.\nYou should run < skale node init >\n"  # noqa
-
-
-def test_node_info_node_about(config):
-    payload = {
-        'libraries': {
-            'javascript': 'N/A', 'python': '0.89.0'},
-        'contracts': {
-            'token': '0x3',
-            'manager': '0x23'
-        },
-        'network': {
-            'endpoint': 'ws://0.0.0.0:8080'
-        },
-        'local_wallet': {
-            'address': '0xf',
-            'eth_balance_wei': '15',
-            'skale_balance_wei': '84312304',
-            'eth_balance': '2.424',
-            'skale_balance': '323.123'
-        }
-    }
-    resp_mock = response_mock(
-        requests.codes.ok,
-        {'status': 'ok', 'payload': payload}
-    )
-    result = run_command_mock('core.helper.requests.get', resp_mock, node_about)
-    assert result.exit_code == 0
-    assert result.output == "{'libraries': {'javascript': 'N/A', 'python': '0.89.0'}, 'contracts': {'token': '0x3', 'manager': '0x23'}, 'network': {'endpoint': 'ws://0.0.0.0:8080'}, 'local_wallet': {'address': '0xf', 'eth_balance_wei': '15', 'skale_balance_wei': '84312304', 'eth_balance': '2.424', 'skale_balance': '323.123'}}\n"  # noqa
 
 
 def test_node_info_node_info(config):
