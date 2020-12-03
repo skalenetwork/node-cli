@@ -37,7 +37,7 @@ def get_containers(_all):
         params={'all': _all}
     )
     if status == 'ok':
-        print_containers(payload.get('containers', []))
+        print_containers(payload)
     else:
         print_err_response(payload)
 
@@ -45,7 +45,7 @@ def get_containers(_all):
 def get_schains_checks(json_format: bool = False) -> None:
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME,
-        method='containers'
+        method='schains-checks'
     )
     if status == 'ok':
         if not payload:
