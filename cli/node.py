@@ -22,8 +22,6 @@ from urllib.parse import urlparse
 
 import click
 
-from skale.utils.random_names.generator import generate_random_node_name
-
 from core.node import (get_node_signature, init, restore,
                        register_node as register, update, backup, set_maintenance_mode_on,
                        set_maintenance_mode_off, turn_off, turn_on, get_node_info)
@@ -86,7 +84,7 @@ def node_info(format):
 @node.command('register', help="Register current node in the SKALE Manager")
 @click.option(
     '--name', '-n',
-    default=generate_random_node_name(),
+    prompt="Enter node name",
     help='SKALE node name'
 )
 @click.option(
