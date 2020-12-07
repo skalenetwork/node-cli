@@ -136,7 +136,8 @@ def print_dkg_statuses(statuses):
     rows = []
     for status in statuses:
         date = datetime.datetime.fromtimestamp(status['added_at'])
-        schain_status = 'Deleted' if status['is_deleted'] else 'Active'
+        schain_status = 'Deleted' \
+            if status['is_deleted'] else 'Exists'
         rows.append([
             status['name'],
             status['dkg_status_name'],
