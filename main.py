@@ -110,3 +110,4 @@ if __name__ == '__main__':
         print(f'Command execution failed with {err}. Recheck your inputs')
         traceback.print_exc()
         logger.error(err)
+    logger.info(f'cmd execution finished: {" ".join(str(x) for x in args)}, v.{__version__}')
