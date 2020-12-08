@@ -26,7 +26,6 @@ extras_require = {
     'dev': [
         "boto3==1.13.19",
         "bumpversion==0.6.0",
-        "skale.py==3.10dev1",
         "pytest==5.4.3",
         "pytest-cov==2.9.0",
         "twine==2.0.0",
