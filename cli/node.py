@@ -93,6 +93,7 @@ def node_about(format):
 @click.option(
     '--name', '-n',
     required=True,
+    prompt="Enter node name",
     help='SKALE node name'
 )
 @click.option(
