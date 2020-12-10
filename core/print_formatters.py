@@ -271,4 +271,4 @@ def print_abi_validation_errors(info: list, raw: bool = False) -> None:
 
 
 def print_node_cmd_error():
-    print(TEXTS['node']['cmd_failed'].format(DEBUG_LOG_FILEPATH))
+    print(TEXTS['node']['cmd_failed'])
