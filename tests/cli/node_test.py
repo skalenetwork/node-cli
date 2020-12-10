@@ -379,7 +379,7 @@ def test_restore():
             [backup_path, './tests/test-env']
         )
         assert result.exit_code == 0
-        assert 'Node succesfully restored from backup\n' in result.output  # noqa
+        assert 'Node is restored from backup\n' in result.output  # noqa
 
 
 def test_maintenance_on():
