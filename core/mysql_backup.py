@@ -3,7 +3,6 @@ import subprocess
 import shlex
 
 from configs import MYSQL_BACKUP_CONTAINER_PATH, MYSQL_BACKUP_PATH
-from core.print_formatters import print_node_cmd_error
 from tools.helper import run_cmd, extract_env_params
 
 
@@ -33,15 +32,14 @@ def create_mysql_backup(env_filepath: str) -> bool:
     try:
         print('Creating MySQL backup...')
         run_mysql_cmd(
-            f'mysqldump --all-databases --single-transaction --quick --lock-tables=false \
-                > {MYSQL_BACKUP_CONTAINER_PATH}',
+            f'mysqldump --all-databases --single-transaction --no-tablespaces '
+            f'--quick --lock-tables=false > {MYSQL_BACKUP_CONTAINER_PATH}',
             env_filepath
         )
         print(f'MySQL backup succesfully created: {MYSQL_BACKUP_PATH}')
         return True
     except subprocess.CalledProcessError as e:
         logger.error(e)
-        print('Something went wrong while trying to create MySQL backup, check out CLI logs')
         return False
 
 
@@ -55,6 +53,5 @@ def restore_mysql_backup(env_filepath: str) -> bool:
         print(f'MySQL DB was succesfully restored from backup: {MYSQL_BACKUP_PATH}')
         return True
     except subprocess.CalledProcessError:
-        logger.exception('Mysql restore command failed')
-        print_node_cmd_error()
+        logger.exception('MySQL restore command failed')
         return False
