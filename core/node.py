@@ -121,8 +121,9 @@ def restore(backup_path, env_filepath):
         return
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     if not restore_mysql_backup(env_filepath):
-        return
-    print('Node succesfully restored from backup')
+        print('WARNING: MySQL data restoring failed. '
+              'Check < skale logs cli > for more information')
+    print('Node is restored from backup')
 
 
 def run_restore_script(backup_path, env_params) -> bool:
@@ -209,6 +210,8 @@ def get_node_signature(validator_id):
 def backup(path, env_filepath, mysql_backup=True):
     if mysql_backup:
         if not create_mysql_backup(env_filepath):
+            print('Something went wrong while trying to create MySQL backup, '
+                  'check out < skale logs cli > output')
             return
     backup_filepath = get_backup_filepath(path)
     create_backup_archive(backup_filepath)

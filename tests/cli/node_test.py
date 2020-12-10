@@ -83,7 +83,7 @@ def test_register_node_with_prompted_ip(config):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_default_port_and_name(config):
+def test_register_node_with_default_port(config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -92,7 +92,7 @@ def test_register_node_with_default_port_and_name(config):
         'core.helper.requests.post',
         resp_mock,
         register_node,
-        input='0.0.0.0\n')
+        ['--name', 'test-node'], input='0.0.0.0\n')
     assert result.exit_code == 0
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
@@ -379,7 +379,7 @@ def test_restore():
             [backup_path, './tests/test-env']
         )
         assert result.exit_code == 0
-        assert 'Node succesfully restored from backup\n' in result.output  # noqa
+        assert 'Node is restored from backup\n' in result.output  # noqa
 
 
 def test_maintenance_on():
