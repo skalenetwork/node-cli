@@ -17,11 +17,13 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import click
 import sys
+import time
 import logging
 import inspect
 import traceback
+
+import click
 
 from cli import __version__
 from cli.containers import containers_cli
@@ -84,6 +86,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 if __name__ == '__main__':
+    start_time = time.time()
     init_logs_dir()
     init_default_logger()
     args = sys.argv
@@ -110,3 +113,4 @@ if __name__ == '__main__':
         print(f'Command execution failed with {err}. Recheck your inputs')
         traceback.print_exc()
         logger.error(err)
+    logger.info(f'execution time: {time.time() - start_time} seconds')
