@@ -31,7 +31,7 @@ from cli.info import VERSION
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      BACKUP_INSTALL_SCRIPT,
                      UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
-                     BACKUP_ARCHIVE_NAME, HOME_DIR,
+                     BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT,
                      TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
 from configs.cli_logger import LOG_DIRNAME
 
@@ -134,9 +134,11 @@ def restore(backup_path, env_filepath):
     save_env_params(env_filepath)
     if not run_restore_script(backup_path, env_params):
         return
+    time.sleep(RESTORE_SLEEP_TIMEOUT)
     if not restore_mysql_backup(env_filepath):
-        return
-    print('Node succesfully restored from backup')
+        print('WARNING: MySQL data restoring failed. '
+              'Check < skale logs cli > for more information')
+    print('Node is restored from backup')
 
 
 def run_restore_script(backup_path, env_params) -> bool:
@@ -227,6 +229,8 @@ def get_node_signature(validator_id):
 def backup(path, env_filepath, mysql_backup=True):
     if mysql_backup:
         if not create_mysql_backup(env_filepath):
+            print('Something went wrong while trying to create MySQL backup, '
+                  'check out < skale logs cli > output')
             return
     backup_filepath = get_backup_filepath(path)
     create_backup_archive(backup_filepath)

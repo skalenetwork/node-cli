@@ -84,6 +84,7 @@ def node_info(format):
 @node.command('register', help="Register current node in the SKALE Manager")
 @click.option(
     '--name', '-n',
+    required=True,
     prompt="Enter node name",
     help='SKALE node name'
 )

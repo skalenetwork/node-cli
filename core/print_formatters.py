@@ -136,7 +136,8 @@ def print_dkg_statuses(statuses):
     rows = []
     for status in statuses:
         date = datetime.datetime.fromtimestamp(status['added_at'])
-        schain_status = 'Deleted' if status['is_deleted'] else 'Active'
+        schain_status = 'Deleted' \
+            if status['is_deleted'] else 'Exists'
         rows.append([
             status['name'],
             status['dkg_status_name'],
@@ -272,16 +273,3 @@ def print_abi_validation_errors(info: list, raw: bool = False) -> None:
 
 def print_node_cmd_error():
     print(TEXTS['node']['cmd_failed'].format(DEBUG_LOG_FILEPATH))
-
-
-def print_node_info(node, node_status):
-    print(inspect.cleandoc(f'''
-        {LONG_LINE}
-        Node info
-        Name: {node['name']}
-        IP: {node['ip']}
-        Public IP: {node['publicIP']}
-        Port: {node['port']}
-        Status: {node_status}
-        {LONG_LINE}
-    '''))

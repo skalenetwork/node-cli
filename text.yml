@@ -29,7 +29,9 @@ node:
     Node hasn't been inited before.
     You should run < skale node init >
   already_inited: Node was already inited before.
-  cmd_failed: "Command failed. Please check out {} and logs from docker containers"
+  cmd_failed: |-
+      Command failed. Please, check out < skale logs cli >
+      and logs from docker containers for more information
 wallet:
   successful_transfer: "Funds were successfully transferred"
 
