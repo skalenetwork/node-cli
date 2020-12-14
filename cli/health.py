@@ -50,7 +50,7 @@ def containers(all):
     help=G_TEXTS['common']['json']['help'],
     is_flag=True
 )
-def schains_checks(json_format: bool) -> None:
+def schains(json_format: bool) -> None:
     get_schains_checks(json_format)
 
 

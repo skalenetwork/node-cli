@@ -358,7 +358,7 @@ Options:
 Show health check results for all SKALE Chains on the node
 
 ```shell
-skale health schains-checks
+skale health schains
 ```
 
 Options:

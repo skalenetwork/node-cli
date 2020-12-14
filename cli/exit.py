@@ -6,7 +6,7 @@ from tools.texts import Texts
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
-BLUEPRINT_NAME = 'exit'
+BLUEPRINT_NAME = 'node'
 
 
 @click.group()
@@ -26,7 +26,7 @@ def node_exit():
 def start():
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME,
-        method='start'
+        method='exit/start'
     )
     if status == 'ok':
         msg = TEXTS['exit']['start']
@@ -41,7 +41,7 @@ def start():
 def status(format):
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME,
-        method='status'
+        method='exit/status'
     )
     if status == 'ok':
         exit_status = payload

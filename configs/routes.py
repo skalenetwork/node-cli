@@ -26,10 +26,9 @@ API_PREFIX = '/api'
 ROUTES = {
     'v1': {
         'logs': ['dump'],
-        'exit': ['start', 'status'],
         'node': ['info', 'register', 'maintenance-on', 'maintenance-off', 'signature',
-                 'send-tg-notification'],
-        'health': ['containers', 'schains-checks', 'sgx'],
+                 'send-tg-notification', 'exit/start', 'exit/status'],
+        'health': ['containers', 'schains', 'sgx'],
         'schains': ['config', 'list', 'dkg-statuses', 'firewall-rules', 'repair', 'get'],
         'ssl': ['status', 'upload'],
         'wallet': ['info', 'send-eth']
