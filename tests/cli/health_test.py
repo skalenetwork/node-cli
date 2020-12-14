@@ -1,7 +1,7 @@
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.health import containers, schains_checks, sgx
+from cli.health import containers, schains, sgx
 
 
 OK_LS_RESPONSE_DATA = {
@@ -70,7 +70,7 @@ def test_checks():
         json_data={'payload': payload, 'status': 'ok'}
     )
     result = run_command_mock('core.helper.requests.get',
-                              resp_mock, schains_checks)
+                              resp_mock, schains)
 
     print(result)
     print(result.output)
@@ -79,7 +79,7 @@ def test_checks():
     assert result.output == 'sChain Name   Data directory    DKG    Config file   Volume   Container    IMA    Firewall    RPC    Blocks\n-----------------------------------------------------------------------------------------------------------\ntest_schain   True             False   False         False    False       False   False      False   False \n'  # noqa
 
     result = run_command_mock('core.helper.requests.get',
-                              resp_mock, schains_checks, ['--json'])
+                              resp_mock, schains, ['--json'])
 
     assert result.exit_code == 0
     assert result.output == '[{"name": "test_schain", "healthchecks": {"data_dir": true, "dkg": false, "config": false, "volume": false, "container": false, "ima_container": false, "firewall_rules": false, "rpc": false, "blocks": false}}]\n'  # noqa
