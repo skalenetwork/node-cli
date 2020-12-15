@@ -23,8 +23,11 @@ from core.helper import get_request, post_request, logger
 from core.print_formatters import print_err_response, print_wallet_info, TEXTS
 
 
+BLUEPRINT_NAME = 'wallet'
+
+
 def get_wallet_info(_format):
-    status, payload = get_request('wallet_info')
+    status, payload = get_request(BLUEPRINT_NAME, 'info')
     if status == 'ok':
         if _format == 'json':
             print(json.dumps(payload))
@@ -41,8 +44,7 @@ def send_eth(address: str, amount: float, gas_limit: int, gas_price: int):
         'gas_limit': gas_limit,
         'gas_price': gas_price
     }
-    status, payload = post_request('send_eth',
-                                   json=json_data)
+    status, payload = post_request(BLUEPRINT_NAME, 'send-eth', json=json_data)
     if status == 'ok':
         msg = TEXTS['wallet']['successful_transfer']
         logger.info(msg)

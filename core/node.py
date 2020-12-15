@@ -23,6 +23,7 @@ import os
 import shlex
 import subprocess
 import time
+from enum import Enum
 
 import docker
 
@@ -38,7 +39,7 @@ from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
-from core.print_formatters import print_err_response, print_node_cmd_error
+from core.print_formatters import print_err_response, print_node_cmd_error, print_node_info
 from core.resources import update_resource_allocation
 from tools.meta import update_meta
 from tools.helper import run_cmd, extract_env_params
@@ -48,6 +49,17 @@ logger = logging.getLogger(__name__)
 TEXTS = Texts()
 
 BASE_CONTAINERS_AMOUNT = 5
+BLUEPRINT_NAME = 'node'
+
+
+class NodeStatuses(Enum):
+    """This class contains possible node statuses"""
+    ACTIVE = 0
+    LEAVING = 1
+    FROZEN = 2
+    IN_MAINTENANCE = 3
+    LEFT = 4
+    NOT_CREATED = 5
 
 
 def register_node(config, name, p2p_ip,
@@ -64,8 +76,11 @@ def register_node(config, name, p2p_ip,
         'gas_price': gas_price,
         'skip_dry_run': skip_dry_run
     }
-    status, payload = post_request('create_node',
-                                   json=json_data)
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='register',
+        json=json_data
+    )
     if status == 'ok':
         msg = TEXTS['node']['registered']
         logger.info(msg)
@@ -200,7 +215,11 @@ def update(env_filepath, sync_schains):
 
 def get_node_signature(validator_id):
     params = {'validator_id': validator_id}
-    status, payload = get_request('node_signature', params=params)
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='signature',
+        params=params
+    )
     if status == 'ok':
         return payload['signature']
     else:
@@ -243,7 +262,10 @@ def create_backup_archive(backup_filepath):
 
 def set_maintenance_mode_on():
     print('Setting maintenance mode on...')
-    status, payload = post_request('maintenance_on')
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='maintenance-on'
+    )
     if status == 'ok':
         msg = TEXTS['node']['maintenance_on']
         logger.info(msg)
@@ -256,7 +278,10 @@ def set_maintenance_mode_on():
 
 def set_maintenance_mode_off():
     print('Setting maintenance mode off...')
-    status, payload = post_request('maintenance_off')
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='maintenance-off'
+    )
     if status == 'ok':
         msg = TEXTS['node']['maintenance_off']
         logger.info(msg)
@@ -322,3 +347,25 @@ def is_base_containers_alive():
         lambda c: c.name.startswith('skale_'), containers
     ))
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
+
+
+def get_node_info(config, format):
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='info'
+    )
+    if status == 'ok':
+        node_info = payload['node_info']
+        if format == 'json':
+            print(node_info)
+        elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
+            print(TEXTS['service']['node_not_registered'])
+        else:
+            print_node_info(node_info, get_node_status(int(node_info['status'])))
+    else:
+        print_err_response(payload)
+
+
+def get_node_status(status):
+    node_status = NodeStatuses(status).name
+    return TEXTS['node']['status'][node_status]

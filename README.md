@@ -11,16 +11,14 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 1.  [Installation](#installation)
 2.  [CLI usage](#cli-usage)  
     2.1 [Top level commands](#top-level-commands)  
-    2.2 [User](#user-commands)  
-    2.3 [Node](#node-commands)  
-    2.4 [Wallet](#wallet-commands)  
-    2.5 [sChains](#schain-commands)  
-    2.6 [Containers](#containers-commands)  
-    2.7 [SGX](#sgx-commands)  
-    2.8 [SSL](#ssl-commands)  
-    2.9 [Logs](#logs-commands)  
-    2.10 [Resources allocation](#resources-allocation-commands)  
-    2.11 [Validate](#validate-commands)  
+    2.2 [Node](#node-commands)  
+    2.3 [Wallet](#wallet-commands)  
+    2.4 [sChains](#schain-commands)  
+    2.5 [Health](#health-commands)  
+    2.6 [SSL](#ssl-commands)  
+    2.7 [Logs](#logs-commands)  
+    2.8 [Resources allocation](#resources-allocation-commands)  
+    2.9 [Validate](#validate-commands)  
 
 3.  [Development](#development)
 
@@ -293,7 +291,7 @@ Optional arguments:
 
 `--yes` - Send without additional confirmation
 
-### SKALE Chain commands
+### sChain commands
 
 > Prefix: `skale schains`
 
@@ -339,58 +337,40 @@ Turn on repair mode for SKALE Chain
 skale schains repair SCHAIN_NAME
 ```
 
-#### SKALE Chain healthcheck
+### Health commands
 
-Show healthcheck results for all SKALE Chains on the node
+> Prefix: `skale health`
 
-```shell
-skale schains checks
-```
-
-Options:
-
--   `--json` - Show data in JSON format
-
-### Container commands
-
-Node container commands
-
-> Prefix: `skale containers`
-
-#### List containers
+#### SKALE containers
 
 List all SKALE containers running on the connected node
 
 ```shell
-skale containers ls
+skale health containers
 ```
 
 Options:
 
 -   `-a/--all` - list all containers (by default - only running)
 
-#### SKALE Chain containers
+#### sChains healthchecks
 
-List of SKALE chain containers running on the connected node
+Show health check results for all SKALE Chains on the node
 
 ```shell
-skale containers schains
+skale health schains
 ```
 
 Options:
 
--   `-a/--all` - list all SKALE chain containers (by default - only running)
+-   `--json` - Show data in JSON format
 
-### SGX commands
-
-> Prefix: `skale sgx`
-
-#### Status
+#### SGX
 
 Status of the SGX server. Returns the SGX server URL and connection status.
 
 ```shell
-$ skale sgx status
+$ skale health sgx
 
 SGX server status:
 ┌────────────────┬────────────────────────────┐
@@ -399,8 +379,6 @@ SGX server status:
 │ Status         │ CONNECTED                  │
 └────────────────┴────────────────────────────┘
 ```
-
-Admin API URL: \[GET] `/api/ssl/sgx`
 
 ### SSL commands
 

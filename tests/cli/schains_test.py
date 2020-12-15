@@ -23,7 +23,7 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import (get_schain_config, ls, dkg, checks, show_rules,
+from cli.schains import (get_schain_config, ls, dkg, show_rules,
                          repair, info_)
 
 
@@ -149,43 +149,6 @@ def test_schain_rules():
     assert result.exit_code == 0
     print(repr(result.output))
     assert result.output == 'Port       Ip    \n-----------------\n10000   127.0.0.1\n10001   127.0.0.1\n10002   None     \n10003   None     \n10004   127.0.0.1\n10005   127.0.0.1\n10007   None     \n10008   None     \n'  # noqa
-
-
-def test_checks():
-    payload = [
-        {
-            "name": "test_schain",
-            "healthchecks": {
-                "data_dir": True,
-                "dkg": False,
-                "config": False,
-                "volume": False,
-                "container": False,
-                "ima_container": False,
-                "firewall_rules": False,
-                "rpc": False,
-                "blocks": False
-            }
-        }
-    ]
-    resp_mock = response_mock(
-        requests.codes.ok,
-        json_data={'payload': payload, 'status': 'ok'}
-    )
-    result = run_command_mock('core.helper.requests.get',
-                              resp_mock, checks)
-
-    print(result)
-    print(result.output)
-
-    assert result.exit_code == 0
-    assert result.output == 'sChain Name   Data directory    DKG    Config file   Volume   Container    IMA    Firewall    RPC    Blocks\n-----------------------------------------------------------------------------------------------------------\ntest_schain   True             False   False         False    False       False   False      False   False \n'  # noqa
-
-    result = run_command_mock('core.helper.requests.get',
-                              resp_mock, checks, ['--json'])
-
-    assert result.exit_code == 0
-    assert result.output == '[{"name": "test_schain", "healthchecks": {"data_dir": true, "dkg": false, "config": false, "volume": false, "container": false, "ima_container": false, "firewall_rules": false, "rpc": false, "blocks": false}}]\n'  # noqa
 
 
 def test_repair():

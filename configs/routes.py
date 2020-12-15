@@ -1,41 +1,58 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of SKALE Admin
+#
+#   Copyright (C) 2020 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import os
+
+
+CURRENT_API_VERSION = 'v1'
+API_PREFIX = '/api'
+
 ROUTES = {
-    'login': '/login',
-    'logout': '/logout',
-    'register': '/join',
-    'node_info': '/node-info',
-    'node_about': '/about-node',
-    'create_node': '/create-node',
-    'node_signature': '/node-signature',
-    'test_host': '/test-host',
-
-    'wallet_info': '/load-wallet',
-    'validators_info': '/validators-info',
-    'send_eth': '/api/send-eth',
-
-    'schains_containers': '/containers/schains/list',
-    'schains_healthchecks': '/api/schains/healthchecks',
-    'node_schains': '/schains/list',
-    'schain_config': '/schain-config',
-    'skale_containers': '/containers/list',
-
-    'logs_dump': '/logs/dump',
-
-    'ssl_status': '/api/ssl/status',
-    'ssl_upload': '/api/ssl/upload',
-
-    'dkg_statuses': '/api/dkg/statuses',
-
-    'sgx_info': '/api/sgx/info',
-
-    'start_exit': '/api/exit/start',
-    'exit_status': '/api/exit/status',
-    'finalize_exit': '/api/exit/finalize',
-    'get_schain_firewall_rules': '/api/schains/firewall/show',
-    'turn_on_schain_firewall_rules': '/api/schains/firewall/on',
-    'turn_off_schain_firewall_rules': '/api/schains/firewall/off',
-
-    'maintenance_on': '/api/node/maintenance-on',
-    'maintenance_off': '/api/node/maintenance-off',
-    'repair_schain': '/api/schains/repair',
-    'describe_schain': '/api/schains/get'
+    'v1': {
+        'logs': ['dump'],
+        'node': ['info', 'register', 'maintenance-on', 'maintenance-off', 'signature',
+                 'send-tg-notification', 'exit/start', 'exit/status'],
+        'health': ['containers', 'schains', 'sgx'],
+        'schains': ['config', 'list', 'dkg-statuses', 'firewall-rules', 'repair', 'get'],
+        'ssl': ['status', 'upload'],
+        'wallet': ['info', 'send-eth']
+    }
 }
+
+
+class RouteNotFoundException(Exception):
+    """Raised when requested route is not found in provided API version"""
+
+
+def route_exists(blueprint, method, api_version):
+    return ROUTES.get(api_version) and ROUTES[api_version].get(blueprint) and \
+        method in ROUTES[api_version][blueprint]
+
+
+def get_route(blueprint, method, api_version=CURRENT_API_VERSION, check=True):
+    route = os.path.join(API_PREFIX, api_version, blueprint, method)
+    if check and not route_exists(blueprint, method, api_version):
+        raise RouteNotFoundException(route)
+    return route
+
+
+def get_all_available_routes(api_version=CURRENT_API_VERSION):
+    routes = ROUTES[api_version]
+    return [get_route(blueprint, method, api_version) for blueprint in routes
+            for method in routes[blueprint]]

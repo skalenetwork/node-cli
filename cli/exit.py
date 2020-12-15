@@ -6,6 +6,7 @@ from tools.texts import Texts
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
+BLUEPRINT_NAME = 'node'
 
 
 @click.group()
@@ -23,7 +24,10 @@ def node_exit():
               expose_value=False,
               prompt='Are you sure you want to destroy your SKALE node?')
 def start():
-    status, payload = post_request('start_exit')
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='exit/start'
+    )
     if status == 'ok':
         msg = TEXTS['exit']['start']
         logger.info(msg)
@@ -35,7 +39,10 @@ def start():
 @node_exit.command('status', help="Get exit process status")
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 def status(format):
-    status, payload = get_request('exit_status')
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='exit/status'
+    )
     if status == 'ok':
         exit_status = payload
         if format == 'json':

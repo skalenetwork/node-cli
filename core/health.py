@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2020 SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -12,34 +12,58 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU Affero General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import click
+import json
 from terminaltables import SingleTable
 
-from core.helper import get_request, safe_load_texts
-from core.print_formatters import print_err_response
+from core.helper import get_request
+from core.print_formatters import (
+    print_containers,
+    print_err_response,
+    print_schains_healthchecks
+)
+
+BLUEPRINT_NAME = 'health'
 
 
-TEXTS = safe_load_texts()
+def get_containers(_all):
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='containers',
+        params={'all': _all}
+    )
+    if status == 'ok':
+        print_containers(payload)
+    else:
+        print_err_response(payload)
 
 
-@click.group()
-def sgx_cli():
-    pass
+def get_schains_checks(json_format: bool = False) -> None:
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='schains'
+    )
+    if status == 'ok':
+        if not payload:
+            print('No sChains found')
+            return
+        if json_format:
+            print(json.dumps(payload))
+        else:
+            print_schains_healthchecks(payload)
+    else:
+        print_err_response(payload)
 
 
-@sgx_cli.group('sgx', help="SGX commands")
-def sgx():
-    pass
-
-
-@sgx.command(help="Info about connected SGX server")
-def info():
-    status, payload = get_request('sgx_info')
+def get_sgx_info():
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='sgx'
+    )
     if status == 'ok':
         data = payload
         table_data = [

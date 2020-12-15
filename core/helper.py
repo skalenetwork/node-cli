@@ -31,7 +31,8 @@ from logging import Formatter
 import requests
 import yaml
 
-from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, ROUTES
+from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT
+from configs.routes import get_route
 from configs.cli_logger import (LOG_FORMAT, LOG_BACKUP_COUNT,
                                 LOG_FILE_SIZE_BYTES,
                                 LOG_FILEPATH, DEBUG_LOG_FILEPATH)
@@ -94,8 +95,9 @@ def abort_if_false(ctx, param, value):
         ctx.abort()
 
 
-def post_request(url_name, json=None, files=None):
-    url = construct_url(ROUTES[url_name])
+def post_request(blueprint, method, json=None, files=None):
+    route = get_route(blueprint, method)
+    url = construct_url(route)
     try:
         response = requests.post(url, json=json, files=files)
         data = response.json()
@@ -107,8 +109,9 @@ def post_request(url_name, json=None, files=None):
     return status, payload
 
 
-def get_request(url_name, params=None):
-    url = construct_url(ROUTES[url_name])
+def get_request(blueprint, method, params=None):
+    route = get_route(blueprint, method)
+    url = construct_url(route)
     try:
         response = requests.get(url, params=params)
         data = response.json()
@@ -122,7 +125,8 @@ def get_request(url_name, params=None):
 
 
 def download_dump(path, container_name=None):
-    url = construct_url(ROUTES['logs_dump'])
+    route = get_route('logs', 'dump')
+    url = construct_url(route)
     params = {}
     if container_name:
         params['container_name'] = container_name
@@ -186,7 +190,11 @@ def upload_certs(key_path, cert_path, force):
             None, json.dumps({'force': force}),
             'application/json'
         )
-        return post_request('ssl_upload', files=files_data)
+        return post_request(
+            blueprint='ssl',
+            method='upload',
+            files=files_data
+        )
 
 
 def to_camel_case(snake_str):
