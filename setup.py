@@ -59,7 +59,7 @@ setup(
         "psutil==5.7.0",
         "python-dotenv==0.13.0",
         "terminaltables==3.1.0",
-        "requests==2.23.0"
+        "requests==2.25.0"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
