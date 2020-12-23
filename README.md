@@ -19,8 +19,8 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
     2.7 [Logs](#logs-commands)  
     2.8 [Resources allocation](#resources-allocation-commands)  
     2.9 [Validate](#validate-commands)  
-
-3.  [Development](#development)
+3.  [Exit codes](#exit-codes)
+4.  [Development](#development)
 
 ## Installation
 
@@ -478,6 +478,15 @@ skale validate abi
 Options:
 
 -   `--json` - show validation result in json format 
+
+## Exit codes
+
+Exit codes conventions for SKALE CLI tools
+
+- `0` - Everything is OK
+- `1` - General error exit code
+- `3` - Bad API response
+- `4` - Script execution error
 
 ## Development
 

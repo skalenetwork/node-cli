@@ -20,12 +20,13 @@
 import json
 from terminaltables import SingleTable
 
-from core.helper import get_request
 from core.print_formatters import (
     print_containers,
-    print_err_response,
     print_schains_healthchecks
 )
+from tools.helper import error_exit, get_request
+from tools.exit_codes import CLIExitCodes
+
 
 BLUEPRINT_NAME = 'health'
 
@@ -39,7 +40,7 @@ def get_containers(_all):
     if status == 'ok':
         print_containers(payload)
     else:
-        print_err_response(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def get_schains_checks(json_format: bool = False) -> None:
@@ -56,7 +57,7 @@ def get_schains_checks(json_format: bool = False) -> None:
         else:
             print_schains_healthchecks(payload)
     else:
-        print_err_response(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def get_sgx_info():
@@ -76,4 +77,4 @@ def get_sgx_info():
         table = SingleTable(table_data)
         print(table.table)
     else:
-        print_err_response(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)

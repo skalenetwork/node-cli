@@ -25,9 +25,8 @@ import click
 from core.node import (get_node_signature, init, restore,
                        register_node as register, update, backup, set_maintenance_mode_on,
                        set_maintenance_mode_off, turn_off, turn_on, get_node_info)
-from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
-from tools.helper import session_config
+from tools.helper import session_config, abort_if_false, safe_load_texts
 
 
 config = session_config()
