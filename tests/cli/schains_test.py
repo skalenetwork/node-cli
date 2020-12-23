@@ -172,7 +172,7 @@ def test_repair():
     result = run_command_mock('tools.helper.requests.post', resp_mock, repair,
                               ['test-schain', '--yes'])
     print(repr(result.output))
-    assert result.exit_code == 0
+    assert result.exit_code == 3
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
@@ -201,4 +201,4 @@ def test_info():
     result = run_command_mock('tools.helper.requests.get', resp_mock, info_,
                               ['schain not found'])
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
-    assert result.exit_code == 0
+    assert result.exit_code == 3
