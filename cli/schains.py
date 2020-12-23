@@ -19,7 +19,7 @@
 
 import click
 
-from core.helper import abort_if_false
+from tools.helper import abort_if_false
 from core.schains import (
     describe,
     get_schain_firewall_rules,

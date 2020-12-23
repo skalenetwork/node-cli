@@ -23,7 +23,6 @@ import os
 from shutil import copyfile
 from urllib.parse import urlparse
 
-from core.helper import validate_abi
 from core.resources import update_resource_allocation
 
 from configs import (ADMIN_PORT,
@@ -37,7 +36,7 @@ from core.print_formatters import print_abi_validation_errors
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
-from core.helper import safe_load_texts
+from tools.helper import safe_load_texts, validate_abi
 
 TEXTS = safe_load_texts()
 

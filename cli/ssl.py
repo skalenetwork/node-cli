@@ -20,8 +20,8 @@
 import click
 from terminaltables import SingleTable
 
-from core.helper import (get_request, safe_load_texts, upload_certs,
-                         print_err_response)
+from tools.helper import (get_request, safe_load_texts, upload_certs,
+                          error_exit)
 
 
 TEXTS = safe_load_texts()
@@ -56,7 +56,7 @@ def status():
             print('SSL certificates status:')
             print(table.table)
     else:
-        print_err_response(payload)
+        error_exit(payload)
 
 
 @ssl.command(help="Upload new SSL certificates")
@@ -76,4 +76,4 @@ def upload(key_path, cert_path, force):
     if status == 'ok':
         print(TEXTS['ssl']['uploaded'])
     else:
-        print_err_response(payload)
+        error_exit(payload)

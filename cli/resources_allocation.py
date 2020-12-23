@@ -22,8 +22,7 @@ import click
 
 from core.resources import (get_resource_allocation_info,
                             generate_resource_allocation_config)
-from core.helper import abort_if_false, safe_load_texts
-from tools.helper import session_config
+from tools.helper import session_config, abort_if_false, safe_load_texts
 
 config = session_config()
 TEXTS = safe_load_texts()

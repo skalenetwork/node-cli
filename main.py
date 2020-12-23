@@ -36,8 +36,7 @@ from cli.ssl import ssl_cli
 from cli.exit import exit_cli
 from cli.validate import validate_cli
 from cli.resources_allocation import resources_allocation_cli
-
-from core.helper import (safe_load_texts, init_default_logger)
+from tools.helper import safe_load_texts, init_default_logger
 from configs import LONG_LINE
 from core.host import init_logs_dir
 

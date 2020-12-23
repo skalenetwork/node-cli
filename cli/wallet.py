@@ -21,7 +21,7 @@ import logging
 
 import click
 
-from core.helper import abort_if_false
+from tools.helper import abort_if_false
 from core.wallet import get_wallet_info, send_eth
 
 logger = logging.getLogger(__name__)

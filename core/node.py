@@ -35,15 +35,16 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
 from configs.cli_logger import LOG_DIRNAME
 
-from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
-from core.print_formatters import print_err_response, print_node_cmd_error, print_node_info
+from core.print_formatters import print_node_cmd_error, print_node_info
+from tools.helper import error_exit, get_request, post_request
 from core.resources import update_resource_allocation
 from tools.meta import update_meta
 from tools.helper import run_cmd, extract_env_params
 from tools.texts import Texts
+from tools.exit_codes import CLIExitCodes
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
@@ -88,7 +89,7 @@ def register_node(config, name, p2p_ip,
     else:
         error_msg = payload
         logger.error(f'Registration error {error_msg}')
-        print_err_response(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def init(env_filepath, dry_run=False):
@@ -114,9 +115,9 @@ def init(env_filepath, dry_run=False):
     try:
         run_cmd(['bash', INSTALL_SCRIPT], env=env)
     except Exception:
-        logger.exception('Install script process errored')
-        print_node_cmd_error()
-        return
+        error_msg = 'Install script process errored'
+        logger.exception(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
@@ -273,7 +274,7 @@ def set_maintenance_mode_on():
     else:
         error_msg = payload
         logger.error(f'Set maintenance mode error {error_msg}')
-        print_err_response(error_msg)
+        error_exit(error_msg)
 
 
 def set_maintenance_mode_off():
@@ -289,7 +290,7 @@ def set_maintenance_mode_off():
     else:
         error_msg = payload
         logger.error(f'Remove from maintenance mode error {error_msg}')
-        print_err_response(error_msg)
+        error_exit(error_msg)
 
 
 def run_turn_off_script():
@@ -363,7 +364,7 @@ def get_node_info(config, format):
         else:
             print_node_info(node_info, get_node_status(int(node_info['status'])))
     else:
-        print_err_response(payload)
+        error_exit(payload)
 
 
 def get_node_status(status):
