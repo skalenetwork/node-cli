@@ -121,8 +121,7 @@ def init(env_filepath, dry_run=False):
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
-        print_node_cmd_error()
-        return
+        error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation()
     print('Init procedure finished')
@@ -274,7 +273,7 @@ def set_maintenance_mode_on():
     else:
         error_msg = payload
         logger.error(f'Set maintenance mode error {error_msg}')
-        error_exit(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def set_maintenance_mode_off():
@@ -290,7 +289,7 @@ def set_maintenance_mode_off():
     else:
         error_msg = payload
         logger.error(f'Remove from maintenance mode error {error_msg}')
-        error_exit(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def run_turn_off_script():
@@ -302,9 +301,9 @@ def run_turn_off_script():
     try:
         run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
     except Exception:
-        logger.exception('Turning off failed')
-        print_node_cmd_error()
-        return
+        error_msg = 'Turning off failed'
+        logger.exception(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
     print('Node was successfully turned off')
 
 
@@ -314,9 +313,9 @@ def run_turn_on_script(sync_schains, env_filepath):
     try:
         run_cmd(['bash', TURN_ON_SCRIPT], env=env)
     except Exception:
-        logger.exception('Turning on failed')
-        print_node_cmd_error()
-        return
+        error_msg = 'Turning on failed'
+        logger.exception(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
     print('Node was successfully turned on')
@@ -336,7 +335,6 @@ def turn_on(maintenance_off, sync_schains, env_file):
         print(TEXTS['node']['not_inited'])
         return
     run_turn_on_script(sync_schains, env_file)
-    # TODO: Handle error from turn on script
     if maintenance_off:
         set_maintenance_mode_off()
 
@@ -364,7 +362,7 @@ def get_node_info(config, format):
         else:
             print_node_info(node_info, get_node_status(int(node_info['status'])))
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def get_node_status(status):

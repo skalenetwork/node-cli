@@ -142,7 +142,7 @@ def extract_env_params(env_filepath):
 
 def error_exit(error_payload, exit_code=CLIExitCodes.FAILURE):
     print_err_response(error_payload)
-    sys.exit(exit_code)
+    sys.exit(exit_code.value)
 
 
 def safe_get_config(config, key):

@@ -1,10 +1,10 @@
 import logging
 import pprint
 
-from tools.helper import get_request, post_request
+from tools.helper import get_request, post_request, error_exit
+from tools.exit_codes import CLIExitCodes
 from core.print_formatters import (
     print_dkg_statuses,
-    error_exit,
     print_firewall_rules,
     print_schain_info,
     print_schains
@@ -25,7 +25,7 @@ def get_schain_firewall_rules(schain: str) -> None:
     if status == 'ok':
         print_firewall_rules(payload['endpoints'])
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def show_schains() -> None:
@@ -40,7 +40,7 @@ def show_schains() -> None:
             return
         print_schains(schains)
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def show_dkg_info(all_: bool = False) -> None:
@@ -53,7 +53,7 @@ def show_dkg_info(all_: bool = False) -> None:
     if status == 'ok':
         print_dkg_statuses(payload)
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def show_config(name: str) -> None:
@@ -65,7 +65,7 @@ def show_config(name: str) -> None:
     if status == 'ok':
         pprint.pprint(payload)
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def toggle_schain_repair_mode(schain: str) -> None:
@@ -77,7 +77,7 @@ def toggle_schain_repair_mode(schain: str) -> None:
     if status == 'ok':
         print('Schain has been set for repair')
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def describe(schain: str, raw=False) -> None:
@@ -89,4 +89,4 @@ def describe(schain: str, raw=False) -> None:
     if status == 'ok':
         print_schain_info(payload, raw=raw)
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)

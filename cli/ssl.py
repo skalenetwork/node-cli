@@ -20,6 +20,7 @@
 import click
 from terminaltables import SingleTable
 
+from tools.exit_codes import CLIExitCodes
 from tools.helper import (get_request, safe_load_texts, upload_certs,
                           error_exit)
 
@@ -56,7 +57,7 @@ def status():
             print('SSL certificates status:')
             print(table.table)
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 @ssl.command(help="Upload new SSL certificates")
@@ -76,4 +77,4 @@ def upload(key_path, cert_path, force):
     if status == 'ok':
         print(TEXTS['ssl']['uploaded'])
     else:
-        error_exit(payload)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
