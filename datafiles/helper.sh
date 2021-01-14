@@ -10,7 +10,7 @@ export FILESTORAGE_ARTIFACTS_FILE=$NODE_DATA_DIR/filestorage_artifacts.json
 export CONTRACTS_DIR="$SKALE_DIR"/contracts_info
 export BACKUP_CONTRACTS_DIR="$SKALE_DIR"/.old_contracts_info
 
-export BASE_SERVICES="transaction-manager skale-admin skale-api mysql sla bounty watchdog filebeat"
+export BASE_SERVICES="transaction-manager skale-admin skale-api mysql sla bounty nginx watchdog filebeat"
 export NOTIFICATION_SERVICES="celery redis"
 
 remove_dynamic_containers () {
