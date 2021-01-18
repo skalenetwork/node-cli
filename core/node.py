@@ -51,7 +51,8 @@ BASE_CONTAINERS_AMOUNT = 5
 
 
 def register_node(config, name, p2p_ip,
-                  public_ip, port, gas_limit=None,
+                  public_ip, port, domain_name,
+                  gas_limit=None,
                   gas_price=None,
                   skip_dry_run=False):
     # todo: add name, ips and port checks
@@ -60,6 +61,7 @@ def register_node(config, name, p2p_ip,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port,
+        'domain_name': domain_name,
         'gas_limit': gas_limit,
         'gas_price': gas_price,
         'skip_dry_run': skip_dry_run
@@ -322,3 +324,24 @@ def is_base_containers_alive():
         lambda c: c.name.startswith('skale_'), containers
     ))
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
+
+
+def set_domain_name(domain_name):
+    if not is_node_inited():
+        print(TEXTS['node']['not_inited'])
+        return
+    print(f'Setting new domain name: {domain_name}')
+    status, payload = post_request(
+        url_name='set_domain_name',
+        json={
+            'domain_name': domain_name
+        }
+    )
+    if status == 'ok':
+        msg = TEXTS['node']['domain_name_changed']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Domain name change error: {error_msg}')
+        print_err_response(error_msg)

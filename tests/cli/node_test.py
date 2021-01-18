@@ -29,7 +29,7 @@ from cli.node import (init_node,
                       node_about, node_info, register_node, signature,
                       update_node, backup_node, restore_node,
                       set_node_in_maintenance,
-                      remove_node_from_maintenance, _turn_off, _turn_on)
+                      remove_node_from_maintenance, _turn_off, _turn_on, _set_domain_name)
 
 from tests.helper import (
     response_mock, run_command_mock,
@@ -50,7 +50,7 @@ def test_register_node(config):
         'core.helper.requests.post',
         resp_mock,
         register_node,
-        ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080'])
+        ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080', '-d', 'skale.test'])
     assert result.exit_code == 0
     assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
@@ -64,7 +64,7 @@ def test_register_node_with_error(config):
         'core.helper.requests.post',
         resp_mock,
         register_node,
-        ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80'])
+        ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80', '-d', 'skale.test'])
     assert result.exit_code == 0
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
@@ -78,7 +78,7 @@ def test_register_node_with_prompted_ip(config):
         'core.helper.requests.post',
         resp_mock,
         register_node,
-        ['--name', 'test-node', '--port', '8080'], input='0.0.0.0\n')
+        ['--name', 'test-node', '--port', '8080', '-d', 'skale.test'], input='0.0.0.0\n')
     assert result.exit_code == 0
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
@@ -92,7 +92,7 @@ def test_register_node_with_default_port(config):
         'core.helper.requests.post',
         resp_mock,
         register_node,
-        ['--name', 'test-node'], input='0.0.0.0\n')
+        ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
     assert result.exit_code == 0
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
@@ -210,7 +210,8 @@ def test_node_info_node_info(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 0, 'id': 32, 'owner': '0x23'
+            'status': 0, 'id': 32, 'owner': '0x23',
+            'domain_name': 'skale.test'
         }
     }
 
@@ -220,7 +221,7 @@ def test_node_info_node_info(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Active\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_not_created(config):
@@ -233,7 +234,8 @@ def test_node_info_node_info_not_created(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 5, 'id': 32, 'owner': '0x23'
+            'status': 5, 'id': 32, 'owner': '0x23',
+            'domain_name': 'skale.test'
         }
     }
 
@@ -256,7 +258,8 @@ def test_node_info_node_info_frozen(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 2, 'id': 32, 'owner': '0x23'
+            'status': 2, 'id': 32, 'owner': '0x23',
+            'domain_name': 'skale.test'
         }
     }
 
@@ -266,7 +269,7 @@ def test_node_info_node_info_frozen(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Frozen\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_left(config):
@@ -279,7 +282,8 @@ def test_node_info_node_info_left(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 4, 'id': 32, 'owner': '0x23'
+            'status': 4, 'id': 32, 'owner': '0x23',
+            'domain_name': 'skale.test'
         }
     }
 
@@ -289,7 +293,7 @@ def test_node_info_node_info_left(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Left\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_leaving(config):
@@ -302,7 +306,8 @@ def test_node_info_node_info_leaving(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 1, 'id': 32, 'owner': '0x23'
+            'status': 1, 'id': 32, 'owner': '0x23',
+            'domain_name': 'skale.test'
         }
     }
 
@@ -312,7 +317,7 @@ def test_node_info_node_info_leaving(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_in_maintenance(config):
@@ -325,7 +330,8 @@ def test_node_info_node_info_in_maintenance(config):
             'start_date': 1570114466,
             'leaving_date': 0,
             'last_reward_date': 1570628924, 'second_address': 0,
-            'status': 3, 'id': 32, 'owner': '0x23'
+            'status': 3, 'id': 32, 'owner': '0x23',
+            'domain_name': 'skale.test'
         }
     }
 
@@ -335,7 +341,7 @@ def test_node_info_node_info_in_maintenance(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_signature():
@@ -447,3 +453,16 @@ def test_turn_on_maintenance_off():
 
     assert result.exit_code == 0
     assert result.output == 'Turning on the node...\nWaiting for transaction manager initialization ...\nNode was successfully turned on\nSetting maintenance mode off...\nNode is successfully removed from maintenance mode\n'  # noqa
+
+
+def test_set_domain_name():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        _set_domain_name, ['-d', 'skale.test', '--yes'])
+    assert result.exit_code == 0
+    assert result.output == 'Setting new domain name: skale.test\nDomain name successfully changed\n'  # noqa

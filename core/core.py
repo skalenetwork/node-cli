@@ -72,6 +72,7 @@ def print_node_info(node):
         IP: {node['ip']}
         Public IP: {node['publicIP']}
         Port: {node['port']}
+        Domain name: {node['domain_name']}
         Status: {get_node_status(int(node['status']))}
         {LONG_LINE}
     '''))
