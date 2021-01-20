@@ -17,9 +17,12 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import sys
+
 import click
-from core.helper import download_dump
+from tools.helper import download_dump
 from configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
+from tools.exit_codes import CLIExitCodes
 
 
 @click.group()
@@ -52,3 +55,5 @@ def dump(container, path):
     res = download_dump(path, container)
     if res:
         print(f'File {res} downloaded')
+    else:
+        sys.exit(CLIExitCodes.BAD_API_RESPONSE)

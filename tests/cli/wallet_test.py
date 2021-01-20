@@ -38,7 +38,7 @@ def test_wallet_info(config):
     response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
     response_mock.json = Mock(return_value=response_data)
-    result = run_command_mock('core.helper.requests.get',
+    result = run_command_mock('tools.helper.requests.get',
                               response_mock,
                               wallet_info)
     assert result.exit_code == 0
@@ -51,7 +51,7 @@ def test_wallet_info(config):
     )
     assert result.output == expected
 
-    result = run_command_mock('core.helper.requests.get',
+    result = run_command_mock('tools.helper.requests.get',
                               response_mock,
                               wallet_info,
                               ['--format', 'json'])
@@ -69,7 +69,7 @@ def test_wallet_send():
         {'status': 'ok', 'payload': None}
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         send,
         ['0x00000000000000000000000000000000', '10', '--yes'])
@@ -83,9 +83,9 @@ def test_wallet_send_with_error():
         {'status': 'error', 'payload': ['Strange error']},
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         send,
         ['0x00000000000000000000000000000000', '10', '--yes'])
-    assert result.exit_code == 0
+    assert result.exit_code == 3
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa

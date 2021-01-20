@@ -25,8 +25,7 @@ import requests
 
 from configs import NODE_DATA_PATH, SKALE_DIR
 from core.resources import ResourceAlloc
-from cli.node import (init_node,
-                      node_about, node_info, register_node, signature,
+from cli.node import (init_node, node_info, register_node, signature,
                       update_node, backup_node, restore_node,
                       set_node_in_maintenance,
                       remove_node_from_maintenance, _turn_off, _turn_on, _set_domain_name)
@@ -47,7 +46,7 @@ def test_register_node(config):
         {'status': 'ok', 'payload': None}
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         register_node,
         ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080', '-d', 'skale.test'])
@@ -61,11 +60,11 @@ def test_register_node_with_error(config):
         {'status': 'error', 'payload': ['Strange error']},
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         register_node,
         ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80', '-d', 'skale.test'])
-    assert result.exit_code == 0
+    assert result.exit_code == 3
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
@@ -75,7 +74,7 @@ def test_register_node_with_prompted_ip(config):
         {'status': 'ok', 'payload': None}
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         register_node,
         ['--name', 'test-node', '--port', '8080', '-d', 'skale.test'], input='0.0.0.0\n')
@@ -89,7 +88,7 @@ def test_register_node_with_default_port(config):
         {'status': 'ok', 'payload': None}
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         register_node,
         ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
@@ -107,7 +106,7 @@ def test_init_node(config):
                        return_value=True), \
             mock.patch('core.node.is_node_inited', return_value=False):
         result = run_command_mock(
-            'core.helper.post_request',
+            'tools.helper.post_request',
             resp_mock,
             init_node,
             ['./tests/test-env'])
@@ -142,7 +141,7 @@ def test_update_node(config):
             mock.patch('core.resources.get_disk_alloc', new=disk_alloc_mock), \
             mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
-            'core.helper.post_request',
+            'tools.helper.post_request',
             resp_mock,
             update_node,
             params,
@@ -163,41 +162,13 @@ def test_update_node_without_init(config):
                        return_value=True), \
             mock.patch('core.node.is_node_inited', return_value=False):
         result = run_command_mock(
-            'core.helper.post_request',
+            'tools.helper.post_request',
             resp_mock,
             update_node,
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
         assert result.output == "Node hasn't been inited before.\nYou should run < skale node init >\n"  # noqa
-
-
-def test_node_info_node_about(config):
-    payload = {
-        'libraries': {
-            'javascript': 'N/A', 'python': '0.89.0'},
-        'contracts': {
-            'token': '0x3',
-            'manager': '0x23'
-        },
-        'network': {
-            'endpoint': 'ws://0.0.0.0:8080'
-        },
-        'local_wallet': {
-            'address': '0xf',
-            'eth_balance_wei': '15',
-            'skale_balance_wei': '84312304',
-            'eth_balance': '2.424',
-            'skale_balance': '323.123'
-        }
-    }
-    resp_mock = response_mock(
-        requests.codes.ok,
-        {'status': 'ok', 'payload': payload}
-    )
-    result = run_command_mock('core.helper.requests.get', resp_mock, node_about)
-    assert result.exit_code == 0
-    assert result.output == "{'libraries': {'javascript': 'N/A', 'python': '0.89.0'}, 'contracts': {'token': '0x3', 'manager': '0x23'}, 'network': {'endpoint': 'ws://0.0.0.0:8080'}, 'local_wallet': {'address': '0xf', 'eth_balance_wei': '15', 'skale_balance_wei': '84312304', 'eth_balance': '2.424', 'skale_balance': '323.123'}}\n"  # noqa
 
 
 def test_node_info_node_info(config):
@@ -219,7 +190,7 @@ def test_node_info_node_info(config):
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('tools.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'  # noqa
 
@@ -243,7 +214,7 @@ def test_node_info_node_info_not_created(config):
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('tools.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == 'This SKALE node is not registered on SKALE Manager yet\n'
 
@@ -267,7 +238,7 @@ def test_node_info_node_info_frozen(config):
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('tools.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'  # noqa
 
@@ -291,7 +262,7 @@ def test_node_info_node_info_left(config):
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('tools.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'  # noqa
 
@@ -315,7 +286,7 @@ def test_node_info_node_info_leaving(config):
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('tools.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
 
@@ -339,7 +310,7 @@ def test_node_info_node_info_in_maintenance(config):
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('tools.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
 
@@ -351,7 +322,7 @@ def test_node_signature():
         'payload': {'signature': signature_sample}
     }
     resp_mock = response_mock(requests.codes.ok, json_data=response_data)
-    result = run_command_mock('core.helper.requests.get',
+    result = run_command_mock('tools.helper.requests.get',
                               resp_mock, signature, ['1'])
     assert result.exit_code == 0
     assert result.output == f'Signature: {signature_sample}\n'
@@ -394,7 +365,7 @@ def test_maintenance_on():
         {'status': 'ok', 'payload': None}
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         set_node_in_maintenance,
         ['--yes'])
@@ -408,7 +379,7 @@ def test_maintenance_off():
         {'status': 'ok', 'payload': None}
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         remove_node_from_maintenance)
     assert result.exit_code == 0
@@ -422,7 +393,7 @@ def test_turn_off_maintenance_on():
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock):
         result = run_command_mock(
-            'core.helper.requests.post',
+            'tools.helper.requests.post',
             resp_mock,
             _turn_off,
             [
@@ -441,7 +412,7 @@ def test_turn_on_maintenance_off():
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('core.node.get_flask_secret_key'):
         result = run_command_mock(
-            'core.helper.requests.post',
+            'tools.helper.requests.post',
             resp_mock,
             _turn_on,
             [

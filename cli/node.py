@@ -22,13 +22,12 @@ from urllib.parse import urlparse
 
 import click
 
-from core.core import get_node_info, get_node_about
 from core.node import (get_node_signature, init, restore,
                        register_node as register, update, backup, set_maintenance_mode_on,
-                       set_maintenance_mode_off, turn_off, turn_on, set_domain_name)
-from core.helper import abort_if_false, safe_load_texts
+                       set_maintenance_mode_off, turn_off, turn_on, get_node_info,
+                       set_domain_name)
 from configs import DEFAULT_NODE_BASE_PORT
-from tools.helper import session_config
+from tools.helper import session_config, abort_if_false, safe_load_texts
 
 
 config = session_config()
@@ -80,13 +79,6 @@ def node():
 def node_info(format):
     config = session_config()
     get_node_info(config, format)
-
-
-@node.command('about', help="Get service info about SKALE node")
-@click.option('--format', '-f', type=click.Choice(['json', 'text']))
-def node_about(format):
-    config = session_config()
-    get_node_about(config, format)
 
 
 @node.command('register', help="Register current node in the SKALE Manager")

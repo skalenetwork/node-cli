@@ -25,8 +25,7 @@ from time import sleep
 import psutil
 
 from tools.schain_types import SchainTypes
-from tools.helper import write_json, read_json, run_cmd, format_output
-from core.helper import safe_load_yml
+from tools.helper import write_json, read_json, run_cmd, format_output, safe_load_yml
 from configs import ALLOCATION_FILEPATH
 from configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,

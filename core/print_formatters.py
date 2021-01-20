@@ -17,8 +17,8 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 import os
+import json
 import datetime
 import texttable
 from dateutil import parser
@@ -30,19 +30,6 @@ from configs.cli_logger import DEBUG_LOG_FILEPATH
 from tools.texts import Texts
 
 TEXTS = Texts()
-
-
-def print_err_response(error_payload):
-    if isinstance(error_payload, list):
-        error_msg = '\n'.join(error_payload)
-    else:
-        error_msg = error_payload
-
-    print('Command failed with following errors:')
-    print(LONG_LINE)
-    print(error_msg)
-    print(LONG_LINE)
-    print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
 
 
 def print_wallet_info(wallet):
@@ -272,4 +259,32 @@ def print_abi_validation_errors(info: list, raw: bool = False) -> None:
 
 
 def print_node_cmd_error():
-    print(TEXTS['node']['cmd_failed'])
+    print(TEXTS['node']['cmd_failed'].format(DEBUG_LOG_FILEPATH))
+
+
+def print_node_info(node, node_status):
+    print(inspect.cleandoc(f'''
+        {LONG_LINE}
+        Node info
+        Name: {node['name']}
+        ID: {node['id']}
+        IP: {node['ip']}
+        Public IP: {node['publicIP']}
+        Port: {node['port']}
+        Domain name: {node['domain_name']}
+        Status: {node_status}
+        {LONG_LINE}
+    '''))
+
+
+def print_err_response(error_payload):
+    if isinstance(error_payload, list):
+        error_msg = '\n'.join(error_payload)
+    else:
+        error_msg = error_payload
+
+    print('Command failed with following errors:')
+    print(LONG_LINE)
+    print(error_msg)
+    print(LONG_LINE)
+    print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
