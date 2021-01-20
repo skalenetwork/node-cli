@@ -432,7 +432,7 @@ def test_set_domain_name():
         {'status': 'ok', 'payload': None}
     )
     result = run_command_mock(
-        'core.helper.requests.post',
+        'tools.helper.requests.post',
         resp_mock,
         _set_domain_name, ['-d', 'skale.test', '--yes'])
     assert result.exit_code == 0
