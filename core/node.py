@@ -378,7 +378,8 @@ def set_domain_name(domain_name):
         return
     print(f'Setting new domain name: {domain_name}')
     status, payload = post_request(
-        url_name='set_domain_name',
+        blueprint=BLUEPRINT_NAME,
+        method='set-domain-name',
         json={
             'domain_name': domain_name
         }
