@@ -132,9 +132,9 @@ def node_about(format):
     default=False,
     help='Skip dry run for registration transaction'
 )
-def register_node(name, ip, port, domain_name, gas_limit, gas_price, skip_dry_run):
+def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
     config = session_config()
-    register(config, name, ip, ip, port, domain_name, gas_limit, gas_price, skip_dry_run)
+    register(config, name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
 
 
 @node.command('init', help="Initialize SKALE node")
@@ -241,5 +241,5 @@ def _turn_on(maintenance_off, sync_schains, env_file):
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to set domain name?')
-def _set_domain_name(domain_name):
-    set_domain_name(domain_name)
+def _set_domain_name(domain):
+    set_domain_name(domain)
