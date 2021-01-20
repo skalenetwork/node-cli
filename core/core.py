@@ -69,6 +69,7 @@ def print_node_info(node):
         {LONG_LINE}
         Node info
         Name: {node['name']}
+        ID: {node['id']}
         IP: {node['ip']}
         Public IP: {node['publicIP']}
         Port: {node['port']}
