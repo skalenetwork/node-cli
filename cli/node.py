@@ -109,7 +109,7 @@ def node_about(format):
     help='Base port for node sChains'
 )
 @click.option(
-    '--domain-name', '-d',
+    '--domain', '-d',
     prompt="Enter node domain name",
     type=str,
     help='Node domain name'
@@ -233,7 +233,7 @@ def _turn_on(maintenance_off, sync_schains, env_file):
 
 @node.command('set-domain', help="Set node domain name")
 @click.option(
-    '--domain-name', '-d',
+    '--domain', '-d',
     prompt="Enter node domain name",
     type=str,
     help='Node domain name'
