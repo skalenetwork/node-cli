@@ -174,10 +174,11 @@ skale node register
 Required arguments:
 
 -   `--ip` - public IP for RPC connections and consensus
+-   `--domain`/`-d` - SKALE node domain name
+-   `--name` - SKALE node name
 
 Optional arguments:
 
--   `--name` - SKALE node name
 -   `--port` - public port - beginning of the port range for node SKALE Chains (default: `10000`)
 
 #### Node update
@@ -251,6 +252,19 @@ Switch off maintenance mode
 ```shell
 skale node maintenance-off
 ```
+
+#### Domain name
+
+Set SKALE node domain name
+
+```shell
+skale node set-domain
+```
+
+Options:
+
+- `--domain`/`-d` - SKALE node domain name
+-   `--yes` - set without additional confirmation
 
 ### Wallet commands
 

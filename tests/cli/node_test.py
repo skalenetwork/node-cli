@@ -221,7 +221,7 @@ def test_node_info_node_info(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_not_created(config):
@@ -269,7 +269,7 @@ def test_node_info_node_info_frozen(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_left(config):
@@ -293,7 +293,7 @@ def test_node_info_node_info_left(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_leaving(config):
@@ -317,7 +317,7 @@ def test_node_info_node_info_leaving(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_in_maintenance(config):
@@ -341,7 +341,7 @@ def test_node_info_node_info_in_maintenance(config):
     )
     result = run_command_mock('core.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_signature():
