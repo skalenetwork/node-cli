@@ -34,6 +34,7 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
 from configs.cli_logger import LOG_DIRNAME
 
+from core.operations import update_procedure
 from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
@@ -176,9 +177,13 @@ def update(env_filepath, sync_schains):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
-
     print('Updating the node...')
     env = get_inited_node_env(env_filepath, sync_schains)
+    update_procedure(env)
+    exit(1)
+
+    # todo: git part!
+
     prepare_host(
         env_filepath,
         env['DISK_MOUNTPOINT'],

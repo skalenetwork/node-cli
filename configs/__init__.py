@@ -30,6 +30,8 @@ CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 
+COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
+
 LOG_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'log')
 NODE_CERTS_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'ssl')
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
