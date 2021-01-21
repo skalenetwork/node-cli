@@ -30,8 +30,9 @@ CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 
-LOG_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'log')
-NODE_CERTS_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'ssl')
+LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
+ETH_STATE_PATH = os.path.join(NODE_DATA_PATH, 'eth-state')
+NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 
