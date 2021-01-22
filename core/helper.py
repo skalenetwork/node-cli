@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import sys
 import os
 import re
 import shutil
@@ -26,7 +27,7 @@ import urllib.parse
 
 import logging
 import logging.handlers as py_handlers
-from logging import Formatter
+from logging import Formatter, StreamHandler
 
 import requests
 import yaml
@@ -145,8 +146,9 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
+    stream_handler = get_stream_handler()
     logging.basicConfig(level=logging.DEBUG, handlers=[
-                        f_handler, debug_f_handler])
+                        f_handler, debug_f_handler, stream_handler])
 
 
 def get_file_handler(log_filepath, log_level):
@@ -158,6 +160,14 @@ def get_file_handler(log_filepath, log_level):
     f_handler.setLevel(log_level)
 
     return f_handler
+
+
+def get_stream_handler():
+    formatter = Formatter('%(asctime)s - %(message)s')
+    stream_handler = StreamHandler(sys.stderr)
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(logging.INFO)
+    return stream_handler
 
 
 def load_ssl_files(key_path, cert_path):

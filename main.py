@@ -91,7 +91,7 @@ if __name__ == '__main__':
     init_default_logger()
     args = sys.argv
     # todo: hide secret variables (passwords, private keys)
-    logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
+    logger.debug(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
 
     cmd_collection = click.CommandCollection(
         sources=[
@@ -113,4 +113,4 @@ if __name__ == '__main__':
         print(f'Command execution failed with {err}. Recheck your inputs')
         traceback.print_exc()
         logger.error(err)
-    logger.info(f'execution time: {time.time() - start_time} seconds')
+    logger.debug(f'execution time: {time.time() - start_time} seconds')

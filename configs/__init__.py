@@ -28,6 +28,7 @@ SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
+BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
@@ -44,6 +45,8 @@ TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
 
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
+
+DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
 
 
 def _get_env():
