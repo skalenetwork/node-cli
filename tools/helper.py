@@ -24,6 +24,9 @@ import subprocess
 import urllib.request
 from subprocess import PIPE
 
+import distutils
+import distutils.util
+
 import click
 
 from jinja2 import Environment
@@ -113,3 +116,7 @@ def extract_env_params(env_filepath):
                    err=True)
         return None
     return env_params
+
+
+def str_to_bool(val):
+    return bool(distutils.util.strtobool(val))

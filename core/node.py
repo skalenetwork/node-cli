@@ -179,27 +179,13 @@ def update(env_filepath, sync_schains):
         return
     logger.info('Node update started')
     env = get_inited_node_env(env_filepath, sync_schains)
-    update_op(env)
+    update_op(env_filepath, env)
+    logger.info('Waiting for transaction manager initialization')
+    time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        print_node_cmd_error()
+        return
     logger.info('Node update finished')
-
-    # prepare_host(
-    #     env_filepath,
-    #     env['DISK_MOUNTPOINT'],
-    #     env['SGX_SERVER_URL'],
-    #     allocation=True
-    # )
-    # update_meta(VERSION, env['CONTAINER_CONFIGS_STREAM'])
-    # try:
-    #     run_cmd(['bash', UPDATE_SCRIPT], env=env)
-    # except Exception:
-    #     logger.exception('Update script process errored')
-    #     print_node_cmd_error()
-    #     return
-    # print('Waiting for transaction manager initialization ...')
-    # time.sleep(TM_INIT_TIMEOUT)
-    # if not is_base_containers_alive():
-    #     print_node_cmd_error()
-    #     return
 
 
 def get_node_signature(validator_id):

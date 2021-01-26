@@ -17,41 +17,21 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import logging
 
-from time import sleep
 import urllib.request
 from distutils.dir_util import copy_tree
 
-# from git.repo.base import Repo
-from git.remote import Remote
-
-from tools.docker_utils import rm_all_schain_containers, rm_all_ima_containers
-from configs import (COMPOSE_PATH, CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
-                     MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, DOCKER_LVMPY_PATH)
-from tools.helper import run_cmd
+from core.operations.git import update_repo
+from tools.docker_utils import (rm_all_schain_containers, rm_all_ima_containers, compose_pull,
+                                compose_build)
+from configs import (CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
+                     MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, DOCKER_LVMPY_PATH,
+                     CONTAINER_CONFIG_PATH, FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE)
+from tools.helper import run_cmd, read_json
 
 logger = logging.getLogger(__name__)
-
-
-MAIN_COMPOSE_CONTAINERS = 'skale-api sla bounty skale-admin'
-COMPOSE_TIMEOUT = 10
-
-
-def remove_compose_containers(env):
-    logger.info(f'Going to remove {MAIN_COMPOSE_CONTAINERS} containers')
-    run_cmd(
-        cmd=f'docker-compose -f {COMPOSE_PATH} rm -s -f {MAIN_COMPOSE_CONTAINERS}'.split(),
-        env=env
-    )
-    logger.info(f'Going to sleep for {COMPOSE_TIMEOUT} seconds')
-    sleep(COMPOSE_TIMEOUT)
-    logger.info(f'Going to remove all compose containers')
-    run_cmd(
-        cmd=f'docker-compose -f {COMPOSE_PATH} rm -s -f'.split(),
-        env=env
-    )
-    logger.info(f'Compose containers removed')
 
 
 def remove_dynamic_containers():
@@ -71,20 +51,48 @@ def download_contracts(env):
     urllib.request.urlretrieve(env['IMA_CONTRACTS_ABI_URL'], IMA_CONTRACTS_FILEPATH)
 
 
-def docker_lvmpy_update():
-    update_docker_lvmpy_sources()
+def docker_lvmpy_update(env):
+    update_repo(DOCKER_LVMPY_PATH, env["DOCKER_LVMPY_STREAM"])
+    logging.info('Running docker-lvmpy update script')
+    env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
+    env['VOLUME_GROUP'] = 'schains'
+    env['PATH'] = os.environ.get('PATH', None)
+    run_cmd(
+        cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/update.sh'.split(),
+        env=env
+    )
+    logging.info('docker-lvmpy update done')
 
 
-def update_docker_lvmpy_sources():
-    logger.info('Updating docker-lvmpy sources')
-    # docker_lvmpy_repo = Repo(DOCKER_LVMPY_PATH)
-    docker_lvmpy_remote = Remote(DOCKER_LVMPY_PATH, 'docker-lvmpy')
-    docker_lvmpy_remote.fetch()
+def download_filestorage_artifacts():
+    logger.info(f'Updating filestorage artifacts')
+    fs_artifacts_url = read_json(FILESTORAGE_INFO_FILE)['artifacts_url']
+    logger.debug(f'Downloading {fs_artifacts_url} to {FILESTORAGE_ARTIFACTS_FILE}')
+    urllib.request.urlretrieve(fs_artifacts_url, FILESTORAGE_ARTIFACTS_FILE)
 
 
-def download_skale_node_release():
-    pass
+def update_skale_node(env):
+    if env.get('CONTAINER_CONFIGS_DIR', None):
+        update_skale_node_dev(env)
+    else:
+        update_skale_node_git(env)
 
 
-def run_compose_containers():
-    pass
+def update_skale_node_git(env):
+    update_repo(CONTAINER_CONFIG_PATH, env["CONTAINER_CONFIGS_STREAM"])
+    compose_pull()
+
+
+def update_skale_node_dev(env):
+    sync_skale_node_dev(env)
+    compose_build()
+
+
+def sync_skale_node_dev(env):
+    logger.info(f'Syncing {CONTAINER_CONFIG_PATH} with {env["CONTAINER_CONFIGS_DIR"]}')
+    run_cmd(
+        cmd=f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/ {CONTAINER_CONFIG_PATH}'.split()
+    )
+    run_cmd(
+        cmd=f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/.git {CONTAINER_CONFIG_PATH}'.split()
+    )

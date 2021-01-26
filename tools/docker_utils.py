@@ -19,12 +19,23 @@
 
 import logging
 import docker
+from time import sleep
 from docker.client import DockerClient
+
+from tools.helper import run_cmd, str_to_bool
+from configs import COMPOSE_PATH, SKALE_DIR
+
 
 logger = logging.getLogger(__name__)
 
 SCHAIN_REMOVE_TIMEOUT = 40
 IMA_REMOVE_TIMEOUT = 20
+
+MAIN_COMPOSE_CONTAINERS = 'skale-api sla bounty skale-admin'
+BASE_COMPOSE_SERVICES = 'transaction-manager skale-admin skale-api mysql sla bounty nginx watchdog filebeat' # noqa
+MONITORING_COMPOSE_SERVICES = 'node-exporter advisor'
+NOTIFICATION_COMPOSE_SERVICES = 'celery redis'
+COMPOSE_TIMEOUT = 10
 
 
 def docker_client() -> DockerClient:
@@ -53,3 +64,59 @@ def remove_containers(containers, **kwargs):
     for container in containers:
         logger.info(f'Removing container: {container.name}')
         container.remove(**kwargs)
+
+
+def compose_rm(env):
+    logger.info(f'Removing {MAIN_COMPOSE_CONTAINERS} containers')
+    run_cmd(
+        cmd=f'docker-compose -f {COMPOSE_PATH} rm -s -f {MAIN_COMPOSE_CONTAINERS}'.split(),
+        env=env
+    )
+    logger.info(f'Sleeping for {COMPOSE_TIMEOUT} seconds')
+    sleep(COMPOSE_TIMEOUT)
+    logger.info(f'Removing all compose containers')
+    run_cmd(
+        cmd=f'docker-compose -f {COMPOSE_PATH} rm -s -f'.split(),
+        env=env
+    )
+    logger.info(f'Compose containers removed')
+
+
+def compose_pull():
+    logger.info(f'Pulling compose containers')
+    run_cmd(
+        cmd=f'docker-compose -f {COMPOSE_PATH} pull'.split(),
+        env={
+            'SKALE_DIR': SKALE_DIR
+        }
+    )
+
+
+def compose_build():
+    logger.info(f'Building compose containers')
+    run_cmd(
+        cmd=f'docker-compose -f {COMPOSE_PATH} build'.split(),
+        env={
+            'SKALE_DIR': SKALE_DIR
+        }
+    )
+
+
+def compose_up(env):
+    logger.info('Running base set of containers')
+    run_cmd(
+        cmd=f'docker-compose -f {COMPOSE_PATH} up -d {BASE_COMPOSE_SERVICES}'.split(),
+        env=env
+    )
+    if str_to_bool(env.get('MONITORING_CONTAINERS', '')):
+        logger.info('Running monitoring containers')
+        run_cmd(
+            cmd=f'docker-compose -f {COMPOSE_PATH} up -d {MONITORING_COMPOSE_SERVICES}'.split(),
+            env=env
+        )
+    if env.get('TG_API_KEY', None) and env.get('TG_CHAT_ID', None):
+        logger.info('Running containers for Telegram notifications')
+        run_cmd(
+            cmd=f'docker-compose -f {COMPOSE_PATH} up -d {NOTIFICATION_COMPOSE_SERVICES}'.split(),
+            env=env
+        )
