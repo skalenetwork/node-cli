@@ -29,8 +29,9 @@ from core.resources import update_resource_allocation
 from configs import (ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
-                     NODE_CERTS_PATH, SGX_CERTS_PATH, REDIS_DATA_PATH,
-                     SCHAINS_DATA_PATH, LOG_PATH, MYSQL_BACKUP_FOLDER,
+                     ETH_STATE_PATH, NODE_CERTS_PATH, SGX_CERTS_PATH,
+                     REDIS_DATA_PATH, SCHAINS_DATA_PATH, LOG_PATH,
+                     MYSQL_BACKUP_FOLDER,
                      IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
 from configs.cli_logger import LOG_DATA_PATH
 from core.print_formatters import print_abi_validation_errors
@@ -80,7 +81,8 @@ def is_node_inited():
 def make_dirs():
     for dir_path in (
             SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
-            CONTRACTS_PATH, NODE_CERTS_PATH, MYSQL_BACKUP_FOLDER,
+            CONTRACTS_PATH, ETH_STATE_PATH, NODE_CERTS_PATH,
+            MYSQL_BACKUP_FOLDER,
             SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH, REDIS_DATA_PATH
     ):
         safe_mk_dirs(dir_path)

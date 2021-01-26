@@ -35,8 +35,10 @@ COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
 FILESTORAGE_INFO_FILE = os.path.join(CONTAINER_CONFIG_PATH, 'filestorage_info.json')
 FILESTORAGE_ARTIFACTS_FILE = os.path.join(NODE_DATA_PATH, 'filestorage_artifacts.json')
 
-LOG_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'log')
-NODE_CERTS_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'ssl')
+LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
+ETH_STATE_PATH = os.path.join(NODE_DATA_PATH, 'eth-state')
+NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
+
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 
