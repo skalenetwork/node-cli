@@ -267,9 +267,11 @@ def print_node_info(node, node_status):
         {LONG_LINE}
         Node info
         Name: {node['name']}
+        ID: {node['id']}
         IP: {node['ip']}
         Public IP: {node['publicIP']}
         Port: {node['port']}
+        Domain name: {node['domain_name']}
         Status: {node_status}
         {LONG_LINE}
     '''))

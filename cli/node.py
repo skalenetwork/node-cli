@@ -24,7 +24,8 @@ import click
 
 from core.node import (get_node_signature, init, restore,
                        register_node as register, update, backup, set_maintenance_mode_on,
-                       set_maintenance_mode_off, turn_off, turn_on, get_node_info)
+                       set_maintenance_mode_off, turn_off, turn_on, get_node_info,
+                       set_domain_name)
 from configs import DEFAULT_NODE_BASE_PORT
 from tools.helper import session_config, abort_if_false, safe_load_texts
 
@@ -100,6 +101,12 @@ def node_info(format):
     help='Base port for node sChains'
 )
 @click.option(
+    '--domain', '-d',
+    prompt="Enter node domain name",
+    type=str,
+    help='Node domain name'
+)
+@click.option(
     '--gas-limit',
     default=None,
     type=int,
@@ -117,9 +124,9 @@ def node_info(format):
     default=False,
     help='Skip dry run for registration transaction'
 )
-def register_node(name, ip, port, gas_limit, gas_price, skip_dry_run):
+def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
     config = session_config()
-    register(config, name, ip, ip, port, gas_limit, gas_price, skip_dry_run)
+    register(config, name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
 
 
 @node.command('init', help="Initialize SKALE node")
@@ -214,3 +221,17 @@ def _turn_off(maintenance_on):
 @click.argument('env_file')
 def _turn_on(maintenance_off, sync_schains, env_file):
     turn_on(maintenance_off, sync_schains, env_file)
+
+
+@node.command('set-domain', help="Set node domain name")
+@click.option(
+    '--domain', '-d',
+    prompt="Enter node domain name",
+    type=str,
+    help='Node domain name'
+)
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to set domain name?')
+def _set_domain_name(domain):
+    set_domain_name(domain)

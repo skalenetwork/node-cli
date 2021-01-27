@@ -14,6 +14,7 @@ ALL_V1_ROUTES = [
     '/api/v1/node/send-tg-notification',
     '/api/v1/node/exit/start',
     '/api/v1/node/exit/status',
+    '/api/v1/node/set-domain-name',
 
     '/api/v1/health/containers',
     '/api/v1/health/schains',

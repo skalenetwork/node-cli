@@ -32,6 +32,7 @@ node:
   cmd_failed: |-
       Command failed. Please, check out < skale logs cli >
       and logs from docker containers for more information
+  domain_name_changed: Domain name successfully changed
 wallet:
   successful_transfer: "Funds were successfully transferred"
 

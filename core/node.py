@@ -64,7 +64,8 @@ class NodeStatuses(Enum):
 
 
 def register_node(config, name, p2p_ip,
-                  public_ip, port, gas_limit=None,
+                  public_ip, port, domain_name,
+                  gas_limit=None,
                   gas_price=None,
                   skip_dry_run=False):
     # todo: add name, ips and port checks
@@ -73,6 +74,7 @@ def register_node(config, name, p2p_ip,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port,
+        'domain_name': domain_name,
         'gas_limit': gas_limit,
         'gas_price': gas_price,
         'skip_dry_run': skip_dry_run
@@ -368,3 +370,23 @@ def get_node_info(config, format):
 def get_node_status(status):
     node_status = NodeStatuses(status).name
     return TEXTS['node']['status'][node_status]
+
+
+def set_domain_name(domain_name):
+    if not is_node_inited():
+        print(TEXTS['node']['not_inited'])
+        return
+    print(f'Setting new domain name: {domain_name}')
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='set-domain-name',
+        json={
+            'domain_name': domain_name
+        }
+    )
+    if status == 'ok':
+        msg = TEXTS['node']['domain_name_changed']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
