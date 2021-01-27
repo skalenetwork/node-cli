@@ -29,11 +29,12 @@ import docker
 from cli.info import VERSION
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      BACKUP_INSTALL_SCRIPT,
-                     UPDATE_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
+                     DATAFILES_FOLDER, INIT_ENV_FILEPATH,
                      BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT,
                      TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
 from configs.cli_logger import LOG_DIRNAME
 
+from core.operations import update_op
 from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
@@ -176,28 +177,15 @@ def update(env_filepath, sync_schains):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
-
-    print('Updating the node...')
+    logger.info('Node update started')
     env = get_inited_node_env(env_filepath, sync_schains)
-    prepare_host(
-        env_filepath,
-        env['DISK_MOUNTPOINT'],
-        env['SGX_SERVER_URL'],
-        allocation=True
-    )
-    update_meta(VERSION, env['CONTAINER_CONFIGS_STREAM'])
-    try:
-        run_cmd(['bash', UPDATE_SCRIPT], env=env)
-    except Exception:
-        logger.exception('Update script process errored')
-        print_node_cmd_error()
-        return
-    print('Waiting for transaction manager initialization ...')
+    update_op(env_filepath, env)
+    logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
         print_node_cmd_error()
         return
-    print('Update procedure finished')
+    logger.info('Node update finished')
 
 
 def get_node_signature(validator_id):
