@@ -179,6 +179,11 @@ def update(env_filepath, sync_schains):
         return
     logger.info('Node update started')
     env = get_inited_node_env(env_filepath, sync_schains)
+
+    for k, v in env.items():  # todo: tmp fix for update procedure
+        if v == '':
+            del env[k]
+
     update_op(env_filepath, env)
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
