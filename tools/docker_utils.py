@@ -60,10 +60,15 @@ def rm_all_ima_containers():
     remove_containers(ima_containers, timeout=IMA_REMOVE_TIMEOUT)
 
 
-def remove_containers(containers, **kwargs):
+def remove_containers(containers, timeout):
     for container in containers:
         logger.info(f'Removing container: {container.name}')
-        container.remove(**kwargs)
+        safe_remove_container(container, timeout=timeout)
+
+
+def safe_remove_container(container, timeout=10):
+    container.stop(timeout=timeout)
+    container.remove()
 
 
 def compose_rm(env):
