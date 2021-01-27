@@ -72,7 +72,7 @@ def download_filestorage_artifacts():
 
 
 def update_skale_node(env):
-    if env.get('CONTAINER_CONFIGS_DIR', None):
+    if 'CONTAINER_CONFIGS_DIR' in env:
         update_skale_node_dev(env)
     else:
         update_skale_node_git(env)

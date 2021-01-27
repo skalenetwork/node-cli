@@ -119,7 +119,7 @@ def compose_up(env):
             cmd=f'docker-compose -f {COMPOSE_PATH} up -d {MONITORING_COMPOSE_SERVICES}'.split(),
             env=env
         )
-    if env.get('TG_API_KEY', None) and env.get('TG_CHAT_ID', None):
+    if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
         logger.info('Running containers for Telegram notifications')
         run_cmd(
             cmd=f'docker-compose -f {COMPOSE_PATH} up -d {NOTIFICATION_COMPOSE_SERVICES}'.split(),
