@@ -42,12 +42,12 @@ def docker_client() -> DockerClient:
     return docker.from_env()
 
 
-def get_all_schain_containers(_all=False) -> list:
+def get_all_schain_containers(_all=True) -> list:
     return docker_client().containers.list(all=_all, filters={'name': 'skale_schain_*'})
 
 
-def get_all_ima_containers(all=False, format=False) -> list:
-    return docker_client().containers.list(all=all, filters={'name': 'skale_ima_*'})
+def get_all_ima_containers(_all=True) -> list:
+    return docker_client().containers.list(all=_all, filters={'name': 'skale_ima_*'})
 
 
 def rm_all_schain_containers():
