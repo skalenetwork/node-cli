@@ -23,7 +23,7 @@ from time import sleep
 from docker.client import DockerClient
 
 from tools.helper import run_cmd, str_to_bool
-from configs import COMPOSE_PATH, SKALE_DIR
+from configs import COMPOSE_PATH, SKALE_DIR, SGX_CERTIFICATES_DIR_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -109,6 +109,10 @@ def compose_build():
 
 def compose_up(env):
     logger.info('Running base set of containers')
+
+    if 'SGX_CERTIFICATES_DIR_NAME' not in env:
+        env['SGX_CERTIFICATES_DIR_NAME'] = SGX_CERTIFICATES_DIR_NAME
+
     run_cmd(
         cmd=f'docker-compose -f {COMPOSE_PATH} up -d {BASE_COMPOSE_SERVICES}'.split(),
         env=env
