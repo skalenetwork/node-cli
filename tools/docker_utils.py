@@ -59,18 +59,18 @@ def get_all_ima_containers(_all=True) -> list:
 
 def rm_all_schain_containers():
     schain_containers = get_all_schain_containers()
-    remove_containers(schain_containers, timeout=SCHAIN_REMOVE_TIMEOUT)
+    remove_containers(schain_containers, stop_timeout=SCHAIN_REMOVE_TIMEOUT)
 
 
 def rm_all_ima_containers():
     ima_containers = get_all_ima_containers()
-    remove_containers(ima_containers, timeout=IMA_REMOVE_TIMEOUT)
+    remove_containers(ima_containers, stop_timeout=IMA_REMOVE_TIMEOUT)
 
 
-def remove_containers(containers, timeout):
+def remove_containers(containers, stop_timeout):
     for container in containers:
         logger.info(f'Removing container: {container.name}')
-        safe_rm(container, timeout=timeout)
+        safe_rm(container, stop_timeout=stop_timeout)
 
 
 def safe_rm(container: Container, stop_timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs):
@@ -80,9 +80,9 @@ def safe_rm(container: Container, stop_timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kw
     """
     container_name = container.name
     backup_container_logs(container)
-    logger.info(f'Stopping container: {container_name}, timeout: {stop_timeout}')
+    logger.debug(f'Stopping container: {container_name}, timeout: {stop_timeout}')
     container.stop(timeout=stop_timeout)
-    logger.info(f'Removing container: {container_name}, kwargs: {kwargs}')
+    logger.debug(f'Removing container: {container_name}, kwargs: {kwargs}')
     container.remove(**kwargs)
     logger.info(f'Container removed: {container_name}')
 
@@ -92,7 +92,7 @@ def backup_container_logs(container: Container, tail=DOCKER_DEFAULT_TAIL_LINES) 
     logs_backup_filepath = get_logs_backup_filepath(container)
     with open(logs_backup_filepath, "wb") as out:
         out.write(container.logs(tail=tail))
-    logger.info(f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
+    logger.debug(f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
 
 
 def get_logs_backup_filepath(container: Container) -> str:
