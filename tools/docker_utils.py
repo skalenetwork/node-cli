@@ -97,7 +97,7 @@ def backup_container_logs(container: Container, tail=DOCKER_DEFAULT_TAIL_LINES) 
 
 def get_logs_backup_filepath(container: Container) -> str:
     container_index = sum(1 for f in os.listdir(REMOVED_CONTAINERS_FOLDER_PATH)
-                            if f.startswith(f'{container.name}-'))
+                          if f.startswith(f'{container.name}-'))
     log_file_name = f'{container.name}-{container_index}.log'
     return os.path.join(REMOVED_CONTAINERS_FOLDER_PATH, log_file_name)
 
