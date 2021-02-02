@@ -38,6 +38,9 @@ FILESTORAGE_INFO_FILE = os.path.join(CONTAINER_CONFIG_PATH, 'filestorage_info.js
 FILESTORAGE_ARTIFACTS_FILE = os.path.join(NODE_DATA_PATH, 'filestorage_artifacts.json')
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
+REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
+REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
+
 ETH_STATE_PATH = os.path.join(NODE_DATA_PATH, 'eth-state')
 NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
 
