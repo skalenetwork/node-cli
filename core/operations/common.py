@@ -23,7 +23,7 @@ import logging
 import urllib.request
 from distutils.dir_util import copy_tree
 
-from core.operations.git import update_repo
+from core.operations.git_helper import update_repo
 from tools.docker_utils import (rm_all_schain_containers, rm_all_ima_containers, compose_pull,
                                 compose_build)
 from configs import (CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,

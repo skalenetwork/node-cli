@@ -83,7 +83,7 @@ def checks(json_format: bool) -> None:
 @click.argument('schain_name')
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
-              prompt='Are you sure. Repair mode may corrupt working SKALE chain data?')
+              prompt='Are you sure? Repair mode may corrupt working SKALE chain data.')
 def repair(schain_name: str) -> None:
     toggle_schain_repair_mode(schain_name)
 
