@@ -30,8 +30,9 @@ from configs import (ADMIN_PORT,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
                      ETH_STATE_PATH, NODE_CERTS_PATH, SGX_CERTS_PATH,
                      REDIS_DATA_PATH, SCHAINS_DATA_PATH, LOG_PATH,
-                     MYSQL_BACKUP_FOLDER,
+                     MYSQL_BACKUP_FOLDER, REMOVED_CONTAINERS_FOLDER_PATH,
                      IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
+from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from configs.cli_logger import LOG_DATA_PATH
 from core.print_formatters import print_abi_validation_errors
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
@@ -74,14 +75,14 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url,
 
 
 def is_node_inited():
-    return os.path.isdir(NODE_DATA_PATH)
+    return os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
 
 
 def make_dirs():
     for dir_path in (
             SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
             CONTRACTS_PATH, ETH_STATE_PATH, NODE_CERTS_PATH,
-            MYSQL_BACKUP_FOLDER,
+            MYSQL_BACKUP_FOLDER, REMOVED_CONTAINERS_FOLDER_PATH,
             SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH, REDIS_DATA_PATH
     ):
         safe_mk_dirs(dir_path)
@@ -105,6 +106,7 @@ def save_env_params(env_filepath):
 
 def init_logs_dir():
     safe_mk_dirs(LOG_DATA_PATH)
+    safe_mk_dirs(REMOVED_CONTAINERS_FOLDER_PATH)
 
 
 def init_data_dir():

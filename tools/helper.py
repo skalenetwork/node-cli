@@ -30,8 +30,11 @@ from subprocess import PIPE
 from functools import wraps
 
 import logging
-from logging import Formatter
+from logging import Formatter, StreamHandler
 import logging.handlers as py_handlers
+
+import distutils
+import distutils.util
 
 import click
 
@@ -73,18 +76,18 @@ def write_json(path, content):
 
 def run_cmd(cmd, env={}, shell=False, secure=False):
     if not secure:
-        logger.info(f'Running: {cmd}')
+        logger.debug(f'Running: {cmd}')
     else:
-        logger.info('Running some secure command')
+        logger.debug('Running some secure command')
     res = subprocess.run(cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ})
     if res.returncode:
-        logger.info(res.stdout.decode('UTF-8').rstrip())
+        logger.debug(res.stdout.decode('UTF-8').rstrip())
         logger.error('Error during shell execution:')
         logger.error(res.stderr.decode('UTF-8').rstrip())
         res.check_returncode()
     else:
-        logger.info('Command is executed successfully. Command log:')
-        logger.info(res.stdout.decode('UTF-8').rstrip())
+        logger.debug('Command is executed successfully. Command log:')
+        logger.debug(res.stdout.decode('UTF-8').rstrip())
     return res
 
 
@@ -138,6 +141,10 @@ def extract_env_params(env_filepath):
                    err=True)
         return None
     return env_params
+
+
+def str_to_bool(val):
+    return bool(distutils.util.strtobool(val))
 
 
 def error_exit(error_payload, exit_code=CLIExitCodes.FAILURE):
@@ -241,8 +248,17 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
+    stream_handler = get_stream_handler()
     logging.basicConfig(level=logging.DEBUG, handlers=[
-                        f_handler, debug_f_handler])
+                        f_handler, debug_f_handler, stream_handler])
+
+
+def get_stream_handler():
+    formatter = Formatter('%(asctime)s - %(message)s')
+    stream_handler = StreamHandler(sys.stderr)
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(logging.INFO)
+    return stream_handler
 
 
 def get_file_handler(log_filepath, log_level):
