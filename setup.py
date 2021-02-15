@@ -50,7 +50,7 @@ setup(
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
         "click==7.1.2",
-        "docker==4.2.2",
+        "docker==4.4.2",
         "readsettings==3.4.5",
         "PyInstaller==3.6",
         "texttable==1.6.2",
@@ -59,7 +59,8 @@ setup(
         "psutil==5.7.0",
         "python-dotenv==0.13.0",
         "terminaltables==3.1.0",
-        "requests==2.23.0"
+        "requests==2.23.0",
+        "GitPython==3.1.12"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
