@@ -1,4 +1,16 @@
-login: "Login user in a SKALE node"
+health:
+  help: Node health commands
+  containers:
+    help: List of SKALE containers running on connected node
+  schains_checks:
+    help: List of health checks for sChains served by the node
+  sgx:
+    help: Info about connected SGX server
+
+common:
+  json:
+    help: Show data in JSON format
+
 node:
   base: "SKALE node commands"
   info: "Info about SKALE node"
@@ -25,11 +37,7 @@ wallet:
   successful_transfer: "Funds were successfully transferred"
 
 service:
-  unauthorized: 'You should login first: skale user login'
-  no_node_host: 'You should set host first: skale attach [HOST]'
-  node_host_not_valid: Provided SKALE node host is not valid
   node_not_registered: This SKALE node is not registered on SKALE Manager yet
-  empty_response: Your request returned nothing. Something went wrong.
 
 ssl:
   no_cert: |-

@@ -24,13 +24,11 @@ extras_require = {
         "isort>=4.2.15,<5.4.3",
     ],
     'dev': [
-        "boto3==1.13.19",
         "bumpversion==0.6.0",
         "pytest==5.4.3",
         "pytest-cov==2.9.0",
         "twine==2.0.0",
-        "mock==4.0.2",
-        "when-changed"
+        "mock==4.0.2"
     ]
 }
 
@@ -52,7 +50,6 @@ setup(
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
         "click==7.1.2",
-        "confuse",
         "docker==4.2.2",
         "readsettings==3.4.5",
         "PyInstaller==3.6",
@@ -60,7 +57,6 @@ setup(
         "python-dateutil==2.8.1",
         "Jinja2==2.11.2",
         "psutil==5.7.0",
-        "pycryptodome==3.9.7",
         "python-dotenv==0.13.0",
         "terminaltables==3.1.0",
         "requests==2.23.0",

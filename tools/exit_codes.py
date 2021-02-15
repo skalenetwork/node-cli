@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2020 SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -17,17 +17,12 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
-from core.helper import get_request
-from core.print_formatters import print_err_response
+from enum import IntEnum
 
 
-def get_validators_info(config, format):
-    status, payload = get_request('validators_info')
-    if status == 'ok':
-        if format == 'json':
-            print(json.dumps({'validators_info': payload}))
-        else:
-            print(payload)
-    else:
-        print_err_response(payload)
+class CLIExitCodes(IntEnum):
+    """This class contains exit codes for SKALE CLI tools"""
+    SUCCESS = 0
+    FAILURE = 1
+    BAD_API_RESPONSE = 3
+    SCRIPT_EXECUTION_ERROR = 4

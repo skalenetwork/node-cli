@@ -23,14 +23,13 @@ import os
 from shutil import copyfile
 from urllib.parse import urlparse
 
-from core.helper import validate_abi
 from core.resources import update_resource_allocation
 
 from configs import (ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
                      ETH_STATE_PATH, NODE_CERTS_PATH, SGX_CERTS_PATH,
-                     REDIS_DATA_PATH, SCHAINS_DATA_PATH,
+                     REDIS_DATA_PATH, SCHAINS_DATA_PATH, LOG_PATH,
                      MYSQL_BACKUP_FOLDER, REMOVED_CONTAINERS_FOLDER_PATH,
                      IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
@@ -39,7 +38,7 @@ from core.print_formatters import print_abi_validation_errors
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
-from core.helper import safe_load_texts
+from tools.helper import safe_load_texts, validate_abi
 
 TEXTS = safe_load_texts()
 
@@ -84,7 +83,7 @@ def make_dirs():
             SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
             CONTRACTS_PATH, ETH_STATE_PATH, NODE_CERTS_PATH,
             MYSQL_BACKUP_FOLDER, REMOVED_CONTAINERS_FOLDER_PATH,
-            SGX_CERTS_PATH, SCHAINS_DATA_PATH, REDIS_DATA_PATH
+            SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH, REDIS_DATA_PATH
     ):
         safe_mk_dirs(dir_path)
 

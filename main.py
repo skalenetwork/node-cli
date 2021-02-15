@@ -26,19 +26,17 @@ import traceback
 import click
 
 from cli import __version__
-from cli.containers import containers_cli
+from cli.health import health_cli
 from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
 from cli.logs import logs_cli
 from cli.node import node_cli
 from cli.schains import schains_cli
 from cli.wallet import wallet_cli
 from cli.ssl import ssl_cli
-from cli.sgx import sgx_cli
 from cli.exit import exit_cli
 from cli.validate import validate_cli
 from cli.resources_allocation import resources_allocation_cli
-
-from core.helper import (safe_load_texts, init_default_logger)
+from tools.helper import safe_load_texts, init_default_logger
 from configs import LONG_LINE
 from core.host import init_logs_dir
 
@@ -96,14 +94,13 @@ if __name__ == '__main__':
     cmd_collection = click.CommandCollection(
         sources=[
             cli,
+            health_cli,
             schains_cli,
-            containers_cli,
             logs_cli,
             resources_allocation_cli,
             node_cli,
             wallet_cli,
             ssl_cli,
-            sgx_cli,
             exit_cli,
             validate_cli
         ])

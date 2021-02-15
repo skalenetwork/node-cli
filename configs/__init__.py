@@ -20,7 +20,6 @@
 import os
 import sys
 from pathlib import Path
-from configs.routes import ROUTES  # noqa: F401
 
 HOME_DIR = os.getenv('HOME_DIR') or str(Path.home())
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')

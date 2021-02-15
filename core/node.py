@@ -23,6 +23,7 @@ import os
 import shlex
 import subprocess
 import time
+from enum import Enum
 
 import docker
 
@@ -35,20 +36,32 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
 from configs.cli_logger import LOG_DIRNAME
 
 from core.operations import update_op
-from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
-from core.print_formatters import print_err_response, print_node_cmd_error
+from core.print_formatters import print_node_cmd_error, print_node_info
+from tools.helper import error_exit, get_request, post_request
 from core.resources import update_resource_allocation
 from tools.meta import update_meta
 from tools.helper import run_cmd, extract_env_params
 from tools.texts import Texts
+from tools.exit_codes import CLIExitCodes
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
 
 BASE_CONTAINERS_AMOUNT = 5
+BLUEPRINT_NAME = 'node'
+
+
+class NodeStatuses(Enum):
+    """This class contains possible node statuses"""
+    ACTIVE = 0
+    LEAVING = 1
+    FROZEN = 2
+    IN_MAINTENANCE = 3
+    LEFT = 4
+    NOT_CREATED = 5
 
 
 def register_node(config, name, p2p_ip,
@@ -67,8 +80,11 @@ def register_node(config, name, p2p_ip,
         'gas_price': gas_price,
         'skip_dry_run': skip_dry_run
     }
-    status, payload = post_request('create_node',
-                                   json=json_data)
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='register',
+        json=json_data
+    )
     if status == 'ok':
         msg = TEXTS['node']['registered']
         logger.info(msg)
@@ -76,7 +92,7 @@ def register_node(config, name, p2p_ip,
     else:
         error_msg = payload
         logger.error(f'Registration error {error_msg}')
-        print_err_response(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def init(env_filepath, dry_run=False):
@@ -102,14 +118,13 @@ def init(env_filepath, dry_run=False):
     try:
         run_cmd(['bash', INSTALL_SCRIPT], env=env)
     except Exception:
-        logger.exception('Install script process errored')
-        print_node_cmd_error()
-        return
+        error_msg = 'Install script process errored'
+        logger.exception(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
-        print_node_cmd_error()
-        return
+        error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation()
     print('Init procedure finished')
@@ -191,7 +206,11 @@ def update(env_filepath, sync_schains):
 
 def get_node_signature(validator_id):
     params = {'validator_id': validator_id}
-    status, payload = get_request('node_signature', params=params)
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='signature',
+        params=params
+    )
     if status == 'ok':
         return payload['signature']
     else:
@@ -234,7 +253,10 @@ def create_backup_archive(backup_filepath):
 
 def set_maintenance_mode_on():
     print('Setting maintenance mode on...')
-    status, payload = post_request('maintenance_on')
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='maintenance-on'
+    )
     if status == 'ok':
         msg = TEXTS['node']['maintenance_on']
         logger.info(msg)
@@ -242,12 +264,15 @@ def set_maintenance_mode_on():
     else:
         error_msg = payload
         logger.error(f'Set maintenance mode error {error_msg}')
-        print_err_response(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def set_maintenance_mode_off():
     print('Setting maintenance mode off...')
-    status, payload = post_request('maintenance_off')
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME,
+        method='maintenance-off'
+    )
     if status == 'ok':
         msg = TEXTS['node']['maintenance_off']
         logger.info(msg)
@@ -255,7 +280,7 @@ def set_maintenance_mode_off():
     else:
         error_msg = payload
         logger.error(f'Remove from maintenance mode error {error_msg}')
-        print_err_response(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def run_turn_off_script():
@@ -267,9 +292,9 @@ def run_turn_off_script():
     try:
         run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
     except Exception:
-        logger.exception('Turning off failed')
-        print_node_cmd_error()
-        return
+        error_msg = 'Turning off failed'
+        logger.exception(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
     print('Node was successfully turned off')
 
 
@@ -279,9 +304,9 @@ def run_turn_on_script(sync_schains, env_filepath):
     try:
         run_cmd(['bash', TURN_ON_SCRIPT], env=env)
     except Exception:
-        logger.exception('Turning on failed')
-        print_node_cmd_error()
-        return
+        error_msg = 'Turning on failed'
+        logger.exception(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
     print('Waiting for transaction manager initialization ...')
     time.sleep(TM_INIT_TIMEOUT)
     print('Node was successfully turned on')
@@ -301,7 +326,6 @@ def turn_on(maintenance_off, sync_schains, env_file):
         print(TEXTS['node']['not_inited'])
         return
     run_turn_on_script(sync_schains, env_file)
-    # TODO: Handle error from turn on script
     if maintenance_off:
         set_maintenance_mode_off()
 
@@ -315,13 +339,36 @@ def is_base_containers_alive():
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
 
 
+def get_node_info(config, format):
+    status, payload = get_request(
+        blueprint=BLUEPRINT_NAME,
+        method='info'
+    )
+    if status == 'ok':
+        node_info = payload['node_info']
+        if format == 'json':
+            print(node_info)
+        elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
+            print(TEXTS['service']['node_not_registered'])
+        else:
+            print_node_info(node_info, get_node_status(int(node_info['status'])))
+    else:
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def get_node_status(status):
+    node_status = NodeStatuses(status).name
+    return TEXTS['node']['status'][node_status]
+
+
 def set_domain_name(domain_name):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
     print(f'Setting new domain name: {domain_name}')
     status, payload = post_request(
-        url_name='set_domain_name',
+        blueprint=BLUEPRINT_NAME,
+        method='set-domain-name',
         json={
             'domain_name': domain_name
         }
@@ -331,6 +378,4 @@ def set_domain_name(domain_name):
         logger.info(msg)
         print(msg)
     else:
-        error_msg = payload
-        logger.error(f'Domain name change error: {error_msg}')
-        print_err_response(error_msg)
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
