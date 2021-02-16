@@ -109,4 +109,4 @@ venv.bak/
 .DS_Store
 
 # info.py file generated automatically during package build
-cli/info.py
+node_cli/cli/info.py
