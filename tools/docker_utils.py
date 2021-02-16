@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 SCHAIN_REMOVE_TIMEOUT = 40
 IMA_REMOVE_TIMEOUT = 20
 
-MAIN_COMPOSE_CONTAINERS = 'skale-api sla bounty skale-admin'
-BASE_COMPOSE_SERVICES = 'transaction-manager skale-admin skale-api mysql sla bounty nginx watchdog filebeat' # noqa
+MAIN_COMPOSE_CONTAINERS = 'skale-api bounty skale-admin'
+BASE_COMPOSE_SERVICES = 'transaction-manager skale-admin skale-api mysql bounty nginx watchdog filebeat'  # noqa
 MONITORING_COMPOSE_SERVICES = 'node-exporter advisor'
 NOTIFICATION_COMPOSE_SERVICES = 'celery redis'
 COMPOSE_TIMEOUT = 10
@@ -110,18 +110,18 @@ def compose_rm(env):
     )
     logger.info(f'Sleeping for {COMPOSE_TIMEOUT} seconds')
     sleep(COMPOSE_TIMEOUT)
-    logger.info(f'Removing all compose containers')
+    logger.info('Removing all compose containers')
     run_cmd(
         cmd=f'docker-compose -f {COMPOSE_PATH} rm -s -f'.split(),
         env=env
     )
-    logger.info(f'Compose containers removed')
+    logger.info('Compose containers removed')
 
 
 def compose_pull():
-    logger.info(f'Pulling compose containers')
+    logger.info('Pulling compose containers')
     run_cmd(
-        cmd=f'docker-compose -f {COMPOSE_PATH} pull'.split(),
+        cmd='docker-compose -f {COMPOSE_PATH} pull'.split(),
         env={
             'SKALE_DIR': SKALE_DIR
         }
@@ -129,7 +129,7 @@ def compose_pull():
 
 
 def compose_build():
-    logger.info(f'Building compose containers')
+    logger.info('Building compose containers')
     run_cmd(
         cmd=f'docker-compose -f {COMPOSE_PATH} build'.split(),
         env={
