@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from cli import info
+from node_cli.cli import info
 from main import version
 from tests.helper import run_command
 
