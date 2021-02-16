@@ -121,7 +121,7 @@ def compose_rm(env):
 def compose_pull():
     logger.info('Pulling compose containers')
     run_cmd(
-        cmd='docker-compose -f {COMPOSE_PATH} pull'.split(),
+        cmd=f'docker-compose -f {COMPOSE_PATH} pull'.split(),
         env={
             'SKALE_DIR': SKALE_DIR
         }
