@@ -21,8 +21,9 @@ import click
 from terminaltables import SingleTable
 
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.helper import (get_request, safe_load_texts, upload_certs,
-                          error_exit)
+from node_cli.utils.helper import (
+    get_request, safe_load_texts, upload_certs, error_exit
+)
 
 
 TEXTS = safe_load_texts()

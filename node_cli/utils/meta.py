@@ -1,7 +1,7 @@
 import json
 import os
 from collections import namedtuple
-from configs import META_FILEPATH
+from node_cli.configs import META_FILEPATH
 
 DEFAULT_VERSION = '1.0.0'
 DEFAULT_CONFIG_STREAM = '1.1.0'

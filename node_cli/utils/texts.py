@@ -8,7 +8,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import yaml
-from configs import TEXT_FILE
+from node_cli.configs import TEXT_FILE
 
 
 class Texts():

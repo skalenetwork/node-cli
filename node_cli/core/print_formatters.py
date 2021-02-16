@@ -25,7 +25,7 @@ from dateutil import parser
 
 import inspect
 
-from configs import LONG_LINE
+from node_cli.configs import LONG_LINE
 from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
 from node_cli.utils.texts import Texts
 

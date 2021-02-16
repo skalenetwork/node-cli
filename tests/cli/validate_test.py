@@ -4,8 +4,8 @@ import shutil
 
 import pytest
 
-from configs import (CONTRACTS_PATH,
-                     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
+from node_cli.configs import (CONTRACTS_PATH,
+                              IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
 from node_cli.cli.validate import abi
 from tests.helper import run_command
 

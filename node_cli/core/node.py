@@ -28,17 +28,17 @@ from enum import Enum
 import docker
 
 from node_cli.cli.info import VERSION
-from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
-                     BACKUP_INSTALL_SCRIPT,
-                     DATAFILES_FOLDER, INIT_ENV_FILEPATH,
-                     BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT,
-                     TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
+from node_cli.configs import (
+    SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
+    BACKUP_INSTALL_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
+    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT,
+    TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
 from node_cli.core.operations import update_op
 from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from node_cli.core.host import (is_node_inited, prepare_host,
-                       save_env_params, get_flask_secret_key)
+                                save_env_params, get_flask_secret_key)
 from node_cli.core.print_formatters import print_node_cmd_error, print_node_info
 from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.core.resources import update_resource_allocation

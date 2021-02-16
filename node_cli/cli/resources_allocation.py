@@ -20,8 +20,10 @@
 import json
 import click
 
-from node_cli.core.resources import (get_resource_allocation_info,
-                            generate_resource_allocation_config)
+from node_cli.core.resources import (
+    get_resource_allocation_info,
+    generate_resource_allocation_config
+)
 from node_cli.utils.helper import session_config, abort_if_false, safe_load_texts
 
 config = session_config()

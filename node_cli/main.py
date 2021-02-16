@@ -37,7 +37,7 @@ from node_cli.cli.exit import exit_cli
 from node_cli.cli.validate import validate_cli
 from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.utils.helper import safe_load_texts, init_default_logger
-from configs import LONG_LINE
+from node_cli.configs import LONG_LINE
 from node_cli.core.host import init_logs_dir
 
 TEXTS = safe_load_texts()

@@ -4,7 +4,7 @@ import os
 import mock
 import pytest
 
-from configs import ALLOCATION_FILEPATH
+from node_cli.configs import ALLOCATION_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.resources import (
     compose_resource_allocation_config,

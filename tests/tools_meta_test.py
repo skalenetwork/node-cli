@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from configs import META_FILEPATH
+from node_cli.configs import META_FILEPATH
 from node_cli.utils.meta import (
     CliMeta, compose_default_meta,
     DEFAULT_CONFIG_STREAM, DEFAULT_VERSION,

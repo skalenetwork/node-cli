@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-from configs import NODE_DATA_PATH
+from node_cli.configs import NODE_DATA_PATH
 
 LARGE_DIVIDER = 1
 MEDIUM_DIVIDER = 32

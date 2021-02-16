@@ -24,7 +24,7 @@ import requests
 
 from tests.helper import response_mock, run_command_mock
 from node_cli.cli.schains import (get_schain_config, ls, dkg, show_rules,
-                         repair, info_)
+                                  repair, info_)
 
 
 def test_ls(config):

@@ -22,7 +22,7 @@
 import pytest
 
 from readsettings import ReadSettings
-from configs import CONFIG_FILEPATH
+from node_cli.configs import CONFIG_FILEPATH
 
 
 @pytest.fixture
