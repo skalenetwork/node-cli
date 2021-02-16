@@ -38,7 +38,7 @@ from core.operations import update_op
 from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from core.host import (is_node_inited, prepare_host,
-                       save_env_params, get_flask_secret_key)
+                       save_env_params, get_flask_secret_key, valid_host)
 from core.print_formatters import print_err_response, print_node_cmd_error
 from core.resources import update_resource_allocation
 from tools.meta import update_meta
@@ -79,6 +79,7 @@ def register_node(config, name, p2p_ip,
         print_err_response(error_msg)
 
 
+@valid_host
 def init(env_filepath, dry_run=False):
     if is_node_inited():
         print(TEXTS['node']['already_inited'])
@@ -115,6 +116,7 @@ def init(env_filepath, dry_run=False):
     print('Init procedure finished')
 
 
+@valid_host
 def restore(backup_path, env_filepath):
     env_params = extract_env_params(env_filepath)
     if env_params is None:
@@ -179,7 +181,9 @@ def update(env_filepath, sync_schains):
         return
     logger.info('Node update started')
     env = get_inited_node_env(env_filepath, sync_schains)
-    clear_env = {k: v for k, v in env.items() if v != ''}  # todo: tmp fix for update procedure
+    clear_env = {
+        k: v for k, v in env.items() if v != ''
+    }  # todo: tmp fix for update procedure
     update_op(env_filepath, clear_env)
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
@@ -245,6 +249,7 @@ def set_maintenance_mode_on():
         print_err_response(error_msg)
 
 
+@valid_host
 def set_maintenance_mode_off():
     print('Setting maintenance mode off...')
     status, payload = post_request('maintenance_off')
@@ -296,6 +301,7 @@ def turn_off(maintenance_on):
     run_turn_off_script()
 
 
+@valid_host
 def turn_on(maintenance_off, sync_schains, env_file):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])

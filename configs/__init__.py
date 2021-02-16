@@ -75,6 +75,7 @@ else:
     PARDIR = os.path.join(sys._MEIPASS, 'data')
 
 TEXT_FILE = os.path.join(PARDIR, 'text.yml')
+REQUIREMENTS_PATH = os.path.join(PARDIR, 'requirements.yaml')
 DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
 THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')

@@ -11,7 +11,7 @@ import yaml
 from configs import TEXT_FILE
 
 
-class Texts():
+class Texts:
     def __init__(self):
         self._texts = self._load()
 
