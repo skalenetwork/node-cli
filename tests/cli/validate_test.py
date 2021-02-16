@@ -6,7 +6,7 @@ import pytest
 
 from configs import (CONTRACTS_PATH,
                      IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
-from cli.validate import abi
+from node_cli.cli.validate import abi
 from tests.helper import run_command
 
 

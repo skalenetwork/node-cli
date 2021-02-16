@@ -20,12 +20,12 @@
 import json
 from terminaltables import SingleTable
 
-from core.print_formatters import (
+from node_cli.core.print_formatters import (
     print_containers,
     print_schains_healthchecks
 )
-from tools.helper import error_exit, get_request
-from tools.exit_codes import CLIExitCodes
+from node_cli.utils.helper import error_exit, get_request
+from node_cli.utils.exit_codes import CLIExitCodes
 
 
 BLUEPRINT_NAME = 'health'

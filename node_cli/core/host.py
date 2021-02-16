@@ -23,7 +23,7 @@ import os
 from shutil import copyfile
 from urllib.parse import urlparse
 
-from core.resources import update_resource_allocation
+from node_cli.core.resources import update_resource_allocation
 
 from configs import (ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
@@ -32,13 +32,13 @@ from configs import (ADMIN_PORT,
                      REDIS_DATA_PATH, SCHAINS_DATA_PATH, LOG_PATH,
                      MYSQL_BACKUP_FOLDER, REMOVED_CONTAINERS_FOLDER_PATH,
                      IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
-from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
-from configs.cli_logger import LOG_DATA_PATH
-from core.print_formatters import print_abi_validation_errors
-from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
+from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.cli_logger import LOG_DATA_PATH
+from node_cli.core.print_formatters import print_abi_validation_errors
+from node_cli.configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
-from tools.helper import safe_load_texts, validate_abi
+from node_cli.utils.helper import safe_load_texts, validate_abi
 
 TEXTS = safe_load_texts()
 

@@ -18,9 +18,9 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from tools.texts import Texts
+from node_cli.utils.texts import Texts
 
-from core.health import get_containers, get_schains_checks, get_sgx_info
+from node_cli.core.health import get_containers, get_schains_checks, get_sgx_info
 
 
 G_TEXTS = Texts()

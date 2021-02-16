@@ -23,13 +23,13 @@ import logging
 import urllib.request
 from distutils.dir_util import copy_tree
 
-from core.operations.git_helper import update_repo
-from tools.docker_utils import (rm_all_schain_containers, rm_all_ima_containers, compose_pull,
+from node_cli.core.operations.git_helper import update_repo
+from node_cli.utils.docker_utils import (rm_all_schain_containers, rm_all_ima_containers, compose_pull,
                                 compose_build)
 from configs import (CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
                      MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, DOCKER_LVMPY_PATH,
                      CONTAINER_CONFIG_PATH, FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE)
-from tools.helper import run_cmd, read_json
+from node_cli.utils.helper import run_cmd, read_json
 
 logger = logging.getLogger(__name__)
 

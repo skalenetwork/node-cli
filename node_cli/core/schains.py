@@ -1,9 +1,9 @@
 import logging
 import pprint
 
-from tools.helper import get_request, post_request, error_exit
-from tools.exit_codes import CLIExitCodes
-from core.print_formatters import (
+from node_cli.utils.helper import get_request, post_request, error_exit
+from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.core.print_formatters import (
     print_dkg_statuses,
     print_firewall_rules,
     print_schain_info,

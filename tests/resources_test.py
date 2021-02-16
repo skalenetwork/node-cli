@@ -5,15 +5,15 @@ import mock
 import pytest
 
 from configs import ALLOCATION_FILEPATH
-from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
-from core.resources import (
+from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.core.resources import (
     compose_resource_allocation_config,
     get_schain_volume_proportions,
     update_resource_allocation,
     ResourceAlloc, SChainVolumeAlloc
 )
 
-from tools.helper import write_json, safe_load_yml
+from node_cli.utils.helper import write_json, safe_load_yml
 
 SCHAIN_VOLUME_PARTS = {'test4': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'test': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'medium': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
 

@@ -3,7 +3,7 @@ import subprocess
 import shlex
 
 from configs import MYSQL_BACKUP_CONTAINER_PATH, MYSQL_BACKUP_PATH
-from tools.helper import run_cmd, extract_env_params
+from node_cli.utils.helper import run_cmd, extract_env_params
 
 
 logger = logging.getLogger(__name__)

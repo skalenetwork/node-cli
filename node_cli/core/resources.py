@@ -24,10 +24,10 @@ from time import sleep
 
 import psutil
 
-from tools.schain_types import SchainTypes
-from tools.helper import write_json, read_json, run_cmd, format_output, safe_load_yml
+from node_cli.utils.schain_types import SchainTypes
+from node_cli.utils.helper import write_json, read_json, run_cmd, format_output, safe_load_yml
 from configs import ALLOCATION_FILEPATH
-from configs.resource_allocation import (
+from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
     TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
     MEMORY_FACTOR, DISK_FACTOR, DISK_MOUNTPOINT_FILEPATH,

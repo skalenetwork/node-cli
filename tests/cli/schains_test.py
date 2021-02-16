@@ -23,7 +23,7 @@ import time
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.schains import (get_schain_config, ls, dkg, show_rules,
+from node_cli.cli.schains import (get_schain_config, ls, dkg, show_rules,
                          repair, info_)
 
 

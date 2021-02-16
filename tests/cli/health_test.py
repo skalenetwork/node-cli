@@ -1,7 +1,7 @@
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.health import containers, schains, sgx
+from node_cli.cli.health import containers, schains, sgx
 
 
 OK_LS_RESPONSE_DATA = {

@@ -27,25 +27,25 @@ from enum import Enum
 
 import docker
 
-from cli.info import VERSION
+from node_cli.cli.info import VERSION
 from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      BACKUP_INSTALL_SCRIPT,
                      DATAFILES_FOLDER, INIT_ENV_FILEPATH,
                      BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT,
                      TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
-from configs.cli_logger import LOG_DIRNAME
+from node_cli.configs.cli_logger import LOG_DIRNAME
 
-from core.operations import update_op
-from core.mysql_backup import create_mysql_backup, restore_mysql_backup
-from core.host import (is_node_inited, prepare_host,
+from node_cli.core.operations import update_op
+from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
+from node_cli.core.host import (is_node_inited, prepare_host,
                        save_env_params, get_flask_secret_key)
-from core.print_formatters import print_node_cmd_error, print_node_info
-from tools.helper import error_exit, get_request, post_request
-from core.resources import update_resource_allocation
-from tools.meta import update_meta
-from tools.helper import run_cmd, extract_env_params
-from tools.texts import Texts
-from tools.exit_codes import CLIExitCodes
+from node_cli.core.print_formatters import print_node_cmd_error, print_node_info
+from node_cli.utils.helper import error_exit, get_request, post_request
+from node_cli.core.resources import update_resource_allocation
+from node_cli.utils.meta import update_meta
+from node_cli.utils.helper import run_cmd, extract_env_params
+from node_cli.utils.texts import Texts
+from node_cli.utils.exit_codes import CLIExitCodes
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()

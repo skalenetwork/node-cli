@@ -25,7 +25,7 @@ import docker
 from docker.client import DockerClient
 from docker.models.containers import Container
 
-from tools.helper import run_cmd, str_to_bool
+from node_cli.utils.helper import run_cmd, str_to_bool
 from configs import (COMPOSE_PATH, SKALE_DIR, SGX_CERTIFICATES_DIR_NAME,
                      REMOVED_CONTAINERS_FOLDER_PATH)
 

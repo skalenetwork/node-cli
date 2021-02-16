@@ -3,7 +3,7 @@ import time
 import docker
 import pytest
 
-from core.node import BASE_CONTAINERS_AMOUNT, is_base_containers_alive
+from node_cli.core.node import BASE_CONTAINERS_AMOUNT, is_base_containers_alive
 
 dclient = docker.from_env()
 

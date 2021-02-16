@@ -24,8 +24,8 @@ import mock
 import requests
 
 from configs import NODE_DATA_PATH, SKALE_DIR
-from core.resources import ResourceAlloc
-from cli.node import (init_node, node_info, register_node, signature,
+from node_cli.core.resources import ResourceAlloc
+from node_cli.cli.node import (init_node, node_info, register_node, signature,
                       update_node, backup_node, restore_node,
                       set_node_in_maintenance,
                       remove_node_from_maintenance, _turn_off, _turn_on, _set_domain_name)

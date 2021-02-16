@@ -26,19 +26,19 @@ import traceback
 import click
 
 from cli import __version__
-from cli.health import health_cli
-from cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
-from cli.logs import logs_cli
-from cli.node import node_cli
-from cli.schains import schains_cli
-from cli.wallet import wallet_cli
-from cli.ssl import ssl_cli
-from cli.exit import exit_cli
-from cli.validate import validate_cli
-from cli.resources_allocation import resources_allocation_cli
-from tools.helper import safe_load_texts, init_default_logger
+from node_cli.cli.health import health_cli
+from node_cli.cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
+from node_cli.cli.logs import logs_cli
+from node_cli.cli.node import node_cli
+from node_cli.cli.schains import schains_cli
+from node_cli.cli.wallet import wallet_cli
+from node_cli.cli.ssl import ssl_cli
+from node_cli.cli.exit import exit_cli
+from node_cli.cli.validate import validate_cli
+from node_cli.cli.resources_allocation import resources_allocation_cli
+from node_cli.utils.helper import safe_load_texts, init_default_logger
 from configs import LONG_LINE
-from core.host import init_logs_dir
+from node_cli.core.host import init_logs_dir
 
 TEXTS = safe_load_texts()
 

@@ -19,9 +19,9 @@
 
 import json
 
-from core.print_formatters import print_wallet_info, TEXTS
-from tools.helper import error_exit, get_request, post_request, logger
-from tools.exit_codes import CLIExitCodes
+from node_cli.core.print_formatters import print_wallet_info, TEXTS
+from node_cli.utils.helper import error_exit, get_request, post_request, logger
+from node_cli.utils.exit_codes import CLIExitCodes
 
 
 BLUEPRINT_NAME = 'wallet'

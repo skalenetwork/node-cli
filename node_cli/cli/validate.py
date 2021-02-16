@@ -19,7 +19,7 @@
 
 import click
 
-from core.host import validate_abi_files
+from node_cli.core.host import validate_abi_files
 
 
 @click.group()

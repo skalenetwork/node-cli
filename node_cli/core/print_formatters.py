@@ -26,8 +26,8 @@ from dateutil import parser
 import inspect
 
 from configs import LONG_LINE
-from configs.cli_logger import DEBUG_LOG_FILEPATH
-from tools.texts import Texts
+from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
+from node_cli.utils.texts import Texts
 
 TEXTS = Texts()
 

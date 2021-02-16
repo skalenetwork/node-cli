@@ -1,5 +1,5 @@
 import requests
-from cli.exit import status
+from node_cli.cli.exit import status
 
 from tests.helper import response_mock, run_command_mock
 

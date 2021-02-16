@@ -19,8 +19,8 @@
 
 import click
 
-from tools.helper import abort_if_false
-from core.schains import (
+from node_cli.utils.helper import abort_if_false
+from node_cli.core.schains import (
     describe,
     get_schain_firewall_rules,
     show_config,

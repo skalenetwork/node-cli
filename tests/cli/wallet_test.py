@@ -22,7 +22,7 @@ import requests
 
 from mock import MagicMock, Mock
 
-from cli.wallet import wallet_info, send
+from node_cli.cli.wallet import wallet_info, send
 from tests.helper import run_command_mock, response_mock
 
 

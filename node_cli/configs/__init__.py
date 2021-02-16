@@ -73,8 +73,10 @@ if ENV == 'dev':
 else:
     PARDIR = os.path.join(sys._MEIPASS, 'data')
 
-TEXT_FILE = os.path.join(PARDIR, 'text.yml')
-DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
+
+PROJECT_DIR = os.path.join(PARDIR, os.pardir)
+TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
+DATAFILES_FOLDER = os.path.join(PROJECT_DIR, 'datafiles')
 
 THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
 

@@ -20,9 +20,9 @@
 import sys
 
 import click
-from tools.helper import download_dump
-from configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
-from tools.exit_codes import CLIExitCodes
+from node_cli.utils.helper import download_dump
+from node_cli.configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
+from node_cli.utils.exit_codes import CLIExitCodes
 
 
 @click.group()

@@ -17,14 +17,14 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from cli.info import VERSION
-from core.host import prepare_host
-from core.operations.common import (
+from node_cli.cli.info import VERSION
+from node_cli.core.host import prepare_host
+from node_cli.core.operations.common import (
     remove_dynamic_containers, backup_old_contracts, download_contracts, docker_lvmpy_update,
     update_skale_node, download_filestorage_artifacts
 )
-from tools.docker_utils import compose_rm, compose_up
-from tools.meta import update_meta
+from node_cli.utils.docker_utils import compose_rm, compose_up
+from node_cli.utils.meta import update_meta
 
 
 def update(env_filepath: str, env: str) -> None:

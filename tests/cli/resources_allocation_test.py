@@ -24,15 +24,15 @@ import requests
 
 import pytest
 
-from core.host import safe_mk_dirs
-from configs.resource_allocation import (
+from node_cli.core.host import safe_mk_dirs
+from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
 )
-from tools.helper import write_json
+from node_cli.utils.helper import write_json
 from tests.resources_test import disk_alloc_mock
 from tests.helper import response_mock, run_command_mock
 
-from cli.resources_allocation import show, generate
+from node_cli.cli.resources_allocation import show, generate
 
 
 TEST_CONFIG = {'test': 1}
