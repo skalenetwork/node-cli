@@ -41,7 +41,7 @@ def test_schain_resources_allocation():
 
 
 def test_generate_resource_allocation_config():
-    with mock.patch('core.resources.get_disk_alloc', new=disk_alloc_mock):
+    with mock.patch('node_cli.core.resources.get_disk_alloc', new=disk_alloc_mock):
         resource_allocation_config = compose_resource_allocation_config()
 
         assert resource_allocation_config['schain']['cpu_shares']['test4'] == 22
@@ -76,7 +76,7 @@ def test_generate_resource_allocation_config():
 
 
 def test_update_allocation_config(resource_alloc_config):
-    with mock.patch('core.resources.get_disk_alloc',
+    with mock.patch('node_cli.core.resources.get_disk_alloc',
                     new=disk_alloc_mock):
         update_resource_allocation()
         with open(RESOURCE_ALLOCATION_FILEPATH) as jfile:

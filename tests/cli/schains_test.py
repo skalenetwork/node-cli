@@ -49,7 +49,7 @@ def test_ls(config):
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('tools.helper.requests.get', resp_mock, ls)
+    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, ls)
     assert result.exit_code == 0
     assert result.output == '    Name       Owner   Size   Lifetime        Created At              Deposit      \n-----------------------------------------------------------------------------------\ntest_schain1   0x123   0      5          Oct 03 2019 16:09:45   1000000000000000000\ncrazy_cats1    0x321   0      5          Oct 07 2019 18:30:10   1000000000000000000\n'  # noqa
 
@@ -70,12 +70,12 @@ def test_dkg():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('tools.helper.requests.get',
+    result = run_command_mock('node_cli.utils.helper.requests.get',
                               resp_mock, dkg)
     assert result.exit_code == 0
     assert result.output == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Exists       \n'  # noqa
 
-    result = run_command_mock('tools.helper.requests.get',
+    result = run_command_mock('node_cli.utils.helper.requests.get',
                               resp_mock, dkg, ['--all'])
     assert result.exit_code == 0
     assert result.output == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Exists       \n'  # noqa
@@ -120,7 +120,7 @@ def test_get_schain_config():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('tools.helper.requests.get',
+    result = run_command_mock('node_cli.utils.helper.requests.get',
                               resp_mock,
                               get_schain_config, ['test1'])
     assert result.exit_code == 0
@@ -145,7 +145,7 @@ def test_schain_rules():
         json_data={'payload': payload, 'status': 'ok'}
     )
     result = run_command_mock(
-        'tools.helper.requests.get', resp_mock, show_rules, ['schain-test'])
+        'node_cli.utils.helper.requests.get', resp_mock, show_rules, ['schain-test'])
     assert result.exit_code == 0
     print(repr(result.output))
     assert result.output == 'Port       Ip    \n-----------------\n10000   127.0.0.1\n10001   127.0.0.1\n10002   None     \n10003   None     \n10004   127.0.0.1\n10005   127.0.0.1\n10007   None     \n10008   None     \n'  # noqa
@@ -159,7 +159,7 @@ def test_repair():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('tools.helper.requests.post', resp_mock, repair,
+    result = run_command_mock('node_cli.utils.helper.requests.post', resp_mock, repair,
                               ['test-schain', '--yes'])
     assert result.output == 'Schain has been set for repair\n'
     assert result.exit_code == 0
@@ -169,7 +169,7 @@ def test_repair():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'error'}
     )
-    result = run_command_mock('tools.helper.requests.post', resp_mock, repair,
+    result = run_command_mock('node_cli.utils.helper.requests.post', resp_mock, repair,
                               ['test-schain', '--yes'])
     print(repr(result.output))
     assert result.exit_code == 3
@@ -188,7 +188,7 @@ def test_info():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('tools.helper.requests.get', resp_mock, info_,
+    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, info_,
                               ['attractive-ed-asich'])
     assert result.output == '       Name                                           Id                                                     Owner                      Part_of_node   Dkg_status   Is_deleted   First_run   Repair_mode\n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nattractive-ed-asich   0xfb3b68013fa494407b691b4b603d84c66076c0a5ac96a7d6b162d7341d74fa61   0x1111111111111111111111111111111111111111   0              3            False        False       False      \n'  # noqa
     assert result.exit_code == 0
@@ -198,7 +198,7 @@ def test_info():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'error'}
     )
-    result = run_command_mock('tools.helper.requests.get', resp_mock, info_,
+    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, info_,
                               ['schain not found'])
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
     assert result.exit_code == 3

@@ -110,3 +110,5 @@ venv.bak/
 
 # info.py file generated automatically during package build
 node_cli/cli/info.py
+
+meta.json

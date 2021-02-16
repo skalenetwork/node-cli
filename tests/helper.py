@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import mock
-from node_cli.click.testing import CliRunner
+from click.testing import CliRunner
 from mock import Mock, MagicMock
 
 

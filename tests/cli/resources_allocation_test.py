@@ -55,7 +55,7 @@ def test_show(config, resource_alloc_config):
     resp_mock = response_mock(requests.codes.created)
     write_json(RESOURCE_ALLOCATION_FILEPATH, TEST_CONFIG)
     result = run_command_mock(
-        'tools.helper.post_request',
+        'node_cli.utils.helper.post_request',
         resp_mock,
         show
     )
@@ -66,10 +66,10 @@ def test_show(config, resource_alloc_config):
 def test_generate():
     check_node_dir()
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.resources.get_disk_alloc',
+    with mock.patch('node_cli.core.resources.get_disk_alloc',
                     new=disk_alloc_mock):
         result = run_command_mock(
-            'tools.helper.post_request',
+            'node_cli.utils.helper.post_request',
             resp_mock,
             generate,
             ['--yes']
@@ -82,10 +82,10 @@ def test_generate():
 def test_generate_already_exists(resource_alloc_config):
     check_node_dir()
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.resources.get_disk_alloc',
+    with mock.patch('node_cli.core.resources.get_disk_alloc',
                     new=disk_alloc_mock):
         result = run_command_mock(
-            'tools.helper.post_request',
+            'node_cli.utils.helper.post_request',
             resp_mock,
             generate,
             ['--yes']
@@ -94,7 +94,7 @@ def test_generate_already_exists(resource_alloc_config):
         assert result.exit_code == 0
 
         result = run_command_mock(
-                'tools.helper.post_request',
+                'node_cli.utils.helper.post_request',
                 resp_mock,
                 generate,
                 ['--yes', '--force']

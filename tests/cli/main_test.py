@@ -19,7 +19,7 @@
 
 
 from node_cli.cli import info
-from main import version
+from node_cli.main import version
 from tests.helper import run_command
 
 
