@@ -40,7 +40,7 @@ def disk_alloc_mock():
     return ResourceAlloc(128)
 
 
-def test_register_node(config):
+def test_register_node():
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -54,7 +54,7 @@ def test_register_node(config):
     assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_error(config):
+def test_register_node_with_error():
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'error', 'payload': ['Strange error']},
@@ -68,7 +68,7 @@ def test_register_node_with_error(config):
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
-def test_register_node_with_prompted_ip(config):
+def test_register_node_with_prompted_ip():
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -82,7 +82,7 @@ def test_register_node_with_prompted_ip(config):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_default_port(config):
+def test_register_node_with_default_port():
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -96,7 +96,7 @@ def test_register_node_with_default_port(config):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_init_node(config):
+def test_init_node():
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.resources.get_disk_alloc', new=disk_alloc_mock), \
@@ -114,21 +114,7 @@ def test_init_node(config):
         assert result.exit_code == 0
 
 
-# def test_purge(config):
-#     params = ['--yes']
-#     resp_mock = response_mock(requests.codes.created)
-#     with mock.patch('node_cli.core.node.subprocess.run'):
-#         result = run_command_mock(
-#             'node_cli.core.node.post',
-#             resp_mock,
-#             purge_node,
-#             params
-#         )
-#         assert result.exit_code == 0
-#         assert result.output == ''  # noqa
-
-
-def test_update_node(config):
+def test_update_node():
     os.makedirs(NODE_DATA_PATH, exist_ok=True)
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
@@ -151,7 +137,7 @@ def test_update_node(config):
         # assert result.output == 'Updating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
 
 
-def test_update_node_without_init(config):
+def test_update_node_without_init():
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
@@ -172,7 +158,7 @@ def test_update_node_without_init(config):
         assert result.output == "Node hasn't been inited before.\nYou should run < skale node init >\n"  # noqa
 
 
-def test_node_info_node_info(config):
+def test_node_info_node_info():
     payload = {
         'node_info': {
             'name': 'test', 'ip': '0.0.0.0',
@@ -196,7 +182,7 @@ def test_node_info_node_info(config):
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'  # noqa
 
 
-def test_node_info_node_info_not_created(config):
+def test_node_info_node_info_not_created():
     payload = {
         'node_info': {
             'name': 'test', 'ip': '0.0.0.0',
@@ -220,7 +206,7 @@ def test_node_info_node_info_not_created(config):
     assert result.output == 'This SKALE node is not registered on SKALE Manager yet\n'
 
 
-def test_node_info_node_info_frozen(config):
+def test_node_info_node_info_frozen():
     payload = {
         'node_info': {
             'name': 'test', 'ip': '0.0.0.0',
@@ -244,7 +230,7 @@ def test_node_info_node_info_frozen(config):
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'  # noqa
 
 
-def test_node_info_node_info_left(config):
+def test_node_info_node_info_left():
     payload = {
         'node_info': {
             'name': 'test', 'ip': '0.0.0.0',
@@ -268,7 +254,7 @@ def test_node_info_node_info_left(config):
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'  # noqa
 
 
-def test_node_info_node_info_leaving(config):
+def test_node_info_node_info_leaving():
     payload = {
         'node_info': {
             'name': 'test', 'ip': '0.0.0.0',
@@ -292,7 +278,7 @@ def test_node_info_node_info_leaving(config):
     assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
 
 
-def test_node_info_node_info_in_maintenance(config):
+def test_node_info_node_info_in_maintenance():
     payload = {
         'node_info': {
             'name': 'test', 'ip': '0.0.0.0',
