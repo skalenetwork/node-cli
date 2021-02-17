@@ -17,15 +17,27 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import click
 
-from node_cli.cli import info
-from node_cli.main import version
-from tests.helper import run_command
+from node_cli.core.host import validate_abi_files
 
 
-def test_version(config):
-    result = run_command(version, [])
-    expected = f'SKALE Node CLI version: {info.VERSION}\n'
-    assert result.output == expected
-    result = run_command(version, ['--short'])
-    assert result.output == f'{info.VERSION}\n'
+@click.group()
+def validate_cli():
+    pass
+
+
+@validate_cli.group(help="Validation commands")
+def validate():
+    pass
+
+
+@validate.command('abi', help="Validate contracts abi")
+@click.option(
+    '--json',
+    'json_format',
+    help='Show result in JSON format',
+    is_flag=True
+)
+def abi(json_format):
+    validate_abi_files(json_result=json_format)

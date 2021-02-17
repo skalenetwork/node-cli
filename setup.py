@@ -41,7 +41,7 @@ setup(
     name='node-cli',
     # *IMPORTANT*: Don't manually change the version here.
     # Use the 'bumpversion' utility instead.
-    version=find_version("cli", "__init__.py"),
+    version=find_version("node_cli", "cli", "__init__.py"),
     include_package_data=True,
     description='SKALE client tools',
     long_description_markdown_filename='README.md',

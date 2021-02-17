@@ -1,6 +1,6 @@
 import pytest
-from configs.routes import (route_exists, get_route, get_all_available_routes,
-                            RouteNotFoundException)
+from node_cli.configs.routes import (route_exists, get_route, get_all_available_routes,
+                                     RouteNotFoundException)
 
 
 ALL_V1_ROUTES = [

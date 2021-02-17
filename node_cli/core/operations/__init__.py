@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2021 SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -17,15 +17,4 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-from node_cli.cli import info
-from node_cli.main import version
-from tests.helper import run_command
-
-
-def test_version(config):
-    result = run_command(version, [])
-    expected = f'SKALE Node CLI version: {info.VERSION}\n'
-    assert result.output == expected
-    result = run_command(version, ['--short'])
-    assert result.output == f'{info.VERSION}\n'
+from node_cli.core.operations.base import update as update_op # noqa

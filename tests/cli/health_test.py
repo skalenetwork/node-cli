@@ -1,7 +1,7 @@
 import requests
 
 from tests.helper import response_mock, run_command_mock
-from cli.health import containers, schains, sgx
+from node_cli.cli.health import containers, schains, sgx
 
 
 OK_LS_RESPONSE_DATA = {
@@ -42,7 +42,7 @@ def test_containers():
         requests.codes.ok,
         json_data=OK_LS_RESPONSE_DATA
     )
-    result = run_command_mock('tools.helper.requests.get',
+    result = run_command_mock('node_cli.utils.helper.requests.get',
                               resp_mock, containers)
     assert result.exit_code == 0
     assert result.output == '                 Name                    Status         Started At                       Image               \n-------------------------------------------------------------------------------------------------------------\nskale_schain_shapely-alfecca-meridiana   Running   Jul 31 2020 11:56:35   skalenetwork/schain:1.46-develop.21\nskale_api                                Running   Jul 31 2020 11:55:17   skale-admin:latest                 \n'  # noqa
@@ -69,7 +69,7 @@ def test_checks():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('tools.helper.requests.get',
+    result = run_command_mock('node_cli.utils.helper.requests.get',
                               resp_mock, schains)
 
     print(result)
@@ -78,7 +78,7 @@ def test_checks():
     assert result.exit_code == 0
     assert result.output == 'sChain Name   Data directory    DKG    Config file   Volume   Container    IMA    Firewall    RPC    Blocks\n-----------------------------------------------------------------------------------------------------------\ntest_schain   True             False   False         False    False       False   False      False   False \n'  # noqa
 
-    result = run_command_mock('tools.helper.requests.get',
+    result = run_command_mock('node_cli.utils.helper.requests.get',
                               resp_mock, schains, ['--json'])
 
     assert result.exit_code == 0
@@ -97,7 +97,7 @@ def test_sgx_status():
         json_data={'payload': payload, 'status': 'ok'}
     )
     result = run_command_mock(
-        'tools.helper.requests.get', resp_mock, sgx)
+        'node_cli.utils.helper.requests.get', resp_mock, sgx)
 
     assert result.exit_code == 0
     assert result.output == '\x1b(0lqqqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqk\x1b(B\n\x1b(0x\x1b(B SGX info          \x1b(0x\x1b(B                        \x1b(0x\x1b(B\n\x1b(0tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqu\x1b(B\n\x1b(0x\x1b(B Server URL        \x1b(0x\x1b(B https://127.0.0.1:1026 \x1b(0x\x1b(B\n\x1b(0x\x1b(B SGXWallet Version \x1b(0x\x1b(B 1.50.1-stable.0        \x1b(0x\x1b(B\n\x1b(0x\x1b(B Node SGX keyname  \x1b(0x\x1b(B test_keyname           \x1b(0x\x1b(B\n\x1b(0x\x1b(B Status            \x1b(0x\x1b(B CONNECTED              \x1b(0x\x1b(B\n\x1b(0mqqqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqj\x1b(B\n'  # noqa

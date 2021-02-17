@@ -25,7 +25,7 @@ import requests
 
 from io import BytesIO
 from tests.helper import response_mock, run_command
-from cli.logs import dump
+from node_cli.cli.logs import dump
 
 
 def test_dump(config):

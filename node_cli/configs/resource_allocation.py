@@ -17,15 +17,28 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
+from node_cli.configs import NODE_DATA_PATH
 
-from node_cli.cli import info
-from node_cli.main import version
-from tests.helper import run_command
+LARGE_DIVIDER = 1
+MEDIUM_DIVIDER = 32
+TEST_DIVIDER = 32
+SMALL_DIVIDER = 128
 
+TIMES = 1
+TIMEOUT = 1
+MEMORY_FACTOR = 0.8
+DISK_FACTOR = 0.95
 
-def test_version(config):
-    result = run_command(version, [])
-    expected = f'SKALE Node CLI version: {info.VERSION}\n'
-    assert result.output == expected
-    result = run_command(version, ['--short'])
-    assert result.output == f'{info.VERSION}\n'
+MAX_CPU_SHARES = 1024
+
+VOLUME_CHUNK = 512 * SMALL_DIVIDER
+
+RESOURCE_ALLOCATION_FILENAME = 'resource_allocation.json'
+RESOURCE_ALLOCATION_FILEPATH = os.path.join(NODE_DATA_PATH, RESOURCE_ALLOCATION_FILENAME)
+
+DISK_MOUNTPOINT_FILENAME = 'disk_mountpoint.txt'
+DISK_MOUNTPOINT_FILEPATH = os.path.join(NODE_DATA_PATH, DISK_MOUNTPOINT_FILENAME)
+
+SGX_SERVER_URL_FILENAME = 'sgx_server_url.txt'
+SGX_SERVER_URL_FILEPATH = os.path.join(NODE_DATA_PATH, SGX_SERVER_URL_FILENAME)

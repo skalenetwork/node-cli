@@ -28,7 +28,7 @@ OS=`uname -s`-`uname -m`
 #CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 LATEST_COMMIT=$(git rev-parse HEAD)
 CURRENT_DATETIME="`date "+%Y-%m-%d %H:%M:%S"`";
-DIST_INFO_FILEPATH=$PARENT_DIR/cli/info.py
+DIST_INFO_FILEPATH=$PARENT_DIR/node_cli/cli/info.py
 
 touch $DIST_INFO_FILEPATH
 
