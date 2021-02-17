@@ -19,7 +19,7 @@
 
 from node_cli.cli.info import VERSION
 from node_cli.core.host import prepare_host
-from node_cli.core.operations.common import (
+from node_cli.operations.common import (
     remove_dynamic_containers, backup_old_contracts, download_contracts, docker_lvmpy_update,
     update_skale_node, download_filestorage_artifacts
 )

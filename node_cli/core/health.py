@@ -20,7 +20,7 @@
 import json
 from terminaltables import SingleTable
 
-from node_cli.core.print_formatters import (
+from node_cli.utils.print_formatters import (
     print_containers,
     print_schains_healthchecks
 )

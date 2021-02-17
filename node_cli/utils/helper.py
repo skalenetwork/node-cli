@@ -40,7 +40,7 @@ import click
 
 from jinja2 import Environment
 
-from node_cli.core.print_formatters import print_err_response
+from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
 
 from node_cli.configs.env import (

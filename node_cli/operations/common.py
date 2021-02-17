@@ -23,7 +23,7 @@ import logging
 import urllib.request
 from distutils.dir_util import copy_tree
 
-from node_cli.core.operations.git_helper import update_repo
+from node_cli.utils.git_utils import update_repo
 from node_cli.utils.docker_utils import (rm_all_schain_containers, rm_all_ima_containers,
                                          compose_pull, compose_build)
 from node_cli.configs import (

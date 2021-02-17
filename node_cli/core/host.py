@@ -35,7 +35,7 @@ from node_cli.configs import (
 )
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH
-from node_cli.core.print_formatters import print_abi_validation_errors
+from node_cli.utils.print_formatters import print_abi_validation_errors
 from node_cli.configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                                   SGX_SERVER_URL_FILEPATH)
 
