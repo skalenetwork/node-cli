@@ -46,11 +46,6 @@ NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 
-CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
-                              os.path.join(SKALE_DIR, '.skale-cli.yaml')
-
-TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
-
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
 

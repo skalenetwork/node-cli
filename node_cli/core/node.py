@@ -64,7 +64,7 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def register_node(config, name, p2p_ip,
+def register_node(name, p2p_ip,
                   public_ip, port, domain_name,
                   gas_limit=None,
                   gas_price=None,
@@ -339,7 +339,7 @@ def is_base_containers_alive():
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
 
 
-def get_node_info(config, format):
+def get_node_info(format):
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME,
         method='info'

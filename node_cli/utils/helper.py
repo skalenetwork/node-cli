@@ -39,7 +39,6 @@ import distutils.util
 import click
 
 from jinja2 import Environment
-from readsettings import ReadSettings
 
 from node_cli.core.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -48,7 +47,7 @@ from node_cli.configs.env import (
     absent_params as absent_env_params,
     get_params as get_env_params
 )
-from node_cli.configs import CONFIG_FILEPATH, TEXT_FILE, ADMIN_HOST, ADMIN_PORT
+from node_cli.configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT
 from node_cli.configs.cli_logger import (
     LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
     LOG_FILEPATH, DEBUG_LOG_FILEPATH
@@ -124,10 +123,6 @@ def read_file(path):
 
 def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
-
-
-def session_config():
-    return ReadSettings(CONFIG_FILEPATH)
 
 
 def extract_env_params(env_filepath):

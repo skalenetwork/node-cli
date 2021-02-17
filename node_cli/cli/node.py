@@ -28,10 +28,9 @@ from node_cli.core.node import (
     set_domain_name
 )
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
-from node_cli.utils.helper import session_config, abort_if_false, safe_load_texts
+from node_cli.utils.helper import abort_if_false, safe_load_texts
 
 
-config = session_config()
 TEXTS = safe_load_texts()
 
 
@@ -78,8 +77,7 @@ def node():
 @node.command('info', help="Get info about SKALE node")
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 def node_info(format):
-    config = session_config()
-    get_node_info(config, format)
+    get_node_info(format)
 
 
 @node.command('register', help="Register current node in the SKALE Manager")
@@ -126,8 +124,7 @@ def node_info(format):
     help='Skip dry run for registration transaction'
 )
 def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
-    config = session_config()
-    register(config, name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
+    register(name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
 
 
 @node.command('init', help="Initialize SKALE node")
