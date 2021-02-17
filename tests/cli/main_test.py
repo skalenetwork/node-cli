@@ -23,7 +23,7 @@ from node_cli.main import version
 from tests.helper import run_command
 
 
-def test_version(config):
+def test_version():
     result = run_command(version, [])
     expected = f'SKALE Node CLI version: {info.VERSION}\n'
     assert result.output == expected

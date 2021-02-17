@@ -28,7 +28,7 @@ from tests.helper import response_mock, run_command
 from node_cli.cli.logs import dump
 
 
-def test_dump(config):
+def test_dump():
     archive_filename = 'skale-logs-dump-2019-10-08-17:40:00.tar.gz'
     resp_mock = response_mock(
         requests.codes.ok,

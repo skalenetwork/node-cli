@@ -27,7 +27,7 @@ from node_cli.cli.schains import (get_schain_config, ls, dkg, show_rules,
                                   repair, info_)
 
 
-def test_ls(config):
+def test_ls():
     os.environ['TZ'] = 'Europe/London'
     time.tzset()
     payload = [
