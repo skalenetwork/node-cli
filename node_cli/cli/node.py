@@ -129,13 +129,8 @@ def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
 
 @node.command('init', help="Initialize SKALE node")
 @click.argument('env_file')
-@click.option(
-    '--dry-run',
-    is_flag=True,
-    help="Dry run node init (don't setup containers)"
-)
-def init_node(env_file, dry_run):
-    init(env_file, dry_run)
+def init_node(env_file):
+    init(env_file)
 
 
 @node.command('update', help='Update node from .env file')

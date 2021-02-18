@@ -95,7 +95,7 @@ def register_node(name, p2p_ip,
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def init(env_filepath, dry_run=False):
+def init(env_filepath):
     if is_node_inited():
         print(TEXTS['node']['already_inited'])
         return
@@ -108,11 +108,9 @@ def init(env_filepath, dry_run=False):
         env_params['SGX_SERVER_URL']
     )
     update_meta(VERSION, env_params['CONTAINER_CONFIGS_STREAM'])
-    dry_run = 'yes' if dry_run else ''
     env = {
         'SKALE_DIR': SKALE_DIR,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
-        'DRY_RUN': dry_run,
         **env_params
     }
     try:

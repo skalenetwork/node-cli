@@ -106,11 +106,7 @@ Arguments:
 
 - `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
 
-Required options:
-
--   `--dry-run` - create only needed files and directories and don't create containers
-
-You should also specify the following environment variables:
+You should specify the following environment variables:
 
 -   `SGX_SERVER_URL` - SGX server URL
 -   `DISK_MOUNTPOINT` - disk mount point for storing sChains data
