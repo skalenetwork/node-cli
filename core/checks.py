@@ -1,8 +1,29 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of node-cli
+#
+#   Copyright (C) 2019 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import inspect
 import json
 import logging
 import os
 import psutil
+import shutil
 import socket
 from collections import namedtuple
 from typing import List
@@ -10,7 +31,7 @@ from typing import List
 import docker
 import yaml
 
-from configs import REQUIREMENTS_PATH
+from configs import DOCKER_CONFIG_FILEPATH, REQUIREMENTS_PATH
 from tools.helper import run_cmd
 
 logger = logging.getLogger(__name__)
@@ -19,17 +40,12 @@ logger = logging.getLogger(__name__)
 CheckResult = namedtuple('CheckResult', ['status', 'info'])
 ListChecks = List[CheckResult]
 
-DOCKER_CONFIG_FILEPATH = '/etc/docker/daemon.json'
 
-
-def get_requirements():
-    return yaml.load(REQUIREMENTS_PATH)
+def get_requirements(network: str = 'mainnet'):
+    return yaml.load(REQUIREMENTS_PATH)[network]
 
 
 class BaseChecker:
-    def __init__(self) -> None:
-        pass
-
     def _ok(self, info=None) -> CheckResult:
         return CheckResult(status='ok', info=info)
 
@@ -37,12 +53,13 @@ class BaseChecker:
         return CheckResult(status='error', info=info)
 
     def check(self) -> ListChecks:
+        myself = inspect.stack()[0][3]
         check_methods = inspect.getmembers(
             type(self),
-            predicate=lambda x: inspect.isfunction(x) and
-            not x.__name__.startswith('_')
+            predicate=lambda m: inspect.isfunction(m) and
+            not m.__name__.startswith('_') and not m.__name__ == myself
         )
-        return [cm() for cm in check_methods]
+        return [cm[1](self) for cm in check_methods]
 
 
 class MachineChecker(BaseChecker):
@@ -118,11 +135,14 @@ class PackagesChecker(BaseChecker):
     def __init__(self, requirements: dict) -> None:
         self.requirements = requirements
 
+    def _compose_get_binary_cmd(self, binary_name: str) -> list:
+        return ['command', '-v', binary_name]
+
     def docker(self) -> CheckResult:
-        which_cmd_result = run_cmd(['which', 'docker'], check_code=False)
-        if which_cmd_result.returncode != 0:
-            output = which_cmd_result.stdout.decode('utf-8')
-            return self._error(info=output)
+        cmd = shutil.which('docker')
+        if cmd is None:
+            info = 'No such command: "docker"'
+            return self._error(info=info)
 
         v_cmd_result = run_cmd(['docker', '-v'], check_code=False)
         output = v_cmd_result.stdout.decode('utf-8')
@@ -132,16 +152,18 @@ class PackagesChecker(BaseChecker):
             return self._error(output)
 
     def docker_compose(self) -> CheckResult:
-        which_cmd_result = run_cmd(
-            ['which', 'docker-compose'], check_code=False)
-        if which_cmd_result.returncode != 0:
-            info = which_cmd_result.stdout.decode('utf-8')
+        cmd = shutil.which('docker-compose')
+        if cmd is None:
+            info = 'No such command: "docker-compose"'
             return self._error(info=info)
 
         v_cmd_result = run_cmd(['docker-compose', '-v'], check_code=False)
         output = v_cmd_result.stdout.decode('utf-8')
         if v_cmd_result.returncode != 0:
+            output = v_cmd_result.stdout.decode('utf-8')
+            info = f'Checking docker-compose version failed with: {output}'
             return self._error(info=output)
+
         actual_version = output.split(',')[0].split()[-1].strip()
         expected_version = self.requirements['packages']['docker-compose']
         info = {
@@ -172,8 +194,8 @@ class PackagesChecker(BaseChecker):
             return self._error(info=output)
 
 
-class DockerChecker:
-    def __init__(self, requirements: dict) -> None:
+class DockerChecker(BaseChecker):
+    def __init__(self) -> None:
         self.docker_client = docker.from_env()
 
     def _get_docker_config(self) -> dict:
@@ -201,8 +223,8 @@ class DockerChecker:
             return self._ok(info=info)
 
     def keeping_containers_alive(self) -> CheckResult:
-        config = self.get_docker_config()
-        return self.check_docker_alive_option(config)
+        config = self._get_docker_config()
+        return self._check_docker_alive_option(config)
 
     def docker_service_status(self) -> CheckResult:
         try:

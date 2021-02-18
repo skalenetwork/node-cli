@@ -34,12 +34,16 @@ INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
-FILESTORAGE_INFO_FILE = os.path.join(CONTAINER_CONFIG_PATH, 'filestorage_info.json')
-FILESTORAGE_ARTIFACTS_FILE = os.path.join(NODE_DATA_PATH, 'filestorage_artifacts.json')
+REQUIREMENTS_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'requirements.yaml')
+FILESTORAGE_INFO_FILE = os.path.join(
+    CONTAINER_CONFIG_PATH, 'filestorage_info.json')
+FILESTORAGE_ARTIFACTS_FILE = os.path.join(
+    NODE_DATA_PATH, 'filestorage_artifacts.json')
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
-REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
+REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(
+    LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
 
 ETH_STATE_PATH = os.path.join(NODE_DATA_PATH, 'eth-state')
 NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
@@ -48,7 +52,7 @@ SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 
 CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
-                              os.path.join(SKALE_DIR, '.skale-cli.yaml')
+    os.path.join(SKALE_DIR, '.skale-cli.yaml')
 
 TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
 
@@ -75,7 +79,6 @@ else:
     PARDIR = os.path.join(sys._MEIPASS, 'data')
 
 TEXT_FILE = os.path.join(PARDIR, 'text.yml')
-REQUIREMENTS_PATH = os.path.join(PARDIR, 'requirements.yaml')
 DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
 THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
@@ -114,3 +117,4 @@ MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
 IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
+DOCKER_CONFIG_FILEPATH = '/etc/docker/daemon.json'

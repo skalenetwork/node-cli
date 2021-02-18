@@ -24,7 +24,7 @@ from functools import wraps
 from shutil import copyfile
 from urllib.parse import urlparse
 
-from core.checks import RequirementsChecker
+from core.checks import MachineChecker
 from core.helper import validate_abi
 from core.resources import update_resource_allocation
 
@@ -114,24 +114,6 @@ def init_logs_dir():
 
 def init_data_dir():
     safe_mk_dirs(NODE_DATA_PATH)
-
-
-def valid_host(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        pass
-        checker = RequirementsChecker()
-        result = list(
-            filter(lambda r: r.status == 'error', checker.hardware())
-        )
-        if result:
-            logger.error(
-                'Cannot continue: machine doesn\'t meet requirements:'
-                f'{result}'
-            )
-            return
-        return func(*args, **kwargs)
-    return wrapper
 
 
 def safe_mk_dirs(path, print_res=False):
