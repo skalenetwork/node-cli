@@ -23,9 +23,13 @@ from urllib.parse import urlparse
 import click
 
 from core.core import get_node_info, get_node_about
-from core.node import (get_node_signature, init, restore,
-                       register_node as register, update, backup, set_maintenance_mode_on,
-                       set_maintenance_mode_off, turn_off, turn_on, set_domain_name)
+from core.node import (get_node_signature, init,
+                       restore, run_preinstall_checks,
+                       register_node as register, update,
+                       backup, set_maintenance_mode_on,
+                       set_maintenance_mode_off, turn_off,
+                       turn_on, set_domain_name)
+from core.print_formatters import print_requirements_check_result
 from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
 from tools.helper import session_config
@@ -243,3 +247,19 @@ def _turn_on(maintenance_off, sync_schains, env_file):
               prompt='Are you sure you want to set domain name?')
 def _set_domain_name(domain):
     set_domain_name(domain)
+
+
+@node.command(help='Check if node meet network requirements')
+@click.option(
+    '--network', '-n',
+    type=str,
+    default='mainnet',
+    help='Network to check'
+)
+def check_requirements(network):
+    result = run_preinstall_checks(network)
+    if not result:
+        print('Requirements checking succesfully finished!')
+    else:
+        print('Node is not fully meet the requirements!')
+        print_requirements_check_result(result)

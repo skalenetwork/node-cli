@@ -34,6 +34,10 @@ from configs import (SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
                      TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
 from configs.cli_logger import LOG_DIRNAME
 
+from core.checks import (
+    get_requirements, DockerChecker, ListChecks,
+    MachineChecker, PackagesChecker
+)
 from core.operations import update_op
 from core.helper import get_request, post_request
 from core.mysql_backup import create_mysql_backup, restore_mysql_backup
@@ -49,6 +53,19 @@ logger = logging.getLogger(__name__)
 TEXTS = Texts()
 
 BASE_CONTAINERS_AMOUNT = 5
+
+
+def run_preinstall_checks(network: str = 'mainnet') -> ListChecks:
+    requirements = get_requirements(network)
+    checkers = [
+        MachineChecker(requirements),
+        PackagesChecker(requirements),
+        DockerChecker()
+    ]
+    result = []
+    for checker in checkers:
+        result.extend(filter(lambda r: r.status == 'error', checker.check()))
+    return result
 
 
 def register_node(config, name, p2p_ip,

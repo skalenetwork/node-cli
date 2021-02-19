@@ -27,27 +27,40 @@ def requirements_data():
 
 def test_checks_cpu_total(requirements_data):
     checker = MachineChecker(requirements_data)
-    assert checker.cpu_total().status == 'ok', checker.cpu_total()
+    r = checker.cpu_total()
+    assert r.name == 'cpu_total'
+    assert r.status == 'ok'
     requirements_data['hardware']['cpu_total'] = 10000  # too big
     checker = MachineChecker(requirements_data)
+    r = checker.cpu_total()
+    assert r.name == 'cpu_total'
+    assert r.status == 'error'
     assert checker.cpu_total().status == 'error'
 
 
 def test_checks_cpu_physical(requirements_data):
     checker = MachineChecker(requirements_data)
-    assert checker.cpu_physical().status == 'ok'
+    r = checker.cpu_physical()
+    assert r.name == 'cpu_physical'
+    assert r.status == 'ok'
     requirements_data['hardware']['cpu_physical'] = 10000  # too big
     checker = MachineChecker(requirements_data)
-    assert checker.cpu_physical().status == 'error'
+    r = checker.cpu_physical()
+    assert r.name == 'cpu_physical'
+    assert r.status == 'error'
 
 
 def test_checks_memory(requirements_data):
     checker = MachineChecker(requirements_data)
-    assert checker.memory().status == 'ok'
+    r = checker.memory()
+    assert r.name == 'memory'
+    assert r.status == 'ok'
     # too big
     requirements_data['hardware']['memory'] = 10000000000000
     checker = MachineChecker(requirements_data)
-    assert checker.memory().status == 'error'
+    r = checker.memory()
+    assert r.name == 'memory'
+    assert r.status == 'error'
 
 
 def test_checks_machine_check(requirements_data):
@@ -58,16 +71,22 @@ def test_checks_machine_check(requirements_data):
 
 def test_checks_swap(requirements_data):
     checker = MachineChecker(requirements_data)
-    assert checker.swap().status == 'ok'
+    r = checker.swap()
+    assert r.name == 'swap'
+    assert r.status == 'ok'
     # too big
     requirements_data['hardware']['swap'] = 10000000000000
     checker = MachineChecker(requirements_data)
-    assert checker.swap().status == 'error'
+    r = checker.swap()
+    assert r.name == 'swap'
+    assert r.status == 'error'
 
 
 def test_checks_network(requirements_data):
     checker = MachineChecker(requirements_data)
-    assert checker.network().status == 'ok'
+    r = checker.network()
+    assert r.status == 'ok'
+    assert r.name == 'network'
 
 
 def test_checks_docker_version(requirements_data):
@@ -80,10 +99,14 @@ def test_checks_docker_version(requirements_data):
 
     res_mock.returncode = 0
     with mock.patch('core.checks.run_cmd', run_cmd_mock):
-        assert checker.docker().status == 'ok'
+        r = checker.docker()
+        r.name == 'docker'
+        r.status == 'ok'
     res_mock.returncode = 1
     with mock.patch('core.checks.run_cmd', run_cmd_mock):
-        assert checker.docker().status == 'error'
+        r = checker.docker()
+        r.name == 'docker'
+        r.status == 'error'
 
 
 def test_checks_iptables_persistent(requirements_data):
@@ -96,10 +119,14 @@ def test_checks_iptables_persistent(requirements_data):
 
     res_mock.returncode = 0
     with mock.patch('core.checks.run_cmd', run_cmd_mock):
-        assert checker.iptables_persistent().status == 'ok'
+        r = checker.iptables_persistent()
+        r.name == 'iptables_persistent'
+        r.status == 'ok'
     res_mock.returncode = 1
     with mock.patch('core.checks.run_cmd', run_cmd_mock):
-        assert checker.iptables_persistent().status == 'error'
+        r = checker.iptables_persistent()
+        r.name == 'iptables_persistent'
+        r.status == 'ok'
 
 
 def test_checks_lvm2(requirements_data):
@@ -112,10 +139,14 @@ def test_checks_lvm2(requirements_data):
 
     res_mock.returncode = 0
     with mock.patch('core.checks.run_cmd', run_cmd_mock):
-        assert checker.lvm2().status == 'ok'
+        r = checker.lvm2()
+        r.name == 'lvm2'
+        r.status == 'ok'
     res_mock.returncode = 1
     with mock.patch('core.checks.run_cmd', run_cmd_mock):
-        assert checker.lvm2().status == 'error'
+        r = checker.lvm2()
+        r.name == 'lvm2'
+        r.status == 'ok'
 
 
 @pytest.fixture
@@ -138,25 +169,34 @@ def test_checks_docker_compose_valid_pkg(
         requirements_data, docker_compose_pkg_1_27_4):
     checker = PackagesChecker(requirements_data)
     print('Debug: ', checker.docker_compose())
-    assert checker.docker_compose().status == 'ok'
+
+    r = checker.docker_compose()
+    r.name == 'docker-compose'
+    r.status == 'ok'
 
 
 def test_checks_docker_compose_no_pkg(
         requirements_data):
     checker = PackagesChecker(requirements_data)
-    assert checker.docker_compose().status == 'error'
+    r = checker.docker_compose()
+    r.name == 'docker-compose'
+    r.status == 'ok'
 
 
 def test_checks_docker_compose_invalid_version(
         requirements_data, docker_compose_pkg_1_24_1):
     checker = PackagesChecker(requirements_data)
-    assert checker.docker_compose().status == 'error'
+    r = checker.docker_compose()
+    r.name == 'docker-compose'
+    r.status == 'ok'
 
 
 def test_checks_docker_service_status():
     checker = DockerChecker()
     checker.docker_client = mock.Mock()
-    assert checker.docker_service_status().status == 'ok'
+    r = checker.docker_service_status()
+    r.name == 'docker-compose'
+    r.status == 'ok'
 
 
 def test_checks_docker_config():
@@ -164,14 +204,17 @@ def test_checks_docker_config():
     valid_config = {
         'live-restore': True
     }
-    assert checker._check_docker_alive_option(valid_config).status == 'ok'
+    r = checker._check_docker_alive_option(valid_config)
+    assert r[0] is True
+    assert r[1] == {'actual_value': True, 'expected_value': True}
+
     invalid_config = {
         'live-restore': False
     }
     r = checker._check_docker_alive_option(invalid_config)
-    assert r.status == 'error'
-    assert r.info == {'actual_value': False, 'expected_value': True}
+    assert r[0] is False
+    assert r[1] == {'actual_value': False, 'expected_value': True}
 
     r = checker._check_docker_alive_option({})
-    assert r.status == 'error'
-    assert r.info == {'actual_value': None, 'expected_value': True}
+    assert r[0] is False
+    assert r[1] == {'actual_value': None, 'expected_value': True}

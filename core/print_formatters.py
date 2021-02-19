@@ -273,3 +273,8 @@ def print_abi_validation_errors(info: list, raw: bool = False) -> None:
 
 def print_node_cmd_error():
     print(TEXTS['node']['cmd_failed'])
+
+
+def print_requirements_check_result(result: list) -> None:
+    for r in result:
+        print(f'Check "{r.name}" failed: {r.info}')
