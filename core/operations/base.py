@@ -20,7 +20,8 @@
 from cli.info import VERSION
 from core.host import prepare_host
 from core.operations.common import (
-    remove_dynamic_containers, backup_old_contracts, download_contracts, docker_lvmpy_update,
+    remove_dynamic_containers, backup_old_contracts,
+    download_contracts, docker_lvmpy_update,
     update_skale_node, download_filestorage_artifacts
 )
 from tools.docker_utils import compose_rm, compose_up
@@ -42,7 +43,11 @@ def update(env_filepath: str, env: str) -> None:
         env['SGX_SERVER_URL'],
         allocation=True
     )
-    update_meta(VERSION, env['CONTAINER_CONFIGS_STREAM'])
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM']
+    )
     download_filestorage_artifacts()
     compose_up(env)
 
