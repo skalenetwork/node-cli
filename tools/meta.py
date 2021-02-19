@@ -7,13 +7,20 @@ DEFAULT_VERSION = '1.0.0'
 DEFAULT_CONFIG_STREAM = '1.1.0'
 DEFAULT_DOCKER_LVMPY_STREAM = '1.0.0'
 
-CliMeta = namedtuple(
-    'CliMeta',
-    ('version', 'config_stream', 'docker_lvmpy_stream'),
-    defaults=[
-        DEFAULT_VERSION, DEFAULT_CONFIG_STREAM, DEFAULT_DOCKER_LVMPY_STREAM
-    ]
-)
+
+class CliMeta(
+        namedtuple(
+            'Node',
+            ['version', 'config_stream', 'docker_lvmpy_stream']
+        )
+):
+    __slots__ = ()
+
+    def __new__(cls, version=DEFAULT_VERSION, config_stream=DEFAULT_CONFIG_STREAM,
+                docker_lvmpy_stream=DEFAULT_DOCKER_LVMPY_STREAM):
+        return super(CliMeta, cls).__new__(
+            cls, version, config_stream, docker_lvmpy_stream
+        )
 
 
 def get_meta_info() -> CliMeta:
