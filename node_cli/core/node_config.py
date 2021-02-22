@@ -17,7 +17,19 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from node_cli.operations.base import ( # noqa
-    update as update_op,
-    init as init_op
-)
+
+class NodeConfig:
+    def __init__(self, config_filepath, env_filepath=None):
+        pass
+
+    def load_env(self):
+        pass
+
+    def validate_env(self):
+        pass
+
+    def load_config(self):
+        pass
+
+    def validate_config(self):
+        pass

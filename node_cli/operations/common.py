@@ -19,28 +19,25 @@
 
 import os
 import logging
+import shutil
+import secrets
 
 import urllib.request
+from shutil import copyfile
 from distutils.dir_util import copy_tree
 
-from node_cli.utils.git_utils import update_repo
-from node_cli.utils.docker_utils import (rm_all_schain_containers, rm_all_ima_containers,
-                                         compose_pull, compose_build)
 from node_cli.configs import (
     CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
-    MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, DOCKER_LVMPY_PATH,
-    CONTAINER_CONFIG_PATH, FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE
+    MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, SRC_FILEBEAT_CONFIG_PATH,
+    FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE, FILEBEAT_CONFIG_PATH, FLASK_SECRET_KEY_FILE,
+    CONFIGURE_IPTABLES_SCRIPT
 )
-from node_cli.utils.helper import run_cmd, read_json
+from node_cli.utils.helper import read_json
+from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.helper import error_exit, run_cmd
+
 
 logger = logging.getLogger(__name__)
-
-
-def remove_dynamic_containers():
-    logger.info(f'Removing sChains containers')
-    rm_all_schain_containers()
-    logger.info(f'Removing IMA containers')
-    rm_all_ima_containers()
 
 
 def backup_old_contracts():
@@ -53,48 +50,37 @@ def download_contracts(env):
     urllib.request.urlretrieve(env['IMA_CONTRACTS_ABI_URL'], IMA_CONTRACTS_FILEPATH)
 
 
-def docker_lvmpy_update(env):
-    update_repo(DOCKER_LVMPY_PATH, env["DOCKER_LVMPY_STREAM"])
-    logging.info('Running docker-lvmpy update script')
-    env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
-    env['VOLUME_GROUP'] = 'schains'
-    env['PATH'] = os.environ.get('PATH', None)
-    run_cmd(
-        cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/update.sh'.split(),
-        env=env
-    )
-    logging.info('docker-lvmpy update done')
-
-
 def download_filestorage_artifacts():
-    logger.info(f'Updating filestorage artifacts')
+    logger.info('Updating filestorage artifacts')
     fs_artifacts_url = read_json(FILESTORAGE_INFO_FILE)['artifacts_url']
     logger.debug(f'Downloading {fs_artifacts_url} to {FILESTORAGE_ARTIFACTS_FILE}')
     urllib.request.urlretrieve(fs_artifacts_url, FILESTORAGE_ARTIFACTS_FILE)
 
 
-def update_skale_node(env):
-    if 'CONTAINER_CONFIGS_DIR' in env:
-        update_skale_node_dev(env)
+def configure_filebeat():
+    logger.info('Configuring filebeat...')
+    copyfile(SRC_FILEBEAT_CONFIG_PATH, FILEBEAT_CONFIG_PATH)
+    shutil.chown(FILEBEAT_CONFIG_PATH, user='root')
+    os.chmod(FILEBEAT_CONFIG_PATH, 'go-w')
+    logger.info('Filebeat configured')
+
+
+def configure_flask():
+    if os.path.isfile(FLASK_SECRET_KEY_FILE):
+        logger.info('Flask secret key already exists')
     else:
-        update_skale_node_git(env)
+        logger.info('Generating Flask secret key...')
+        flask_secret_key = secrets.token_urlsafe(16)
+        with open(FLASK_SECRET_KEY_FILE, 'w') as f:
+            f.write(flask_secret_key)
+        logger.info('Flask secret key generated and saved')
 
 
-def update_skale_node_git(env):
-    update_repo(CONTAINER_CONFIG_PATH, env["CONTAINER_CONFIGS_STREAM"])
-    compose_pull()
-
-
-def update_skale_node_dev(env):
-    sync_skale_node_dev(env)
-    compose_build()
-
-
-def sync_skale_node_dev(env):
-    logger.info(f'Syncing {CONTAINER_CONFIG_PATH} with {env["CONTAINER_CONFIGS_DIR"]}')
-    run_cmd(
-        cmd=f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/ {CONTAINER_CONFIG_PATH}'.split()
-    )
-    run_cmd(
-        cmd=f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/.git {CONTAINER_CONFIG_PATH}'.split()
-    )
+def configure_iptables():
+    try:
+        run_cmd(['bash', CONFIGURE_IPTABLES_SCRIPT])
+    except Exception:
+        error_msg = 'iptables configure script failed'
+        logger.exception(error_msg)
+        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
+    logger.info('iptables configured successfully')

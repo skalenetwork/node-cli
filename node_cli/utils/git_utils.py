@@ -22,11 +22,8 @@ import logging
 from git.repo.base import Repo
 from git.exc import GitCommandError
 
+
 logger = logging.getLogger(__name__)
-
-
-def init_repo(repo_path: str) -> Repo:
-    return Repo(repo_path)
 
 
 def check_is_branch(repo: Repo, ref_name: str) -> bool:
@@ -41,8 +38,18 @@ def check_is_branch(repo: Repo, ref_name: str) -> bool:
 
 def update_repo(repo_path: str, ref_name: str) -> None:
     logger.info(f'Updating {repo_path} sources')
-    repo = init_repo(repo_path)
-    logger.info(f'Fetching {repo_path} changes')
+    repo = Repo(repo_path)
+    fetch_pull_repo(repo, ref_name)
+
+
+def init_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
+    logger.info(f'Cloning {repo_path}')
+    repo = Repo.clone_from(repo_url, repo_path)
+    fetch_pull_repo(repo, ref_name)
+
+
+def fetch_pull_repo(repo: Repo, ref_name: str) -> None:
+    logger.info(f'Fetching {repo.name} changes')
     repo.remotes.origin.fetch()
     logger.info(f'Checkouting docker-lvmpy to {ref_name}')
     repo.git.checkout(ref_name)

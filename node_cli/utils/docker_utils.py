@@ -58,6 +58,13 @@ def get_all_ima_containers(_all=True) -> list:
     return docker_client().containers.list(all=_all, filters={'name': 'skale_ima_*'})
 
 
+def remove_dynamic_containers():
+    logger.info(f'Removing sChains containers')
+    rm_all_schain_containers()
+    logger.info(f'Removing IMA containers')
+    rm_all_ima_containers()
+
+
 def rm_all_schain_containers():
     schain_containers = get_all_schain_containers()
     remove_containers(schain_containers, stop_timeout=SCHAIN_REMOVE_TIMEOUT)
