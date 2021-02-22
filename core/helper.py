@@ -33,9 +33,9 @@ import requests
 import yaml
 
 from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, ROUTES
-from configs.cli_logger import (LOG_FORMAT, LOG_BACKUP_COUNT,
-                                LOG_FILE_SIZE_BYTES,
-                                LOG_FILEPATH, DEBUG_LOG_FILEPATH)
+from configs.cli_logger import (
+    FILE_LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
+    LOG_FILEPATH, STREAM_LOG_FORMAT, DEBUG_LOG_FILEPATH)
 from core.print_formatters import print_err_response
 from tools.helper import session_config
 
@@ -152,7 +152,7 @@ def init_default_logger():
 
 
 def get_file_handler(log_filepath, log_level):
-    formatter = Formatter(LOG_FORMAT)
+    formatter = Formatter(FILE_LOG_FORMAT)
     f_handler = py_handlers.RotatingFileHandler(
         log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
         backupCount=LOG_BACKUP_COUNT)
@@ -163,7 +163,7 @@ def get_file_handler(log_filepath, log_level):
 
 
 def get_stream_handler():
-    formatter = Formatter('%(asctime)s - %(message)s')
+    formatter = Formatter(STREAM_LOG_FORMAT)
     stream_handler = StreamHandler(sys.stderr)
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(logging.INFO)

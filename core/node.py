@@ -91,7 +91,11 @@ def init(env_filepath, dry_run=False):
         env_params['DISK_MOUNTPOINT'],
         env_params['SGX_SERVER_URL']
     )
-    update_meta(VERSION, env_params['CONTAINER_CONFIGS_STREAM'])
+    update_meta(
+        VERSION,
+        env_params['CONTAINER_CONFIGS_STREAM'],
+        env_params['DOCKER_LVMPY_STREAM']
+    )
     dry_run = 'yes' if dry_run else ''
     env = {
         'SKALE_DIR': SKALE_DIR,
@@ -179,7 +183,8 @@ def update(env_filepath, sync_schains):
         return
     logger.info('Node update started')
     env = get_inited_node_env(env_filepath, sync_schains)
-    clear_env = {k: v for k, v in env.items() if v != ''}  # todo: tmp fix for update procedure
+    # todo: tmp fix for update procedure
+    clear_env = {k: v for k, v in env.items() if v != ''}
     update_op(env_filepath, clear_env)
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
