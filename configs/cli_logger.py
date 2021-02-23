@@ -20,7 +20,8 @@
 import os
 from configs import SKALE_DIR
 
-FILE_LOG_FORMAT = '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+FILE_LOG_FORMAT = '%(asctime)s - %(levelname)s - %(name)s:%(lineno)d - %(message)s'
+
 STREAM_LOG_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
 LOG_FILE_SIZE_MB = 300

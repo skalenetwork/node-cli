@@ -93,7 +93,6 @@ def node_about(format):
     get_node_about(config, format)
 
 
-@streamed_cmd
 @node.command('register', help="Register current node in the SKALE Manager")
 @click.option(
     '--name', '-n',
@@ -137,13 +136,13 @@ def node_about(format):
     default=False,
     help='Skip dry run for registration transaction'
 )
+@streamed_cmd
 def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
     config = session_config()
     register(config, name, ip, ip, port, domain,
              gas_limit, gas_price, skip_dry_run)
 
 
-@streamed_cmd
 @node.command('init', help="Initialize SKALE node")
 @click.argument('env_file')
 @click.option(
@@ -151,11 +150,11 @@ def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
     is_flag=True,
     help="Dry run node init (don't setup containers)"
 )
+@streamed_cmd
 def init_node(env_file, dry_run):
     init(env_file, dry_run)
 
 
-@streamed_cmd
 @node.command('update', help='Update node from .env file')
 @click.option(
     '--sync-schains',
@@ -166,6 +165,7 @@ def init_node(env_file, dry_run):
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.argument('env_file')
+@streamed_cmd
 def update_node(sync_schains, env_file):
     update(env_file, sync_schains)
 
@@ -177,41 +177,40 @@ def signature(validator_id):
     print(f'Signature: {res}')
 
 
-@streamed_cmd
 @node.command('backup', help="Generate backup file to restore SKALE node on another machine")
 @click.argument('backup_folder_path')
 @click.argument('env_file')
 @click.option('--no-database', is_flag=True,
               help="Skip mysql backup")
+@streamed_cmd
 def backup_node(backup_folder_path, env_file, no_database):
     backup_mysql = True if not no_database else False
     backup(backup_folder_path, env_file, backup_mysql)
 
 
-@streamed_cmd
 @node.command('restore', help="Restore SKALE node on another machine")
 @click.argument('backup_path')
 @click.argument('env_file')
+@streamed_cmd
 def restore_node(backup_path, env_file):
     restore(backup_path, env_file)
 
 
-@streamed_cmd
 @node.command('maintenance-on', help="Set SKALE node into maintenance mode")
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to set SKALE node into maintenance mode?')
+@streamed_cmd
 def set_node_in_maintenance():
     set_maintenance_mode_on()
 
 
-@streamed_cmd
 @node.command('maintenance-off', help="Remove SKALE node from maintenance mode")
+@streamed_cmd
 def remove_node_from_maintenance():
     set_maintenance_mode_off()
 
 
-@streamed_cmd
 @node.command('turn-off', help='Turn off the node')
 @click.option(
     '--maintenance-on',
@@ -221,11 +220,11 @@ def remove_node_from_maintenance():
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to turn off the node?')
+@streamed_cmd
 def _turn_off(maintenance_on):
     turn_off(maintenance_on)
 
 
-@streamed_cmd
 @node.command('turn-on', help='Turn on the node')
 @click.option(
     '--maintenance-off',
@@ -241,6 +240,7 @@ def _turn_off(maintenance_on):
               expose_value=False,
               prompt='Are you sure you want to turn on the node?')
 @click.argument('env_file')
+@streamed_cmd
 def _turn_on(maintenance_off, sync_schains, env_file):
     turn_on(maintenance_off, sync_schains, env_file)
 

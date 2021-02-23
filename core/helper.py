@@ -170,10 +170,10 @@ def get_stream_handler():
 
 
 def streamed_cmd(func):
+    """ Decorator that allow function to print logs into stderr """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        logger = logging.getLogger(__name__)
-        logger.addHandler(get_stream_handler())
+        logging.getLogger('').addHandler(get_stream_handler())
         return func(*args, **kwargs)
     return wrapper
 

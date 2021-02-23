@@ -47,8 +47,10 @@ def backup_old_contracts():
 
 
 def download_contracts(env):
-    urllib.request.urlretrieve(env['MANAGER_CONTRACTS_ABI_URL'], MANAGER_CONTRACTS_FILEPATH)
-    urllib.request.urlretrieve(env['IMA_CONTRACTS_ABI_URL'], IMA_CONTRACTS_FILEPATH)
+    urllib.request.urlretrieve(
+        env['MANAGER_CONTRACTS_ABI_URL'], MANAGER_CONTRACTS_FILEPATH)
+    urllib.request.urlretrieve(
+        env['IMA_CONTRACTS_ABI_URL'], IMA_CONTRACTS_FILEPATH)
 
 
 def docker_lvmpy_update(env):
@@ -67,7 +69,8 @@ def docker_lvmpy_update(env):
 def download_filestorage_artifacts():
     logger.info(f'Updating filestorage artifacts')
     fs_artifacts_url = read_json(FILESTORAGE_INFO_FILE)['artifacts_url']
-    logger.debug(f'Downloading {fs_artifacts_url} to {FILESTORAGE_ARTIFACTS_FILE}')
+    logger.debug(
+        f'Downloading {fs_artifacts_url} to {FILESTORAGE_ARTIFACTS_FILE}')
     urllib.request.urlretrieve(fs_artifacts_url, FILESTORAGE_ARTIFACTS_FILE)
 
 
@@ -89,7 +92,8 @@ def update_skale_node_dev(env):
 
 
 def sync_skale_node_dev(env):
-    logger.info(f'Syncing {CONTAINER_CONFIG_PATH} with {env["CONTAINER_CONFIGS_DIR"]}')
+    logger.info(
+        f'Syncing {CONTAINER_CONFIG_PATH} with {env["CONTAINER_CONFIGS_DIR"]}')
     run_cmd(
         cmd=f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/ {CONTAINER_CONFIG_PATH}'.split()
     )

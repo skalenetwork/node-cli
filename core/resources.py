@@ -187,7 +187,7 @@ def get_disk_alloc():
 def get_disk_size(disk_path):
     disk_size_cmd = construct_disk_size_cmd(disk_path)
     res = run_cmd(disk_size_cmd, shell=True)
-    stdout, stderr = format_output(res)
+    stdout = format_output(res)
     return int(stdout)
 
 
