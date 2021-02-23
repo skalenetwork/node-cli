@@ -43,7 +43,7 @@ ListChecks = List[CheckResult]
 
 def get_requirements(network: str = 'mainnet'):
     with open(REQUIREMENTS_PATH) as requirements_file:
-        ydata = yaml.load(requirements_file)
+        ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         logger.info(ydata)
         return ydata[network]
 
@@ -83,7 +83,7 @@ class MachineChecker(BaseChecker):
         name = 'cpu_physical'
         actual = psutil.cpu_count(logical=False)
         expected = self.requirements['hardware']['cpu_physical']
-        info = f'Expected physical {expected} cores, actual {actual} cores'
+        info = f'Expected {expected} physical cores, actual {actual} cores'
         if actual < expected:
             return self._error(name=name, info=info)
         else:
@@ -94,11 +94,9 @@ class MachineChecker(BaseChecker):
         actual = psutil.virtual_memory().total,
         actual = actual[0]
         expected = self.requirements['hardware']['memory']
-        info = f'Expected memory {expected} bytes, actual {actual} bytes'
-        info = {
-            'actual_memory': actual,
-            'expected_memory': expected
-        }
+        actual_gb = round(actual / 1024 ** 3, 2)
+        expected_gb = round(expected / 1024 ** 3, 2)
+        info = f'Expected RAM {expected_gb} GB, actual {actual_gb} GB'
         if actual < expected:
             return self._error(name=name, info=info)
         else:
@@ -108,11 +106,9 @@ class MachineChecker(BaseChecker):
         name = 'swap'
         actual = psutil.swap_memory().total
         expected = self.requirements['hardware']['swap']
-        info = f'Expected swap memory {expected} bytes, actual {actual} bytes'
-        info = {
-            'actual_swap': actual,
-            'expected_swap': expected
-        }
+        actual_gb = round(actual / 1024 ** 3, 2)
+        expected_gb = round(expected / 1024 ** 3, 2)
+        info = f'Expected swap memory {expected_gb} GB, actual {actual_gb} GB'
         if actual < expected:
             return self._error(name=name, info=info)
         else:
@@ -155,7 +151,7 @@ class PackagesChecker(BaseChecker):
             return self._error(name=name, info=output)
 
     def docker_compose(self) -> CheckResult:
-        name = 'docker compose'
+        name = 'docker-compose'
         cmd = shutil.which('docker-compose')
         if cmd is None:
             info = 'No such command: "docker-compose"'
@@ -212,7 +208,7 @@ class DockerChecker(BaseChecker):
         with open(DOCKER_CONFIG_FILEPATH) as docker_config_file:
             try:
                 docker_config = json.load(docker_config_file)
-            except json.JSONDecoderError as err:
+            except json.decoder.JSONDecodeError as err:
                 logger.error(f'Loading docker config json failed with {err}')
                 return {}
             return docker_config
@@ -220,10 +216,6 @@ class DockerChecker(BaseChecker):
     def _check_docker_alive_option(self, config: dict) -> tuple:
         actual_value = config.get('live-restore', None)
         expected_value = True
-        info = {
-            'actual_value': actual_value,
-            'expected_value': expected_value
-        }
         if actual_value != expected_value:
             info = (
                 'Docker daemon live-restore option '
@@ -231,7 +223,7 @@ class DockerChecker(BaseChecker):
             )
             return False, info
         else:
-            info = 'Docker daemon live-restore option is set as true'
+            info = 'Docker daemon live-restore option is set as "true"'
             return True, info
 
     def keeping_containers_alive(self) -> CheckResult:
