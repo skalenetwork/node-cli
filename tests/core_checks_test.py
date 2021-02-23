@@ -206,15 +206,15 @@ def test_checks_docker_config():
     }
     r = checker._check_docker_alive_option(valid_config)
     assert r[0] is True
-    assert r[1] == {'actual_value': True, 'expected_value': True}
+    assert r[1] == 'Docker daemon live-restore option is set as "true"'
 
     invalid_config = {
         'live-restore': False
     }
     r = checker._check_docker_alive_option(invalid_config)
     assert r[0] is False
-    assert r[1] == {'actual_value': False, 'expected_value': True}
+    assert r[1] == 'Docker daemon live-restore option should be set as "true"'
 
     r = checker._check_docker_alive_option({})
     assert r[0] is False
-    assert r[1] == {'actual_value': None, 'expected_value': True}
+    assert r[1] == 'Docker daemon live-restore option should be set as "true"'

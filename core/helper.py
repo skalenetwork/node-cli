@@ -32,7 +32,7 @@ from logging import Formatter, StreamHandler
 import requests
 import yaml
 
-from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, ROUTES
+from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, ROUTES, HIDE_STREAM_LOG
 from configs.cli_logger import (
     FILE_LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
     LOG_FILEPATH, STREAM_LOG_FORMAT, DEBUG_LOG_FILEPATH)
@@ -173,7 +173,8 @@ def streamed_cmd(func):
     """ Decorator that allow function to print logs into stderr """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        logging.getLogger('').addHandler(get_stream_handler())
+        if HIDE_STREAM_LOG is None:
+            logging.getLogger('').addHandler(get_stream_handler())
         return func(*args, **kwargs)
     return wrapper
 

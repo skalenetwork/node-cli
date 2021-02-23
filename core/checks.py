@@ -219,7 +219,7 @@ class DockerChecker(BaseChecker):
         if actual_value != expected_value:
             info = (
                 'Docker daemon live-restore option '
-                'in docker config should be set as true'
+                'should be set as "true"'
             )
             return False, info
         else:
