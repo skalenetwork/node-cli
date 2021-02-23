@@ -30,7 +30,7 @@ from core.node import (get_node_signature, init,
                        set_maintenance_mode_off, turn_off,
                        turn_on, set_domain_name)
 from core.print_formatters import print_requirements_check_result
-from core.helper import abort_if_false, safe_load_texts
+from core.helper import abort_if_false, safe_load_texts, streamed_cmd
 from configs import DEFAULT_NODE_BASE_PORT
 from tools.helper import session_config
 
@@ -93,6 +93,7 @@ def node_about(format):
     get_node_about(config, format)
 
 
+@streamed_cmd
 @node.command('register', help="Register current node in the SKALE Manager")
 @click.option(
     '--name', '-n',
@@ -138,9 +139,11 @@ def node_about(format):
 )
 def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
     config = session_config()
-    register(config, name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
+    register(config, name, ip, ip, port, domain,
+             gas_limit, gas_price, skip_dry_run)
 
 
+@streamed_cmd
 @node.command('init', help="Initialize SKALE node")
 @click.argument('env_file')
 @click.option(
@@ -152,6 +155,7 @@ def init_node(env_file, dry_run):
     init(env_file, dry_run)
 
 
+@streamed_cmd
 @node.command('update', help='Update node from .env file')
 @click.option(
     '--sync-schains',
@@ -173,6 +177,7 @@ def signature(validator_id):
     print(f'Signature: {res}')
 
 
+@streamed_cmd
 @node.command('backup', help="Generate backup file to restore SKALE node on another machine")
 @click.argument('backup_folder_path')
 @click.argument('env_file')
@@ -183,6 +188,7 @@ def backup_node(backup_folder_path, env_file, no_database):
     backup(backup_folder_path, env_file, backup_mysql)
 
 
+@streamed_cmd
 @node.command('restore', help="Restore SKALE node on another machine")
 @click.argument('backup_path')
 @click.argument('env_file')
@@ -190,6 +196,7 @@ def restore_node(backup_path, env_file):
     restore(backup_path, env_file)
 
 
+@streamed_cmd
 @node.command('maintenance-on', help="Set SKALE node into maintenance mode")
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
@@ -198,11 +205,13 @@ def set_node_in_maintenance():
     set_maintenance_mode_on()
 
 
+@streamed_cmd
 @node.command('maintenance-off', help="Remove SKALE node from maintenance mode")
 def remove_node_from_maintenance():
     set_maintenance_mode_off()
 
 
+@streamed_cmd
 @node.command('turn-off', help='Turn off the node')
 @click.option(
     '--maintenance-on',
@@ -216,6 +225,7 @@ def _turn_off(maintenance_on):
     turn_off(maintenance_on)
 
 
+@streamed_cmd
 @node.command('turn-on', help='Turn on the node')
 @click.option(
     '--maintenance-off',

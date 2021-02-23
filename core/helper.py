@@ -22,8 +22,8 @@ import sys
 import os
 import re
 import shutil
-from functools import wraps
 import urllib.parse
+from functools import wraps
 
 import logging
 import logging.handlers as py_handlers
@@ -146,9 +146,8 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
-    stream_handler = get_stream_handler()
     logging.basicConfig(level=logging.DEBUG, handlers=[
-                        f_handler, debug_f_handler, stream_handler])
+                        f_handler, debug_f_handler])
 
 
 def get_file_handler(log_filepath, log_level):
@@ -168,6 +167,15 @@ def get_stream_handler():
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(logging.INFO)
     return stream_handler
+
+
+def streamed_cmd(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        logger = logging.getLogger(__name__)
+        logger.addHandler(get_stream_handler())
+        return func(*args, **kwargs)
+    return wrapper
 
 
 def load_ssl_files(key_path, cert_path):

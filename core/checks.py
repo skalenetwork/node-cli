@@ -73,10 +73,7 @@ class MachineChecker(BaseChecker):
         name = 'cpu_total'
         actual = psutil.cpu_count(logical=True)
         expected = self.requirements['hardware']['cpu_total']
-        info = {
-            'actual_cpu_total': actual,
-            'excpected_cpu_total': expected
-        }
+        info = f'Expected {expected} logical cores, actual {actual} cores'
         if actual < expected:
             return self._error(name=name, info=info)
         else:
@@ -86,10 +83,7 @@ class MachineChecker(BaseChecker):
         name = 'cpu_physical'
         actual = psutil.cpu_count(logical=False)
         expected = self.requirements['hardware']['cpu_physical']
-        info = {
-            'actual_cpu_physical': actual,
-            'expected_cpu_physical': expected
-        }
+        info = f'Expected physical {expected} cores, actual {actual} cores'
         if actual < expected:
             return self._error(name=name, info=info)
         else:
@@ -100,6 +94,7 @@ class MachineChecker(BaseChecker):
         actual = psutil.virtual_memory().total,
         actual = actual[0]
         expected = self.requirements['hardware']['memory']
+        info = f'Expected memory {expected} bytes, actual {actual} bytes'
         info = {
             'actual_memory': actual,
             'expected_memory': expected
@@ -113,6 +108,7 @@ class MachineChecker(BaseChecker):
         name = 'swap'
         actual = psutil.swap_memory().total
         expected = self.requirements['hardware']['swap']
+        info = f'Expected swap memory {expected} bytes, actual {actual} bytes'
         info = {
             'actual_swap': actual,
             'expected_swap': expected
@@ -133,9 +129,7 @@ class MachineChecker(BaseChecker):
                 (cloudflare_dns_host, cloudflare_dns_host_port))
             return self._ok(name=name)
         except socket.error as err:
-            info = {
-                'socket_error': str(err)
-            }
+            info = f'Network checking returned error: {err}'
             return self._error(name=name, info=info)
 
 
@@ -180,13 +174,14 @@ class PackagesChecker(BaseChecker):
             'expected_version': expected_version,
             'actual_version': actual_version
         }
+        info = f'Expected docker-compose version {expected_version}, actual {actual_version}'
         if actual_version < expected_version:
             return self._error(name=name, info=info)
         else:
             return self._ok(name=name, info=info)
 
     def iptables_persistent(self) -> CheckResult:
-        name = 'docker-compose'
+        name = 'iptables-persistent'
         dpkg_cmd_result = run_cmd(
             ['dpkg', '-s', 'iptables-persistent'], check_code=False)
         output = dpkg_cmd_result.stdout.decode('utf-8')
@@ -230,8 +225,13 @@ class DockerChecker(BaseChecker):
             'expected_value': expected_value
         }
         if actual_value != expected_value:
+            info = (
+                'Docker daemon live-restore option '
+                'in docker config should be set as true'
+            )
             return False, info
         else:
+            info = 'Docker daemon live-restore option is set as true'
             return True, info
 
     def keeping_containers_alive(self) -> CheckResult:

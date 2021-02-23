@@ -63,7 +63,7 @@ def get_tty_width():
     return int(width)
 
 
-class Formatter(object):
+class Formatter:
     def table(self, headers, rows):
         table = texttable.Texttable(max_width=get_tty_width())
         table.set_cols_dtype(['t' for h in headers])
@@ -276,5 +276,12 @@ def print_node_cmd_error():
 
 
 def print_requirements_check_result(result: list) -> None:
-    for r in result:
-        print(f'Check "{r.name}" failed: {r.info}')
+    headers = ['Check', 'Info']
+    rows = [[r.name, r.info] for r in result]
+    table = texttable.Texttable()
+    table.add_rows([headers, *rows])
+    drawing = table.draw()
+    main_header = ' Failed checks '
+    block_len = (len(drawing.split()[0]) - len(main_header)) // 2
+    print('=' * block_len + main_header + '=' * block_len)
+    print(drawing)
