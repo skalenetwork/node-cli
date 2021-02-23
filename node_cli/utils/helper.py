@@ -49,8 +49,8 @@ from node_cli.configs.env import (
 )
 from node_cli.configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT
 from node_cli.configs.cli_logger import (
-    LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
-    LOG_FILEPATH, DEBUG_LOG_FILEPATH
+    LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
+    LOG_FILEPATH, DEBUG_LOG_FILEPATH, LOG_FORMAT_FILE
 )
 from node_cli.configs.routes import get_route
 
@@ -260,7 +260,7 @@ def get_stream_handler():
 
 
 def get_file_handler(log_filepath, log_level):
-    formatter = Formatter(LOG_FORMAT)
+    formatter = Formatter(LOG_FORMAT_FILE)
     f_handler = py_handlers.RotatingFileHandler(
         log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
         backupCount=LOG_BACKUP_COUNT)

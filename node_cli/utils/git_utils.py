@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import logging
 
 from git.repo.base import Repo
@@ -43,13 +44,18 @@ def update_repo(repo_path: str, ref_name: str) -> None:
 
 
 def init_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
-    logger.info(f'Cloning {repo_path}')
-    repo = Repo.clone_from(repo_url, repo_path)
+    logger.info(f'Cloning {repo_url} → {repo_path}')
+    if not os.path.isdir(os.path.join(repo_path, '.git')):
+        repo = Repo.clone_from(repo_url, repo_path)
+    else:
+        logger.info(f'{repo_path} git repo already cloned')
+        repo = Repo(repo_path)
     fetch_pull_repo(repo, ref_name)
 
 
 def fetch_pull_repo(repo: Repo, ref_name: str) -> None:
-    logger.info(f'Fetching {repo.name} changes')
+    repo_name = os.path.basename(repo.working_dir)
+    logger.info(f'Fetching {repo_name} changes')
     repo.remotes.origin.fetch()
     logger.info(f'Checkouting docker-lvmpy to {ref_name}')
     repo.git.checkout(ref_name)

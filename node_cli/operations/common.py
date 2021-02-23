@@ -61,7 +61,7 @@ def configure_filebeat():
     logger.info('Configuring filebeat...')
     copyfile(SRC_FILEBEAT_CONFIG_PATH, FILEBEAT_CONFIG_PATH)
     shutil.chown(FILEBEAT_CONFIG_PATH, user='root')
-    os.chmod(FILEBEAT_CONFIG_PATH, 'go-w')
+    os.chmod(FILEBEAT_CONFIG_PATH, 700)
     logger.info('Filebeat configured')
 
 

@@ -107,8 +107,9 @@ def save_env_params(env_filepath):
 
 
 def link_env_file():
-    logger.info(f'Creating symlink {SKALE_DIR_ENV_FILEPATH} → {CONFIGS_ENV_FILEPATH}')
-    os.symlink(SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH)
+    if not (os.path.islink(CONFIGS_ENV_FILEPATH) or os.path.isfile(CONFIGS_ENV_FILEPATH)):
+        logger.info(f'Creating symlink {SKALE_DIR_ENV_FILEPATH} → {CONFIGS_ENV_FILEPATH}')
+        os.symlink(SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH)
 
 
 def init_logs_dir():
