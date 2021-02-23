@@ -20,11 +20,9 @@
 import json
 import logging
 import os
-from functools import wraps
 from shutil import copyfile
 from urllib.parse import urlparse
 
-from core.checks import MachineChecker
 from core.helper import validate_abi
 from core.resources import update_resource_allocation
 
