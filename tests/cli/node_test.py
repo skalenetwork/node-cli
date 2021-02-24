@@ -22,6 +22,7 @@ from pathlib import Path
 
 import mock
 import requests
+import logging
 
 from node_cli.configs import NODE_DATA_PATH, SKALE_DIR
 from node_cli.core.resources import ResourceAlloc
@@ -29,11 +30,15 @@ from node_cli.cli.node import (init_node, node_info, register_node, signature,
                                update_node, backup_node, restore_node,
                                set_node_in_maintenance,
                                remove_node_from_maintenance, _turn_off, _turn_on, _set_domain_name)
+from node_cli.utils.helper import init_default_logger
 
 from tests.helper import (
     response_mock, run_command_mock,
     run_command, subprocess_run_mock
 )
+
+logger = logging.getLogger(__name__)
+init_default_logger()
 
 
 def disk_alloc_mock():
@@ -96,22 +101,24 @@ def test_register_node_with_default_port():
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_init_node():
+def test_init_node(caplog):  # todo: write new init node test
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('node_cli.core.resources.get_disk_alloc', new=disk_alloc_mock), \
-            mock.patch('node_cli.core.host.prepare_host'), \
-            mock.patch('node_cli.core.host.init_data_dir'), \
-            mock.patch('node_cli.core.node.is_base_containers_alive',
-                       return_value=True), \
-            mock.patch('node_cli.core.node.is_node_inited', return_value=False):
-        result = run_command_mock(
-            'node_cli.utils.helper.post_request',
-            resp_mock,
-            init_node,
-            ['./tests/test-env'])
-        assert result.output == 'Waiting for transaction manager initialization ...\nInit procedure finished\n'  # noqa
-        assert result.exit_code == 0
+    with caplog.at_level(logging.INFO):
+        with mock.patch('subprocess.run', new=subprocess_run_mock), \
+                mock.patch('node_cli.core.resources.get_disk_alloc', new=disk_alloc_mock), \
+                mock.patch('node_cli.core.host.prepare_host'), \
+                mock.patch('node_cli.core.host.init_data_dir'), \
+                mock.patch('node_cli.core.node.init_op'), \
+                mock.patch('node_cli.core.node.is_base_containers_alive',
+                           return_value=True), \
+                mock.patch('node_cli.core.node.is_node_inited', return_value=False):
+            result = run_command_mock(
+                'node_cli.utils.helper.post_request',
+                resp_mock,
+                init_node,
+                ['./tests/test-env'])
+            assert 'Init procedure finished' in caplog.text
+            assert result.exit_code == 0
 
 
 def test_update_node():
@@ -122,7 +129,7 @@ def test_update_node():
             mock.patch('node_cli.core.node.update_op'), \
             mock.patch('node_cli.core.node.get_flask_secret_key'), \
             mock.patch('node_cli.core.node.save_env_params'), \
-            mock.patch('node_cli.core.node.prepare_host'), \
+            mock.patch('node_cli.core.host.prepare_host'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \
             mock.patch('node_cli.core.resources.get_disk_alloc', new=disk_alloc_mock), \
@@ -143,7 +150,7 @@ def test_update_node_without_init():
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.node.get_flask_secret_key'), \
             mock.patch('node_cli.core.node.save_env_params'), \
-            mock.patch('node_cli.core.node.prepare_host'), \
+            mock.patch('node_cli.core.host.prepare_host'), \
             mock.patch('node_cli.core.host.init_data_dir'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \
@@ -378,7 +385,8 @@ def test_turn_off_maintenance_on():
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
     )
-    with mock.patch('subprocess.run', new=subprocess_run_mock):
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('node_cli.core.node.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -397,7 +405,8 @@ def test_turn_on_maintenance_off():
         {'status': 'ok', 'payload': None}
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('node_cli.core.node.get_flask_secret_key'):
+            mock.patch('node_cli.core.node.get_flask_secret_key'), \
+            mock.patch('node_cli.core.node.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -418,9 +427,11 @@ def test_set_domain_name():
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
     )
-    result = run_command_mock(
-        'node_cli.utils.helper.requests.post',
-        resp_mock,
-        _set_domain_name, ['-d', 'skale.test', '--yes'])
+
+    with mock.patch('node_cli.core.node.is_node_inited', return_value=True):
+        result = run_command_mock(
+            'node_cli.utils.helper.requests.post',
+            resp_mock,
+            _set_domain_name, ['-d', 'skale.test', '--yes'])
     assert result.exit_code == 0
     assert result.output == 'Setting new domain name: skale.test\nDomain name successfully changed\n'  # noqa
