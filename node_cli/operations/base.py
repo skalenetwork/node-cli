@@ -26,7 +26,7 @@ from node_cli.operations.common import (
     configure_flask, configure_iptables
 )
 from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
-from node_cli.operations.skale_node import init_skale_node_repo, update_skale_node_repo
+from node_cli.operations.skale_node import sync_skale_node
 
 from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
 from node_cli.utils.meta import update_meta
@@ -40,7 +40,7 @@ def update(env_filepath: str, env: str) -> None:
     download_contracts(env)
     download_filestorage_artifacts()
     docker_lvmpy_update(env)
-    update_skale_node_repo(env)
+    sync_skale_node(env)
 
     prepare_host(
         env_filepath,
@@ -53,7 +53,7 @@ def update(env_filepath: str, env: str) -> None:
 
 
 def init(env_filepath: str, env: str) -> None:
-    init_skale_node_repo(env)
+    sync_skale_node(env)
     # todo: add hardware checks
     prepare_host(
         env_filepath,

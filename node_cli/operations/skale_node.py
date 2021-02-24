@@ -20,7 +20,7 @@
 import logging
 
 from node_cli.utils.helper import run_cmd
-from node_cli.utils.git_utils import update_repo, init_repo
+from node_cli.utils.git_utils import sync_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
 from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_NODE_REPO_URL
 
@@ -28,40 +28,20 @@ from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_NODE_REPO_URL
 logger = logging.getLogger(__name__)
 
 
-def update_skale_node_repo(env):
+def sync_skale_node(env):
     if 'CONTAINER_CONFIGS_DIR' in env:
-        update_skale_node_dev(env)
+        sync_skale_node_dev(env)
     else:
-        update_skale_node_git(env)
+        sync_skale_node_git(env)
 
 
-def init_skale_node_repo(env):
-    if 'CONTAINER_CONFIGS_DIR' in env:
-        update_skale_node_dev(env)
-    else:
-        init_skale_node_git(env)
-
-
-def update_skale_node_git(env):
-    update_repo(CONTAINER_CONFIG_PATH, env["CONTAINER_CONFIGS_STREAM"])
+def sync_skale_node_git(env):
+    sync_repo(SKALE_NODE_REPO_URL, CONTAINER_CONFIG_PATH, env["CONTAINER_CONFIGS_STREAM"])
     compose_pull()
-
-
-def init_skale_node_git(env):
-    init_repo(SKALE_NODE_REPO_URL, CONTAINER_CONFIG_PATH, env["CONTAINER_CONFIGS_STREAM"])
-    compose_pull()
-
-
-def update_skale_node_dev(env):
-    sync_skale_node_dev(env)
-    compose_build()
 
 
 def sync_skale_node_dev(env):
     logger.info(f'Syncing {CONTAINER_CONFIG_PATH} with {env["CONTAINER_CONFIGS_DIR"]}')
-    run_cmd(
-        cmd=f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/ {CONTAINER_CONFIG_PATH}'.split()
-    )
-    run_cmd(
-        cmd=f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/.git {CONTAINER_CONFIG_PATH}'.split()
-    )
+    run_cmd(f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/ {CONTAINER_CONFIG_PATH}'.split())
+    run_cmd(f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/.git {CONTAINER_CONFIG_PATH}'.split())
+    compose_build()

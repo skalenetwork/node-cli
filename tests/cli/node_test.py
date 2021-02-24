@@ -100,7 +100,7 @@ def test_init_node():
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.resources.get_disk_alloc', new=disk_alloc_mock), \
-            mock.patch('node_cli.core.node.prepare_host'), \
+            mock.patch('node_cli.core.host.prepare_host'), \
             mock.patch('node_cli.core.host.init_data_dir'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \

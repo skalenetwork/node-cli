@@ -21,7 +21,7 @@ import os
 import logging
 
 from node_cli.utils.helper import run_cmd
-from node_cli.utils.git_utils import update_repo, init_repo
+from node_cli.utils.git_utils import sync_repo
 from node_cli.configs import DOCKER_LVMPY_PATH, DOCKER_LVMPY_REPO_URL
 
 logger = logging.getLogger(__name__)
@@ -34,8 +34,12 @@ def update_docker_lvmpy_env(env):
     return env
 
 
+def sync_docker_lvmpy_repo(env):
+    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env["DOCKER_LVMPY_STREAM"])
+
+
 def docker_lvmpy_update(env):
-    update_repo(DOCKER_LVMPY_PATH, env["DOCKER_LVMPY_STREAM"])
+    sync_docker_lvmpy_repo(env)
     logging.info('Running docker-lvmpy update script')
     update_docker_lvmpy_env(env)
     run_cmd(
@@ -46,7 +50,7 @@ def docker_lvmpy_update(env):
 
 
 def docker_lvmpy_install(env):
-    init_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env["DOCKER_LVMPY_STREAM"])
+    sync_docker_lvmpy_repo(env)
     update_docker_lvmpy_env(env)
     run_cmd(
         cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/install.sh'.split(),

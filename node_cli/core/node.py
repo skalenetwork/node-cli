@@ -96,10 +96,10 @@ def init(env_filepath):
     if is_node_inited():
         print(TEXTS['node']['already_inited'])
         return
-    env_params = extract_env_params(env_filepath)
-    if env_params is None:
+    env = get_node_env(env_filepath)
+    if env is None:
         return
-    init_op(env_filepath, env_params)
+    init_op(env_filepath, env)
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
@@ -146,7 +146,7 @@ def purge():
     print('Success')
 
 
-def get_inited_node_env(env_filepath, sync_schains):
+def get_node_env(env_filepath, inited_node=False, sync_schains=None):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath)
         if env_params is None:
@@ -154,16 +154,17 @@ def get_inited_node_env(env_filepath, sync_schains):
         save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH)
-    flask_secret_key = get_flask_secret_key()
     env = {
         'SKALE_DIR': SKALE_DIR,
-        'FLASK_SECRET_KEY': flask_secret_key,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
         **env_params
     }
+    if inited_node:
+        flask_secret_key = get_flask_secret_key()
+        env['FLASK_SECRET_KEY'] = flask_secret_key
     if sync_schains:
         env['BACKUP_RUN'] = 'True'
-    return env
+    return {k: v for k, v in env.items() if v != ''}
 
 
 def update(env_filepath, sync_schains):
@@ -171,9 +172,8 @@ def update(env_filepath, sync_schains):
         print(TEXTS['node']['not_inited'])
         return
     logger.info('Node update started')
-    env = get_inited_node_env(env_filepath, sync_schains)
-    clear_env = {k: v for k, v in env.items() if v != ''}  # todo: tmp fix for update procedure
-    update_op(env_filepath, clear_env)
+    env = get_node_env(env_filepath, inited_node=True, sync_schains=sync_schains)
+    update_op(env_filepath, env)
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
@@ -278,7 +278,7 @@ def run_turn_off_script():
 
 def run_turn_on_script(sync_schains, env_filepath):
     print('Turning on the node...')
-    env = get_inited_node_env(env_filepath, sync_schains)
+    env = get_node_env(env_filepath, inited_node=True, sync_schains=sync_schains)
     try:
         run_cmd(['bash', TURN_ON_SCRIPT], env=env)
     except Exception:

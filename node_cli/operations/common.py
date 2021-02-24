@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import stat
 import logging
 import shutil
 import secrets
@@ -61,7 +62,12 @@ def configure_filebeat():
     logger.info('Configuring filebeat...')
     copyfile(SRC_FILEBEAT_CONFIG_PATH, FILEBEAT_CONFIG_PATH)
     shutil.chown(FILEBEAT_CONFIG_PATH, user='root')
-    os.chmod(FILEBEAT_CONFIG_PATH, 700)
+    os.chmod(
+        FILEBEAT_CONFIG_PATH,
+        stat.S_IREAD |
+        stat.S_IWRITE |
+        stat.S_IEXEC
+    )
     logger.info('Filebeat configured')
 
 

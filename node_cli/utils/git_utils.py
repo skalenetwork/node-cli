@@ -37,19 +37,14 @@ def check_is_branch(repo: Repo, ref_name: str) -> bool:
         return False
 
 
-def update_repo(repo_path: str, ref_name: str) -> None:
-    logger.info(f'Updating {repo_path} sources')
-    repo = Repo(repo_path)
-    fetch_pull_repo(repo, ref_name)
-
-
-def init_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
-    logger.info(f'Cloning {repo_url} → {repo_path}')
+def sync_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
+    logger.info(f'Sync repo {repo_url} → {repo_path}')
     if not os.path.isdir(os.path.join(repo_path, '.git')):
+        logger.info(f'Cloning {repo_url} → {repo_path}')
         repo = Repo.clone_from(repo_url, repo_path)
     else:
-        logger.info(f'{repo_path} git repo already cloned')
         repo = Repo(repo_path)
+    logger.info(f'Updating {repo_path} sources')
     fetch_pull_repo(repo, ref_name)
 
 
