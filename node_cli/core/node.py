@@ -27,22 +27,19 @@ from enum import Enum
 
 import docker
 
-from node_cli.cli.info import VERSION
 from node_cli.configs import (
-    SKALE_DIR, INSTALL_SCRIPT, UNINSTALL_SCRIPT,
-    BACKUP_INSTALL_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT,
-    TURN_OFF_SCRIPT, TURN_ON_SCRIPT, TM_INIT_TIMEOUT)
+    SKALE_DIR, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
+    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
+    TM_INIT_TIMEOUT
+)
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
-from node_cli.core.operations import update_op
+from node_cli.operations import update_op, init_op
 from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
-from node_cli.core.host import (is_node_inited, prepare_host,
-                                save_env_params, get_flask_secret_key)
-from node_cli.core.print_formatters import print_node_cmd_error, print_node_info
+from node_cli.core.host import (
+    is_node_inited, save_env_params, get_flask_secret_key)
+from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info
 from node_cli.utils.helper import error_exit, get_request, post_request
-from node_cli.core.resources import update_resource_allocation
-from node_cli.utils.meta import update_meta
 from node_cli.utils.helper import run_cmd, extract_env_params
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -64,7 +61,7 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def register_node(config, name, p2p_ip,
+def register_node(name, p2p_ip,
                   public_ip, port, domain_name,
                   gas_limit=None,
                   gas_price=None,
@@ -95,39 +92,20 @@ def register_node(config, name, p2p_ip,
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def init(env_filepath, dry_run=False):
+def init(env_filepath):
     if is_node_inited():
         print(TEXTS['node']['already_inited'])
         return
-    env_params = extract_env_params(env_filepath)
-    if env_params is None:
+    env = get_node_env(env_filepath)
+    if env is None:
         return
-    prepare_host(
-        env_filepath,
-        env_params['DISK_MOUNTPOINT'],
-        env_params['SGX_SERVER_URL']
-    )
-    update_meta(VERSION, env_params['CONTAINER_CONFIGS_STREAM'])
-    dry_run = 'yes' if dry_run else ''
-    env = {
-        'SKALE_DIR': SKALE_DIR,
-        'DATAFILES_FOLDER': DATAFILES_FOLDER,
-        'DRY_RUN': dry_run,
-        **env_params
-    }
-    try:
-        run_cmd(['bash', INSTALL_SCRIPT], env=env)
-    except Exception:
-        error_msg = 'Install script process errored'
-        logger.exception(error_msg)
-        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-    print('Waiting for transaction manager initialization ...')
+    init_op(env_filepath, env)
+    logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
         error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-    logger.info('Generating resource allocation file ...')
-    update_resource_allocation()
-    print('Init procedure finished')
+        return
+    logger.info('Init procedure finished')
 
 
 def restore(backup_path, env_filepath):
@@ -168,7 +146,7 @@ def purge():
     print('Success')
 
 
-def get_inited_node_env(env_filepath, sync_schains):
+def get_node_env(env_filepath, inited_node=False, sync_schains=None):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath)
         if env_params is None:
@@ -176,16 +154,17 @@ def get_inited_node_env(env_filepath, sync_schains):
         save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH)
-    flask_secret_key = get_flask_secret_key()
     env = {
         'SKALE_DIR': SKALE_DIR,
-        'FLASK_SECRET_KEY': flask_secret_key,
         'DATAFILES_FOLDER': DATAFILES_FOLDER,
         **env_params
     }
+    if inited_node:
+        flask_secret_key = get_flask_secret_key()
+        env['FLASK_SECRET_KEY'] = flask_secret_key
     if sync_schains:
         env['BACKUP_RUN'] = 'True'
-    return env
+    return {k: v for k, v in env.items() if v != ''}
 
 
 def update(env_filepath, sync_schains):
@@ -193,9 +172,8 @@ def update(env_filepath, sync_schains):
         print(TEXTS['node']['not_inited'])
         return
     logger.info('Node update started')
-    env = get_inited_node_env(env_filepath, sync_schains)
-    clear_env = {k: v for k, v in env.items() if v != ''}  # todo: tmp fix for update procedure
-    update_op(env_filepath, clear_env)
+    env = get_node_env(env_filepath, inited_node=True, sync_schains=sync_schains)
+    update_op(env_filepath, env)
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
@@ -300,7 +278,7 @@ def run_turn_off_script():
 
 def run_turn_on_script(sync_schains, env_filepath):
     print('Turning on the node...')
-    env = get_inited_node_env(env_filepath, sync_schains)
+    env = get_node_env(env_filepath, inited_node=True, sync_schains=sync_schains)
     try:
         run_cmd(['bash', TURN_ON_SCRIPT], env=env)
     except Exception:
@@ -339,7 +317,7 @@ def is_base_containers_alive():
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
 
 
-def get_node_info(config, format):
+def get_node_info(format):
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME,
         method='info'

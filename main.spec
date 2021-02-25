@@ -12,9 +12,8 @@ a = Analysis(
     binaries=[],
     datas=[
        ("./text.yml", "data"),
-       ("./datafiles/install.sh", "data/datafiles"),
+       ("./datafiles/configure-iptables.sh", "data/datafiles"),
        ("./datafiles/backup-install.sh", "data/datafiles"),
-       ("./datafiles/update.sh", "data/datafiles"),
        ("./datafiles/helper.sh", "data/datafiles"),
        ("./datafiles/turn-off.sh", "data/datafiles"),
        ("./datafiles/turn-on.sh", "data/datafiles")

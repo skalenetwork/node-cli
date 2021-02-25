@@ -112,3 +112,6 @@ venv.bak/
 node_cli/cli/info.py
 
 meta.json
+
+disk_mountpoint.txt
+sgx_server_url.txt

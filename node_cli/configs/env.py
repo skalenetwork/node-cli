@@ -1,5 +1,10 @@
 import os
 from dotenv import load_dotenv
+from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
+
+
+SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
+CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
 
 
 base_params = {

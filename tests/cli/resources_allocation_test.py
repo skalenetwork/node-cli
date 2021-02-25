@@ -50,7 +50,7 @@ def resource_alloc_config():
     os.remove(RESOURCE_ALLOCATION_FILEPATH)
 
 
-def test_show(config, resource_alloc_config):
+def test_show(resource_alloc_config):
     check_node_dir()
     resp_mock = response_mock(requests.codes.created)
     write_json(RESOURCE_ALLOCATION_FILEPATH, TEST_CONFIG)

@@ -21,7 +21,7 @@ import logging
 
 import click
 
-from node_cli.core.print_formatters import print_exit_status
+from node_cli.utils.print_formatters import print_exit_status
 from node_cli.utils.helper import error_exit, get_request, post_request, abort_if_false
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.texts import Texts

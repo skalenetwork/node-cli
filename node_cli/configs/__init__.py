@@ -46,15 +46,17 @@ NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 
-CONFIG_FILEPATH = os.environ.get('CONFIG_FILEPATH') or \
-                              os.path.join(SKALE_DIR, '.skale-cli.yaml')
-
-TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
-
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
 
+SRC_FILEBEAT_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'filebeat.yml')
+FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
+
 DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
+
+
+FLASK_SECRET_KEY_FILENAME = 'flask_db_key.txt'
+FLASK_SECRET_KEY_FILE = os.path.join(NODE_DATA_PATH, FLASK_SECRET_KEY_FILENAME)
 
 
 def _get_env():
@@ -70,20 +72,19 @@ CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 
 if ENV == 'dev':
     PARDIR = os.path.join(CURRENT_FILE_LOCATION, os.pardir)
+    PROJECT_DIR = os.path.join(PARDIR, os.pardir)
 else:
     PARDIR = os.path.join(sys._MEIPASS, 'data')
+    PROJECT_DIR = PARDIR
 
-
-PROJECT_DIR = os.path.join(PARDIR, os.pardir)
 TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
 DATAFILES_FOLDER = os.path.join(PROJECT_DIR, 'datafiles')
 
 THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
 
-INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
+CONFIGURE_IPTABLES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'configure-iptables.sh')
 BACKUP_INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'backup-install.sh')
 UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
-UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
 TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
 TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
@@ -114,3 +115,6 @@ MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
 IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
+
+SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
+DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'

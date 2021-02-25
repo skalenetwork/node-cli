@@ -1,8 +1,8 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of validator-cli
+#   This file is part of node-cli
 #
-#   Copyright (C) 2020 SKALE Labs
+#   Copyright (C) 2021 SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -17,20 +17,19 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import yaml
-from node_cli.configs import TEXT_FILE
 
+class NodeConfig:
+    def __init__(self, config_filepath, env_filepath=None):
+        pass
 
-class Texts():
-    def __init__(self):
-        self._texts = self._load()
+    def load_env(self):
+        pass
 
-    def __getitem__(self, key):
-        return self._texts.get(key)
+    def validate_env(self):
+        pass
 
-    def _load(self):
-        with open(TEXT_FILE, 'r') as stream:
-            try:
-                return yaml.safe_load(stream)
-            except yaml.YAMLError as exc:
-                print(exc)
+    def load_config(self):
+        pass
+
+    def validate_config(self):
+        pass

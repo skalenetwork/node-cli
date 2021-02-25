@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of SKALE.py
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -16,19 +16,3 @@
 #
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-""" SKALE config test """
-
-
-import pytest
-
-from readsettings import ReadSettings
-from node_cli.configs import CONFIG_FILEPATH
-
-
-@pytest.fixture
-def config(monkeypatch):
-    cli_config = ReadSettings(CONFIG_FILEPATH)
-    cli_config['host'] = 'https://test.com'
-    cli_config.save()
-    yield
-    cli_config.clear()

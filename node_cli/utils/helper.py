@@ -39,19 +39,18 @@ import distutils.util
 import click
 
 from jinja2 import Environment
-from readsettings import ReadSettings
 
-from node_cli.core.print_formatters import print_err_response
+from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
 
 from node_cli.configs.env import (
     absent_params as absent_env_params,
     get_params as get_env_params
 )
-from node_cli.configs import CONFIG_FILEPATH, TEXT_FILE, ADMIN_HOST, ADMIN_PORT
+from node_cli.configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT
 from node_cli.configs.cli_logger import (
-    LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
-    LOG_FILEPATH, DEBUG_LOG_FILEPATH
+    LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
+    LOG_FILEPATH, DEBUG_LOG_FILEPATH, LOG_FORMAT_FILE
 )
 from node_cli.configs.routes import get_route
 
@@ -124,10 +123,6 @@ def read_file(path):
 
 def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
-
-
-def session_config():
-    return ReadSettings(CONFIG_FILEPATH)
 
 
 def extract_env_params(env_filepath):
@@ -265,7 +260,7 @@ def get_stream_handler():
 
 
 def get_file_handler(log_filepath, log_level):
-    formatter = Formatter(LOG_FORMAT)
+    formatter = Formatter(LOG_FORMAT_FILE)
     f_handler = py_handlers.RotatingFileHandler(
         log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
         backupCount=LOG_BACKUP_COUNT)

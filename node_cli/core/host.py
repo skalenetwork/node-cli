@@ -35,7 +35,8 @@ from node_cli.configs import (
 )
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH
-from node_cli.core.print_formatters import print_abi_validation_errors
+from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
+from node_cli.utils.print_formatters import print_abi_validation_errors
 from node_cli.configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                                   SGX_SERVER_URL_FILEPATH)
 
@@ -102,7 +103,13 @@ def save_sgx_server_url(sgx_server_url):
 
 
 def save_env_params(env_filepath):
-    copyfile(env_filepath, os.path.join(SKALE_DIR, '.env'))
+    copyfile(env_filepath, SKALE_DIR_ENV_FILEPATH)
+
+
+def link_env_file():
+    if not (os.path.islink(CONFIGS_ENV_FILEPATH) or os.path.isfile(CONFIGS_ENV_FILEPATH)):
+        logger.info(f'Creating symlink {SKALE_DIR_ENV_FILEPATH} → {CONFIGS_ENV_FILEPATH}')
+        os.symlink(SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH)
 
 
 def init_logs_dir():
