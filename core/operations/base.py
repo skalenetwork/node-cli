@@ -41,6 +41,7 @@ def update(env_filepath: str, env: str) -> None:
         env_filepath,
         env['DISK_MOUNTPOINT'],
         env['SGX_SERVER_URL'],
+        env['ENV_TYPE'],
         allocation=True
     )
     update_meta(

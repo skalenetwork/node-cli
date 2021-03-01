@@ -89,7 +89,8 @@ def init(env_filepath, dry_run=False):
     prepare_host(
         env_filepath,
         env_params['DISK_MOUNTPOINT'],
-        env_params['SGX_SERVER_URL']
+        env_params['SGX_SERVER_URL'],
+        env_params['ENV_TYPE']
     )
     update_meta(
         VERSION,
@@ -115,7 +116,7 @@ def init(env_filepath, dry_run=False):
         print_node_cmd_error()
         return
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation()
+    update_resource_allocation(env_params['ENV_TYPE'])
     print('Init procedure finished')
 
 

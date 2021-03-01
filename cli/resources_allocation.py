@@ -50,6 +50,7 @@ def show():
 
 @resources_allocation.command('generate',
                               help="Generate/update resources allocation file")
+@click.argument('env_file')
 @click.option(
     '--yes', is_flag=True, callback=abort_if_false,
     expose_value=False,
@@ -57,5 +58,5 @@ def show():
 )
 @click.option('--force', '-f', is_flag=True,
               help='Rewrite if already exists')
-def generate(force):
-    generate_resource_allocation_config(force=force)
+def generate(env_file, force):
+    generate_resource_allocation_config(env_file=env_file, force=force)
