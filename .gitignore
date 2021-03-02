@@ -112,3 +112,4 @@ venv.bak/
 cli/info.py
 
 meta.json
+resource_allocation.json
