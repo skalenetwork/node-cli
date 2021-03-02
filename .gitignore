@@ -110,3 +110,5 @@ venv.bak/
 
 # info.py file generated automatically during package build
 cli/info.py
+
+meta.json

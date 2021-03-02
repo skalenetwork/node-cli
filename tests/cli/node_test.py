@@ -37,7 +37,7 @@ from tests.helper import (
 )
 
 
-def disk_alloc_mock():
+def disk_alloc_mock(env_type):
     return ResourceAlloc(128)
 
 
@@ -100,7 +100,7 @@ def test_register_node_with_default_port(config):
 def test_init_node(config):
     resp_mock = response_mock(requests.codes.created)
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('core.resources.get_disk_alloc', new=disk_alloc_mock), \
+            mock.patch('core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.host.init_data_dir'), \
             mock.patch('core.node.is_base_containers_alive',
@@ -140,7 +140,7 @@ def test_update_node(config):
             mock.patch('core.node.prepare_host'), \
             mock.patch('core.node.is_base_containers_alive',
                        return_value=True), \
-            mock.patch('core.resources.get_disk_alloc', new=disk_alloc_mock), \
+            mock.patch('core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
             mock.patch('core.host.init_data_dir'):
         result = run_command_mock(
             'core.helper.post_request',
