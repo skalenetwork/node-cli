@@ -131,6 +131,8 @@ def restore(backup_path, env_filepath):
     if not restore_mysql_backup(env_filepath):
         print('WARNING: MySQL data restoring failed. '
               'Check < skale logs cli > for more information')
+    logger.info('Generating resource allocation file ...')
+    update_resource_allocation(env_params['ENV_TYPE'])
     print('Node is restored from backup')
 
 
@@ -232,7 +234,7 @@ def create_backup_archive(backup_filepath):
     )
     try:
         run_cmd(cmd)
-        print(f'Backup archive succesfully created: {backup_filepath}')
+        print(f'Backup archive successfully created: {backup_filepath}')
     except subprocess.CalledProcessError:
         logger.exception('Backup archive creation failed')
         print_node_cmd_error()

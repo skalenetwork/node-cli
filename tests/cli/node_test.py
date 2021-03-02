@@ -369,7 +369,7 @@ def test_backup():
             ]
         )
         assert result.exit_code == 0
-        assert 'Backup archive succesfully created: /tmp/skale-node-backup-' in result.output
+        assert 'Backup archive successfully created: /tmp/skale-node-backup-' in result.output
 
 
 def test_restore():
@@ -379,8 +379,9 @@ def test_restore():
         ['/tmp']
     )
     backup_path = result.output.replace(
-        'Backup archive succesfully created: ', '').replace('\n', '')
-    with mock.patch('subprocess.run', new=subprocess_run_mock):
+        'Backup archive successfully created: ', '').replace('\n', '')
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('core.resources.get_static_disk_alloc', new=disk_alloc_mock):
         result = run_command(
             restore_node,
             [backup_path, './tests/test-env']
