@@ -180,12 +180,12 @@ def get_inited_node_env(env_filepath, sync_schains):
     return env
 
 
-def update(env_filepath, sync_schains):
+def update(env_filepath):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
     logger.info('Node update started')
-    env = get_inited_node_env(env_filepath, sync_schains)
+    env = get_inited_node_env(env_filepath, sync_schains=False)
     # todo: tmp fix for update procedure
     clear_env = {k: v for k, v in env.items() if v != ''}
     update_op(env_filepath, clear_env)

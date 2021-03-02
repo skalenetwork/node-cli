@@ -191,7 +191,6 @@ skale node update [ENV_FILEPATH]
 
 Options:
 
--   `--sync-schains` - run sChains in the backup recovery mode after restart
 -   `--yes` - remove without additional confirmation
 
 Arguments:
@@ -225,7 +224,6 @@ skale node turn-on [ENV_FILEPATH]
 Options:
 
 -   `--maintenance-off` - turn off maintenance mode after turning on the node
--   `--sync-schains` - run sChains in the backup recovery mode after restart
 -   `--yes` - remove without additional confirmation
 
 Arguments:
