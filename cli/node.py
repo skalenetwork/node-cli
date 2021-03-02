@@ -149,17 +149,12 @@ def init_node(env_file, dry_run):
 
 
 @node.command('update', help='Update node from .env file')
-@click.option(
-    '--sync-schains',
-    help='Run all sChains in the snapshot download mode',
-    is_flag=True
-)
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.argument('env_file')
-def update_node(sync_schains, env_file):
-    update(env_file, sync_schains)
+def update_node(env_file):
+    update(env_file)
 
 
 @node.command('signature', help='Get node signature for given validator id')
@@ -221,7 +216,8 @@ def _turn_off(maintenance_on):
 @click.option(
     '--sync-schains',
     help='Run all sChains in the snapshot download mode',
-    is_flag=True
+    is_flag=True,
+    hidden=True
 )
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
