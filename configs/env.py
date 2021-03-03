@@ -57,7 +57,7 @@ def get_params(env_filepath):
 def validate_params(params):  # todo: temporary fix
     if params['ENV_TYPE'] not in ALLOWED_ENV_TYPES:
         raise NotValidEnvParamsError(
-            f'Allowed ENV_TYPE are {ALLOWED_ENV_TYPES}. '
+            f'Allowed ENV_TYPE values are {ALLOWED_ENV_TYPES}. '
             f'Actual: "{params["ENV_TYPE"]}"'
         )
 
