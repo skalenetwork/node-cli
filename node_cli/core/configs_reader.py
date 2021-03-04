@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2021 SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -17,18 +17,18 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-from node_cli.configs import SKALE_DIR
+from node_cli.utils.helper import safe_load_yml
+from node_cli.configs import CONFIGS_FILEPATH
 
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-STREAM_LOG_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-LOG_FORMAT_FILE = '[%(asctime)s %(levelname)s] %(name)s:%(lineno)d - %(threadName)s - %(message)s'
 
-LOG_FILE_SIZE_MB = 300
-LOG_FILE_SIZE_BYTES = LOG_FILE_SIZE_MB * 1000000
+def read_node_configs():
+    return safe_load_yml(CONFIGS_FILEPATH)
 
-LOG_BACKUP_COUNT = 1
-LOG_DIRNAME = '.skale-cli-log'
-LOG_DATA_PATH = os.path.join(SKALE_DIR, LOG_DIRNAME)
-LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'node-cli.log')
-DEBUG_LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'debug-node-cli.log')
+
+def get_config_env_section(env_type: str, section: str):
+    configs = read_node_configs()
+    return configs[env_type][section]
+
+
+def get_config_env_schain_option(env_type: str, key: str):
+    return get_config_env_section(env_type, 'schain')[key]

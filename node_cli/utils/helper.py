@@ -49,7 +49,7 @@ from node_cli.configs.env import (
 )
 from node_cli.configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT
 from node_cli.configs.cli_logger import (
-    LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
+    LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, STREAM_LOG_FORMAT,
     LOG_FILEPATH, DEBUG_LOG_FILEPATH, LOG_FORMAT_FILE
 )
 from node_cli.configs.routes import get_route
@@ -252,7 +252,7 @@ def init_default_logger():
 
 
 def get_stream_handler():
-    formatter = Formatter('%(asctime)s - %(message)s')
+    formatter = Formatter(STREAM_LOG_FORMAT)
     stream_handler = StreamHandler(sys.stderr)
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(logging.INFO)

@@ -5,8 +5,22 @@ from node_cli.configs import META_FILEPATH
 
 DEFAULT_VERSION = '1.0.0'
 DEFAULT_CONFIG_STREAM = '1.1.0'
+DEFAULT_DOCKER_LVMPY_STREAM = '1.0.0'
 
-CliMeta = namedtuple('CliMeta', ('version', 'config_stream'))
+
+class CliMeta(
+        namedtuple(
+            'Node',
+            ['version', 'config_stream', 'docker_lvmpy_stream']
+        )
+):
+    __slots__ = ()
+
+    def __new__(cls, version=DEFAULT_VERSION, config_stream=DEFAULT_CONFIG_STREAM,
+                docker_lvmpy_stream=DEFAULT_DOCKER_LVMPY_STREAM):
+        return super(CliMeta, cls).__new__(
+            cls, version, config_stream, docker_lvmpy_stream
+        )
 
 
 def get_meta_info() -> CliMeta:
@@ -23,7 +37,9 @@ def save_meta(meta: CliMeta) -> None:
 
 
 def compose_default_meta() -> CliMeta:
-    return CliMeta(version=DEFAULT_VERSION, config_stream=DEFAULT_CONFIG_STREAM)
+    return CliMeta(version=DEFAULT_VERSION,
+                   docker_lvmpy_stream=DEFAULT_DOCKER_LVMPY_STREAM,
+                   config_stream=DEFAULT_CONFIG_STREAM)
 
 
 def ensure_meta(meta: CliMeta = None) -> None:
@@ -32,7 +48,8 @@ def ensure_meta(meta: CliMeta = None) -> None:
         save_meta(meta)
 
 
-def update_meta(version: str, config_stream: str) -> None:
+def update_meta(version: str, config_stream: str,
+                docker_lvmpy_stream: str) -> None:
     ensure_meta()
-    meta = CliMeta(version, config_stream)
+    meta = CliMeta(version, config_stream, docker_lvmpy_stream)
     save_meta(meta)

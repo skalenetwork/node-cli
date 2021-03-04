@@ -36,7 +36,7 @@ def create_mysql_backup(env_filepath: str) -> bool:
             f'--quick --lock-tables=false > {MYSQL_BACKUP_CONTAINER_PATH}',
             env_filepath
         )
-        print(f'MySQL backup succesfully created: {MYSQL_BACKUP_PATH}')
+        print(f'MySQL backup successfully created: {MYSQL_BACKUP_PATH}')
         return True
     except subprocess.CalledProcessError as e:
         logger.error(e)
@@ -50,7 +50,7 @@ def restore_mysql_backup(env_filepath: str) -> bool:
             f'mysql < {MYSQL_BACKUP_CONTAINER_PATH}',
             env_filepath
         )
-        print(f'MySQL DB was succesfully restored from backup: {MYSQL_BACKUP_PATH}')
+        print(f'MySQL DB was successfully restored from backup: {MYSQL_BACKUP_PATH}')
         return True
     except subprocess.CalledProcessError:
         logger.exception('MySQL restore command failed')

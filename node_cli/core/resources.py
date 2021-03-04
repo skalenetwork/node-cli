@@ -25,7 +25,10 @@ from time import sleep
 import psutil
 
 from node_cli.utils.schain_types import SchainTypes
-from node_cli.utils.helper import write_json, read_json, run_cmd, format_output, safe_load_yml
+from node_cli.utils.helper import (
+    write_json, read_json, run_cmd, format_output, extract_env_params, safe_load_yml
+)
+from node_cli.core.configs_reader import get_config_env_schain_option
 from node_cli.configs import ALLOCATION_FILEPATH
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
@@ -72,12 +75,12 @@ def get_resource_allocation_info():
         return None
 
 
-def compose_resource_allocation_config():
+def compose_resource_allocation_config(env_type):
     allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
     schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(allocation_data)
     schain_mem_alloc, ima_mem_alloc = get_memory_alloc(allocation_data)
 
-    disk_alloc = get_disk_alloc()
+    disk_alloc = get_static_disk_alloc(env_type)
     schain_volume_alloc = get_schain_volume_alloc(disk_alloc, allocation_data)
     return {
         'schain': {
@@ -109,15 +112,18 @@ def get_storage_limit_alloc(allocation_data, testnet=False):
     return allocation_data[network]['storage_limit']
 
 
-def generate_resource_allocation_config(force=False) -> None:
+def generate_resource_allocation_config(env_file, force=False) -> None:
     if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
         msg = 'Resource allocation file is already exists'
         logger.debug(msg)
         print(msg)
         return
+    env_params = extract_env_params(env_file)
+    if env_params is None:
+        return
     logger.info('Generating resource allocation file ...')
     try:
-        update_resource_allocation()
+        update_resource_allocation(env_params['ENV_TYPE'])
     except Exception as e:
         logger.exception(e)
         print('Can\'t generate resource allocation file, check out CLI logs')
@@ -128,8 +134,8 @@ def generate_resource_allocation_config(force=False) -> None:
         )
 
 
-def update_resource_allocation() -> None:
-    resource_allocation_config = compose_resource_allocation_config()
+def update_resource_allocation(env_type) -> None:
+    resource_allocation_config = compose_resource_allocation_config(env_type)
     write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
 
 
@@ -171,23 +177,40 @@ def get_cpu_alloc(allocation_data):
     )
 
 
+def calculate_free_disk_space(disk_size: int) -> int:
+    return int(disk_size * DISK_FACTOR) // VOLUME_CHUNK * VOLUME_CHUNK
+
+
 def get_disk_alloc():
+    disk_size = get_disk_size()
+    free_space = calculate_free_disk_space(disk_size)
+    return ResourceAlloc(free_space)
+
+
+def get_static_disk_alloc(env_type: str):
+    disk_size = get_disk_size()
+    env_disk_size = get_config_env_schain_option(env_type, 'disk_size_bytes')
+    check_disk_size(disk_size, env_disk_size)
+    free_space = calculate_free_disk_space(env_disk_size)
+    return ResourceAlloc(free_space)
+
+
+def check_disk_size(disk_size: int, env_disk_size: int):
+    if env_disk_size > disk_size:
+        raise Exception(f'Disk size: {disk_size}, required disk size: {env_disk_size}')
+
+
+def get_disk_size():
     disk_path = get_disk_path()
+    disk_size_cmd = construct_disk_size_cmd(disk_path)
     try:
-        disk_size = get_disk_size(disk_path)
+        res = run_cmd(disk_size_cmd, shell=True)
+        stdout, _ = format_output(res)
+        return int(stdout)
     except subprocess.CalledProcessError:
         raise Exception(
             "Couldn't get disk size, check disk mountpoint option."
         )
-    free_space = int(disk_size * DISK_FACTOR) // VOLUME_CHUNK * VOLUME_CHUNK
-    return ResourceAlloc(free_space)
-
-
-def get_disk_size(disk_path):
-    disk_size_cmd = construct_disk_size_cmd(disk_path)
-    res = run_cmd(disk_size_cmd, shell=True)
-    stdout, stderr = format_output(res)
-    return int(stdout)
 
 
 def construct_disk_size_cmd(disk_path):

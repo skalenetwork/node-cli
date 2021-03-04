@@ -7,6 +7,9 @@ SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
 
 
+ALLOWED_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
+
+
 base_params = {
     'IMA_ENDPOINT': '',
     'CONTAINER_CONFIGS_STREAM': '',
@@ -21,7 +24,8 @@ base_params = {
     'DISK_MOUNTPOINT': '',
     'SGX_SERVER_URL': '',
     'CONTAINER_CONFIGS_DIR': '',
-    'DOCKER_LVMPY_STREAM': ''
+    'DOCKER_LVMPY_STREAM': '',
+    'ENV_TYPE': '',
 }
 
 
@@ -51,4 +55,17 @@ def get_params(env_filepath):
         env_param = os.getenv(option_name)
         if env_param is not None:
             params[option_name] = str(env_param)
+    validate_params(params)
     return params
+
+
+def validate_params(params):  # todo: temporary fix
+    if params['ENV_TYPE'] not in ALLOWED_ENV_TYPES:
+        raise NotValidEnvParamsError(
+            f'Allowed ENV_TYPE values are {ALLOWED_ENV_TYPES}. '
+            f'Actual: "{params["ENV_TYPE"]}"'
+        )
+
+
+class NotValidEnvParamsError(Exception):
+    """Raised when something is wrong with provided env params"""
