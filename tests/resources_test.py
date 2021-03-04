@@ -48,7 +48,7 @@ def test_schain_resources_allocation():
 
 
 def test_generate_resource_allocation_config():
-    with mock.patch('core.resources.get_static_disk_alloc', new=disk_alloc_mock):
+    with mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock):
         resource_allocation_config = compose_resource_allocation_config(DEFAULT_ENV_TYPE)
 
         assert resource_allocation_config['schain']['cpu_shares']['test4'] == 22
@@ -91,14 +91,14 @@ def test_update_allocation_config(resource_alloc_config):
 
 
 def test_get_static_disk_alloc_devnet():
-    with mock.patch('core.resources.get_disk_size', return_value=SMALL_DISK_SIZE):
+    with mock.patch('node_cli.core.resources.get_disk_size', return_value=SMALL_DISK_SIZE):
         with pytest.raises(Exception):
             get_static_disk_alloc(DEFAULT_ENV_TYPE)
 
-    with mock.patch('core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
+    with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
         normal_static_disk_alloc = get_static_disk_alloc(DEFAULT_ENV_TYPE)
 
-    with mock.patch('core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
+    with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
         big_static_disk_alloc = get_static_disk_alloc(DEFAULT_ENV_TYPE)
 
     assert normal_static_disk_alloc.dict() == big_static_disk_alloc.dict()
@@ -113,11 +113,11 @@ def test_get_static_disk_alloc_devnet():
 
 def test_get_static_disk_alloc_mainnet():
     env_type = 'mainnet'
-    with mock.patch('core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
+    with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
         with pytest.raises(Exception):
             get_static_disk_alloc(env_type)
 
-    with mock.patch('core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
+    with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
         big_static_disk_alloc = get_static_disk_alloc(env_type)
 
     assert big_static_disk_alloc.dict() == {
