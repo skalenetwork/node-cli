@@ -185,7 +185,6 @@ skale node update [ENV_FILEPATH]
 
 Options:
 
--   `--sync-schains` - run sChains in the backup recovery mode after restart
 -   `--yes` - remove without additional confirmation
 
 Arguments:
@@ -219,7 +218,6 @@ skale node turn-on [ENV_FILEPATH]
 Options:
 
 -   `--maintenance-off` - turn off maintenance mode after turning on the node
--   `--sync-schains` - run sChains in the backup recovery mode after restart
 -   `--yes` - remove without additional confirmation
 
 Arguments:
@@ -465,8 +463,12 @@ skale resources-allocation show
 Generate/update allocation file:
 
 ```shell
-skale resources-allocation generate
+skale resources-allocation generate [ENV_FILE]
 ```
+
+Arguments:
+
+- `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
 
 Options:
 

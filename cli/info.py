@@ -1,0 +1,5 @@
+BUILD_DATETIME = '2021-03-02 11:39:19'
+COMMIT = '012a875cd13faf8ee9e5ce6f9fdc84fc2eb694cf'
+BRANCH = 'test-branch'
+OS = 'Darwin-x86_64'
+VERSION = '1.0.0'

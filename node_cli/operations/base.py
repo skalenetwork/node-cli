@@ -46,9 +46,14 @@ def update(env_filepath: str, env: str) -> None:
         env_filepath,
         env['DISK_MOUNTPOINT'],
         env['SGX_SERVER_URL'],
+        env['ENV_TYPE'],
         allocation=True
     )
-    update_meta(VERSION, env['CONTAINER_CONFIGS_STREAM'])
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM']
+    )
     compose_up(env)
 
 
@@ -58,7 +63,8 @@ def init(env_filepath: str, env: str) -> None:
     prepare_host(
         env_filepath,
         env['DISK_MOUNTPOINT'],
-        env['SGX_SERVER_URL']
+        env['SGX_SERVER_URL'],
+        env_type=env['ENV_TYPE'],
     )
     link_env_file()
     download_contracts(env)
@@ -70,8 +76,12 @@ def init(env_filepath: str, env: str) -> None:
 
     docker_lvmpy_install(env)
 
-    update_meta(VERSION, env['CONTAINER_CONFIGS_STREAM'])
-    update_resource_allocation()
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM']
+    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
     compose_up(env)
 
 

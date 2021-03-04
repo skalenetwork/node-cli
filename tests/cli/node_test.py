@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 init_default_logger()
 
 
-def disk_alloc_mock():
+def disk_alloc_mock(env_type):
     return ResourceAlloc(128)
 
 
@@ -105,7 +105,7 @@ def test_init_node(caplog):  # todo: write new init node test
     resp_mock = response_mock(requests.codes.created)
     with caplog.at_level(logging.INFO):
         with mock.patch('subprocess.run', new=subprocess_run_mock), \
-                mock.patch('node_cli.core.resources.get_disk_alloc', new=disk_alloc_mock), \
+                mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
                 mock.patch('node_cli.core.host.prepare_host'), \
                 mock.patch('node_cli.core.host.init_data_dir'), \
                 mock.patch('node_cli.core.node.init_op'), \
@@ -132,7 +132,7 @@ def test_update_node():
             mock.patch('node_cli.core.host.prepare_host'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \
-            mock.patch('node_cli.core.resources.get_disk_alloc', new=disk_alloc_mock), \
+            mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
             mock.patch('node_cli.core.host.init_data_dir'):
         result = run_command_mock(
             'node_cli.utils.helper.post_request',
@@ -333,7 +333,7 @@ def test_backup():
             ]
         )
         assert result.exit_code == 0
-        assert 'Backup archive succesfully created: /tmp/skale-node-backup-' in result.output
+        assert 'Backup archive successfully created: /tmp/skale-node-backup-' in result.output
 
 
 def test_restore():
@@ -343,8 +343,9 @@ def test_restore():
         ['/tmp']
     )
     backup_path = result.output.replace(
-        'Backup archive succesfully created: ', '').replace('\n', '')
-    with mock.patch('subprocess.run', new=subprocess_run_mock):
+        'Backup archive successfully created: ', '').replace('\n', '')
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('core.resources.get_static_disk_alloc', new=disk_alloc_mock):
         result = run_command(
             restore_node,
             [backup_path, './tests/test-env']

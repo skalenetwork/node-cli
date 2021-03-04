@@ -35,6 +35,7 @@ from node_cli.configs import (
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
 from node_cli.operations import update_op, init_op
+from node_cli.core.resources import update_resource_allocation
 from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from node_cli.core.host import (
     is_node_inited, save_env_params, get_flask_secret_key)
@@ -105,6 +106,8 @@ def init(env_filepath):
     if not is_base_containers_alive():
         error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
         return
+    logger.info('Generating resource allocation file ...')
+    update_resource_allocation(env['ENV_TYPE'])
     logger.info('Init procedure finished')
 
 
@@ -119,6 +122,8 @@ def restore(backup_path, env_filepath):
     if not restore_mysql_backup(env_filepath):
         print('WARNING: MySQL data restoring failed. '
               'Check < skale logs cli > for more information')
+    logger.info('Generating resource allocation file ...')
+    update_resource_allocation(env_params['ENV_TYPE'])
     print('Node is restored from backup')
 
 
@@ -167,12 +172,12 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
     return {k: v for k, v in env.items() if v != ''}
 
 
-def update(env_filepath, sync_schains):
+def update(env_filepath):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
     logger.info('Node update started')
-    env = get_node_env(env_filepath, inited_node=True, sync_schains=sync_schains)
+    env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
     update_op(env_filepath, env)
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
@@ -223,7 +228,7 @@ def create_backup_archive(backup_filepath):
     )
     try:
         run_cmd(cmd)
-        print(f'Backup archive succesfully created: {backup_filepath}')
+        print(f'Backup archive successfully created: {backup_filepath}')
     except subprocess.CalledProcessError:
         logger.exception('Backup archive creation failed')
         print_node_cmd_error()
