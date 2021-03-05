@@ -18,11 +18,14 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """ SKALE config test """
 
+import json
+import os
 
 import pytest
 
 from readsettings import ReadSettings
 from configs import CONFIG_FILEPATH
+from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 
 
 @pytest.fixture
@@ -32,3 +35,11 @@ def config(monkeypatch):
     cli_config.save()
     yield
     cli_config.clear()
+
+
+@pytest.fixture
+def resource_alloc():
+    with open(RESOURCE_ALLOCATION_FILEPATH, 'w') as alloc_file:
+        json.dump({}, alloc_file)
+    yield RESOURCE_ALLOCATION_FILEPATH
+    os.remove(RESOURCE_ALLOCATION_FILEPATH)
