@@ -41,7 +41,7 @@ def disk_alloc_mock(env_type):
     return ResourceAlloc(128)
 
 
-def test_register_node(config):
+def test_register_node(resource_alloc, config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -55,7 +55,7 @@ def test_register_node(config):
     assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_error(config):
+def test_register_node_with_error(resource_alloc, config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'error', 'payload': ['Strange error']},
@@ -69,7 +69,7 @@ def test_register_node_with_error(config):
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
-def test_register_node_with_prompted_ip(config):
+def test_register_node_with_prompted_ip(resource_alloc, config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -83,7 +83,7 @@ def test_register_node_with_prompted_ip(config):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_default_port(config):
+def test_register_node_with_default_port(resource_alloc, config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -95,6 +95,21 @@ def test_register_node_with_default_port(config):
         ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
     assert result.exit_code == 0
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
+
+
+def test_register_with_no_alloc(config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'core.helper.requests.post',
+        resp_mock,
+        register_node,
+        ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
+    assert result.exit_code == 0
+    print(repr(result.output))
+    assert result.output == "Enter node public IP: 0.0.0.0\nNode hasn't been inited before.\nYou should run < skale node init >\n"  # noqa
 
 
 def test_init_node(config):
