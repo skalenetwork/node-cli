@@ -56,6 +56,10 @@ def register_node(config, name, p2p_ip,
                   gas_limit=None,
                   gas_price=None,
                   skip_dry_run=False):
+    if is_node_inited():
+        print(TEXTS['node']['already_inited'])
+        return
+
     # todo: add name, ips and port checks
     json_data = {
         'name': name,
