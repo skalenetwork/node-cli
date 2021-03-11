@@ -28,13 +28,12 @@ from enum import Enum
 import docker
 
 from node_cli.configs import (
-    SKALE_DIR, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
-    TM_INIT_TIMEOUT
+    SKALE_DIR, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
+    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT, TM_INIT_TIMEOUT
 )
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
-from node_cli.operations import update_op, init_op
+from node_cli.operations import update_op, init_op, turn_off_op, turn_on_op, restore_op
 from node_cli.core.resources import update_resource_allocation
 from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from node_cli.core.host import (
@@ -116,8 +115,14 @@ def restore(backup_path, env_filepath):
     if env_params is None:
         return
     save_env_params(env_filepath)
-    if not run_restore_script(backup_path, env_params):
-        return
+    env = {
+        'SKALE_DIR': SKALE_DIR,
+        'DATAFILES_FOLDER': DATAFILES_FOLDER,
+        'BACKUP_RUN': 'True',
+        'HOME_DIR': HOME_DIR,
+        **env_params
+    }
+    restore_op(env, backup_path)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     if not restore_mysql_backup(env_filepath):
         print('WARNING: MySQL data restoring failed. '
@@ -125,30 +130,6 @@ def restore(backup_path, env_filepath):
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env_params['ENV_TYPE'])
     print('Node is restored from backup')
-
-
-def run_restore_script(backup_path, env_params) -> bool:
-    env = {
-        'SKALE_DIR': SKALE_DIR,
-        'DATAFILES_FOLDER': DATAFILES_FOLDER,
-        'BACKUP_RUN': 'True',
-        'BACKUP_PATH': backup_path,
-        'HOME_DIR': HOME_DIR,
-        **env_params
-    }
-    try:
-        run_cmd(['bash', BACKUP_INSTALL_SCRIPT], env=env)
-    except Exception:
-        logger.exception('Restore script process errored')
-        print_node_cmd_error()
-        return False
-    return True
-
-
-def purge():
-    # todo: check that node is installed
-    run_cmd(['sudo', 'bash', UNINSTALL_SCRIPT])
-    print('Success')
 
 
 def get_node_env(env_filepath, inited_node=False, sync_schains=None):
@@ -266,49 +247,27 @@ def set_maintenance_mode_off():
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def run_turn_off_script():
-    print('Turing off the node...')
-    cmd_env = {
-        'SKALE_DIR': SKALE_DIR,
-        'DATAFILES_FOLDER': DATAFILES_FOLDER
-    }
-    try:
-        run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
-    except Exception:
-        error_msg = 'Turning off failed'
-        logger.exception(error_msg)
-        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-    print('Node was successfully turned off')
-
-
-def run_turn_on_script(sync_schains, env_filepath):
-    print('Turning on the node...')
-    env = get_node_env(env_filepath, inited_node=True, sync_schains=sync_schains)
-    try:
-        run_cmd(['bash', TURN_ON_SCRIPT], env=env)
-    except Exception:
-        error_msg = 'Turning on failed'
-        logger.exception(error_msg)
-        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-    print('Waiting for transaction manager initialization ...')
-    time.sleep(TM_INIT_TIMEOUT)
-    print('Node was successfully turned on')
-
-
 def turn_off(maintenance_on):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
     if maintenance_on:
         set_maintenance_mode_on()
-    run_turn_off_script()
+    turn_off_op()
 
 
 def turn_on(maintenance_off, sync_schains, env_file):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
-    run_turn_on_script(sync_schains, env_file)
+    env = get_node_env(env_file, inited_node=True, sync_schains=sync_schains)
+    turn_on_op(env)
+    logger.info('Waiting for transaction manager initialization')
+    time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        print_node_cmd_error()
+        return
+    logger.info('Node turned on')
     if maintenance_off:
         set_maintenance_mode_off()
 

@@ -14,9 +14,7 @@ a = Analysis(
        ("./text.yml", "data"),
        ("./datafiles/configure-iptables.sh", "data/datafiles"),
        ("./datafiles/backup-install.sh", "data/datafiles"),
-       ("./datafiles/helper.sh", "data/datafiles"),
-       ("./datafiles/turn-off.sh", "data/datafiles"),
-       ("./datafiles/turn-on.sh", "data/datafiles")
+       ("./datafiles/helper.sh", "data/datafiles")
     ],
     hiddenimports=[],
     hookspath=[],

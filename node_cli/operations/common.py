@@ -83,6 +83,7 @@ def configure_flask():
 
 
 def configure_iptables():
+    # todo!!!
     try:
         run_cmd(['bash', CONFIGURE_IPTABLES_SCRIPT])
     except Exception:
