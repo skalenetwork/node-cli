@@ -31,8 +31,8 @@ from typing import List
 import docker
 import yaml
 
-from configs import DOCKER_CONFIG_FILEPATH, REQUIREMENTS_PATH
-from tools.helper import run_cmd
+from node_cli.configs import DOCKER_CONFIG_FILEPATH, REQUIREMENTS_PATH
+from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
 

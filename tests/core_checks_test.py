@@ -4,7 +4,7 @@ from pip._internal import main as pipmain
 import mock
 import pytest
 
-from core.checks import DockerChecker, MachineChecker, PackagesChecker
+from node_cli.core.checks import DockerChecker, MachineChecker, PackagesChecker
 
 
 @pytest.fixture
@@ -98,12 +98,12 @@ def test_checks_docker_version(requirements_data):
         return res_mock
 
     res_mock.returncode = 0
-    with mock.patch('core.checks.run_cmd', run_cmd_mock):
+    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
         r = checker.docker()
         r.name == 'docker'
         r.status == 'ok'
     res_mock.returncode = 1
-    with mock.patch('core.checks.run_cmd', run_cmd_mock):
+    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
         r = checker.docker()
         r.name == 'docker'
         r.status == 'error'
@@ -118,12 +118,12 @@ def test_checks_iptables_persistent(requirements_data):
         return res_mock
 
     res_mock.returncode = 0
-    with mock.patch('core.checks.run_cmd', run_cmd_mock):
+    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
         r = checker.iptables_persistent()
         r.name == 'iptables_persistent'
         r.status == 'ok'
     res_mock.returncode = 1
-    with mock.patch('core.checks.run_cmd', run_cmd_mock):
+    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
         r = checker.iptables_persistent()
         r.name == 'iptables_persistent'
         r.status == 'ok'
@@ -138,12 +138,12 @@ def test_checks_lvm2(requirements_data):
         return res_mock
 
     res_mock.returncode = 0
-    with mock.patch('core.checks.run_cmd', run_cmd_mock):
+    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
         r = checker.lvm2()
         r.name == 'lvm2'
         r.status == 'ok'
     res_mock.returncode = 1
-    with mock.patch('core.checks.run_cmd', run_cmd_mock):
+    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
         r = checker.lvm2()
         r.name == 'lvm2'
         r.status == 'ok'
