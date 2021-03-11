@@ -133,9 +133,6 @@ class PackagesChecker(BaseChecker):
     def __init__(self, requirements: dict) -> None:
         self.requirements = requirements
 
-    def _compose_get_binary_cmd(self, binary_name: str) -> list:
-        return ['command', '-v', binary_name]
-
     def docker(self) -> CheckResult:
         name = 'docker package'
         cmd = shutil.which('docker')
@@ -170,31 +167,37 @@ class PackagesChecker(BaseChecker):
             'expected_version': expected_version,
             'actual_version': actual_version
         }
-        info = f'Expected docker-compose version {expected_version}, actual {actual_version}'
+        info = f'Expected docker-compose version {expected_version}, actual {actual_version}'  # noqa
         if actual_version < expected_version:
             return self._error(name=name, info=info)
         else:
             return self._ok(name=name, info=info)
 
     def iptables_persistent(self) -> CheckResult:
-        name = 'iptables-persistent'
-        dpkg_cmd_result = run_cmd(
-            ['dpkg', '-s', 'iptables-persistent'], check_code=False)
-        output = dpkg_cmd_result.stdout.decode('utf-8')
-        if dpkg_cmd_result.returncode == 0:
-            return self._ok(name=name, info=output)
-        else:
-            return self._error(name=name, info=output)
+        return self._check_apt_package('iptables-persistent')
 
     def lvm2(self) -> CheckResult:
-        name = 'lvm2'
+        return self._check_apt_package('lvm2')
+
+    def btrfs_progs(self) -> CheckResult:
+        return self._check_apt_package('btrfs-progs')
+
+    def lsof(self) -> CheckResult:
+        return self._check_apt_package('lsof')
+
+    def psmisc(self) -> CheckResult:
+        return self._check_apt_package('psmisc')
+
+    def _check_apt_package(self, package_name: str,
+                           version: str = None) -> CheckResult:
+        # TODO: check versions
         dpkg_cmd_result = run_cmd(
             ['dpkg', '-s', 'lvm2'], check_code=False)
         output = dpkg_cmd_result.stdout.decode('utf-8')
         if dpkg_cmd_result.returncode == 0:
-            return self._ok(name=name, info=output)
+            return self._ok(name=package_name, info=output)
         else:
-            return self._error(name=name, info=output)
+            return self._error(name=package_name, info=output)
 
 
 class DockerChecker(BaseChecker):
