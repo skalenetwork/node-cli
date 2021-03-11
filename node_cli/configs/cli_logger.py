@@ -22,7 +22,7 @@ from node_cli.configs import SKALE_DIR
 
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 STREAM_LOG_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-LOG_FORMAT_FILE = '[%(asctime)s %(levelname)s] %(name)s:%(lineno)d - %(threadName)s - %(message)s'
+FILE_LOG_FORMAT = '[%(asctime)s %(levelname)s] %(name)s:%(lineno)d - %(threadName)s - %(message)s'  # noqa
 
 LOG_FILE_SIZE_MB = 300
 LOG_FILE_SIZE_BYTES = LOG_FILE_SIZE_MB * 1000000

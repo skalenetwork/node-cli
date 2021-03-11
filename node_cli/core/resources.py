@@ -19,7 +19,6 @@
 
 import os
 import logging
-import subprocess
 from time import sleep
 
 import psutil
@@ -203,14 +202,9 @@ def check_disk_size(disk_size: int, env_disk_size: int):
 def get_disk_size():
     disk_path = get_disk_path()
     disk_size_cmd = construct_disk_size_cmd(disk_path)
-    try:
-        res = run_cmd(disk_size_cmd, shell=True)
-        stdout, _ = format_output(res)
-        return int(stdout)
-    except subprocess.CalledProcessError:
-        raise Exception(
-            "Couldn't get disk size, check disk mountpoint option."
-        )
+    res = run_cmd(disk_size_cmd)
+    stdout, _ = format_output(res)
+    return int(stdout)
 
 
 def construct_disk_size_cmd(disk_path):
@@ -231,5 +225,5 @@ def get_allocation_option_name(schain):
 
 
 def get_disk_path():
-    f = open(DISK_MOUNTPOINT_FILEPATH, "r")
-    return f.read()
+    with open(DISK_MOUNTPOINT_FILEPATH) as f:
+        return f.read().strip()
