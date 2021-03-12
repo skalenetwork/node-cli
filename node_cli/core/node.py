@@ -28,7 +28,7 @@ from enum import Enum
 import docker
 
 from node_cli.configs import (
-    SKALE_DIR, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
+    SKALE_DIR, INIT_ENV_FILEPATH,
     BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT, TM_INIT_TIMEOUT
 )
 from node_cli.configs.cli_logger import LOG_DIRNAME
@@ -117,7 +117,6 @@ def restore(backup_path, env_filepath):
     save_env_params(env_filepath)
     env = {
         'SKALE_DIR': SKALE_DIR,
-        'DATAFILES_FOLDER': DATAFILES_FOLDER,
         'BACKUP_RUN': 'True',
         'HOME_DIR': HOME_DIR,
         **env_params
@@ -142,7 +141,6 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
         env_params = extract_env_params(INIT_ENV_FILEPATH)
     env = {
         'SKALE_DIR': SKALE_DIR,
-        'DATAFILES_FOLDER': DATAFILES_FOLDER,
         **env_params
     }
     if inited_node:

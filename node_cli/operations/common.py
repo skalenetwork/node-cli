@@ -30,12 +30,9 @@ from distutils.dir_util import copy_tree
 from node_cli.configs import (
     CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
     MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, SRC_FILEBEAT_CONFIG_PATH,
-    FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE, FILEBEAT_CONFIG_PATH, FLASK_SECRET_KEY_FILE,
-    CONFIGURE_IPTABLES_SCRIPT
+    FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE, FILEBEAT_CONFIG_PATH, FLASK_SECRET_KEY_FILE
 )
 from node_cli.utils.helper import read_json
-from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.helper import error_exit, run_cmd
 
 
 logger = logging.getLogger(__name__)
@@ -80,14 +77,3 @@ def configure_flask():
         with open(FLASK_SECRET_KEY_FILE, 'w') as f:
             f.write(flask_secret_key)
         logger.info('Flask secret key generated and saved')
-
-
-def configure_iptables():
-    # todo!!!
-    try:
-        run_cmd(['bash', CONFIGURE_IPTABLES_SCRIPT])
-    except Exception:
-        error_msg = 'iptables configure script failed'
-        logger.exception(error_msg)
-        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-    logger.info('iptables configured successfully')

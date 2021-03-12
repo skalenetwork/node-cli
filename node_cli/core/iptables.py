@@ -19,9 +19,7 @@
 
 import logging
 from pathlib import Path
-
-# from node_cli.configs import IPTABLES_DIR
-IPTABLES_DIR = '/etc/iptables/'
+from node_cli.configs import IPTABLES_DIR
 
 
 logger = logging.getLogger(__name__)
@@ -45,19 +43,6 @@ ALLOWED_INCOMING_TCP_PORTS = [
 ALLOWED_INCOMING_UDP_PORTS = [
     '53'  # dns
 ]
-
-LOOPBACK_RULE_D = {
-    'protocol': 'tcp',
-    'target': 'ACCEPT',
-    'in_interface': 'lo'
-}
-
-
-ICMP_RULE_D = {
-    'protocol': 'icmp',
-    'target': 'ACCEPT',
-    'icmp_type': 'destination-unreachable'
-}
 
 
 def configure_iptables():
@@ -90,6 +75,7 @@ def set_base_policies() -> None:
 
 
 def allow_loopback(chain: iptc.Chain) -> None:
+    """Allow local loopback services"""
     logger.debug('Allowing loopback packages...')
     rule = iptc.Rule()
     rule.target = iptc.Target(rule, 'ACCEPT')
@@ -98,6 +84,7 @@ def allow_loopback(chain: iptc.Chain) -> None:
 
 
 def allow_conntrack(chain: iptc.Chain) -> None:
+    """Allow conntrack established connections"""
     logger.debug('Allowing conntrack...')
     rule = iptc.Rule()
     rule.protocol = "tcp"
@@ -171,19 +158,3 @@ def rule_to_dict(rule):
         'out': rule.out_interface,
         'target': rule.target.name,
     }
-
-
-if __name__ == '__main__':
-
-    import sys
-    from logging import Formatter, StreamHandler
-
-    LOG_FORMAT_FILE = '[%(asctime)s %(levelname)s] %(name)s:%(lineno)d - %(threadName)s - %(message)s' # noqa
-
-    formatter = Formatter(LOG_FORMAT_FILE)
-    stream_handler = StreamHandler(sys.stderr)
-    stream_handler.setFormatter(formatter)
-    stream_handler.setLevel(logging.INFO)
-    logging.basicConfig(level=logging.DEBUG, handlers=[stream_handler])
-
-    configure_iptables()

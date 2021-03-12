@@ -25,11 +25,12 @@ from node_cli.core.resources import update_resource_allocation
 
 from node_cli.operations.common import (
     backup_old_contracts, download_contracts, download_filestorage_artifacts, configure_filebeat,
-    configure_flask, configure_iptables
+    configure_flask
 )
 from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
 from node_cli.operations.skale_node import sync_skale_node
 
+from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
 from node_cli.utils.meta import update_meta
 
