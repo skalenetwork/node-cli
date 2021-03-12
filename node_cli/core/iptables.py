@@ -65,6 +65,7 @@ def configure_iptables():
     This is the main function used for the initial setup of the firewall rules on the SKALE Node
     host machine
     """
+    logger.info('Configuring iptables...')
     if not iptc:
         raise Exception('Unable to import iptc package')
     Path(IPTABLES_DIR).mkdir(parents=True, exist_ok=True)
@@ -77,27 +78,40 @@ def configure_iptables():
     allow_base_ports(input_chain)
     drop_all_input(input_chain)
     accept_icmp(input_chain)
+    allow_conntrack(input_chain)
 
 
 def set_base_policies() -> None:
     """Drop all incoming, allow all outcoming, drop all forwarding"""
-    logger.info('Setting base policies...')
+    logger.debug('Setting base policies...')
     iptc.easy.set_policy(iptc.Table.FILTER, 'INPUT', 'ACCEPT')
     iptc.easy.set_policy(iptc.Table.FILTER, 'OUTPUT', 'ACCEPT')
     iptc.easy.set_policy(iptc.Table.FILTER, 'FORWARD', 'DROP')
 
 
 def allow_loopback(chain: iptc.Chain) -> None:
-    logger.info('Allowing loopback packages...')
+    logger.debug('Allowing loopback packages...')
     rule = iptc.Rule()
     rule.target = iptc.Target(rule, 'ACCEPT')
     rule.in_interface = 'lo'
     chain.insert_rule(rule)
 
 
+def allow_conntrack(chain: iptc.Chain) -> None:
+    logger.debug('Allowing conntrack...')
+    rule = iptc.Rule()
+    rule.protocol = "tcp"
+    rule.target = iptc.Target(rule, "ACCEPT")
+    match = iptc.Match(rule, "conntrack")
+    chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    match.ctstate = "RELATED,ESTABLISHED"
+    rule.add_match(match)
+    chain.insert_rule(rule)
+
+
 def drop_all_input(chain: iptc.Chain) -> None:
     """Drop all input connections by default (append in the end)"""
-    logger.info('Droping all input connections except specified...')
+    logger.debug('Droping all input connections except specified...')
     r = iptc.Rule()
     t = iptc.Target(r, 'DROP')
     r.target = t
@@ -105,7 +119,7 @@ def drop_all_input(chain: iptc.Chain) -> None:
 
 
 def allow_base_ports(chain: iptc.Chain) -> None:
-    logger.info('Allowing base ports...')
+    logger.debug('Allowing base ports...')
     for port in ALLOWED_INCOMING_TCP_PORTS:
         accept_incoming(chain, port, 'tcp')
     for port in ALLOWED_INCOMING_UDP_PORTS:
