@@ -19,6 +19,7 @@
 
 import os
 import stat
+import tarfile
 import logging
 import shutil
 import secrets
@@ -29,7 +30,7 @@ from distutils.dir_util import copy_tree
 
 from node_cli.configs import (
     CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
-    MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, SRC_FILEBEAT_CONFIG_PATH,
+    MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, SRC_FILEBEAT_CONFIG_PATH, HOME_DIR,
     FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE, FILEBEAT_CONFIG_PATH, FLASK_SECRET_KEY_FILE
 )
 from node_cli.utils.helper import read_json
@@ -77,3 +78,10 @@ def configure_flask():
         with open(FLASK_SECRET_KEY_FILE, 'w') as f:
             f.write(flask_secret_key)
         logger.info('Flask secret key generated and saved')
+
+
+def unpack_backup_archive(backup_path: str) -> None:
+    logger.info('Unpacking backup archive...')
+    tar = tarfile.open(backup_path)
+    tar.extractall(path=HOME_DIR)
+    tar.close()
