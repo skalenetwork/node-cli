@@ -28,7 +28,8 @@ try:
     import iptc
 except (FileNotFoundError, AttributeError):
     logger.warning('Unable to import iptc')
-    iptc = None
+    from collections import namedtuple  # hotfix for tests
+    iptc = namedtuple('iptc', ['Chain', 'Rule'])
 
 
 ALLOWED_INCOMING_TCP_PORTS = [
