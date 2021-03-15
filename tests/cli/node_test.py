@@ -425,9 +425,6 @@ def test_turn_on_maintenance_off():
             ])
 
     assert result.exit_code == 0
-
-    print('result.output result.output')
-    print(result.output)
     assert result.output == 'Setting maintenance mode off...\nNode is successfully removed from maintenance mode\n'  # noqa, tmp fix
 
 
