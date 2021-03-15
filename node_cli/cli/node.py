@@ -31,6 +31,7 @@ from node_cli.core.node import (
 )
 from node_cli.core.host import run_preinstall_checks
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
+from node_cli.configs.env import ALLOWED_ENV_TYPES
 from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
@@ -243,8 +244,7 @@ def _set_domain_name(domain):
 @node.command(help='Check if node meet network requirements')
 @click.option(
     '--network', '-n',
-    type=str,
-    default='mainnet',
+    type=click.Choice(ALLOWED_ENV_TYPES),
     help='Network to check'
 )
 def check_requirements(network):

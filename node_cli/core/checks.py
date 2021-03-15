@@ -30,6 +30,8 @@ from typing import List
 
 import docker
 import yaml
+from debian import debian_support
+from packaging.version import parse as version_parse
 
 from node_cli.configs import DOCKER_CONFIG_FILEPATH, NET_PARAMS_FILEPATH
 from node_cli.utils.helper import run_cmd
@@ -44,7 +46,6 @@ ListChecks = List[CheckResult]
 def get_net_params(network: str = 'mainnet'):
     with open(NET_PARAMS_FILEPATH) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
-        print('IVD', ydata)
         return ydata[network]
 
 
@@ -141,11 +142,16 @@ class PackagesChecker(BaseChecker):
             return self._error(name=name, info=info)
 
         v_cmd_result = run_cmd(['docker', '-v'], check_code=False)
-        output = v_cmd_result.stdout.decode('utf-8')
+        actual_version = v_cmd_result.stdout.decode('utf-8').strip()
+        expected_version = self.requirements['packages']['docker']
+        info = {
+            'expected_version': expected_version,
+            'actual_version': actual_version
+        }
         if v_cmd_result.returncode == 0:
-            return self._ok(name=name, info=output)
+            return self._ok(name=name, info=info)
         else:
-            return self._error(name=name, info=output)
+            return self._error(name=name, info=info)
 
     def docker_compose(self) -> CheckResult:
         name = 'docker-compose'
@@ -155,7 +161,7 @@ class PackagesChecker(BaseChecker):
             return self._error(name=name, info=info)
 
         v_cmd_result = run_cmd(['docker-compose', '-v'], check_code=False)
-        output = v_cmd_result.stdout.decode('utf-8')
+        output = v_cmd_result.stdout.decode('utf-8').rstrip()
         if v_cmd_result.returncode != 0:
             output = v_cmd_result.stdout.decode('utf-8')
             info = f'Checking docker-compose version failed with: {output}'
@@ -163,12 +169,13 @@ class PackagesChecker(BaseChecker):
 
         actual_version = output.split(',')[0].split()[-1].strip()
         expected_version = self.requirements['packages']['docker-compose']
+
         info = {
             'expected_version': expected_version,
             'actual_version': actual_version
         }
         info = f'Expected docker-compose version {expected_version}, actual {actual_version}'  # noqa
-        if actual_version < expected_version:
+        if version_parse(actual_version) < version_parse(expected_version):
             return self._error(name=name, info=info)
         else:
             return self._ok(name=name, info=info)
@@ -188,16 +195,35 @@ class PackagesChecker(BaseChecker):
     def psmisc(self) -> CheckResult:
         return self._check_apt_package('psmisc')
 
+    def _version_from_dpkg_output(self, output: str) -> str:
+        v_line = next(filter(
+            lambda s: s.startswith('Version'),
+            output.split('\n')
+        ))
+        return v_line.split()[1]
+
     def _check_apt_package(self, package_name: str,
                            version: str = None) -> CheckResult:
         # TODO: check versions
         dpkg_cmd_result = run_cmd(
-            ['dpkg', '-s', 'lvm2'], check_code=False)
-        output = dpkg_cmd_result.stdout.decode('utf-8')
-        if dpkg_cmd_result.returncode == 0:
-            return self._ok(name=package_name, info=output)
-        else:
+            ['dpkg', '-s', package_name], check_code=False)
+        output = dpkg_cmd_result.stdout.decode('utf-8').strip()
+        if dpkg_cmd_result.returncode != 0:
             return self._error(name=package_name, info=output)
+
+        actual_version = self._version_from_dpkg_output(output)
+        expected_version = self.requirements['packages'][package_name]
+        info = {
+            'expected_version': expected_version,
+            'actual_version': actual_version
+        }
+        compare_result = debian_support.version_compare(
+            actual_version, actual_version
+        )
+        if compare_result == -1:
+            return self._error(name=package_name, info=info)
+        else:
+            return self._ok(name=package_name, info=info)
 
 
 class DockerChecker(BaseChecker):
