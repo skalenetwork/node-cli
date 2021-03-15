@@ -32,7 +32,7 @@ from node_cli.core.node import (
 from node_cli.core.host import run_preinstall_checks
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
-from node_cli.utils.print_formatters import print_requirements_check_result
+from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 
 TEXTS = safe_load_texts()
@@ -248,9 +248,9 @@ def _set_domain_name(domain):
     help='Network to check'
 )
 def check_requirements(network):
-    result = run_preinstall_checks(network)
-    if not result:
+    failed_checks = run_preinstall_checks(network)
+    if not failed_checks:
         print('Requirements checking succesfully finished!')
     else:
         print('Node is not fully meet the requirements!')
-        print_requirements_check_result(result)
+        print_failed_requirements_checks(failed_checks)

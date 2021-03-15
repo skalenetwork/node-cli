@@ -25,7 +25,7 @@ from urllib.parse import urlparse
 
 from node_cli.core.resources import update_resource_allocation
 from node_cli.core.checks import (
-    get_requirements, DockerChecker, ListChecks,
+    get_net_params, DockerChecker, ListChecks,
     MachineChecker, PackagesChecker
 )
 
@@ -80,8 +80,8 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
         update_resource_allocation(env_type)
 
 
-def run_preinstall_checks(network: str = 'mainnet') -> ListChecks:
-    requirements = get_requirements(network)
+def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:
+    requirements = get_net_params(env_type)
     checkers = [
         MachineChecker(requirements),
         PackagesChecker(requirements),

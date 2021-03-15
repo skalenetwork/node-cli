@@ -17,18 +17,25 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import yaml
 from node_cli.utils.helper import safe_load_yml
-from node_cli.configs import CONFIGS_FILEPATH
+from node_cli.configs import NET_PARAMS_FILEPATH
 
 
-def read_node_configs():
-    return safe_load_yml(CONFIGS_FILEPATH)
+def read_node_params():
+    return safe_load_yml(NET_PARAMS_FILEPATH)
 
 
 def get_config_env_section(env_type: str, section: str):
-    configs = read_node_configs()
+    configs = read_node_params()
     return configs[env_type][section]
 
 
 def get_config_env_schain_option(env_type: str, key: str):
     return get_config_env_section(env_type, 'schain')[key]
+
+
+def get_net_params(network: str = 'mainnet'):
+    with open(NET_PARAMS_FILEPATH) as requirements_file:
+        ydata = yaml.load(requirements_file, Loader=yaml.Loader)
+        return ydata[network]

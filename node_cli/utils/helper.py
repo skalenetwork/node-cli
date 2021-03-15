@@ -94,9 +94,8 @@ def run_cmd(cmd, env={}, shell=False, secure=False, check_code=True):
     return res
 
 
-def format_output(res):
-    return res.stdout.decode('UTF-8').rstrip(), \
-            res.stderr.decode('UTF-8').rstrip()
+def format_output(res: subprocess.CompletedProcess) -> str:
+    return res.stdout.decode('UTF-8').rstrip()
 
 
 def download_file(url, filepath):
@@ -248,9 +247,8 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
-    stream_handler = get_stream_handler()
-    logging.basicConfig(level=logging.DEBUG, handlers=[
-                        f_handler, debug_f_handler, stream_handler])
+    logging.basicConfig(
+        level=logging.DEBUG, handlers=[f_handler, debug_f_handler])
 
 
 def get_stream_handler():

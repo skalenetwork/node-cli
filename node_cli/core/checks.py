@@ -31,7 +31,7 @@ from typing import List
 import docker
 import yaml
 
-from node_cli.configs import DOCKER_CONFIG_FILEPATH, REQUIREMENTS_PATH
+from node_cli.configs import DOCKER_CONFIG_FILEPATH, NET_PARAMS_FILEPATH
 from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
@@ -41,10 +41,9 @@ CheckResult = namedtuple('CheckResult', ['name', 'status', 'info'])
 ListChecks = List[CheckResult]
 
 
-def get_requirements(network: str = 'mainnet'):
-    with open(REQUIREMENTS_PATH) as requirements_file:
+def get_net_params(network: str = 'mainnet'):
+    with open(NET_PARAMS_FILEPATH) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
-        logger.info(ydata)
         return ydata[network]
 
 
@@ -72,7 +71,7 @@ class MachineChecker(BaseChecker):
     def cpu_total(self) -> CheckResult:
         name = 'cpu_total'
         actual = psutil.cpu_count(logical=True)
-        expected = self.requirements['hardware']['cpu_total']
+        expected = self.requirements['server']['cpu_total']
         info = f'Expected {expected} logical cores, actual {actual} cores'
         if actual < expected:
             return self._error(name=name, info=info)
@@ -82,7 +81,7 @@ class MachineChecker(BaseChecker):
     def cpu_physical(self) -> CheckResult:
         name = 'cpu_physical'
         actual = psutil.cpu_count(logical=False)
-        expected = self.requirements['hardware']['cpu_physical']
+        expected = self.requirements['server']['cpu_physical']
         info = f'Expected {expected} physical cores, actual {actual} cores'
         if actual < expected:
             return self._error(name=name, info=info)
@@ -93,7 +92,7 @@ class MachineChecker(BaseChecker):
         name = 'memory'
         actual = psutil.virtual_memory().total,
         actual = actual[0]
-        expected = self.requirements['hardware']['memory']
+        expected = self.requirements['server']['memory']
         actual_gb = round(actual / 1024 ** 3, 2)
         expected_gb = round(expected / 1024 ** 3, 2)
         info = f'Expected RAM {expected_gb} GB, actual {actual_gb} GB'
@@ -105,7 +104,7 @@ class MachineChecker(BaseChecker):
     def swap(self) -> CheckResult:
         name = 'swap'
         actual = psutil.swap_memory().total
-        expected = self.requirements['hardware']['swap']
+        expected = self.requirements['server']['swap']
         actual_gb = round(actual / 1024 ** 3, 2)
         expected_gb = round(expected / 1024 ** 3, 2)
         info = f'Expected swap memory {expected_gb} GB, actual {actual_gb} GB'

@@ -290,9 +290,9 @@ def print_err_response(error_payload):
     print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
 
 
-def print_requirements_check_result(result: list) -> None:
+def print_failed_requirements_checks(failed_checks: list) -> None:
     headers = ['Check', 'Info']
-    rows = [[r.name, r.info] for r in result]
+    rows = [[r.name, r.info] for r in failed_checks]
     table = texttable.Texttable()
     table.add_rows([headers, *rows])
     drawing = table.draw()

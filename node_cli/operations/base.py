@@ -18,7 +18,9 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from node_cli.cli.info import VERSION
-from node_cli.core.host import prepare_host, link_env_file
+from node_cli.core.host import (
+    prepare_host, link_env_file, run_preinstall_checks
+)
 from node_cli.core.resources import update_resource_allocation
 
 from node_cli.operations.common import (
@@ -30,6 +32,7 @@ from node_cli.operations.skale_node import sync_skale_node
 
 from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
 from node_cli.utils.meta import update_meta
+from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 
 def update(env_filepath: str, env: str) -> None:
@@ -57,9 +60,12 @@ def update(env_filepath: str, env: str) -> None:
     compose_up(env)
 
 
-def init(env_filepath: str, env: str) -> None:
+def init(env_filepath: str, env: str) -> bool:
     sync_skale_node(env)
-    # todo: add hardware checks
+    failed_checks = run_preinstall_checks(env['ENV_TYPE'])
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+        return False
     prepare_host(
         env_filepath,
         env['DISK_MOUNTPOINT'],
@@ -83,6 +89,7 @@ def init(env_filepath: str, env: str) -> None:
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     compose_up(env)
+    return True
 
 
 def backup_init(env):

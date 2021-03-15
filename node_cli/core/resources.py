@@ -25,9 +25,9 @@ import psutil
 
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import (
-    write_json, read_json, run_cmd, format_output, extract_env_params, safe_load_yml
+    write_json, read_json, run_cmd, extract_env_params, safe_load_yml
 )
-from node_cli.core.configs_reader import get_config_env_schain_option
+from node_cli.core.configs_reader import get_net_params
 from node_cli.configs import ALLOCATION_FILEPATH
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
@@ -188,7 +188,7 @@ def get_disk_alloc():
 
 def get_static_disk_alloc(env_type: str):
     disk_size = get_disk_size()
-    env_disk_size = get_config_env_schain_option(env_type, 'disk_size_bytes')
+    env_disk_size = get_net_params(env_type)['server']['disk']
     check_disk_size(disk_size, env_disk_size)
     free_space = calculate_free_disk_space(env_disk_size)
     return ResourceAlloc(free_space)
@@ -199,16 +199,15 @@ def check_disk_size(disk_size: int, env_disk_size: int):
         raise Exception(f'Disk size: {disk_size}, required disk size: {env_disk_size}')
 
 
-def get_disk_size():
+def get_disk_size() -> int:
     disk_path = get_disk_path()
     disk_size_cmd = construct_disk_size_cmd(disk_path)
-    res = run_cmd(disk_size_cmd)
-    stdout, _ = format_output(res)
-    return int(stdout)
+    output = run_cmd(disk_size_cmd).stdout.decode('utf-8')
+    return int(output)
 
 
-def construct_disk_size_cmd(disk_path):
-    return f'sudo blockdev --getsize64 {disk_path}'
+def construct_disk_size_cmd(disk_path: str) -> list:
+    return ['blockdev', '--getsize64', disk_path]
 
 
 def check_is_partition(disk_path):

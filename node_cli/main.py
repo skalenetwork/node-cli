@@ -110,4 +110,5 @@ if __name__ == '__main__':
         print(f'Command execution failed with {err}. Recheck your inputs')
         traceback.print_exc()
         logger.exception(f'Command failed with {err}')
-    logger.debug(f'execution time: {time.time() - start_time} seconds')
+    finally:
+        logger.debug(f'execution time: {time.time() - start_time} seconds')

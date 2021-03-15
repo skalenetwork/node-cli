@@ -10,7 +10,7 @@ from node_cli.core.checks import DockerChecker, MachineChecker, PackagesChecker
 @pytest.fixture
 def requirements_data():
     return {
-        'hardware': {
+        'server': {
             'cpu_total': 1,
             'cpu_physical': 1,
             'memory': 100,
@@ -30,7 +30,7 @@ def test_checks_cpu_total(requirements_data):
     r = checker.cpu_total()
     assert r.name == 'cpu_total'
     assert r.status == 'ok'
-    requirements_data['hardware']['cpu_total'] = 10000  # too big
+    requirements_data['server']['cpu_total'] = 10000  # too big
     checker = MachineChecker(requirements_data)
     r = checker.cpu_total()
     assert r.name == 'cpu_total'
@@ -43,7 +43,7 @@ def test_checks_cpu_physical(requirements_data):
     r = checker.cpu_physical()
     assert r.name == 'cpu_physical'
     assert r.status == 'ok'
-    requirements_data['hardware']['cpu_physical'] = 10000  # too big
+    requirements_data['server']['cpu_physical'] = 10000  # too big
     checker = MachineChecker(requirements_data)
     r = checker.cpu_physical()
     assert r.name == 'cpu_physical'
@@ -56,7 +56,7 @@ def test_checks_memory(requirements_data):
     assert r.name == 'memory'
     assert r.status == 'ok'
     # too big
-    requirements_data['hardware']['memory'] = 10000000000000
+    requirements_data['server']['memory'] = 10000000000000
     checker = MachineChecker(requirements_data)
     r = checker.memory()
     assert r.name == 'memory'
@@ -75,7 +75,7 @@ def test_checks_swap(requirements_data):
     assert r.name == 'swap'
     assert r.status == 'ok'
     # too big
-    requirements_data['hardware']['swap'] = 10000000000000
+    requirements_data['server']['swap'] = 10000000000000
     checker = MachineChecker(requirements_data)
     r = checker.swap()
     assert r.name == 'swap'

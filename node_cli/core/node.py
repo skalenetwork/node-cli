@@ -100,7 +100,13 @@ def init(env_filepath):
     env = get_node_env(env_filepath)
     if env is None:
         return
-    init_op(env_filepath, env)
+    init_result = init_op(env_filepath, env)
+    if not init_result:
+        error_exit(
+            'Init operation failed',
+            exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR
+        )
+        return
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
