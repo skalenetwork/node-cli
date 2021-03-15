@@ -196,9 +196,10 @@ class PackagesChecker(BaseChecker):
         return self._check_apt_package('psmisc')
 
     def _version_from_dpkg_output(self, output: str) -> str:
+        info_lines = map(lambda s: s.strip(), output.split('\n'))
         v_line = next(filter(
             lambda s: s.startswith('Version'),
-            output.split('\n')
+            info_lines
         ))
         return v_line.split()[1]
 
@@ -218,7 +219,7 @@ class PackagesChecker(BaseChecker):
             'actual_version': actual_version
         }
         compare_result = debian_support.version_compare(
-            actual_version, actual_version
+            actual_version, expected_version
         )
         if compare_result == -1:
             return self._error(name=package_name, info=info)

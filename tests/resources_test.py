@@ -3,9 +3,8 @@ import os
 
 import mock
 import pytest
-import yaml
 
-from node_cli.configs import ALLOCATION_FILEPATH, NET_PARAMS_FILEPATH
+from node_cli.configs import ALLOCATION_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.resources import (
     compose_resource_allocation_config,
@@ -24,91 +23,6 @@ DEFAULT_ENV_TYPE = 'devnet'
 SMALL_DISK_SIZE = 10
 NORMAL_DISK_SIZE = 80000000000
 BIG_DISK_SIZE = NORMAL_DISK_SIZE * 100
-
-
-TEST_NET_PARAMS = """
-mainnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 2000000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-testnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-testnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-qanet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-devnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 80000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-"""
-
-
-@pytest.fixture
-def net_params_file():
-    with open(NET_PARAMS_FILEPATH, 'w') as f:
-        yaml.dump(
-            yaml.load(TEST_NET_PARAMS, Loader=yaml.Loader),
-            stream=f,
-            Dumper=yaml.Dumper
-        )
-    yield NET_PARAMS_FILEPATH
-    os.remove(NET_PARAMS_FILEPATH)
 
 
 def disk_alloc_mock(env_type):

@@ -18,9 +18,10 @@ def requirements_data():
         },
         'packages': {
             'docker-compose': '1.27.4',
-            'docker': None,
-            'iptables_persistant': None,
-            'lvm2': None
+            'docker': '0.0.0',
+            'iptables_persistant': '0.0.0',
+            'lvm2': '0.0.0',
+            'test-package': '2.2.2'
         }
     }
 
@@ -109,44 +110,38 @@ def test_checks_docker_version(requirements_data):
         r.status == 'error'
 
 
-def test_checks_iptables_persistent(requirements_data):
+def test_checks_apt_package(requirements_data):
     checker = PackagesChecker(requirements_data)
     res_mock = mock.Mock()
-    res_mock.stdout = b'Test output'
+    res_mock.stdout = b"""Package: test-package
+        Version: 5.2.1-2
+    """
 
     def run_cmd_mock(*args, **kwargs):
         return res_mock
 
     res_mock.returncode = 0
+    apt_package_name = 'test-package'
     with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
-        r = checker.iptables_persistent()
-        r.name == 'iptables_persistent'
-        r.status == 'ok'
-    res_mock.returncode = 1
+        r = checker._check_apt_package(apt_package_name)
+        assert r.name == apt_package_name
+        assert r.status == 'ok'
+
+    res_mock.stdout = b"""Package: test-package
+        Version: 1.1.1
+    """
     with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
-        r = checker.iptables_persistent()
-        r.name == 'iptables_persistent'
-        r.status == 'ok'
+        r = checker._check_apt_package(apt_package_name)
+        assert r.name == 'test-package'
+        assert r.status == 'error'
 
-
-def test_checks_lvm2(requirements_data):
-    checker = PackagesChecker(requirements_data)
-    res_mock = mock.Mock()
-    res_mock.stdout = b'Test output'
-
-    def run_cmd_mock(*args, **kwargs):
-        return res_mock
-
-    res_mock.returncode = 0
+    res_mock.stdout = b"""Package: test-package
+        Version: 2.2.2
+    """
     with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
-        r = checker.lvm2()
-        r.name == 'lvm2'
-        r.status == 'ok'
-    res_mock.returncode = 1
-    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
-        r = checker.lvm2()
-        r.name == 'lvm2'
-        r.status == 'ok'
+        r = checker._check_apt_package(apt_package_name)
+        assert r.name == 'test-package'
+        assert r.status == 'ok'
 
 
 @pytest.fixture

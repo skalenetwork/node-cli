@@ -16,3 +16,96 @@
 #
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import os
+
+
+import pytest
+import yaml
+
+from node_cli.configs import NET_PARAMS_FILEPATH
+
+
+TEST_NET_PARAMS = """
+mainnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 2000000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+testnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+testnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+qanet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+devnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 80000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+"""
+
+
+@pytest.fixture
+def net_params_file():
+    with open(NET_PARAMS_FILEPATH, 'w') as f:
+        yaml.dump(
+            yaml.load(TEST_NET_PARAMS, Loader=yaml.Loader),
+            stream=f,
+            Dumper=yaml.Dumper
+        )
+    yield NET_PARAMS_FILEPATH
+    os.remove(NET_PARAMS_FILEPATH)
