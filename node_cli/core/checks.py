@@ -44,6 +44,7 @@ ListChecks = List[CheckResult]
 def get_net_params(network: str = 'mainnet'):
     with open(NET_PARAMS_FILEPATH) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
+        print('IVD', ydata)
         return ydata[network]
 
 

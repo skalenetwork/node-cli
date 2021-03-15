@@ -3,8 +3,9 @@ import os
 
 import mock
 import pytest
+import yaml
 
-from node_cli.configs import ALLOCATION_FILEPATH
+from node_cli.configs import ALLOCATION_FILEPATH, NET_PARAMS_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.resources import (
     compose_resource_allocation_config,
@@ -23,6 +24,91 @@ DEFAULT_ENV_TYPE = 'devnet'
 SMALL_DISK_SIZE = 10
 NORMAL_DISK_SIZE = 80000000000
 BIG_DISK_SIZE = NORMAL_DISK_SIZE * 100
+
+
+TEST_NET_PARAMS = """
+mainnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 2000000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+testnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+testnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+qanet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+devnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 80000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+"""
+
+
+@pytest.fixture
+def net_params_file():
+    with open(NET_PARAMS_FILEPATH, 'w') as f:
+        yaml.dump(
+            yaml.load(TEST_NET_PARAMS, Loader=yaml.Loader),
+            stream=f,
+            Dumper=yaml.Dumper
+        )
+    yield NET_PARAMS_FILEPATH
+    os.remove(NET_PARAMS_FILEPATH)
 
 
 def disk_alloc_mock(env_type):
@@ -90,7 +176,7 @@ def test_update_allocation_config(resource_alloc_config):
             assert json.load(jfile) != INITIAL_CONFIG
 
 
-def test_get_static_disk_alloc_devnet():
+def test_get_static_disk_alloc_devnet(net_params_file):
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=SMALL_DISK_SIZE):
         with pytest.raises(Exception):
             get_static_disk_alloc(DEFAULT_ENV_TYPE)
@@ -111,7 +197,7 @@ def test_get_static_disk_alloc_devnet():
     }
 
 
-def test_get_static_disk_alloc_mainnet():
+def test_get_static_disk_alloc_mainnet(net_params_file):
     env_type = 'mainnet'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
         with pytest.raises(Exception):

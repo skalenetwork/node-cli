@@ -56,7 +56,7 @@ class ResourceAlloc:
         return self.values
 
 
-class SChainVolumeAlloc():
+class SChainVolumeAlloc:
     def __init__(self, disk_alloc: ResourceAlloc, proportions: dict):
         self.volume_alloc = {}
         disk_alloc_dict = disk_alloc.dict()
@@ -191,6 +191,7 @@ def get_static_disk_alloc(env_type: str):
     env_disk_size = get_net_params(env_type)['server']['disk']
     check_disk_size(disk_size, env_disk_size)
     free_space = calculate_free_disk_space(env_disk_size)
+    print(free_space, env_disk_size)
     return ResourceAlloc(free_space)
 
 
