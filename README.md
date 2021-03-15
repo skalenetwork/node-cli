@@ -497,8 +497,15 @@ Exit codes conventions for SKALE CLI tools
 
 - `0` - Everything is OK
 - `1` - General error exit code
-- `3` - Bad API response
-- `4` - Script execution error
+- `3` - Bad API response**
+- `4` - Script execution error**
+- `5` - Transaction error*
+- `6` - Revert error*
+- `7` - Bad user error**
+- `8` - Node state error**
+
+`*` - `validator-cli` only  
+`**` - `node-cli` only
 
 ## Development
 

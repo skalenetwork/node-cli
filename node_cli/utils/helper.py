@@ -27,7 +27,6 @@ import requests
 import subprocess
 import urllib.request
 from subprocess import PIPE
-from functools import wraps
 
 import logging
 from logging import Formatter, StreamHandler
@@ -42,7 +41,6 @@ from jinja2 import Environment
 
 from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
-
 from node_cli.configs.env import (
     absent_params as absent_env_params,
     get_params as get_env_params
@@ -156,15 +154,6 @@ def safe_get_config(config, key):
     except KeyError as e:
         logger.error(e)
         return None
-
-
-def no_node(f):
-    @wraps(f)
-    def inner(*args, **kwargs):
-        # todo: check that node is not installed yet!
-        return f(*args, **kwargs)
-
-    return inner
 
 
 def safe_load_texts():

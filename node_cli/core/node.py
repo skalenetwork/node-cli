@@ -37,13 +37,14 @@ from node_cli.configs.cli_logger import LOG_DIRNAME
 from node_cli.operations import update_op, init_op
 from node_cli.core.resources import update_resource_allocation
 from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
-from node_cli.core.host import (
-    is_node_inited, save_env_params, get_flask_secret_key)
+from node_cli.core.host import save_env_params, get_flask_secret_key
 from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info
 from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.helper import run_cmd, extract_env_params
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.validations import check_not_inited, check_inited, check_user
+
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
@@ -62,6 +63,24 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
+@check_not_inited
+def init(env_filepath):
+    env = get_node_env(env_filepath)
+    if env is None:
+        return
+    init_op(env_filepath, env)
+    logger.info('Waiting for transaction manager initialization')
+    time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
+        return
+    logger.info('Generating resource allocation file ...')
+    update_resource_allocation(env['ENV_TYPE'])
+    logger.info('Init procedure finished')
+
+
+@check_inited
+@check_user
 def register_node(name, p2p_ip,
                   public_ip, port, domain_name,
                   gas_limit=None,
@@ -93,24 +112,7 @@ def register_node(name, p2p_ip,
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def init(env_filepath):
-    if is_node_inited():
-        print(TEXTS['node']['already_inited'])
-        return
-    env = get_node_env(env_filepath)
-    if env is None:
-        return
-    init_op(env_filepath, env)
-    logger.info('Waiting for transaction manager initialization')
-    time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive():
-        error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-        return
-    logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
-    logger.info('Init procedure finished')
-
-
+@check_not_inited
 def restore(backup_path, env_filepath):
     env_params = extract_env_params(env_filepath)
     if env_params is None:
@@ -172,10 +174,9 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
     return {k: v for k, v in env.items() if v != ''}
 
 
+@check_inited
+@check_user
 def update(env_filepath):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
     logger.info('Node update started')
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
     update_op(env_filepath, env)
@@ -295,19 +296,17 @@ def run_turn_on_script(sync_schains, env_filepath):
     print('Node was successfully turned on')
 
 
+@check_inited
+@check_user
 def turn_off(maintenance_on):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
     if maintenance_on:
         set_maintenance_mode_on()
     run_turn_off_script()
 
 
+@check_inited
+@check_user
 def turn_on(maintenance_off, sync_schains, env_file):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
     run_turn_on_script(sync_schains, env_file)
     if maintenance_off:
         set_maintenance_mode_off()
@@ -344,10 +343,8 @@ def get_node_status(status):
     return TEXTS['node']['status'][node_status]
 
 
+@check_inited
 def set_domain_name(domain_name):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
     print(f'Setting new domain name: {domain_name}')
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME,

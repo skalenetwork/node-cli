@@ -119,3 +119,7 @@ META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
 
 SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'
+
+GLOBAL_SKALE_DIR = '/etc/skale'
+GLOBAL_SKALE_CONF_FILENAME = 'conf.json'
+GLOBAL_SKALE_CONF_FILEPATH = os.path.join(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILENAME)
