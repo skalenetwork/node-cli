@@ -82,6 +82,5 @@ def configure_flask():
 
 def unpack_backup_archive(backup_path: str) -> None:
     logger.info('Unpacking backup archive...')
-    tar = tarfile.open(backup_path)
-    tar.extractall(path=HOME_DIR)
-    tar.close()
+    with tarfile.open(backup_path) as tar:
+        tar.extractall(path=HOME_DIR)

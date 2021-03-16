@@ -53,7 +53,7 @@ def configure_iptables():
     """
     logger.info('Configuring iptables...')
     if not iptc:
-        raise Exception('Unable to import iptc package')
+        raise ImportError('Unable to import iptc package')
     Path(IPTABLES_DIR).mkdir(parents=True, exist_ok=True)
 
     tb = iptc.Table(iptc.Table.FILTER)

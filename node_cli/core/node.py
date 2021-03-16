@@ -111,23 +111,19 @@ def init(env_filepath):
 
 
 def restore(backup_path, env_filepath):
-    env_params = extract_env_params(env_filepath)
-    if env_params is None:
+    env = get_node_env(env_filepath)
+    if env is None:
         return
     save_env_params(env_filepath)
-    env = {
-        'SKALE_DIR': SKALE_DIR,
-        'BACKUP_RUN': 'True',
-        'HOME_DIR': HOME_DIR,
-        **env_params
-    }
+    env['SKALE_DIR'] = SKALE_DIR
+    env['BACKUP_RUN'] = 'True'  # should be str
     restore_op(env, backup_path)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     if not restore_mysql_backup(env_filepath):
         print('WARNING: MySQL data restoring failed. '
               'Check < skale logs cli > for more information')
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env_params['ENV_TYPE'])
+    update_resource_allocation(env['ENV_TYPE'])
     print('Node is restored from backup')
 
 
