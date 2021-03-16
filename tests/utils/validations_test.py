@@ -8,29 +8,23 @@ from node_cli.utils.validations import (
 )
 from node_cli.utils.helper import write_json
 
-
-TEST_GLOBAL_SKALE_DIR = os.path.join(os.environ.get('HOME_DIR'), 'etc', 'skale')
-TEST_G_CONF_FP = os.path.join(TEST_GLOBAL_SKALE_DIR, 'conf.json')
+from tests.conftest import TEST_G_CONF_FP
 
 
-def test_read_g_config():
+def test_read_g_config(mocked_g_config):
     write_json(TEST_G_CONF_FP, {'test': 1})
-    with mock.patch('node_cli.utils.validations.GLOBAL_SKALE_CONF_FILEPATH', new=TEST_G_CONF_FP), \
-            mock.patch('node_cli.utils.validations.GLOBAL_SKALE_DIR', new=TEST_GLOBAL_SKALE_DIR):
-        g_config = read_g_config()
+    g_config = read_g_config()
     assert g_config['test'] == 1
 
 
-def test_generate_g_config_file():
+def test_generate_g_config_file(mocked_g_config):
     try:
         os.remove(TEST_G_CONF_FP)
     except OSError:
         pass
 
     assert not os.path.exists(TEST_G_CONF_FP)
-    with mock.patch('node_cli.utils.validations.GLOBAL_SKALE_CONF_FILEPATH', new=TEST_G_CONF_FP), \
-            mock.patch('node_cli.utils.validations.GLOBAL_SKALE_DIR', new=TEST_GLOBAL_SKALE_DIR):
-        generate_g_config_file()
+    generate_g_config_file()
     assert os.path.exists(TEST_G_CONF_FP)
 
     g_config = read_g_config()
@@ -48,29 +42,27 @@ def test_safe_get_user():
         os.environ['SUDO_USER'] = sudo_user
 
 
-def test_is_user_valid():
-    with mock.patch('node_cli.utils.validations.GLOBAL_SKALE_CONF_FILEPATH', new=TEST_G_CONF_FP):
-        generate_g_config_file()
-        assert is_user_valid()
+def test_is_user_valid(mocked_g_config):
+    generate_g_config_file()
+    assert is_user_valid()
 
-        write_json(TEST_G_CONF_FP, {'user': 'skaletest'})
-        assert not is_user_valid()
+    write_json(TEST_G_CONF_FP, {'user': 'skaletest'})
+    assert not is_user_valid()
 
-        sudo_user = os.environ.get('SUDO_USER')
-        os.environ['SUDO_USER'] = 'root'
-        assert is_user_valid()
-        assert not is_user_valid(allow_root=False)
+    sudo_user = os.environ.get('SUDO_USER')
+    os.environ['SUDO_USER'] = 'root'
+    assert is_user_valid()
+    assert not is_user_valid(allow_root=False)
 
-        if sudo_user:
-            os.environ['SUDO_USER'] = sudo_user
-        else:
-            del os.environ['SUDO_USER']
+    if sudo_user:
+        os.environ['SUDO_USER'] = sudo_user
+    else:
+        del os.environ['SUDO_USER']
 
 
-def test_get_g_conf_user():
+def test_get_g_conf_user(mocked_g_config):
     write_json(TEST_G_CONF_FP, {'user': 'test_get_g_conf_user'})
-    with mock.patch('node_cli.utils.validations.GLOBAL_SKALE_CONF_FILEPATH', new=TEST_G_CONF_FP):
-        assert get_g_conf_user() == 'test_get_g_conf_user'
+    assert get_g_conf_user() == 'test_get_g_conf_user'
 
 
 def test_check_not_inited():
@@ -95,13 +87,12 @@ def test_check_inited():
             requires_inited_node()
 
 
-def test_check_user():
+def test_check_user(mocked_g_config):
     @check_user
     def this_checks_user():
         pass
-    with mock.patch('node_cli.utils.validations.GLOBAL_SKALE_CONF_FILEPATH', new=TEST_G_CONF_FP):
-        generate_g_config_file()
+    generate_g_config_file()
+    this_checks_user()
+    write_json(TEST_G_CONF_FP, {'user': 'skaletest'})
+    with pytest.raises(SystemExit):
         this_checks_user()
-        write_json(TEST_G_CONF_FP, {'user': 'skaletest'})
-        with pytest.raises(SystemExit):
-            this_checks_user()

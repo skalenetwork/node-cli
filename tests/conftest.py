@@ -16,3 +16,17 @@
 #
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import os
+import mock
+import pytest
+
+TEST_GLOBAL_SKALE_DIR = os.path.join(os.environ.get('HOME_DIR'), 'etc', 'skale')
+TEST_G_CONF_FP = os.path.join(TEST_GLOBAL_SKALE_DIR, 'conf.json')
+
+
+@pytest.fixture()
+def mocked_g_config():
+    with mock.patch('node_cli.utils.validations.GLOBAL_SKALE_CONF_FILEPATH', new=TEST_G_CONF_FP), \
+            mock.patch('node_cli.utils.validations.GLOBAL_SKALE_DIR', new=TEST_GLOBAL_SKALE_DIR):
+        yield

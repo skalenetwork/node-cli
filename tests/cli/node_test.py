@@ -45,7 +45,7 @@ def disk_alloc_mock(env_type):
     return ResourceAlloc(128)
 
 
-def test_register_node():
+def test_register_node(mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -60,7 +60,7 @@ def test_register_node():
     assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_error():
+def test_register_node_with_error(mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'error', 'payload': ['Strange error']},
@@ -75,7 +75,7 @@ def test_register_node_with_error():
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
-def test_register_node_with_prompted_ip():
+def test_register_node_with_prompted_ip(mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -90,7 +90,7 @@ def test_register_node_with_prompted_ip():
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_default_port():
+def test_register_node_with_default_port(mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -125,7 +125,7 @@ def test_init_node(caplog):  # todo: write new init node test
             assert result.exit_code == 0
 
 
-def test_update_node():
+def test_update_node(mocked_g_config):
     os.makedirs(NODE_DATA_PATH, exist_ok=True)
     params = ['./tests/test-env', '--yes']
     resp_mock = response_mock(requests.codes.created)
@@ -340,7 +340,7 @@ def test_backup():
         assert 'Backup archive successfully created: /tmp/skale-node-backup-' in result.output
 
 
-def test_restore():
+def test_restore(mocked_g_config):
     Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(
         backup_node,
@@ -373,7 +373,7 @@ def test_maintenance_on():
     assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'  # noqa
 
 
-def test_maintenance_off():
+def test_maintenance_off(mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -386,7 +386,7 @@ def test_maintenance_off():
     assert result.output == 'Setting maintenance mode off...\nNode is successfully removed from maintenance mode\n'  # noqa
 
 
-def test_turn_off_maintenance_on():
+def test_turn_off_maintenance_on(mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
