@@ -50,11 +50,12 @@ def test_register_node():
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
     )
-    result = run_command_mock(
-        'node_cli.utils.helper.requests.post',
-        resp_mock,
-        register_node,
-        ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080', '-d', 'skale.test'])
+    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+        result = run_command_mock(
+            'node_cli.utils.helper.requests.post',
+            resp_mock,
+            register_node,
+            ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080', '-d', 'skale.test'])
     assert result.exit_code == 0
     assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
@@ -64,11 +65,12 @@ def test_register_node_with_error():
         requests.codes.ok,
         {'status': 'error', 'payload': ['Strange error']},
     )
-    result = run_command_mock(
-        'node_cli.utils.helper.requests.post',
-        resp_mock,
-        register_node,
-        ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80', '-d', 'skale.test'])
+    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+        result = run_command_mock(
+            'node_cli.utils.helper.requests.post',
+            resp_mock,
+            register_node,
+            ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80', '-d', 'skale.test'])
     assert result.exit_code == 3
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
@@ -78,11 +80,12 @@ def test_register_node_with_prompted_ip():
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
     )
-    result = run_command_mock(
-        'node_cli.utils.helper.requests.post',
-        resp_mock,
-        register_node,
-        ['--name', 'test-node', '--port', '8080', '-d', 'skale.test'], input='0.0.0.0\n')
+    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+        result = run_command_mock(
+            'node_cli.utils.helper.requests.post',
+            resp_mock,
+            register_node,
+            ['--name', 'test-node', '--port', '8080', '-d', 'skale.test'], input='0.0.0.0\n')
     assert result.exit_code == 0
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
@@ -92,11 +95,12 @@ def test_register_node_with_default_port():
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
     )
-    result = run_command_mock(
-        'node_cli.utils.helper.requests.post',
-        resp_mock,
-        register_node,
-        ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
+    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+        result = run_command_mock(
+            'node_cli.utils.helper.requests.post',
+            resp_mock,
+            register_node,
+            ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
     assert result.exit_code == 0
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
@@ -111,7 +115,7 @@ def test_init_node(caplog):  # todo: write new init node test
                 mock.patch('node_cli.core.node.init_op'), \
                 mock.patch('node_cli.core.node.is_base_containers_alive',
                            return_value=True), \
-                mock.patch('node_cli.core.node.is_node_inited', return_value=False):
+                mock.patch('node_cli.utils.validations.is_node_inited', return_value=False):
             result = run_command_mock(
                 'node_cli.utils.helper.post_request',
                 resp_mock,
@@ -154,15 +158,15 @@ def test_update_node_without_init():
             mock.patch('node_cli.core.host.init_data_dir'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \
-            mock.patch('node_cli.core.node.is_node_inited', return_value=False):
+            mock.patch('node_cli.utils.validations.is_node_inited', return_value=False):
         result = run_command_mock(
             'node_cli.utils.helper.post_request',
             resp_mock,
             update_node,
             params,
             input='/dev/sdp')
-        assert result.exit_code == 0
-        assert result.output == "Node hasn't been inited before.\nYou should run < skale node init >\n"  # noqa
+        assert result.exit_code == 8
+        assert result.output == "Command failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n"  # noqa
 
 
 def test_node_info_node_info():
@@ -387,7 +391,7 @@ def test_turn_off_maintenance_on():
         {'status': 'ok', 'payload': None}
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('node_cli.core.node.is_node_inited', return_value=True):
+            mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -407,7 +411,7 @@ def test_turn_on_maintenance_off():
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.node.get_flask_secret_key'), \
-            mock.patch('node_cli.core.node.is_node_inited', return_value=True):
+            mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -429,7 +433,7 @@ def test_set_domain_name():
         {'status': 'ok', 'payload': None}
     )
 
-    with mock.patch('node_cli.core.node.is_node_inited', return_value=True):
+    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
