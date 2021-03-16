@@ -349,7 +349,8 @@ def test_restore():
     backup_path = result.output.replace(
         'Backup archive successfully created: ', '').replace('\n', '')
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock):
+            mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
+            mock.patch('node_cli.utils.validations.is_node_inited', return_value=False):
         result = run_command(
             restore_node,
             [backup_path, './tests/test-env']
