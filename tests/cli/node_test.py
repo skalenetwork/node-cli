@@ -405,7 +405,7 @@ def test_turn_off_maintenance_on(mocked_g_config):
     assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\nTuring off the node...\nNode was successfully turned off\n'  # noqa
 
 
-def test_turn_on_maintenance_off():
+def test_turn_on_maintenance_off(mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
