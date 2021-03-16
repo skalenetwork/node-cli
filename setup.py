@@ -60,7 +60,8 @@ setup(
         "terminaltables==3.1.0",
         "requests==2.23.0",
         "GitPython==3.1.12",
-        "PyYAML==5.4.1"
+        "PyYAML==5.4.1",
+        "python-iptables==1.0.0"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
