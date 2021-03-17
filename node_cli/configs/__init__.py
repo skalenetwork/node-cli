@@ -55,6 +55,7 @@ FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 
 DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
 
+IPTABLES_DIR = '/etc/iptables/'
 
 FLASK_SECRET_KEY_FILENAME = 'flask_db_key.txt'
 FLASK_SECRET_KEY_FILE = os.path.join(NODE_DATA_PATH, FLASK_SECRET_KEY_FILENAME)
@@ -82,15 +83,6 @@ else:
     PROJECT_DIR = PARDIR
 
 TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
-DATAFILES_FOLDER = os.path.join(PROJECT_DIR, 'datafiles')
-
-THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
-
-CONFIGURE_IPTABLES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'configure-iptables.sh')
-BACKUP_INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'backup-install.sh')
-UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
-TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
-TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
 ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH,

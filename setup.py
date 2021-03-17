@@ -62,7 +62,8 @@ setup(
         "GitPython==3.1.12",
         "PyYAML==5.4.1",
         "packaging==20.9",
-        "python-debian==0.1.39"
+        "python-debian==0.1.39",
+        "python-iptables==1.0.0"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
