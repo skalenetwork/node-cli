@@ -103,13 +103,16 @@ def init(env_filepath):
     if not init_result:
         error_exit(
             'Init operation failed',
-            exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
         return
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
-        error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
+        error_exit(
+            'Containers are not running',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
         return
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
