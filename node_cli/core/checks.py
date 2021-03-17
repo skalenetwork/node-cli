@@ -78,7 +78,7 @@ class MachineChecker(BaseChecker):
         self.requirements = requirements
 
     def cpu_total(self) -> CheckResult:
-        name = 'cpu_total'
+        name = 'cpu-total'
         actual = psutil.cpu_count(logical=True)
         expected = self.requirements['server']['cpu_total']
         info = f'Expected {expected} logical cores, actual {actual} cores'
@@ -88,7 +88,7 @@ class MachineChecker(BaseChecker):
             return self._ok(name=name, info=info)
 
     def cpu_physical(self) -> CheckResult:
-        name = 'cpu_physical'
+        name = 'cpu-physical'
         actual = psutil.cpu_count(logical=False)
         expected = self.requirements['server']['cpu_physical']
         info = f'Expected {expected} physical cores, actual {actual} cores'
@@ -137,25 +137,6 @@ class MachineChecker(BaseChecker):
 class PackagesChecker(BaseChecker):
     def __init__(self, requirements: dict) -> None:
         self.requirements = requirements
-
-    def docker(self) -> CheckResult:
-        name = 'docker package'
-        cmd = shutil.which('docker')
-        if cmd is None:
-            info = 'No such command: "docker"'
-            return self._error(name=name, info=info)
-
-        v_cmd_result = run_cmd(['docker', '-v'], check_code=False)
-        actual_version = v_cmd_result.stdout.decode('utf-8').strip()
-        expected_version = self.requirements['packages']['docker']
-        info = {
-            'expected_version': expected_version,
-            'actual_version': actual_version
-        }
-        if v_cmd_result.returncode == 0:
-            return self._ok(name=name, info=info)
-        else:
-            return self._error(name=name, info=info)
 
     def docker_compose(self) -> CheckResult:
         name = 'docker-compose'
@@ -232,8 +213,44 @@ class PackagesChecker(BaseChecker):
 
 
 class DockerChecker(BaseChecker):
-    def __init__(self) -> None:
+    def __init__(self, requirements: dict) -> None:
         self.docker_client = docker.from_env()
+        self.requirements = requirements
+
+    def _check_docker_command(self) -> str:
+        return shutil.which('docker')
+
+    def docker_engine(self) -> CheckResult:
+        name = 'docker-engine'
+        if self._check_docker_command() is None:
+            return self._error(name=name, info='No such command: "docker"')
+
+        actual_version = self.docker_client.version()['Version']
+        expected_version = self.requirements['docker']['docker-engine']
+        info = {
+            'expected_version': expected_version,
+            'actual_version': actual_version
+        }
+        if version_parse(actual_version) < version_parse(expected_version):
+            return self._error(name=name, info=info)
+        else:
+            return self._ok(name=name, info=info)
+
+    def docker_api(self) -> CheckResult:
+        name = 'docker-api'
+        if self._check_docker_command() is None:
+            return self._error(name=name, info='No such command: "docker"')
+
+        actual_version = self.docker_client.version()['ApiVersion']
+        expected_version = self.requirements['docker']['docker-api']
+        info = {
+            'expected_version': expected_version,
+            'actual_version': actual_version
+        }
+        if version_parse(actual_version) < version_parse(expected_version):
+            return self._error(name=name, info=info)
+        else:
+            return self._ok(name=name, info=info)
 
     def _get_docker_config(self) -> dict:
         if not os.path.isfile(DOCKER_CONFIG_FILEPATH):
@@ -270,7 +287,7 @@ class DockerChecker(BaseChecker):
             return self._error(name=name, info=info)
 
     def docker_service_status(self) -> CheckResult:
-        name = 'docker service status'
+        name = 'docker-service-status'
         try:
             self.docker_client.containers.list()
         except Exception as err:

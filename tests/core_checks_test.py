@@ -18,10 +18,13 @@ def requirements_data():
         },
         'packages': {
             'docker-compose': '1.27.4',
-            'docker': '0.0.0',
             'iptables_persistant': '0.0.0',
             'lvm2': '0.0.0',
             'test-package': '2.2.2'
+        },
+        'docker': {
+            'docker-engine': '0.0.0',
+            'docker-api': '0.0.0',
         }
     }
 
@@ -29,12 +32,12 @@ def requirements_data():
 def test_checks_cpu_total(requirements_data):
     checker = MachineChecker(requirements_data)
     r = checker.cpu_total()
-    assert r.name == 'cpu_total'
+    assert r.name == 'cpu-total'
     assert r.status == 'ok'
     requirements_data['server']['cpu_total'] = 10000  # too big
     checker = MachineChecker(requirements_data)
     r = checker.cpu_total()
-    assert r.name == 'cpu_total'
+    assert r.name == 'cpu-total'
     assert r.status == 'error'
     assert checker.cpu_total().status == 'error'
 
@@ -42,12 +45,12 @@ def test_checks_cpu_total(requirements_data):
 def test_checks_cpu_physical(requirements_data):
     checker = MachineChecker(requirements_data)
     r = checker.cpu_physical()
-    assert r.name == 'cpu_physical'
+    assert r.name == 'cpu-physical'
     assert r.status == 'ok'
     requirements_data['server']['cpu_physical'] = 10000  # too big
     checker = MachineChecker(requirements_data)
     r = checker.cpu_physical()
-    assert r.name == 'cpu_physical'
+    assert r.name == 'cpu-physical'
     assert r.status == 'error'
 
 
@@ -90,24 +93,44 @@ def test_checks_network(requirements_data):
     assert r.name == 'network'
 
 
-def test_checks_docker_version(requirements_data):
-    checker = PackagesChecker(requirements_data)
-    res_mock = mock.Mock()
-    res_mock.stdout = b'Test output'
+def test_checks_docker_engine(requirements_data):
+    checker = DockerChecker(requirements_data)
 
-    def run_cmd_mock(*args, **kwargs):
-        return res_mock
+    r = checker.docker_engine()
+    assert r.name == 'docker-engine'
+    assert r.status == 'ok'
 
-    res_mock.returncode = 0
-    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
-        r = checker.docker()
-        r.name == 'docker'
-        r.status == 'ok'
-    res_mock.returncode = 1
-    with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
-        r = checker.docker()
-        r.name == 'docker'
-        r.status == 'error'
+    with mock.patch('shutil.which', return_value=None):
+        r = checker.docker_engine()
+        assert r.name == 'docker-engine'
+        assert r.status == 'error'
+        assert r.info == 'No such command: "docker"'
+
+    requirements_data['docker']['docker-engine'] = '111.111.111'
+    r = checker.docker_engine()
+    assert r.name == 'docker-engine'
+    assert r.status == 'error'
+    assert r.info['expected_version'] == '111.111.111'
+
+
+def test_checks_docker_api(requirements_data):
+    checker = DockerChecker(requirements_data)
+
+    r = checker.docker_api()
+    assert r.name == 'docker-api'
+    assert r.status == 'ok'
+
+    with mock.patch('shutil.which', return_value=None):
+        r = checker.docker_api()
+        assert r.name == 'docker-api'
+        assert r.status == 'error'
+        assert r.info == 'No such command: "docker"'
+
+    requirements_data['docker']['docker-api'] = '111.111.111'
+    r = checker.docker_api()
+    assert r.name == 'docker-api'
+    assert r.status == 'error'
+    assert r.info['expected_version'] == '111.111.111'
 
 
 def test_checks_apt_package(requirements_data):
@@ -187,7 +210,7 @@ def test_checks_docker_compose_invalid_version(
 
 
 def test_checks_docker_service_status():
-    checker = DockerChecker()
+    checker = DockerChecker(requirements_data)
     checker.docker_client = mock.Mock()
     r = checker.docker_service_status()
     r.name == 'docker-compose'
@@ -195,7 +218,7 @@ def test_checks_docker_service_status():
 
 
 def test_checks_docker_config():
-    checker = DockerChecker()
+    checker = DockerChecker(requirements_data)
     valid_config = {
         'live-restore': True
     }

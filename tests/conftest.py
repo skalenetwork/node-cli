@@ -92,10 +92,13 @@ devnet:
     disk: 80000000000
 
   packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
     iptables-persistant: 1.1.3
     lvm2: 1.1.1
+    docker-compose: 1.1.3
+
+  docker:
+    docker-api: 1.1.3
+    docker-engine: 1.1.3
 """
 
 
