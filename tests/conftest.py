@@ -23,7 +23,7 @@ import os
 import pytest
 import yaml
 
-from node_cli.configs import NET_PARAMS_FILEPATH
+from node_cli.configs import ENVIRONMENT_PARAMS_FILEPATH
 
 
 TEST_NET_PARAMS = """
@@ -101,11 +101,11 @@ devnet:
 
 @pytest.fixture
 def net_params_file():
-    with open(NET_PARAMS_FILEPATH, 'w') as f:
+    with open(ENVIRONMENT_PARAMS_FILEPATH, 'w') as f:
         yaml.dump(
             yaml.load(TEST_NET_PARAMS, Loader=yaml.Loader),
             stream=f,
             Dumper=yaml.Dumper
         )
-    yield NET_PARAMS_FILEPATH
-    os.remove(NET_PARAMS_FILEPATH)
+    yield ENVIRONMENT_PARAMS_FILEPATH
+    os.remove(ENVIRONMENT_PARAMS_FILEPATH)

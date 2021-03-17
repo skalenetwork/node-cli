@@ -33,7 +33,9 @@ import yaml
 from debian import debian_support
 from packaging.version import parse as version_parse
 
-from node_cli.configs import DOCKER_CONFIG_FILEPATH, NET_PARAMS_FILEPATH
+from node_cli.configs import (
+    DOCKER_CONFIG_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH
+)
 from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
@@ -44,7 +46,7 @@ ListChecks = List[CheckResult]
 
 
 def get_net_params(network: str = 'mainnet'):
-    with open(NET_PARAMS_FILEPATH) as requirements_file:
+    with open(ENVIRONMENT_PARAMS_FILEPATH) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata[network]
 

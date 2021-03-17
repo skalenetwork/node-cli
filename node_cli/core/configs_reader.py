@@ -19,11 +19,11 @@
 
 import yaml
 from node_cli.utils.helper import safe_load_yml
-from node_cli.configs import NET_PARAMS_FILEPATH
+from node_cli.configs import ENVIRONMENT_PARAMS_FILEPATH
 
 
 def read_node_params():
-    return safe_load_yml(NET_PARAMS_FILEPATH)
+    return safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
 
 
 def get_config_env_section(env_type: str, section: str):
@@ -36,6 +36,6 @@ def get_config_env_schain_option(env_type: str, key: str):
 
 
 def get_net_params(network: str = 'mainnet'):
-    with open(NET_PARAMS_FILEPATH) as requirements_file:
+    with open(ENVIRONMENT_PARAMS_FILEPATH) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata[network]

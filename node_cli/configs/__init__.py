@@ -35,7 +35,7 @@ SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
 FILESTORAGE_INFO_FILE = os.path.join(CONTAINER_CONFIG_PATH, 'filestorage_info.json')
 FILESTORAGE_ARTIFACTS_FILE = os.path.join(NODE_DATA_PATH, 'filestorage_artifacts.json')
-NET_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'net_params.yaml')
+ENVIRONMENT_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'environment_params.yaml')
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
