@@ -45,6 +45,11 @@ CheckResult = namedtuple('CheckResult', ['name', 'status', 'info'])
 ListChecks = List[CheckResult]
 
 
+NETWORK_CHECK_TIMEOUT = 4
+CLOUDFLARE_DNS_HOST = '1.1.1.1'
+CLOUDFLARE_DNS_HOST_PORT = 443
+
+
 def get_net_params(network: str = 'mainnet'):
     with open(ENVIRONMENT_PARAMS_FILEPATH) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
@@ -119,13 +124,10 @@ class MachineChecker(BaseChecker):
 
     def network(self) -> CheckResult:
         name = 'network'
-        timeout = 4
-        cloudflare_dns_host = '1.1.1.1'
-        cloudflare_dns_host_port = 443
         try:
-            socket.setdefaulttimeout(timeout)
+            socket.setdefaulttimeout(NETWORK_CHECK_TIMEOUT)
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
-                (cloudflare_dns_host, cloudflare_dns_host_port))
+                (CLOUDFLARE_DNS_HOST, CLOUDFLARE_DNS_HOST_PORT))
             return self._ok(name=name)
         except socket.error as err:
             info = f'Network checking returned error: {err}'
