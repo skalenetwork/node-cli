@@ -37,8 +37,12 @@ from node_cli.operations import update_op, init_op, turn_off_op, turn_on_op, res
 from node_cli.core.resources import update_resource_allocation
 from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from node_cli.core.host import (
-    is_node_inited, save_env_params, get_flask_secret_key)
-from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info
+    is_node_inited, save_env_params,
+    get_flask_secret_key, run_preinstall_checks
+)
+from node_cli.utils.print_formatters import (
+    print_failed_requirements_checks, print_node_cmd_error, print_node_info
+)
 from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.helper import run_cmd, extract_env_params
 from node_cli.utils.texts import Texts
@@ -324,3 +328,16 @@ def set_domain_name(domain_name):
         print(msg)
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def run_checks(network: str) -> None:
+    if not is_node_inited():
+        print(TEXTS['node']['not_inited'])
+        return
+
+    failed_checks = run_preinstall_checks(network)
+    if not failed_checks:
+        print('Requirements checking succesfully finished!')
+    else:
+        print('Node is not fully meet the requirements!')
+        print_failed_requirements_checks(failed_checks)

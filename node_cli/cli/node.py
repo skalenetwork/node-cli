@@ -27,13 +27,11 @@ from node_cli.core.node import (
     update, backup,
     set_maintenance_mode_on, set_maintenance_mode_off,
     turn_off, turn_on, get_node_info,
-    set_domain_name
+    set_domain_name, run_checks
 )
-from node_cli.core.host import run_preinstall_checks
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.configs.env import ALLOWED_ENV_TYPES
 from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
-from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 
 TEXTS = safe_load_texts()
@@ -245,12 +243,8 @@ def _set_domain_name(domain):
 @click.option(
     '--network', '-n',
     type=click.Choice(ALLOWED_ENV_TYPES),
+    default='mainnet',
     help='Network to check'
 )
 def check_requirements(network):
-    failed_checks = run_preinstall_checks(network)
-    if not failed_checks:
-        print('Requirements checking succesfully finished!')
-    else:
-        print('Node is not fully meet the requirements!')
-        print_failed_requirements_checks(failed_checks)
+    run_checks(network)
