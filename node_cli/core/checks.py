@@ -220,11 +220,23 @@ class DockerChecker(BaseChecker):
     def _check_docker_command(self) -> str:
         return shutil.which('docker')
 
+    def _get_docker_version_info(self) -> dict:
+        try:
+            return self.docker_client.version()
+        except Exception as err:
+            logger.error(f'Request to docker api failed {err}')
+
     def docker_engine(self) -> CheckResult:
         name = 'docker-engine'
         if self._check_docker_command() is None:
             return self._error(name=name, info='No such command: "docker"')
 
+        version_info = self._get_docker_version_info()
+        if not version_info:
+            return self._error(
+                name=name,
+                info='Docker api request failed. Is docker installed?'
+            )
         actual_version = self.docker_client.version()['Version']
         expected_version = self.requirements['docker']['docker-engine']
         info = {
@@ -241,7 +253,13 @@ class DockerChecker(BaseChecker):
         if self._check_docker_command() is None:
             return self._error(name=name, info='No such command: "docker"')
 
-        actual_version = self.docker_client.version()['ApiVersion']
+        version_info = self._get_docker_version_info()
+        if not version_info:
+            return self._error(
+                name=name,
+                info='Docker api request failed. Is docker installed?'
+            )
+        actual_version = version_info['ApiVersion']
         expected_version = self.requirements['docker']['docker-api']
         info = {
             'expected_version': expected_version,
@@ -285,12 +303,3 @@ class DockerChecker(BaseChecker):
             return self._ok(name=name, info=info)
         else:
             return self._error(name=name, info=info)
-
-    def docker_service_status(self) -> CheckResult:
-        name = 'docker-service-status'
-        try:
-            self.docker_client.containers.list()
-        except Exception as err:
-            info = err
-            return self._error(name=name, info=info)
-        return self._ok(name=name)

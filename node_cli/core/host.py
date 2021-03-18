@@ -81,6 +81,7 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
 
 
 def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:
+    logger.info('Checking that host meets requirements ...')
     requirements = get_net_params(env_type)
     checkers = [
         MachineChecker(requirements),
@@ -90,6 +91,8 @@ def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:
     result = []
     for checker in checkers:
         result.extend(filter(lambda r: r.status == 'error', checker.check()))
+    if result:
+        logger.info('Host is not fully meet the requirements')
     return result
 
 

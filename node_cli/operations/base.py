@@ -30,7 +30,7 @@ from node_cli.operations.common import (
     configure_flask, unpack_backup_archive
 )
 from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
-from node_cli.operations.skale_node import sync_skale_node
+from node_cli.operations.skale_node import sync_skale_node, update_images
 
 from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
@@ -94,6 +94,7 @@ def init(env_filepath: str, env: str) -> bool:
         env['DOCKER_LVMPY_STREAM']
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
+    update_images()
     compose_up(env)
     return True
 
