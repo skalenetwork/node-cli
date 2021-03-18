@@ -40,7 +40,7 @@ echo "VERSION = '$VERSION'" >> $DIST_INFO_FILEPATH
 
 EXECUTABLE_NAME=skale-$VERSION-$OS
 
-pyinstaller --onefile main.spec --hidden-import=eth_hash.backends.pysha3
+pyinstaller --onefile main.spec
 
 mv $PARENT_DIR/dist/main $PARENT_DIR/dist/$EXECUTABLE_NAME
 

@@ -85,7 +85,7 @@ def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:
     checkers = [
         MachineChecker(requirements),
         PackagesChecker(requirements),
-        DockerChecker()
+        DockerChecker(requirements)
     ]
     result = []
     for checker in checkers:
