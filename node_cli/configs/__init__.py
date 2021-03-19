@@ -56,6 +56,7 @@ FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
 
 IPTABLES_DIR = '/etc/iptables/'
+IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')
 
 FLASK_SECRET_KEY_FILENAME = 'flask_db_key.txt'
 FLASK_SECRET_KEY_FILE = os.path.join(NODE_DATA_PATH, FLASK_SECRET_KEY_FILENAME)

@@ -209,14 +209,6 @@ def test_checks_docker_compose_invalid_version(
     r.status == 'ok'
 
 
-def test_checks_docker_service_status():
-    checker = DockerChecker(requirements_data)
-    checker.docker_client = mock.Mock()
-    r = checker.docker_service_status()
-    r.name == 'docker-compose'
-    r.status == 'ok'
-
-
 def test_checks_docker_config():
     checker = DockerChecker(requirements_data)
     valid_config = {

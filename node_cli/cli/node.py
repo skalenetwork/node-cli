@@ -23,7 +23,9 @@ from urllib.parse import urlparse
 import click
 
 from node_cli.core.node import (
-    get_node_signature, init, restore, register_node as register,
+    configure_firewall_rules,
+    get_node_signature, init, restore,
+    register_node as register,
     update, backup,
     set_maintenance_mode_on, set_maintenance_mode_off,
     turn_off, turn_on, get_node_info,
@@ -248,3 +250,11 @@ def _set_domain_name(domain):
 )
 def check_requirements(network):
     run_checks(network)
+
+
+@node.command(help='Reconfigure iptables rules')
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to reconfigure firewall rules?')
+def configure_firewall():
+    configure_firewall_rules()
