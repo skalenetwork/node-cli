@@ -101,7 +101,6 @@ def allow_conntrack(chain: iptc.Chain) -> None:
     """Allow conntrack established connections"""
     logger.debug('Allowing conntrack...')
     rule = iptc.Rule()
-    # rule.protocol = 'tcp'
     rule.target = iptc.Target(rule, 'ACCEPT')
     match = iptc.Match(rule, 'conntrack')
     chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), 'INPUT')
@@ -111,14 +110,12 @@ def allow_conntrack(chain: iptc.Chain) -> None:
 
 
 def drop_all_tcp(chain: iptc.Chain) -> None:
-    """Drop the rest of tcp connections """
+    """Drop the rest of tcp connections"""
     logger.debug('Adding drop tcp rule ...')
     r = iptc.Rule()
     t = iptc.Target(r, 'DROP')
     r.target = t
     r.protocol = 'tcp'
-    # tcp_p = iptc.Match(r, 'tcp')
-    # r.add_match(tcp_p)
     ensure_rule(chain, r)
 
 
@@ -129,8 +126,6 @@ def drop_all_udp(chain: iptc.Chain) -> None:
     t = iptc.Target(r, 'DROP')
     r.target = t
     r.protocol = 'udp'
-    # upd_p = iptc.Match(r, 'udp')
-    # r.add_match(udp_p)
     ensure_rule(chain, r)
 
 
