@@ -165,13 +165,10 @@ def add_icmp_rule(chain: iptc.Chain, icmp_type: str) -> None:
     ensure_rule(chain, rule)
 
 
-def ensure_rule(chain: iptc.Chain, rule: iptc.Rule, position='bottom') -> None:
+def ensure_rule(chain: iptc.Chain, rule: iptc.Rule) -> None:
     if rule not in chain.rules:
         logger.debug(f'Adding rule: {rule_to_dict(rule)}, chain: {chain.name}')
-        if position == 'top':
-            chain.insert_rule(rule)
-        else:
-            chain.append_rule(rule)
+        chain.append_rule(rule)
     else:
         logger.debug(f'Rule already present: {rule_to_dict(rule)}, chain: {chain.name}')
 
