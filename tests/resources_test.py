@@ -4,14 +4,14 @@ import os
 import mock
 import pytest
 
-from configs import ALLOCATION_FILEPATH
+from configs import ALLOCATION_FILEPATH, CONFIGS_FILEPATH
 from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from core.resources import (
     compose_resource_allocation_config,
     get_schain_volume_proportions,
     update_resource_allocation,
     get_static_disk_alloc,
-    ResourceAlloc, SChainVolumeAlloc
+    ResourceAlloc, get_cpu_alloc, get_memory_alloc
 )
 
 from core.helper import safe_load_yml
@@ -44,7 +44,8 @@ def test_schain_resources_allocation():
     allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
     proportions = get_schain_volume_proportions(allocation_data)
     res = ResourceAlloc(128)
-    schain_volume_alloc = SChainVolumeAlloc(res, proportions)
+    schain_volume_alloc = 1
+    print(proportions, res)
     assert schain_volume_alloc.volume_alloc == SCHAIN_VOLUME_PARTS  # noqa
 
 
@@ -128,3 +129,41 @@ def test_get_static_disk_alloc_mainnet():
         'medium': 59374999552,
         'large': 1899999985664
     }
+
+
+def test_get_cpu_alloc():
+    net_configs = safe_load_yml(CONFIGS_FILEPATH)
+    schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(net_configs)
+    schain_cpu_alloc_dict = schain_cpu_alloc.dict()
+    ima_cpu_alloc_dict = ima_cpu_alloc.dict()
+
+    assert schain_cpu_alloc_dict['test4'] == 22
+    assert schain_cpu_alloc_dict['test'] == 22
+    assert schain_cpu_alloc_dict['small'] == 5
+    assert schain_cpu_alloc_dict['medium'] == 22
+    assert schain_cpu_alloc_dict['large'] == 716
+
+    assert ima_cpu_alloc_dict['test4'] == 9
+    assert ima_cpu_alloc_dict['test'] == 9
+    assert ima_cpu_alloc_dict['small'] == 2
+    assert ima_cpu_alloc_dict['medium'] == 9
+    assert ima_cpu_alloc_dict['large'] == 307
+
+
+def test_get_memory_alloc():
+    net_configs = safe_load_yml(CONFIGS_FILEPATH)
+    schain_mem_alloc, ima_mem_alloc = get_memory_alloc(net_configs)
+    schain_mem_alloc_dict = schain_mem_alloc.dict()
+    ima_mem_alloc_dict = ima_mem_alloc.dict()
+
+    assert schain_mem_alloc_dict['test4'] == 300647710
+    assert schain_mem_alloc_dict['test'] == 300647710
+    assert schain_mem_alloc_dict['small'] == 75161927
+    assert schain_mem_alloc_dict['medium'] == 300647710
+    assert schain_mem_alloc_dict['large'] == 9620726743
+
+    assert ima_mem_alloc_dict['test4'] == 128849018
+    assert ima_mem_alloc_dict['test'] == 128849018
+    assert ima_mem_alloc_dict['small'] == 32212254
+    assert ima_mem_alloc_dict['medium'] == 128849018
+    assert ima_mem_alloc_dict['large'] == 4123168604
