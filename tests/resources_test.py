@@ -24,6 +24,8 @@ SMALL_DISK_SIZE = 10
 NORMAL_DISK_SIZE = 80000000000
 BIG_DISK_SIZE = NORMAL_DISK_SIZE * 100
 
+TEST_MEMORY = 10000000
+
 
 def disk_alloc_mock(env_type):
     return ResourceAlloc(128)
@@ -144,21 +146,22 @@ def test_get_cpu_alloc():
 
 def test_get_memory_alloc():
     net_configs = safe_load_yml(CONFIGS_FILEPATH)
-    schain_mem_alloc, ima_mem_alloc = get_memory_alloc(net_configs)
+    with mock.patch('core.resources.get_total_memory', return_value=TEST_MEMORY):
+        schain_mem_alloc, ima_mem_alloc = get_memory_alloc(net_configs)
     schain_mem_alloc_dict = schain_mem_alloc.dict()
     ima_mem_alloc_dict = ima_mem_alloc.dict()
 
-    assert schain_mem_alloc_dict['test4'] == 300647710
-    assert schain_mem_alloc_dict['test'] == 300647710
-    assert schain_mem_alloc_dict['small'] == 75161927
-    assert schain_mem_alloc_dict['medium'] == 300647710
-    assert schain_mem_alloc_dict['large'] == 9620726743
+    assert schain_mem_alloc_dict['test4'] == 218750
+    assert schain_mem_alloc_dict['test'] == 218750
+    assert schain_mem_alloc_dict['small'] == 54687
+    assert schain_mem_alloc_dict['medium'] == 218750
+    assert schain_mem_alloc_dict['large'] == 7000000
 
-    assert ima_mem_alloc_dict['test4'] == 128849018
-    assert ima_mem_alloc_dict['test'] == 128849018
-    assert ima_mem_alloc_dict['small'] == 32212254
-    assert ima_mem_alloc_dict['medium'] == 128849018
-    assert ima_mem_alloc_dict['large'] == 4123168604
+    assert ima_mem_alloc_dict['test4'] == 93750
+    assert ima_mem_alloc_dict['test'] == 93750
+    assert ima_mem_alloc_dict['small'] == 23437
+    assert ima_mem_alloc_dict['medium'] == 93750
+    assert ima_mem_alloc_dict['large'] == 3000000
 
 
 def test_compose_storage_limit():

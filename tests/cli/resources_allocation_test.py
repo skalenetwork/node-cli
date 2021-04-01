@@ -29,10 +29,11 @@ from configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
 )
 from tools.helper import write_json
-from tests.resources_test import disk_alloc_mock
 from tests.helper import response_mock, run_command_mock
 
 from cli.resources_allocation import show, generate
+
+from tests.resources_test import BIG_DISK_SIZE
 
 
 TEST_CONFIG = {'test': 1}
@@ -66,8 +67,7 @@ def test_show(config, resource_alloc_config):
 def test_generate():
     check_node_dir()
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.resources.get_static_disk_alloc',
-                    new=disk_alloc_mock):
+    with mock.patch('core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
         result = run_command_mock(
             'core.helper.post_request',
             resp_mock,
@@ -82,8 +82,7 @@ def test_generate():
 def test_generate_already_exists(resource_alloc_config):
     check_node_dir()
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.resources.get_static_disk_alloc',
-                    new=disk_alloc_mock):
+    with mock.patch('core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
         result = run_command_mock(
             'core.helper.post_request',
             resp_mock,
