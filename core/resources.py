@@ -27,7 +27,6 @@ import psutil
 from tools.schain_types import SchainTypes
 from tools.helper import write_json, read_json, run_cmd, format_output, extract_env_params
 from core.helper import safe_load_yml
-from core.configs_reader import get_config_env_schain_option
 from configs import ALLOCATION_FILEPATH, CONFIGS_FILEPATH
 from configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
@@ -66,37 +65,24 @@ def compose_resource_allocation_config(env_type):
     net_configs = safe_load_yml(CONFIGS_FILEPATH)
     schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
 
-    print(schain_allocation_data)
     schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(net_configs)
     schain_mem_alloc, ima_mem_alloc = get_memory_alloc(net_configs)
 
-    disk_alloc = get_static_disk_alloc(env_type)
-    # schain_volume_alloc = get_schain_volume_alloc(disk_alloc, allocation_data)
-
-    # todo!!!!!!!
+    verify_disk_size(net_configs, env_type)
 
     return {
         'schain': {
             'cpu_shares': schain_cpu_alloc.dict(),
             'mem': schain_mem_alloc.dict(),
-            'disk': disk_alloc.dict(),
-            # 'volume_limits': schain_volume_alloc.volume_alloc,
-            # 'storage_limit': get_storage_limit_alloc(allocation_data)
+            'disk': schain_allocation_data[env_type]['disk'],
+            'volume_limits': schain_allocation_data[env_type]['volume'],
+            'storage_limit': compose_storage_limit(schain_allocation_data[env_type]['leveldb'])
         },
         'ima': {
             'cpu_shares': ima_cpu_alloc.dict(),
             'mem': ima_mem_alloc.dict()
         }
     }
-
-
-def get_schain_volume_proportions(allocation_data):
-    return allocation_data['schain_proportions']['volume']
-
-
-def get_storage_limit_alloc(allocation_data, testnet=False):
-    network = 'testnet' if testnet else 'mainnet'
-    return allocation_data[network]['storage_limit']
 
 
 def generate_resource_allocation_config(env_file, force=False) -> None:
@@ -162,12 +148,10 @@ def get_cpu_alloc(net_configs):
     )
 
 
-def get_static_disk_alloc(env_type: str):
+def verify_disk_size(net_configs: dict, env_type: str) -> dict:
     disk_size = get_disk_size()
-    env_disk_size = get_config_env_schain_option(env_type, 'disk_size_bytes')
+    env_disk_size = net_configs['envs'][env_type]['server']['disk_size_bytes']
     check_disk_size(disk_size, env_disk_size)
-    # free_space = calculate_free_disk_space(env_disk_size)
-    # return ResourceAlloc(free_space)
 
 
 def check_disk_size(disk_size: int, env_disk_size: int):
@@ -208,3 +192,8 @@ def get_allocation_option_name(schain):
 def get_disk_path():
     f = open(DISK_MOUNTPOINT_FILEPATH, "r")
     return f.read()
+
+
+def compose_storage_limit(leveldb_lim):
+    """Helper function was the backward compatibility with old skale-admin"""
+    return {k: leveldb_lim[k]['evm_storage_part'] for k in leveldb_lim.keys()}
