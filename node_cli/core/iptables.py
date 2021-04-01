@@ -18,18 +18,22 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import sys
 from pathlib import Path
-from node_cli.configs import IPTABLES_DIR
+from node_cli.configs import IPTABLES_DIR, IPTABLES_RULES_STATE_FILEPATH
+from node_cli.utils.helper import run_cmd
 
 
 logger = logging.getLogger(__name__)
 
 try:
     import iptc
-except (FileNotFoundError, AttributeError):
-    logger.warning('Unable to import iptc')
-    from collections import namedtuple  # hotfix for tests
-    iptc = namedtuple('iptc', ['Chain', 'Rule'])
+except (FileNotFoundError, AttributeError) as err:
+    if "pytest" in sys.modules:
+        from collections import namedtuple  # hotfix for tests
+        iptc = namedtuple('iptc', ['Chain', 'Rule'])
+    else:
+        logger.error(f'Unable to import iptc due to an error {err}')
 
 
 ALLOWED_INCOMING_TCP_PORTS = [
@@ -61,10 +65,19 @@ def configure_iptables():
 
     set_base_policies()
     allow_loopback(input_chain)
-    allow_base_ports(input_chain)
-    drop_all_input(input_chain)
     accept_icmp(input_chain)
     allow_conntrack(input_chain)
+    allow_base_ports(input_chain)
+    drop_all_tcp(input_chain)
+    drop_all_udp(input_chain)
+    save_iptables_rules_state()
+
+
+def save_iptables_rules_state():
+    res = run_cmd(['iptables-save'])
+    plain_rules = res.stdout.decode('utf-8').rstrip()
+    with open(IPTABLES_RULES_STATE_FILEPATH, 'w') as state_file:
+        state_file.write(plain_rules)
 
 
 def set_base_policies() -> None:
@@ -81,29 +94,39 @@ def allow_loopback(chain: iptc.Chain) -> None:
     rule = iptc.Rule()
     rule.target = iptc.Target(rule, 'ACCEPT')
     rule.in_interface = 'lo'
-    chain.insert_rule(rule)
+    ensure_rule(chain, rule)
 
 
 def allow_conntrack(chain: iptc.Chain) -> None:
     """Allow conntrack established connections"""
     logger.debug('Allowing conntrack...')
     rule = iptc.Rule()
-    rule.protocol = "tcp"
-    rule.target = iptc.Target(rule, "ACCEPT")
-    match = iptc.Match(rule, "conntrack")
-    chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
-    match.ctstate = "RELATED,ESTABLISHED"
+    rule.target = iptc.Target(rule, 'ACCEPT')
+    match = iptc.Match(rule, 'conntrack')
+    chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), 'INPUT')
+    match.ctstate = 'RELATED,ESTABLISHED'
     rule.add_match(match)
-    chain.insert_rule(rule)
+    ensure_rule(chain, rule)
 
 
-def drop_all_input(chain: iptc.Chain) -> None:
-    """Drop all input connections by default (append in the end)"""
-    logger.debug('Droping all input connections except specified...')
+def drop_all_tcp(chain: iptc.Chain) -> None:
+    """Drop the rest of tcp connections"""
+    logger.debug('Adding drop tcp rule ...')
     r = iptc.Rule()
     t = iptc.Target(r, 'DROP')
     r.target = t
-    chain.append_rule(r)
+    r.protocol = 'tcp'
+    ensure_rule(chain, r)
+
+
+def drop_all_udp(chain: iptc.Chain) -> None:
+    """Drop the rest of udp connections """
+    logger.debug('Adding drop udp rule ...')
+    r = iptc.Rule()
+    t = iptc.Target(r, 'DROP')
+    r.target = t
+    r.protocol = 'udp'
+    ensure_rule(chain, r)
 
 
 def allow_base_ports(chain: iptc.Chain) -> None:
@@ -122,7 +145,7 @@ def accept_incoming(chain, port, protocol) -> None:
     t = iptc.Target(rule, 'ACCEPT')
     rule.target = t
     rule.add_match(match)
-    safe_add_rule(chain, rule)
+    ensure_rule(chain, rule)
 
 
 def accept_icmp(chain: iptc.Chain) -> None:
@@ -139,13 +162,13 @@ def add_icmp_rule(chain: iptc.Chain, icmp_type: str) -> None:
     t = iptc.Target(rule, 'ACCEPT')
     rule.target = t
     rule.add_match(match)
-    safe_add_rule(chain, rule)
+    ensure_rule(chain, rule)
 
 
-def safe_add_rule(chain: iptc.Chain, rule: iptc.Rule) -> None:
+def ensure_rule(chain: iptc.Chain, rule: iptc.Rule) -> None:
     if rule not in chain.rules:
         logger.debug(f'Adding rule: {rule_to_dict(rule)}, chain: {chain.name}')
-        chain.insert_rule(rule)
+        chain.append_rule(rule)
     else:
         logger.debug(f'Rule already present: {rule_to_dict(rule)}, chain: {chain.name}')
 

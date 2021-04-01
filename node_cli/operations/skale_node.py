@@ -28,20 +28,29 @@ from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_NODE_REPO_URL
 logger = logging.getLogger(__name__)
 
 
-def sync_skale_node(env):
+def update_images(env: dict) -> None:
+    if 'CONTAINER_CONFIGS_DIR' in env:
+        compose_build()
+    else:
+        compose_pull()
+
+
+def sync_skale_node(env: dict) -> None:
     if 'CONTAINER_CONFIGS_DIR' in env:
         sync_skale_node_dev(env)
     else:
         sync_skale_node_git(env)
 
 
-def sync_skale_node_git(env):
-    sync_repo(SKALE_NODE_REPO_URL, CONTAINER_CONFIG_PATH, env["CONTAINER_CONFIGS_STREAM"])
-    compose_pull()
+def sync_skale_node_git(env: dict) -> None:
+    sync_repo(
+        SKALE_NODE_REPO_URL,
+        CONTAINER_CONFIG_PATH,
+        env["CONTAINER_CONFIGS_STREAM"]
+    )
 
 
-def sync_skale_node_dev(env):
+def sync_skale_node_dev(env: dict) -> None:
     logger.info(f'Syncing {CONTAINER_CONFIG_PATH} with {env["CONTAINER_CONFIGS_DIR"]}')
     run_cmd(f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/ {CONTAINER_CONFIG_PATH}'.split())
     run_cmd(f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/.git {CONTAINER_CONFIG_PATH}'.split())
-    compose_build()

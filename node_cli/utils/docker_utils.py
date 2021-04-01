@@ -59,9 +59,9 @@ def get_all_ima_containers(_all=True) -> list:
 
 
 def remove_dynamic_containers():
-    logger.info(f'Removing sChains containers')
+    logger.info('Removing sChains containers')
     rm_all_schain_containers()
-    logger.info(f'Removing IMA containers')
+    logger.info('Removing IMA containers')
     rm_all_ima_containers()
 
 

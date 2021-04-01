@@ -33,12 +33,20 @@ from node_cli.configs import (
 )
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
-from node_cli.operations import update_op, init_op, turn_off_op, turn_on_op, restore_op
-from node_cli.core.resources import update_resource_allocation
+from node_cli.core.iptables import configure_iptables
 from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from node_cli.core.host import (
-    is_node_inited, save_env_params, get_flask_secret_key)
-from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info
+    is_node_inited, save_env_params,
+    get_flask_secret_key, run_preinstall_checks
+)
+from node_cli.core.resources import update_resource_allocation
+from node_cli.operations import (
+    update_op,
+    init_op, turn_off_op, turn_on_op, restore_op
+)
+from node_cli.utils.print_formatters import (
+    print_failed_requirements_checks, print_node_cmd_error, print_node_info
+)
 from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.helper import run_cmd, extract_env_params
 from node_cli.utils.texts import Texts
@@ -99,11 +107,20 @@ def init(env_filepath):
     env = get_node_env(env_filepath)
     if env is None:
         return
-    init_op(env_filepath, env)
+    init_result = init_op(env_filepath, env)
+    if not init_result:
+        error_exit(
+            'Init operation failed',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+        return
     logger.info('Waiting for transaction manager initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
-        error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
+        error_exit(
+            'Containers are not running',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
         return
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
@@ -315,3 +332,22 @@ def set_domain_name(domain_name):
         print(msg)
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def run_checks(network: str) -> None:
+    if not is_node_inited():
+        print(TEXTS['node']['not_inited'])
+        return
+
+    failed_checks = run_preinstall_checks(network)
+    if not failed_checks:
+        print('Requirements checking succesfully finished!')
+    else:
+        print('Node is not fully meet the requirements!')
+        print_failed_requirements_checks(failed_checks)
+
+
+def configure_firewall_rules() -> None:
+    print('Configuring firewall ...')
+    configure_iptables()
+    print('Done')

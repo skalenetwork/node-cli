@@ -35,7 +35,7 @@ SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
 FILESTORAGE_INFO_FILE = os.path.join(CONTAINER_CONFIG_PATH, 'filestorage_info.json')
 FILESTORAGE_ARTIFACTS_FILE = os.path.join(NODE_DATA_PATH, 'filestorage_artifacts.json')
-CONFIGS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'configs.yml')
+ENVIRONMENT_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'environment_params.yaml')
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
@@ -56,9 +56,13 @@ FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
 
 IPTABLES_DIR = '/etc/iptables/'
+IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')
 
 FLASK_SECRET_KEY_FILENAME = 'flask_db_key.txt'
 FLASK_SECRET_KEY_FILE = os.path.join(NODE_DATA_PATH, FLASK_SECRET_KEY_FILENAME)
+
+DOCKER_CONFIG_FILEPATH = '/etc/docker/daemon.json'
+HIDE_STREAM_LOG = os.getenv('HIDE_STREAM_LOG')
 
 
 def _get_env():

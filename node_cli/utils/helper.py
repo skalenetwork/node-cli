@@ -26,7 +26,6 @@ import shutil
 import requests
 import subprocess
 import urllib.request
-from subprocess import PIPE
 from functools import wraps
 
 import logging
@@ -47,10 +46,10 @@ from node_cli.configs.env import (
     absent_params as absent_env_params,
     get_params as get_env_params
 )
-from node_cli.configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT
+from node_cli.configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG
 from node_cli.configs.cli_logger import (
     LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, STREAM_LOG_FORMAT,
-    LOG_FILEPATH, DEBUG_LOG_FILEPATH, LOG_FORMAT_FILE
+    LOG_FILEPATH, DEBUG_LOG_FILEPATH, FILE_LOG_FORMAT
 )
 from node_cli.configs.routes import get_route
 
@@ -76,25 +75,27 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
-def run_cmd(cmd, env={}, shell=False, secure=False):
+def run_cmd(cmd, env={}, shell=False, secure=False, check_code=True):
     if not secure:
         logger.debug(f'Running: {cmd}')
     else:
         logger.debug('Running some secure command')
-    res = subprocess.run(cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ})
-    if res.returncode:
-        logger.debug(res.stdout.decode('UTF-8').rstrip())
-        logger.error('Error during shell execution:')
-        logger.error(res.stderr.decode('UTF-8').rstrip())
-        res.check_returncode()
-    else:
-        logger.debug('Command is executed successfully. Command log:')
-        logger.debug(res.stdout.decode('UTF-8').rstrip())
+    res = subprocess.run(cmd, shell=shell,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT, env={**env, **os.environ})
+    if check_code:
+        output = res.stdout.decode('utf-8')
+        if res.returncode:
+            logger.error(f'Error during shell execution: {output}')
+            res.check_returncode()
+        else:
+            logger.debug('Command is executed successfully. Command log:')
+            logger.debug(res.stdout.decode('UTF-8').rstrip())
     return res
 
 
-def format_output(res):
-    return res.stdout.decode('UTF-8').rstrip(), res.stderr.decode('UTF-8').rstrip()
+def format_output(res: subprocess.CompletedProcess) -> str:
+    return res.stdout.decode('UTF-8').rstrip()
 
 
 def download_file(url, filepath):
@@ -246,9 +247,8 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
-    stream_handler = get_stream_handler()
-    logging.basicConfig(level=logging.DEBUG, handlers=[
-                        f_handler, debug_f_handler, stream_handler])
+    logging.basicConfig(
+        level=logging.DEBUG, handlers=[f_handler, debug_f_handler])
 
 
 def get_stream_handler():
@@ -260,7 +260,7 @@ def get_stream_handler():
 
 
 def get_file_handler(log_filepath, log_level):
-    formatter = Formatter(LOG_FORMAT_FILE)
+    formatter = Formatter(FILE_LOG_FORMAT)
     f_handler = py_handlers.RotatingFileHandler(
         log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
         backupCount=LOG_BACKUP_COUNT)
@@ -315,3 +315,13 @@ def validate_abi(abi_filepath: str) -> dict:
         return {'filepath': abi_filepath, 'status': 'error',
                 'msg': 'Failed to load abi file as json'}
     return {'filepath': abi_filepath, 'status': 'ok', 'msg': ''}
+
+
+def streamed_cmd(func):
+    """ Decorator that allow function to print logs into stderr """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if HIDE_STREAM_LOG is None:
+            logging.getLogger('').addHandler(get_stream_handler())
+        return func(*args, **kwargs)
+    return wrapper
