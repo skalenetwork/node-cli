@@ -10,7 +10,7 @@ export FILESTORAGE_ARTIFACTS_FILE=$NODE_DATA_DIR/filestorage_artifacts.json
 export CONTRACTS_DIR="$SKALE_DIR"/contracts_info
 export BACKUP_CONTRACTS_DIR="$SKALE_DIR"/.old_contracts_info
 
-export BASE_SERVICES="transaction-manager skale-admin skale-api mysql sla bounty watchdog filebeat"
+export BASE_SERVICES="transaction-manager skale-admin skale-api mysql bounty nginx watchdog filebeat"
 export NOTIFICATION_SERVICES="celery redis"
 
 remove_dynamic_containers () {
@@ -36,9 +36,9 @@ remove_dynamic_containers () {
 remove_compose_containers () {
     echo 'Removing node containers ...'
     COMPOSE_PATH=$SKALE_DIR/config/docker-compose.yml
-    echo 'Removing api, sla, bounty, admin containers ...'
-    DB_PORT=0 docker-compose -f  $COMPOSE_PATH rm  -s -f skale-api sla bounty skale-admin
-    echo 'Api, sla, bounty, admin containers were removed. Sleeping ...'
+    echo 'Removing api, bounty, admin containers ...'
+    DB_PORT=0 docker-compose -f  $COMPOSE_PATH rm  -s -f skale-api bounty skale-admin
+    echo 'Api, bounty, admin containers were removed. Sleeping ...'
     sleep 7
     echo 'Removing transaction-manager, mysql and rest ...'
     DB_PORT=0 docker-compose -f $COMPOSE_PATH  rm  -s -f
@@ -85,14 +85,14 @@ docker_lvmpy_install () {
     fi
     update_docker_lvmpy_sources
     echo "Running install.sh script ..."
-    PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/install.sh
+    sudo -H PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/install.sh
     cd -
 }
 
 docker_lvmpy_update () {
     update_docker_lvmpy_sources
     echo "Running update.sh script ..."
-    PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/update.sh
+    sudo -H PHYSICAL_VOLUME=$DISK_MOUNTPOINT VOLUME_GROUP=schains PATH=$PATH scripts/update.sh
     cd -
 }
 
@@ -127,7 +127,7 @@ iptables_configure() {
     sudo iptables -I INPUT -p icmp --icmp-type destination-unreachable -j ACCEPT
     sudo iptables -I INPUT -p icmp --icmp-type source-quench -j ACCEPT
     sudo iptables -I INPUT -p icmp --icmp-type time-exceeded -j ACCEPT
-    sudo iptables-save > /etc/iptables/rules.v4
+    sudo bash -c 'iptables-save > /etc/iptables/rules.v4'
 }
 
 configure_flask () {
@@ -143,7 +143,7 @@ configure_flask () {
 
 configure_filebeat () {
     echo "Configuring filebeat ..."
-    cp $CONFIG_DIR/filebeat.yml $NODE_DATA_DIR/
+    sudo cp $CONFIG_DIR/filebeat.yml $NODE_DATA_DIR/
     sudo chown root $NODE_DATA_DIR/filebeat.yml
     sudo chmod go-w $NODE_DATA_DIR/filebeat.yml
 }

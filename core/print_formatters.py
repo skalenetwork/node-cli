@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -26,6 +26,7 @@ from dateutil import parser
 import inspect
 
 from configs import LONG_LINE
+from configs.cli_logger import DEBUG_LOG_FILEPATH
 from tools.texts import Texts
 
 TEXTS = Texts()
@@ -41,6 +42,7 @@ def print_err_response(error_payload):
     print(LONG_LINE)
     print(error_msg)
     print(LONG_LINE)
+    print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
 
 
 def print_wallet_info(wallet):
@@ -134,7 +136,8 @@ def print_dkg_statuses(statuses):
     rows = []
     for status in statuses:
         date = datetime.datetime.fromtimestamp(status['added_at'])
-        schain_status = 'Deleted' if status['is_deleted'] else 'Active'
+        schain_status = 'Deleted' \
+            if status['is_deleted'] else 'Exists'
         rows.append([
             status['name'],
             status['dkg_status_name'],
@@ -153,7 +156,9 @@ def print_schains_healthchecks(schains):
         'Volume',
         'Container',
         'IMA',
-        'Firewall'
+        'Firewall',
+        'RPC',
+        'Blocks'
     ]
     rows = []
     for schain in schains:
@@ -166,7 +171,9 @@ def print_schains_healthchecks(schains):
             healthchecks['volume'],
             healthchecks['container'],
             healthchecks['ima_container'],
-            healthchecks['firewall_rules']
+            healthchecks['firewall_rules'],
+            healthchecks['rpc'],
+            healthchecks['blocks']
         ])
     print(Formatter().table(headers, rows))
 
@@ -241,3 +248,28 @@ def print_firewall_rules(rules, raw=False):
             rule['ip']
         ])
     print(Formatter().table(headers, rows))
+
+
+def print_schain_info(info: dict, raw: bool = False) -> None:
+    if raw:
+        print(info)
+    else:
+        headers, rows = zip(*info.items())
+        headers = list(map(lambda h: h.capitalize(), headers))
+        print(Formatter().table(headers, [rows]))
+
+
+def print_abi_validation_errors(info: list, raw: bool = False) -> None:
+    if not info:
+        return
+    if raw:
+        print(json.dumps(info))
+    else:
+        headers = info[0].keys()
+        rows = [tuple(r.values()) for r in info]
+        headers = list(map(lambda h: h.capitalize(), headers))
+        print(Formatter().table(headers, rows))
+
+
+def print_node_cmd_error():
+    print(TEXTS['node']['cmd_failed'])

@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -34,10 +34,12 @@ def get_wallet_info(_format):
         print_err_response(payload)
 
 
-def send_eth(address, amount):
+def send_eth(address: str, amount: float, gas_limit: int, gas_price: int):
     json_data = {
         'address': address,
         'amount': amount,
+        'gas_limit': gas_limit,
+        'gas_price': gas_price
     }
     status, payload = post_request('send_eth',
                                    json=json_data)

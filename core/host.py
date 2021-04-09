@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -17,37 +17,33 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
+import json
 import logging
+import os
 from shutil import copyfile
 from urllib.parse import urlparse
 
-from core.resources import save_resource_allocation_config
+from core.helper import validate_abi
+from core.resources import update_resource_allocation
 
-from configs import (DEPENDENCIES_SCRIPT, ADMIN_PORT,
+from configs import (ADMIN_PORT,
                      DEFAULT_URL_SCHEME, NODE_DATA_PATH,
                      SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
-                     NODE_CERTS_PATH, SGX_CERTS_PATH, REDIS_DATA_PATH,
-                     SCHAINS_DATA_PATH, LOG_PATH, MYSQL_BACKUP_FOLDER)
+                     ETH_STATE_PATH, NODE_CERTS_PATH, SGX_CERTS_PATH,
+                     REDIS_DATA_PATH, SCHAINS_DATA_PATH,
+                     MYSQL_BACKUP_FOLDER, REMOVED_CONTAINERS_FOLDER_PATH,
+                     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
+from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from configs.cli_logger import LOG_DATA_PATH
+from core.print_formatters import print_abi_validation_errors
 from configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
                                          SGX_SERVER_URL_FILEPATH)
 
 from core.helper import safe_load_texts
-from tools.helper import run_cmd
 
 TEXTS = safe_load_texts()
 
 logger = logging.getLogger(__name__)
-
-
-def install_host_dependencies():
-    env = {
-        **os.environ,
-        'SKALE_CMD': 'host_deps'
-    }
-    run_cmd(["sudo", "bash", DEPENDENCIES_SCRIPT], env=env)
-    # todo: check execution status
 
 
 def fix_url(url):
@@ -68,24 +64,27 @@ def get_flask_secret_key():
         return key_file.read().strip()
 
 
-def prepare_host(env_filepath, disk_mountpoint, sgx_server_url):
+def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
+                 allocation=False):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
     make_dirs()
     save_env_params(env_filepath)
     save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
-    save_resource_allocation_config()
+    if allocation:
+        update_resource_allocation(env_type)
 
 
 def is_node_inited():
-    return os.path.isdir(NODE_DATA_PATH)
+    return os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
 
 
 def make_dirs():
     for dir_path in (
             SKALE_DIR, NODE_DATA_PATH, CONTAINER_CONFIG_PATH,
-            CONTRACTS_PATH, NODE_CERTS_PATH, MYSQL_BACKUP_FOLDER,
-            SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH, REDIS_DATA_PATH
+            CONTRACTS_PATH, ETH_STATE_PATH, NODE_CERTS_PATH,
+            MYSQL_BACKUP_FOLDER, REMOVED_CONTAINERS_FOLDER_PATH,
+            SGX_CERTS_PATH, SCHAINS_DATA_PATH, REDIS_DATA_PATH
     ):
         safe_mk_dirs(dir_path)
 
@@ -108,15 +107,36 @@ def save_env_params(env_filepath):
 
 def init_logs_dir():
     safe_mk_dirs(LOG_DATA_PATH)
+    safe_mk_dirs(REMOVED_CONTAINERS_FOLDER_PATH)
 
 
 def init_data_dir():
     safe_mk_dirs(NODE_DATA_PATH)
 
 
-def safe_mk_dirs(path):
+def safe_mk_dirs(path, print_res=False):
     if os.path.exists(path):
         return
     msg = f'Creating {path} directory...'
-    logger.info(msg), print(msg)
+    logger.info(msg)
+    if print_res:
+        print(msg)
     os.makedirs(path, exist_ok=True)
+
+
+def validate_abi_files(json_result=False):
+    results = [
+        validate_abi(abi_filepath)
+        for abi_filepath in [
+            MANAGER_CONTRACTS_FILEPATH,
+            IMA_CONTRACTS_FILEPATH
+        ]
+    ]
+    if any(r['status'] == 'error' for r in results):
+        print('Some files do not exist or are incorrect')
+        print_abi_validation_errors(results, raw=json_result)
+    else:
+        if json_result:
+            print(json.dumps({'result': 'ok'}))
+        else:
+            print('All abi files are correct json files!')

@@ -26,7 +26,6 @@ extras_require = {
     'dev': [
         "boto3==1.13.19",
         "bumpversion==0.6.0",
-        "skale.py==3.10dev1",
         "pytest==5.4.3",
         "pytest-cov==2.9.0",
         "twine==2.0.0",
@@ -41,7 +40,7 @@ extras_require['dev'] = (
 
 
 setup(
-    name='skale-node-cli',
+    name='node-cli',
     # *IMPORTANT*: Don't manually change the version here.
     # Use the 'bumpversion' utility instead.
     version=find_version("cli", "__init__.py"),
@@ -50,10 +49,11 @@ setup(
     long_description_markdown_filename='README.md',
     author='SKALE Labs',
     author_email='support@skalelabs.com',
-    url='https://github.com/skalenetwork/skale-node-cli',
+    url='https://github.com/skalenetwork/node-cli',
     install_requires=[
         "click==7.1.2",
         "confuse",
+        "docker==4.2.2",
         "readsettings==3.4.5",
         "PyInstaller==3.6",
         "texttable==1.6.2",
@@ -63,7 +63,8 @@ setup(
         "pycryptodome==3.9.7",
         "python-dotenv==0.13.0",
         "terminaltables==3.1.0",
-        "requests==2.23.0"
+        "requests==2.23.0",
+        "GitPython==3.1.12"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
@@ -71,7 +72,7 @@ setup(
     keywords=['skale', 'cli'],
     packages=find_packages(exclude=['tests']),
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Natural Language :: English',

@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -81,7 +81,12 @@ def test_schains_ok_response(config):
     result = run_command_mock('core.helper.requests.get',
                               resp_mock, schains)
     assert result.exit_code == 0
-    assert result.output == "       Name                    Status                   Started At           Image   \n-------------------------------------------------------------------------------------\nskale_schain_test    Running                       Oct 08 2019 13:59:54   image-skale\nskale_schain_test2   Running (Jan 01 1 00:00:00)   Oct 08 2019 13:59:54   image-skale\n"  # noqa
+
+    output_list = result.output.splitlines()
+    assert output_list[0] == '       Name                    Status                   Started At           Image   '  # noqa
+    assert output_list[1] == '-------------------------------------------------------------------------------------'  # noqa
+    assert output_list[2] == 'skale_schain_test    Running                       Oct 08 2019 13:59:54   image-skale'  # noqa
+    assert output_list[3] == 'skale_schain_test2   Running (Jan 01 1 00:00:00)   Oct 08 2019 13:59:54   image-skale'  # noqa
 
 
 def test_schain_error_response(config):
@@ -96,7 +101,8 @@ def test_schain_error_response(config):
     assert result.output == ('Command failed with following errors:\n'
                              '-----------------------------------------'
                              '---------\nOperation failed\n--------------------'
-                             '------------------------------\n')
+                             '------------------------------\n'
+                             'You can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n')  # noqa
 
 
 def test_schain_empty_response(config):
@@ -119,7 +125,7 @@ def test_schain_multi_error_response(config):
                               resp_mock, schains)
     assert result.exit_code == 0
     print(repr(result.output))
-    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nError test\nError test2\n--------------------------------------------------\n'  # noqa
+    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nError test\nError test2\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
 def test_ls():

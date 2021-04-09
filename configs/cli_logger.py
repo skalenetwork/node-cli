@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -20,12 +20,14 @@
 import os
 from configs import SKALE_DIR
 
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+FILE_LOG_FORMAT = '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+STREAM_LOG_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
 LOG_FILE_SIZE_MB = 300
 LOG_FILE_SIZE_BYTES = LOG_FILE_SIZE_MB * 1000000
 
 LOG_BACKUP_COUNT = 1
-LOG_DATA_PATH = os.path.join(SKALE_DIR, '.skale-cli-log')
+LOG_DIRNAME = '.skale-cli-log'
+LOG_DATA_PATH = os.path.join(SKALE_DIR, LOG_DIRNAME)
 LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'node-cli.log')
 DEBUG_LOG_FILEPATH = os.path.join(LOG_DATA_PATH, 'debug-node-cli.log')

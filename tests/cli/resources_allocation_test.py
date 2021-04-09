@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -22,13 +22,18 @@ import json
 import mock
 import requests
 
+import pytest
+
 from core.host import safe_mk_dirs
-from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
+from configs.resource_allocation import (
+    RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
+)
 from tools.helper import write_json
-from tests.resources_test import disk_alloc_mock
 from tests.helper import response_mock, run_command_mock
 
 from cli.resources_allocation import show, generate
+
+from tests.resources_test import BIG_DISK_SIZE
 
 
 TEST_CONFIG = {'test': 1}
@@ -39,7 +44,14 @@ def check_node_dir():
         safe_mk_dirs(NODE_DATA_PATH)
 
 
-def test_show(config):
+@pytest.fixture
+def resource_alloc_config():
+    write_json(RESOURCE_ALLOCATION_FILEPATH, TEST_CONFIG)
+    yield RESOURCE_ALLOCATION_FILEPATH
+    os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+def test_show(config, resource_alloc_config):
     check_node_dir()
     resp_mock = response_mock(requests.codes.created)
     write_json(RESOURCE_ALLOCATION_FILEPATH, TEST_CONFIG)
@@ -55,13 +67,39 @@ def test_show(config):
 def test_generate():
     check_node_dir()
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('core.resources.get_disk_alloc',
-                    new=disk_alloc_mock):
+    with mock.patch('core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
         result = run_command_mock(
             'core.helper.post_request',
             resp_mock,
             generate,
-            ['--yes']
+            ['./tests/test-env', '--yes']
         )
-    assert result.output == f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}\n'
+    assert result.output == (f'Resource allocation file generated: '
+                             f'{RESOURCE_ALLOCATION_FILEPATH}\n')
     assert result.exit_code == 0
+
+
+def test_generate_already_exists(resource_alloc_config):
+    check_node_dir()
+    resp_mock = response_mock(requests.codes.created)
+    with mock.patch('core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
+        result = run_command_mock(
+            'core.helper.post_request',
+            resp_mock,
+            generate,
+            ['./tests/test-env', '--yes']
+        )
+        assert result.output == 'Resource allocation file is already exists\n'
+        assert result.exit_code == 0
+
+        result = run_command_mock(
+                'core.helper.post_request',
+                resp_mock,
+                generate,
+                ['./tests/test-env', '--yes', '--force']
+        )
+        assert result.output == (
+            f'Resource allocation file generated: '
+            f'{RESOURCE_ALLOCATION_FILEPATH}\n'
+        )
+        assert result.exit_code == 0

@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -20,10 +20,10 @@
 import json
 import click
 
-from core.resources import get_resource_allocation_info, save_resource_allocation_config
+from core.resources import (get_resource_allocation_info,
+                            generate_resource_allocation_config)
 from core.helper import abort_if_false, safe_load_texts
 from tools.helper import session_config
-from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 
 config = session_config()
 TEXTS = safe_load_texts()
@@ -48,13 +48,15 @@ def show():
         print('No resources allocation file on this machine')
 
 
-@resources_allocation.command('generate', help="Generate/update resources allocation file")
-@click.option('--yes', is_flag=True, callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure you want to generate/update resource allocation file?')
-def generate():
-    res = save_resource_allocation_config(exist_ok=True)
-    if res:
-        print(f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}')
-    else:
-        print('Can\'t generate resource allocation file, check out CLI logs')
+@resources_allocation.command('generate',
+                              help="Generate/update resources allocation file")
+@click.argument('env_file')
+@click.option(
+    '--yes', is_flag=True, callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to generate/update resource allocation file?'
+)
+@click.option('--force', '-f', is_flag=True,
+              help='Rewrite if already exists')
+def generate(env_file, force):
+    generate_resource_allocation_config(env_file=env_file, force=force)

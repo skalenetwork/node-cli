@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -69,9 +69,11 @@ def print_node_info(node):
         {LONG_LINE}
         Node info
         Name: {node['name']}
+        ID: {node['id']}
         IP: {node['ip']}
         Public IP: {node['publicIP']}
         Port: {node['port']}
+        Domain name: {node['domain_name']}
         Status: {get_node_status(int(node['status']))}
         {LONG_LINE}
     '''))

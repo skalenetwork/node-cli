@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -22,16 +22,29 @@ import sys
 from pathlib import Path
 from configs.routes import ROUTES  # noqa: F401
 
-HOME_DIR = str(Path.home())
+HOME_DIR = os.getenv('HOME_DIR') or str(Path.home())
 SKALE_DIR = os.path.join(HOME_DIR, '.skale')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
+BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 
-LOG_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'log')
-NODE_CERTS_PATH = os.path.join(SKALE_DIR, NODE_DATA_PATH, 'ssl')
+SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
+
+COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
+FILESTORAGE_INFO_FILE = os.path.join(CONTAINER_CONFIG_PATH, 'filestorage_info.json')
+FILESTORAGE_ARTIFACTS_FILE = os.path.join(NODE_DATA_PATH, 'filestorage_artifacts.json')
+CONFIGS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'configs.yml')
+
+LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
+REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
+REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
+
+ETH_STATE_PATH = os.path.join(NODE_DATA_PATH, 'eth-state')
+NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
+
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 
@@ -42,6 +55,8 @@ TOKENS_FILEPATH = os.path.join(NODE_DATA_PATH, 'tokens.json')
 
 CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
+
+DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
 
 
 def _get_env():
@@ -65,14 +80,16 @@ DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
 THIRDPARTY_FOLDER_PATH = os.path.join(DATAFILES_FOLDER, 'third_party')
 
-DEPENDENCIES_SCRIPT = os.path.join(DATAFILES_FOLDER, 'dependencies.sh')
 INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'install.sh')
 BACKUP_INSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'backup-install.sh')
 UNINSTALL_SCRIPT = os.path.join(DATAFILES_FOLDER, 'uninstall.sh')
 UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
+TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
+TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
-ALLOCATION_FILEPATH = os.path.join(DATAFILES_FOLDER, 'allocation.yml')
+ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH,
+                                   'schain_allocation.yml')
 
 LONG_LINE = '-' * 50
 
@@ -87,4 +104,13 @@ MYSQL_BACKUP_FILE_NAME = 'backup.sql'
 MYSQL_BACKUP_FOLDER = os.path.join(SKALE_DIR, NODE_DATA_PATH, '.mysql-backup')
 MYSQL_BACKUP_CONTAINER_FOLDER = '/mysql-backup'
 MYSQL_BACKUP_PATH = os.path.join(MYSQL_BACKUP_FOLDER, MYSQL_BACKUP_FILE_NAME)
-MYSQL_BACKUP_CONTAINER_PATH = os.path.join(MYSQL_BACKUP_CONTAINER_FOLDER, MYSQL_BACKUP_FILE_NAME)
+MYSQL_BACKUP_CONTAINER_PATH = os.path.join(MYSQL_BACKUP_CONTAINER_FOLDER,
+                                           MYSQL_BACKUP_FILE_NAME)
+
+TM_INIT_TIMEOUT = 20
+RESTORE_SLEEP_TIMEOUT = 20
+
+MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
+IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
+
+META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')

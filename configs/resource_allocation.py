@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -20,17 +20,19 @@
 import os
 from configs import NODE_DATA_PATH
 
-MEDIUM_DIVIDER = 1
-SMALL_DIVIDER = 8
-TEST_DIVIDER = 8
-TINY_DIVIDER = 128
+LARGE_DIVIDER = 1
+MEDIUM_DIVIDER = 32
+TEST_DIVIDER = 32
+SMALL_DIVIDER = 128
 
 TIMES = 1
 TIMEOUT = 1
-MEMORY_FACTOR = 0.9
+MEMORY_FACTOR = 0.8
 DISK_FACTOR = 0.95
 
-VOLUME_CHUNK = 512 * TINY_DIVIDER
+MAX_CPU_SHARES = 1024
+
+VOLUME_CHUNK = 512 * SMALL_DIVIDER
 
 RESOURCE_ALLOCATION_FILENAME = 'resource_allocation.json'
 RESOURCE_ALLOCATION_FILEPATH = os.path.join(NODE_DATA_PATH, RESOURCE_ALLOCATION_FILENAME)

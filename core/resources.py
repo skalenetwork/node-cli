@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -25,26 +25,26 @@ from time import sleep
 import psutil
 
 from tools.schain_types import SchainTypes
-from tools.helper import write_json, read_json, run_cmd, format_output
+from tools.helper import write_json, read_json, run_cmd, format_output, extract_env_params
 from core.helper import safe_load_yml
-from configs import ALLOCATION_FILEPATH
-from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT, \
-    TINY_DIVIDER, TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, MEMORY_FACTOR, DISK_FACTOR, \
-    DISK_MOUNTPOINT_FILEPATH, VOLUME_CHUNK
+from configs import ALLOCATION_FILEPATH, CONFIGS_FILEPATH
+from configs.resource_allocation import (
+    RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
+    TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
+    MEMORY_FACTOR, DISK_MOUNTPOINT_FILEPATH, MAX_CPU_SHARES
+)
 
 logger = logging.getLogger(__name__)
-
-ALLOCATION_DATA = safe_load_yml(ALLOCATION_FILEPATH)
 
 
 class ResourceAlloc:
     def __init__(self, value, fractional=False):
         self.values = {
-            'part_test4': value / TEST_DIVIDER,
-            'part_test': value / TEST_DIVIDER,
-            'part_small': value / TINY_DIVIDER,
-            'part_medium': value / SMALL_DIVIDER,
-            'part_large': value / MEDIUM_DIVIDER
+            'test4': value / TEST_DIVIDER,
+            'test': value / TEST_DIVIDER,
+            'small': value / SMALL_DIVIDER,
+            'medium': value / MEDIUM_DIVIDER,
+            'large': value / LARGE_DIVIDER
         }
         if not fractional:
             for k in self.values:
@@ -54,17 +54,6 @@ class ResourceAlloc:
         return self.values
 
 
-class SChainVolumeAlloc():
-    def __init__(self, disk_alloc: ResourceAlloc, proportions: dict):
-        self.volume_alloc = {}
-        disk_alloc_dict = disk_alloc.dict()
-        for size_name in disk_alloc_dict:
-            self.volume_alloc[size_name] = {}
-            for key, value in proportions.items():
-                lim = int(value * disk_alloc_dict[size_name])
-                self.volume_alloc[size_name][key] = lim
-
-
 def get_resource_allocation_info():
     try:
         return read_json(RESOURCE_ALLOCATION_FILEPATH)
@@ -72,50 +61,55 @@ def get_resource_allocation_info():
         return None
 
 
-def generate_resource_allocation_config():
-    cpu_alloc = get_cpu_alloc()
-    mem_alloc = get_memory_alloc()
-    disk_alloc = get_disk_alloc()
-    schain_volume_alloc = get_schain_volume_alloc(disk_alloc)
+def compose_resource_allocation_config(env_type):
+    net_configs = safe_load_yml(CONFIGS_FILEPATH)
+    schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
+
+    schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(net_configs)
+    schain_mem_alloc, ima_mem_alloc = get_memory_alloc(net_configs)
+
+    verify_disk_size(net_configs, env_type)
+
     return {
-        'cpu': cpu_alloc.dict(),
-        'mem': mem_alloc.dict(),
-        'disk': disk_alloc.dict(),
         'schain': {
-            'storage_limit': get_storage_limit_alloc(),
-            **schain_volume_alloc.volume_alloc
+            'cpu_shares': schain_cpu_alloc.dict(),
+            'mem': schain_mem_alloc.dict(),
+            'disk': schain_allocation_data[env_type]['disk'],
+            'volume_limits': schain_allocation_data[env_type]['volume'],
+            'storage_limit': compose_storage_limit(schain_allocation_data[env_type]['leveldb'])
+        },
+        'ima': {
+            'cpu_shares': ima_cpu_alloc.dict(),
+            'mem': ima_mem_alloc.dict()
         }
     }
 
 
-def get_schain_volume_alloc(disk_alloc: ResourceAlloc) -> SChainVolumeAlloc:
-    proportions = get_schain_volume_proportions()
-    return SChainVolumeAlloc(disk_alloc, proportions)
-
-
-def get_schain_volume_proportions():
-    return ALLOCATION_DATA['schain_volume_proportions']
-
-
-def get_storage_limit_alloc(testnet=True):
-    network = 'testnet' if testnet else 'mainnet'
-    return ALLOCATION_DATA[network]['storage_limit']
-
-
-def save_resource_allocation_config(exist_ok=False) -> bool:
-    if os.path.isfile(RESOURCE_ALLOCATION_FILEPATH) and not exist_ok:
+def generate_resource_allocation_config(env_file, force=False) -> None:
+    if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
         msg = 'Resource allocation file is already exists'
-        print(msg)
         logger.debug(msg)
-        return True
-    logger.info('Generating resource allocation file')
+        print(msg)
+        return
+    env_params = extract_env_params(env_file)
+    if env_params is None:
+        return
+    logger.info('Generating resource allocation file ...')
     try:
-        resource_allocation_config = generate_resource_allocation_config()
-        write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
+        update_resource_allocation(env_params['ENV_TYPE'])
     except Exception as e:
         logger.exception(e)
-        return False
-    return True
+        print('Can\'t generate resource allocation file, check out CLI logs')
+    else:
+        print(
+            f'Resource allocation file generated: '
+            f'{RESOURCE_ALLOCATION_FILEPATH}'
+        )
+
+
+def update_resource_allocation(env_type) -> None:
+    resource_allocation_config = compose_resource_allocation_config(env_type)
+    write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
 
 
 def get_available_memory():
@@ -127,33 +121,55 @@ def get_available_memory():
     return sum(memory) / TIMES * MEMORY_FACTOR
 
 
-def get_memory_alloc():
-    available_memory = get_available_memory()
-    return ResourceAlloc(available_memory)
+def get_total_memory():
+    memory = []
+    for _ in range(0, TIMES):
+        mem_info = psutil.virtual_memory()
+        memory.append(mem_info.total)
+        sleep(TIMEOUT)
+    return sum(memory) / TIMES * MEMORY_FACTOR
 
 
-def get_cpu_alloc():
-    cpu_count = psutil.cpu_count()
-    return ResourceAlloc(cpu_count, fractional=True)
+def get_memory_alloc(net_configs):
+    mem_proportions = net_configs['common']['schain']['mem']
+    available_memory = get_total_memory()
+    schain_memory = mem_proportions['skaled'] * available_memory
+    ima_memory = mem_proportions['ima'] * available_memory
+    return ResourceAlloc(schain_memory), ResourceAlloc(ima_memory)
 
 
-def get_disk_alloc():
+def get_cpu_alloc(net_configs):
+    cpu_proportions = net_configs['common']['schain']['cpu']
+    schain_max_cpu_shares = int(cpu_proportions['skaled'] * MAX_CPU_SHARES)
+    ima_max_cpu_shares = int(cpu_proportions['ima'] * MAX_CPU_SHARES)
+    return (
+        ResourceAlloc(schain_max_cpu_shares),
+        ResourceAlloc(ima_max_cpu_shares)
+    )
+
+
+def verify_disk_size(net_configs: dict, env_type: str) -> dict:
+    disk_size = get_disk_size()
+    env_disk_size = net_configs['envs'][env_type]['server']['disk_size_bytes']
+    check_disk_size(disk_size, env_disk_size)
+
+
+def check_disk_size(disk_size: int, env_disk_size: int):
+    if env_disk_size > disk_size:
+        raise Exception(f'Disk size: {disk_size}, required disk size: {env_disk_size}')
+
+
+def get_disk_size():
     disk_path = get_disk_path()
-    try:
-        disk_size = get_disk_size(disk_path)
-    except subprocess.CalledProcessError:
-        raise Exception("Couldn't get disk size, check disk mountpoint option.")
-    # if check_is_partition(disk_path):
-    #    raise Exception("You provided partition path instead of disk mountpoint.")
-    free_space = int(disk_size * DISK_FACTOR) // VOLUME_CHUNK * VOLUME_CHUNK
-    return ResourceAlloc(free_space)
-
-
-def get_disk_size(disk_path):
     disk_size_cmd = construct_disk_size_cmd(disk_path)
-    res = run_cmd(disk_size_cmd, shell=True)
-    stdout, stderr = format_output(res)
-    return int(stdout)
+    try:
+        res = run_cmd(disk_size_cmd, shell=True)
+        stdout, _ = format_output(res)
+        return int(stdout)
+    except subprocess.CalledProcessError:
+        raise Exception(
+            "Couldn't get disk size, check disk mountpoint option."
+        )
 
 
 def construct_disk_size_cmd(disk_path):
@@ -176,3 +192,8 @@ def get_allocation_option_name(schain):
 def get_disk_path():
     f = open(DISK_MOUNTPOINT_FILEPATH, "r")
     return f.read()
+
+
+def compose_storage_limit(leveldb_lim):
+    """Helper function was the backward compatibility with old skale-admin"""
+    return {k: leveldb_lim[k]['evm_storage_part'] for k in leveldb_lim.keys()}

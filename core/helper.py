@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import sys
 import os
 import re
 import shutil
@@ -26,15 +27,15 @@ import urllib.parse
 
 import logging
 import logging.handlers as py_handlers
-from logging import Formatter
+from logging import Formatter, StreamHandler
 
 import requests
 import yaml
 
 from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, ROUTES
-from configs.cli_logger import (LOG_FORMAT, LOG_BACKUP_COUNT,
-                                LOG_FILE_SIZE_BYTES,
-                                LOG_FILEPATH, DEBUG_LOG_FILEPATH)
+from configs.cli_logger import (
+    FILE_LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
+    LOG_FILEPATH, STREAM_LOG_FORMAT, DEBUG_LOG_FILEPATH)
 from core.print_formatters import print_err_response
 from tools.helper import session_config
 
@@ -145,24 +146,36 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
+    stream_handler = get_stream_handler()
     logging.basicConfig(level=logging.DEBUG, handlers=[
-                        f_handler, debug_f_handler])
+                        f_handler, debug_f_handler, stream_handler])
 
 
 def get_file_handler(log_filepath, log_level):
-    formatter = Formatter(LOG_FORMAT)
-    f_handler = py_handlers.RotatingFileHandler(log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
-                                                backupCount=LOG_BACKUP_COUNT)
+    formatter = Formatter(FILE_LOG_FORMAT)
+    f_handler = py_handlers.RotatingFileHandler(
+        log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
+        backupCount=LOG_BACKUP_COUNT)
     f_handler.setFormatter(formatter)
     f_handler.setLevel(log_level)
 
     return f_handler
 
 
+def get_stream_handler():
+    formatter = Formatter(STREAM_LOG_FORMAT)
+    stream_handler = StreamHandler(sys.stderr)
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(logging.INFO)
+    return stream_handler
+
+
 def load_ssl_files(key_path, cert_path):
     return {
-        'ssl_key': (os.path.basename(key_path), read_file(key_path), 'application/octet-stream'),
-        'ssl_cert': (os.path.basename(cert_path), read_file(cert_path), 'application/octet-stream')
+        'ssl_key': (os.path.basename(key_path),
+                    read_file(key_path), 'application/octet-stream'),
+        'ssl_cert': (os.path.basename(cert_path),
+                     read_file(cert_path), 'application/octet-stream')
     }
 
 
@@ -189,3 +202,17 @@ def upload_certs(key_path, cert_path, force):
 def to_camel_case(snake_str):
     components = snake_str.split('_')
     return components[0] + ''.join(x.title() for x in components[1:])
+
+
+def validate_abi(abi_filepath: str) -> dict:
+    if not os.path.isfile(abi_filepath):
+        return {'filepath': abi_filepath,
+                'status': 'error',
+                'msg': 'No such file'}
+    try:
+        with open(abi_filepath) as abi_file:
+            json.load(abi_file)
+    except Exception:
+        return {'filepath': abi_filepath, 'status': 'error',
+                'msg': 'Failed to load abi file as json'}
+    return {'filepath': abi_filepath, 'status': 'ok', 'msg': ''}

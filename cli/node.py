@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -22,13 +22,10 @@ from urllib.parse import urlparse
 
 import click
 
-from skale.utils.random_names.generator import generate_random_node_name
-
 from core.core import get_node_info, get_node_about
 from core.node import (get_node_signature, init, restore,
-                       register_node as register, update, backup,
-                       set_maintenance_mode_on, set_maintenance_mode_off)
-from core.host import install_host_dependencies
+                       register_node as register, update, backup, set_maintenance_mode_on,
+                       set_maintenance_mode_off, turn_off, turn_on, set_domain_name)
 from core.helper import abort_if_false, safe_load_texts
 from configs import DEFAULT_NODE_BASE_PORT
 from tools.helper import session_config
@@ -95,7 +92,8 @@ def node_about(format):
 @node.command('register', help="Register current node in the SKALE Manager")
 @click.option(
     '--name', '-n',
-    default=generate_random_node_name(),
+    required=True,
+    prompt="Enter node name",
     help='SKALE node name'
 )
 @click.option(
@@ -110,54 +108,53 @@ def node_about(format):
     type=int,
     help='Base port for node sChains'
 )
-def register_node(name, ip, port):
+@click.option(
+    '--domain', '-d',
+    prompt="Enter node domain name",
+    type=str,
+    help='Node domain name'
+)
+@click.option(
+    '--gas-limit',
+    default=None,
+    type=int,
+    help='Gas limit for registration transaction'
+)
+@click.option(
+    '--gas-price',
+    default=None,
+    type=int,
+    help='Gas price for registration transaction in Gwei'
+)
+@click.option(
+    '--skip-dry-run',
+    is_flag=True,
+    default=False,
+    help='Skip dry run for registration transaction'
+)
+def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
     config = session_config()
-    register(config, name, ip, ip, port)
+    register(config, name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
 
 
 @node.command('init', help="Initialize SKALE node")
 @click.argument('env_file')
 @click.option(
-    '--install-deps',
-    is_flag=True,
-    help='Install host dependencies'
-)
-@click.option(
     '--dry-run',
     is_flag=True,
     help="Dry run node init (don't setup containers)"
 )
-def init_node(env_file, install_deps, dry_run):
-    if install_deps:
-        install_host_dependencies()
+def init_node(env_file, dry_run):
     init(env_file, dry_run)
 
 
-# @node.command('purge', help="Uninstall SKALE node software from the machine")
-# @click.option('--yes', is_flag=True, callback=abort_if_false,
-#               expose_value=False,
-#               prompt='Are you sure you want to uninstall SKALE node?')
-# def purge_node():
-#     purge()
-
-
-# @node.command('deregister', help="De-register node from the SKALE Manager")
-# @click.option('--yes', is_flag=True, callback=abort_if_false,
-#               expose_value=False,
-#               prompt='Are you sure you want to de-register '
-#                      'this node from SKALE Manager?')
-# def deregister_node():
-#     deregister()
-
-
-@node.command('update', help='De-register node from the SKALE Manager')
-@click.option('--sync-schains', is_flag=True)
+@node.command('update', help='Update node from .env file')
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.argument('env_file')
-def update_node(sync_schains, env_file):
-    update(env_file, sync_schains)
+def update_node(env_file):
+    update(env_file)
 
 
 @node.command('signature', help='Get node signature for given validator id')
@@ -170,8 +167,11 @@ def signature(validator_id):
 @node.command('backup', help="Generate backup file to restore SKALE node on another machine")
 @click.argument('backup_folder_path')
 @click.argument('env_file')
-def backup_node(backup_folder_path, env_file):
-    backup(backup_folder_path, env_file)
+@click.option('--no-database', is_flag=True,
+              help="Skip mysql backup")
+def backup_node(backup_folder_path, env_file, no_database):
+    backup_mysql = True if not no_database else False
+    backup(backup_folder_path, env_file, backup_mysql)
 
 
 @node.command('restore', help="Restore SKALE node on another machine")
@@ -192,3 +192,50 @@ def set_node_in_maintenance():
 @node.command('maintenance-off', help="Remove SKALE node from maintenance mode")
 def remove_node_from_maintenance():
     set_maintenance_mode_off()
+
+
+@node.command('turn-off', help='Turn off the node')
+@click.option(
+    '--maintenance-on',
+    help='Set SKALE node into maintenance mode before turning off',
+    is_flag=True
+)
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to turn off the node?')
+def _turn_off(maintenance_on):
+    turn_off(maintenance_on)
+
+
+@node.command('turn-on', help='Turn on the node')
+@click.option(
+    '--maintenance-off',
+    help='Turn off maintenance mode after turning on the node',
+    is_flag=True
+)
+@click.option(
+    '--sync-schains',
+    help='Run all sChains in the snapshot download mode',
+    is_flag=True,
+    hidden=True
+)
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to turn on the node?')
+@click.argument('env_file')
+def _turn_on(maintenance_off, sync_schains, env_file):
+    turn_on(maintenance_off, sync_schains, env_file)
+
+
+@node.command('set-domain', help="Set node domain name")
+@click.option(
+    '--domain', '-d',
+    prompt="Enter node domain name",
+    type=str,
+    help='Node domain name'
+)
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to set domain name?')
+def _set_domain_name(domain):
+    set_domain_name(domain)

@@ -35,5 +35,9 @@ ROUTES = {
     'turn_off_schain_firewall_rules': '/api/schains/firewall/off',
 
     'maintenance_on': '/api/node/maintenance-on',
-    'maintenance_off': '/api/node/maintenance-off'
+    'maintenance_off': '/api/node/maintenance-off',
+    'repair_schain': '/api/schains/repair',
+    'describe_schain': '/api/schains/get',
+
+    'set_domain_name': '/api/node/set-domain-name'
 }

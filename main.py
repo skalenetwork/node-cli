@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019-2020 SKALE Labs
 #
@@ -17,11 +17,13 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import click
 import sys
+import time
 import logging
 import inspect
 import traceback
+
+import click
 
 from cli import __version__
 from cli.containers import containers_cli
@@ -33,6 +35,7 @@ from cli.wallet import wallet_cli
 from cli.ssl import ssl_cli
 from cli.sgx import sgx_cli
 from cli.exit import exit_cli
+from cli.validate import validate_cli
 from cli.resources_allocation import resources_allocation_cli
 
 from core.helper import (safe_load_texts, init_default_logger)
@@ -83,18 +86,31 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 if __name__ == '__main__':
+    start_time = time.time()
     init_logs_dir()
     init_default_logger()
     args = sys.argv
     # todo: hide secret variables (passwords, private keys)
-    logger.info(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
+    logger.debug(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
 
     cmd_collection = click.CommandCollection(
-        sources=[cli, schains_cli, containers_cli, logs_cli, resources_allocation_cli,
-                 node_cli, wallet_cli, ssl_cli, sgx_cli, exit_cli])
+        sources=[
+            cli,
+            schains_cli,
+            containers_cli,
+            logs_cli,
+            resources_allocation_cli,
+            node_cli,
+            wallet_cli,
+            ssl_cli,
+            sgx_cli,
+            exit_cli,
+            validate_cli
+        ])
     try:
         cmd_collection()
     except Exception as err:
         print(f'Command execution failed with {err}. Recheck your inputs')
         traceback.print_exc()
         logger.error(err)
+    logger.debug(f'execution time: {time.time() - start_time} seconds')

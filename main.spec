@@ -12,12 +12,12 @@ a = Analysis(
     binaries=[],
     datas=[
        ("./text.yml", "data"),
-       ("./datafiles/dependencies.sh", "data/datafiles"),
        ("./datafiles/install.sh", "data/datafiles"),
        ("./datafiles/backup-install.sh", "data/datafiles"),
        ("./datafiles/update.sh", "data/datafiles"),
        ("./datafiles/helper.sh", "data/datafiles"),
-       ("./datafiles/allocation.yml", "data/datafiles"),
+       ("./datafiles/turn-off.sh", "data/datafiles"),
+       ("./datafiles/turn-on.sh", "data/datafiles")
     ],
     hiddenimports=[],
     hookspath=[],

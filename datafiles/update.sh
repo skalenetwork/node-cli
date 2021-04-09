@@ -9,8 +9,6 @@ source "$DATAFILES_FOLDER"/helper.sh
 
 cd $SKALE_DIR
 
-export $(grep -v '^#' .env | xargs)
-
 remove_compose_containers
 remove_dynamic_containers
 
@@ -32,6 +30,9 @@ if [[ -z $CONTAINER_CONFIGS_DIR ]]; then
     echo "Pulling new version of images ..."
     SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml pull
 else
+    echo "Syncing configs with CONTAINER_CONFIGS_DIR"
+    rsync -r "$CONTAINER_CONFIGS_DIR/" "$CONFIG_DIR"
+    rsync -r "$CONTAINER_CONFIGS_DIR/.git" "$CONFIG_DIR"
     echo "Building containers ..."
     SKALE_DIR=$SKALE_DIR docker-compose -f docker-compose.yml build
 fi
