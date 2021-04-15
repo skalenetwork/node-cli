@@ -59,9 +59,9 @@ def get_all_ima_containers(_all=True) -> list:
 
 
 def remove_dynamic_containers():
-    logger.info(f'Removing sChains containers')
+    logger.info('Removing sChains containers')
     rm_all_schain_containers()
-    logger.info(f'Removing IMA containers')
+    logger.info('Removing IMA containers')
     rm_all_ima_containers()
 
 
@@ -110,7 +110,7 @@ def get_logs_backup_filepath(container: Container) -> str:
     return os.path.join(REMOVED_CONTAINERS_FOLDER_PATH, log_file_name)
 
 
-def compose_rm(env):
+def compose_rm(env={}):
     logger.info(f'Removing {MAIN_COMPOSE_CONTAINERS} containers')
     run_cmd(
         cmd=f'docker-compose -f {COMPOSE_PATH} rm -s -f {MAIN_COMPOSE_CONTAINERS}'.split(),

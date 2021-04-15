@@ -24,6 +24,10 @@ from shutil import copyfile
 from urllib.parse import urlparse
 
 from node_cli.core.resources import update_resource_allocation
+from node_cli.core.checks import (
+    get_net_params, DockerChecker, ListChecks,
+    MachineChecker, PackagesChecker
+)
 
 from node_cli.configs import (
     ADMIN_PORT, DEFAULT_URL_SCHEME, NODE_DATA_PATH,
@@ -74,6 +78,22 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
     save_sgx_server_url(sgx_server_url)
     if allocation:
         update_resource_allocation(env_type)
+
+
+def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:
+    logger.info('Checking that host meets requirements ...')
+    requirements = get_net_params(env_type)
+    checkers = [
+        MachineChecker(requirements),
+        PackagesChecker(requirements),
+        DockerChecker(requirements)
+    ]
+    result = []
+    for checker in checkers:
+        result.extend(filter(lambda r: r.status == 'error', checker.check()))
+    if result:
+        logger.info('Host is not fully meet the requirements')
+    return result
 
 
 def is_node_inited():

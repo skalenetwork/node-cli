@@ -90,7 +90,7 @@ def test_update_allocation_config(resource_alloc_config):
             assert json.load(jfile) != INITIAL_CONFIG
 
 
-def test_get_static_disk_alloc_devnet():
+def test_get_static_disk_alloc_devnet(net_params_file):
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=SMALL_DISK_SIZE):
         with pytest.raises(Exception):
             get_static_disk_alloc(DEFAULT_ENV_TYPE)
@@ -111,7 +111,7 @@ def test_get_static_disk_alloc_devnet():
     }
 
 
-def test_get_static_disk_alloc_mainnet():
+def test_get_static_disk_alloc_mainnet(net_params_file):
     env_type = 'mainnet'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
         with pytest.raises(Exception):

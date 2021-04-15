@@ -28,17 +28,25 @@ from enum import Enum
 import docker
 
 from node_cli.configs import (
-    SKALE_DIR, UNINSTALL_SCRIPT, BACKUP_INSTALL_SCRIPT, DATAFILES_FOLDER, INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT, TURN_OFF_SCRIPT, TURN_ON_SCRIPT,
-    TM_INIT_TIMEOUT
+    SKALE_DIR, INIT_ENV_FILEPATH,
+    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT, TM_INIT_TIMEOUT
 )
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
-from node_cli.operations import update_op, init_op
-from node_cli.core.resources import update_resource_allocation
+from node_cli.core.iptables import configure_iptables
 from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
-from node_cli.core.host import save_env_params, get_flask_secret_key
-from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info
+from node_cli.core.host import (
+    is_node_inited, save_env_params,
+    get_flask_secret_key, run_preinstall_checks
+)
+from node_cli.core.resources import update_resource_allocation
+from node_cli.operations import (
+    update_op,
+    init_op, turn_off_op, turn_on_op, restore_op
+)
+from node_cli.utils.print_formatters import (
+    print_failed_requirements_checks, print_node_cmd_error, print_node_info
+)
 from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.helper import run_cmd, extract_env_params
 from node_cli.utils.texts import Texts
@@ -61,22 +69,6 @@ class NodeStatuses(Enum):
     IN_MAINTENANCE = 3
     LEFT = 4
     NOT_CREATED = 5
-
-
-@check_not_inited
-def init(env_filepath):
-    env = get_node_env(env_filepath)
-    if env is None:
-        return
-    init_op(env_filepath, env)
-    logger.info('Waiting for transaction manager initialization')
-    time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive():
-        error_exit('Containers are not running', exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-        return
-    logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
-    logger.info('Init procedure finished')
 
 
 @check_inited
@@ -113,44 +105,46 @@ def register_node(name, p2p_ip,
 
 
 @check_not_inited
+def init(env_filepath):
+    env = get_node_env(env_filepath)
+    if env is None:
+        return
+    init_result = init_op(env_filepath, env)
+    if not init_result:
+        error_exit(
+            'Init operation failed',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+        return
+    logger.info('Waiting for transaction manager initialization')
+    time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        error_exit(
+            'Containers are not running',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+        return
+    logger.info('Generating resource allocation file ...')
+    update_resource_allocation(env['ENV_TYPE'])
+    logger.info('Init procedure finished')
+
+
+@check_not_inited
 def restore(backup_path, env_filepath):
-    env_params = extract_env_params(env_filepath)
-    if env_params is None:
+    env = get_node_env(env_filepath)
+    if env is None:
         return
     save_env_params(env_filepath)
-    if not run_restore_script(backup_path, env_params):
-        return
+    env['SKALE_DIR'] = SKALE_DIR
+    env['BACKUP_RUN'] = 'True'  # should be str
+    restore_op(env, backup_path)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     if not restore_mysql_backup(env_filepath):
         print('WARNING: MySQL data restoring failed. '
               'Check < skale logs cli > for more information')
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env_params['ENV_TYPE'])
+    update_resource_allocation(env['ENV_TYPE'])
     print('Node is restored from backup')
-
-
-def run_restore_script(backup_path, env_params) -> bool:
-    env = {
-        'SKALE_DIR': SKALE_DIR,
-        'DATAFILES_FOLDER': DATAFILES_FOLDER,
-        'BACKUP_RUN': 'True',
-        'BACKUP_PATH': backup_path,
-        'HOME_DIR': HOME_DIR,
-        **env_params
-    }
-    try:
-        run_cmd(['bash', BACKUP_INSTALL_SCRIPT], env=env)
-    except Exception:
-        logger.exception('Restore script process errored')
-        print_node_cmd_error()
-        return False
-    return True
-
-
-def purge():
-    # todo: check that node is installed
-    run_cmd(['sudo', 'bash', UNINSTALL_SCRIPT])
-    print('Success')
 
 
 def get_node_env(env_filepath, inited_node=False, sync_schains=None):
@@ -163,7 +157,6 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
         env_params = extract_env_params(INIT_ENV_FILEPATH)
     env = {
         'SKALE_DIR': SKALE_DIR,
-        'DATAFILES_FOLDER': DATAFILES_FOLDER,
         **env_params
     }
     if inited_node:
@@ -267,47 +260,25 @@ def set_maintenance_mode_off():
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def run_turn_off_script():
-    print('Turing off the node...')
-    cmd_env = {
-        'SKALE_DIR': SKALE_DIR,
-        'DATAFILES_FOLDER': DATAFILES_FOLDER
-    }
-    try:
-        run_cmd(['bash', TURN_OFF_SCRIPT], env=cmd_env)
-    except Exception:
-        error_msg = 'Turning off failed'
-        logger.exception(error_msg)
-        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-    print('Node was successfully turned off')
-
-
-def run_turn_on_script(sync_schains, env_filepath):
-    print('Turning on the node...')
-    env = get_node_env(env_filepath, inited_node=True, sync_schains=sync_schains)
-    try:
-        run_cmd(['bash', TURN_ON_SCRIPT], env=env)
-    except Exception:
-        error_msg = 'Turning on failed'
-        logger.exception(error_msg)
-        error_exit(error_msg, exit_code=CLIExitCodes.SCRIPT_EXECUTION_ERROR)
-    print('Waiting for transaction manager initialization ...')
-    time.sleep(TM_INIT_TIMEOUT)
-    print('Node was successfully turned on')
-
-
 @check_inited
 @check_user
 def turn_off(maintenance_on):
     if maintenance_on:
         set_maintenance_mode_on()
-    run_turn_off_script()
+    turn_off_op()
 
 
 @check_inited
 @check_user
 def turn_on(maintenance_off, sync_schains, env_file):
-    run_turn_on_script(sync_schains, env_file)
+    env = get_node_env(env_file, inited_node=True, sync_schains=sync_schains)
+    turn_on_op(env)
+    logger.info('Waiting for transaction manager initialization')
+    time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive():
+        print_node_cmd_error()
+        return
+    logger.info('Node turned on')
     if maintenance_off:
         set_maintenance_mode_off()
 
@@ -359,3 +330,22 @@ def set_domain_name(domain_name):
         print(msg)
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def run_checks(network: str) -> None:
+    if not is_node_inited():
+        print(TEXTS['node']['not_inited'])
+        return
+
+    failed_checks = run_preinstall_checks(network)
+    if not failed_checks:
+        print('Requirements checking succesfully finished!')
+    else:
+        print('Node is not fully meet the requirements!')
+        print_failed_requirements_checks(failed_checks)
+
+
+def configure_firewall_rules() -> None:
+    print('Configuring firewall ...')
+    configure_iptables()
+    print('Done')

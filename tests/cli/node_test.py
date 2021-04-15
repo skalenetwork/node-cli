@@ -349,6 +349,8 @@ def test_restore(mocked_g_config):
     backup_path = result.output.replace(
         'Backup archive successfully created: ', '').replace('\n', '')
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('node_cli.core.node.restore_op'), \
+            mock.patch('node_cli.core.node.restore_mysql_backup'), \
             mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
             mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         result = run_command(
@@ -392,7 +394,8 @@ def test_turn_off_maintenance_on(mocked_g_config):
         {'status': 'ok', 'payload': None}
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+            mock.patch('node_cli.core.node.turn_off_op'), \
+            mock.patch('node_cli.core.node.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -402,7 +405,7 @@ def test_turn_off_maintenance_on(mocked_g_config):
                 '--yes'
             ])
     assert result.exit_code == 0
-    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\nTuring off the node...\nNode was successfully turned off\n'  # noqa
+    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'  # noqa
 
 
 def test_turn_on_maintenance_off(mocked_g_config):
@@ -412,7 +415,9 @@ def test_turn_on_maintenance_off(mocked_g_config):
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.node.get_flask_secret_key'), \
-            mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+            mock.patch('node_cli.core.node.turn_on_op'), \
+            mock.patch('node_cli.core.node.is_base_containers_alive'), \
+            mock.patch('node_cli.core.node.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -425,7 +430,7 @@ def test_turn_on_maintenance_off(mocked_g_config):
             ])
 
     assert result.exit_code == 0
-    assert result.output == 'Turning on the node...\nWaiting for transaction manager initialization ...\nNode was successfully turned on\nSetting maintenance mode off...\nNode is successfully removed from maintenance mode\n'  # noqa
+    assert result.output == 'Setting maintenance mode off...\nNode is successfully removed from maintenance mode\n'  # noqa, tmp fix
 
 
 def test_set_domain_name():

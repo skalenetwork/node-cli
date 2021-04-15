@@ -17,7 +17,10 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from node_cli.operations.base import ( # noqa
+from node_cli.operations.base import (  # noqa
     update as update_op,
-    init as init_op
+    init as init_op,
+    turn_off as turn_off_op,
+    turn_on as turn_on_op,
+    restore as restore_op
 )
