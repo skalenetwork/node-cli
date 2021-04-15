@@ -23,9 +23,12 @@ import pytest
 import yaml
 
 from node_cli.configs import ENVIRONMENT_PARAMS_FILEPATH
+from node_cli.utils.global_config import generate_g_config_file
+
 
 TEST_GLOBAL_SKALE_DIR = os.path.join(os.environ.get('HOME_DIR'), 'etc', 'skale')
 TEST_G_CONF_FP = os.path.join(TEST_GLOBAL_SKALE_DIR, 'conf.json')
+
 
 TEST_NET_PARAMS = """
 mainnet:
@@ -121,4 +124,5 @@ def mocked_g_config():
         'node_cli.utils.global_config.GLOBAL_SKALE_CONF_FILEPATH',
         new=TEST_G_CONF_FP
     ), mock.patch('node_cli.utils.global_config.GLOBAL_SKALE_DIR', new=TEST_GLOBAL_SKALE_DIR):
+        generate_g_config_file()
         yield
