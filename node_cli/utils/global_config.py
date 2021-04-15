@@ -60,3 +60,7 @@ def is_user_valid(allow_root=True):
 
 def get_g_conf_user():
     return read_g_config()['user']
+
+
+def get_g_conf_home():
+    return read_g_config()['home_dir']

@@ -27,6 +27,8 @@ TEST_G_CONF_FP = os.path.join(TEST_GLOBAL_SKALE_DIR, 'conf.json')
 
 @pytest.fixture()
 def mocked_g_config():
-    with mock.patch('node_cli.utils.validations.GLOBAL_SKALE_CONF_FILEPATH', new=TEST_G_CONF_FP), \
-            mock.patch('node_cli.utils.validations.GLOBAL_SKALE_DIR', new=TEST_GLOBAL_SKALE_DIR):
+    with mock.patch(
+        'node_cli.utils.global_config.GLOBAL_SKALE_CONF_FILEPATH',
+        new=TEST_G_CONF_FP
+    ), mock.patch('node_cli.utils.global_config.GLOBAL_SKALE_DIR', new=TEST_GLOBAL_SKALE_DIR):
         yield

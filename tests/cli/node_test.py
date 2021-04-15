@@ -50,7 +50,7 @@ def test_register_node(mocked_g_config):
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
     )
-    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -65,7 +65,7 @@ def test_register_node_with_error(mocked_g_config):
         requests.codes.ok,
         {'status': 'error', 'payload': ['Strange error']},
     )
-    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -80,7 +80,7 @@ def test_register_node_with_prompted_ip(mocked_g_config):
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
     )
-    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -95,7 +95,7 @@ def test_register_node_with_default_port(mocked_g_config):
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
     )
-    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -115,7 +115,7 @@ def test_init_node(caplog):  # todo: write new init node test
                 mock.patch('node_cli.core.node.init_op'), \
                 mock.patch('node_cli.core.node.is_base_containers_alive',
                            return_value=True), \
-                mock.patch('node_cli.utils.validations.is_node_inited', return_value=False):
+                mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
             result = run_command_mock(
                 'node_cli.utils.helper.post_request',
                 resp_mock,
@@ -158,7 +158,7 @@ def test_update_node_without_init():
             mock.patch('node_cli.core.host.init_data_dir'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \
-            mock.patch('node_cli.utils.validations.is_node_inited', return_value=False):
+            mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         result = run_command_mock(
             'node_cli.utils.helper.post_request',
             resp_mock,
@@ -350,7 +350,7 @@ def test_restore(mocked_g_config):
         'Backup archive successfully created: ', '').replace('\n', '')
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
-            mock.patch('node_cli.utils.validations.is_node_inited', return_value=False):
+            mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         result = run_command(
             restore_node,
             [backup_path, './tests/test-env']
@@ -392,7 +392,7 @@ def test_turn_off_maintenance_on(mocked_g_config):
         {'status': 'ok', 'payload': None}
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+            mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -412,7 +412,7 @@ def test_turn_on_maintenance_off(mocked_g_config):
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.node.get_flask_secret_key'), \
-            mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+            mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -434,7 +434,7 @@ def test_set_domain_name():
         {'status': 'ok', 'payload': None}
     )
 
-    with mock.patch('node_cli.utils.validations.is_node_inited', return_value=True):
+    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,

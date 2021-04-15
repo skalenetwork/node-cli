@@ -43,7 +43,7 @@ from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.helper import run_cmd, extract_env_params
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.validations import check_not_inited, check_inited, check_user
+from node_cli.utils.decorators import check_not_inited, check_inited, check_user
 
 
 logger = logging.getLogger(__name__)
