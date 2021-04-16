@@ -59,7 +59,7 @@ setup(
         "python-dotenv==0.13.0",
         "terminaltables==3.1.0",
         "requests==2.23.0",
-        "GitPython==3.1.12",
+        "GitPython==3.1.14",
         "PyYAML==5.4.1",
         "packaging==20.9",
         "python-debian==0.1.39",
