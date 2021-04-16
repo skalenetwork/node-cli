@@ -21,7 +21,7 @@ def find_version(*file_paths):
 extras_require = {
     'linter': [
         "flake8==3.7.9",
-        "isort>=4.2.15,<5.4.3",
+        "isort>=4.2.15,<5.8.1",
     ],
     'dev': [
         "bumpversion==0.6.0",
@@ -59,7 +59,7 @@ setup(
         "python-dotenv==0.13.0",
         "terminaltables==3.1.0",
         "requests==2.23.0",
-        "GitPython==3.1.12",
+        "GitPython==3.1.14",
         "PyYAML==5.4.1",
         "packaging==20.9",
         "python-debian==0.1.39",
