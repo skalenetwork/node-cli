@@ -18,49 +18,40 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import json
+import logging
 
-from node_cli.core.host import safe_mk_dirs
-from node_cli.utils.helper import write_json, read_json
-from node_cli.configs import GLOBAL_SKALE_CONF_FILEPATH, GLOBAL_SKALE_DIR
+logger = logging.getLogger(__name__)
 
 
-def read_g_config() -> dict:
+def get_system_user() -> str:
+    user = os.getenv('SUDO_USER', os.getenv('USER'))
+    if not user:
+        raise ValueError('SUDO_USER or USER env variable should be set')
+    return user
+
+
+def read_g_config(g_skale_dir: str, g_skale_conf_filepath: str) -> dict:
     """Read global SKALE config file, init if not exists"""
-    try:
-        return read_json(GLOBAL_SKALE_CONF_FILEPATH)
-    except FileNotFoundError:
-        return generate_g_config_file()
+    if not os.path.isfile(g_skale_conf_filepath):
+        return generate_g_config_file(g_skale_dir, g_skale_conf_filepath)
+    with open(g_skale_conf_filepath, encoding='utf-8') as data_file:
+        return json.loads(data_file.read())
 
 
-def generate_g_config_file() -> dict:
+def generate_g_config_file(g_skale_dir: str, g_skale_conf_filepath: str) -> dict:
     """Init global SKALE config file"""
-    safe_mk_dirs(GLOBAL_SKALE_DIR)
+    logger.info('Generating global SKALE config file...')
+    os.makedirs(g_skale_dir, exist_ok=True)
+
+    user = os.environ['USER']
+    user = os.getenv('SUDO_USER', user)
+
     g_config = {
         'user': get_system_user(),
         'home_dir': os.path.expanduser('~')
     }
-    write_json(GLOBAL_SKALE_CONF_FILEPATH, g_config)
+    logger.info(f'{g_skale_conf_filepath} content: {g_config}')
+    with open(g_skale_conf_filepath, 'w') as outfile:
+        json.dump(g_config, outfile, indent=4)
     return g_config
-
-
-def get_system_user() -> str:
-    if os.getenv('SUDO_USER'):
-        return os.environ['SUDO_USER']
-    else:
-        return os.environ['USER']
-
-
-def is_user_valid(allow_root=True):
-    current_user = get_system_user()
-    if current_user == 'root' and allow_root:
-        return True
-    g_conf_user = get_g_conf_user()
-    return current_user == g_conf_user
-
-
-def get_g_conf_user():
-    return read_g_config()['user']
-
-
-def get_g_conf_home():
-    return read_g_config()['home_dir']

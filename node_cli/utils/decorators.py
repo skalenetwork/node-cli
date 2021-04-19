@@ -20,10 +20,10 @@
 from functools import wraps
 
 from node_cli.core.host import is_node_inited
-from node_cli.utils.helper import error_exit
+from node_cli.utils.helper import error_exit, is_user_valid, get_g_conf_user, get_system_user
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.global_config import is_user_valid, get_g_conf_user, get_system_user
+
 
 TEXTS = Texts()
 

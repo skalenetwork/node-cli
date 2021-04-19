@@ -1,30 +1,27 @@
 
 import os
-from node_cli.utils.global_config import (
-    read_g_config, generate_g_config_file, get_system_user, is_user_valid, get_g_conf_user
-)
-from node_cli.utils.helper import write_json
-
-from tests.conftest import TEST_G_CONF_FP
+from node_cli.utils.global_config import read_g_config, generate_g_config_file
+from node_cli.utils.helper import write_json, get_system_user, is_user_valid, get_g_conf_user
+from node_cli.configs import GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH
 
 
 def test_read_g_config(mocked_g_config):
-    write_json(TEST_G_CONF_FP, {'test': 1})
-    g_config = read_g_config()
+    write_json(GLOBAL_SKALE_CONF_FILEPATH, {'test': 1})
+    g_config = read_g_config(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
     assert g_config['test'] == 1
 
 
 def test_generate_g_config_file(mocked_g_config):
     try:
-        os.remove(TEST_G_CONF_FP)
+        os.remove(GLOBAL_SKALE_CONF_FILEPATH)
     except OSError:
         pass
 
-    assert not os.path.exists(TEST_G_CONF_FP)
-    generate_g_config_file()
-    assert os.path.exists(TEST_G_CONF_FP)
+    assert not os.path.exists(GLOBAL_SKALE_CONF_FILEPATH)
+    generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+    assert os.path.exists(GLOBAL_SKALE_CONF_FILEPATH)
 
-    g_config = read_g_config()
+    g_config = read_g_config(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
     assert g_config['user'] == get_system_user()
     assert g_config['home_dir'] == os.path.expanduser('~')
 
@@ -40,10 +37,10 @@ def test_get_system_user():
 
 
 def test_is_user_valid(mocked_g_config):
-    generate_g_config_file()
+    generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
     assert is_user_valid()
 
-    write_json(TEST_G_CONF_FP, {'user': 'skaletest'})
+    write_json(GLOBAL_SKALE_CONF_FILEPATH, {'user': 'skaletest'})
     assert not is_user_valid()
 
     sudo_user = os.environ.get('SUDO_USER')
@@ -58,5 +55,5 @@ def test_is_user_valid(mocked_g_config):
 
 
 def test_get_g_conf_user(mocked_g_config):
-    write_json(TEST_G_CONF_FP, {'user': 'test_get_g_conf_user'})
+    write_json(GLOBAL_SKALE_CONF_FILEPATH, {'user': 'test_get_g_conf_user'})
     assert get_g_conf_user() == 'test_get_g_conf_user'
