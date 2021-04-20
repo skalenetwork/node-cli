@@ -101,7 +101,7 @@ def test_register_node_with_default_port(resource_alloc, mocked_g_config):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_with_no_alloc(resource_alloc, mocked_g_config):
+def test_register_with_no_alloc(mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -111,9 +111,9 @@ def test_register_with_no_alloc(resource_alloc, mocked_g_config):
         resp_mock,
         register_node,
         ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
-    assert result.exit_code == 0
+    assert result.exit_code == 8
     print(repr(result.output))
-    assert result.output == "Enter node public IP: 0.0.0.0\nNode hasn't been inited before.\nYou should run < skale node init >\n"  # noqa
+    assert result.output == "Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n"  # noqa
 
 
 def test_init_node(caplog):  # todo: write new init node test
