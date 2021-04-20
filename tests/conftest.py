@@ -16,19 +16,23 @@
 #
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+""" SKALE config test """
 
 import os
 import mock
 import yaml
+import json
+
 import pytest
 
 from node_cli.configs import (
   ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH
 )
 from node_cli.utils.global_config import generate_g_config_file
+from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 
 
-TEST_NET_PARAMS = """
+TEST_ENV_PARAMS = """
 mainnet:
   server:
     cpu_total: 4
@@ -108,7 +112,7 @@ devnet:
 def net_params_file():
     with open(ENVIRONMENT_PARAMS_FILEPATH, 'w') as f:
         yaml.dump(
-            yaml.load(TEST_NET_PARAMS, Loader=yaml.Loader),
+            yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader),
             stream=f,
             Dumper=yaml.Dumper
         )
@@ -122,3 +126,11 @@ def mocked_g_config():
         generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
         yield
         generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+
+
+@pytest.fixture
+def resource_alloc():
+    with open(RESOURCE_ALLOCATION_FILEPATH, 'w') as alloc_file:
+        json.dump({}, alloc_file)
+    yield RESOURCE_ALLOCATION_FILEPATH
+    os.remove(RESOURCE_ALLOCATION_FILEPATH)

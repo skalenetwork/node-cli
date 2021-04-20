@@ -50,10 +50,10 @@ CLOUDFLARE_DNS_HOST = '1.1.1.1'
 CLOUDFLARE_DNS_HOST_PORT = 443
 
 
-def get_net_params(network: str = 'mainnet'):
+def get_env_params(network: str = 'mainnet'):
     with open(ENVIRONMENT_PARAMS_FILEPATH) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
-        return ydata[network]
+        return ydata['envs'][network]
 
 
 class BaseChecker:

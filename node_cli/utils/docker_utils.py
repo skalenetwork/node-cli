@@ -33,7 +33,7 @@ from node_cli.configs import (
 
 logger = logging.getLogger(__name__)
 
-SCHAIN_REMOVE_TIMEOUT = 40
+SCHAIN_REMOVE_TIMEOUT = 60
 IMA_REMOVE_TIMEOUT = 20
 
 MAIN_COMPOSE_CONTAINERS = 'skale-api bounty skale-admin'

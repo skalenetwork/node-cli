@@ -25,7 +25,6 @@ import requests
 import logging
 
 from node_cli.configs import NODE_DATA_PATH, SKALE_DIR
-from node_cli.core.resources import ResourceAlloc
 from node_cli.cli.node import (init_node, node_info, register_node, signature,
                                update_node, backup_node, restore_node,
                                set_node_in_maintenance,
@@ -36,16 +35,13 @@ from tests.helper import (
     response_mock, run_command_mock,
     run_command, subprocess_run_mock
 )
+from tests.resources_test import BIG_DISK_SIZE
 
 logger = logging.getLogger(__name__)
 init_default_logger()
 
 
-def disk_alloc_mock(env_type):
-    return ResourceAlloc(128)
-
-
-def test_register_node(mocked_g_config):
+def test_register_node(resource_alloc, mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -60,7 +56,7 @@ def test_register_node(mocked_g_config):
     assert result.output == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_error(mocked_g_config):
+def test_register_node_with_error(resource_alloc, mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'error', 'payload': ['Strange error']},
@@ -75,7 +71,7 @@ def test_register_node_with_error(mocked_g_config):
     assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
-def test_register_node_with_prompted_ip(mocked_g_config):
+def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -90,7 +86,7 @@ def test_register_node_with_prompted_ip(mocked_g_config):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
-def test_register_node_with_default_port(mocked_g_config):
+def test_register_node_with_default_port(resource_alloc, mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'ok', 'payload': None}
@@ -105,11 +101,26 @@ def test_register_node_with_default_port(mocked_g_config):
     assert result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
 
 
+def test_register_with_no_alloc(resource_alloc, mocked_g_config):
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'node_cli.utils.helper.requests.post',
+        resp_mock,
+        register_node,
+        ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
+    assert result.exit_code == 0
+    print(repr(result.output))
+    assert result.output == "Enter node public IP: 0.0.0.0\nNode hasn't been inited before.\nYou should run < skale node init >\n"  # noqa
+
+
 def test_init_node(caplog):  # todo: write new init node test
     resp_mock = response_mock(requests.codes.created)
     with caplog.at_level(logging.INFO):
         with mock.patch('subprocess.run', new=subprocess_run_mock), \
-                mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
+                mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
                 mock.patch('node_cli.core.host.prepare_host'), \
                 mock.patch('node_cli.core.host.init_data_dir'), \
                 mock.patch('node_cli.core.node.init_op'), \
@@ -136,7 +147,7 @@ def test_update_node(mocked_g_config):
             mock.patch('node_cli.core.host.prepare_host'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \
-            mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
+            mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
             mock.patch('node_cli.core.host.init_data_dir'):
         result = run_command_mock(
             'node_cli.utils.helper.post_request',
@@ -351,7 +362,7 @@ def test_restore(mocked_g_config):
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.node.restore_op'), \
             mock.patch('node_cli.core.node.restore_mysql_backup'), \
-            mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock), \
+            mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
             mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         result = run_command(
             restore_node,
