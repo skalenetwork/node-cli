@@ -18,8 +18,9 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import pytest
+import mock
 import yaml
+import pytest
 
 from node_cli.configs import (
   ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH
@@ -117,6 +118,7 @@ def net_params_file():
 
 @pytest.fixture()
 def mocked_g_config():
-    generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
-    yield
-    generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+    with mock.patch('os.path.expanduser', return_value='tests/'):
+        generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+        yield
+        generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)

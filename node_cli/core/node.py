@@ -29,7 +29,7 @@ import docker
 
 from node_cli.configs import (
     SKALE_DIR, INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT, TM_INIT_TIMEOUT
+    BACKUP_ARCHIVE_NAME, G_CONF_HOME, RESTORE_SLEEP_TIMEOUT, TM_INIT_TIMEOUT
 )
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
@@ -217,7 +217,7 @@ def create_backup_archive(backup_filepath):
     print('Creating backup archive...')
     log_skale_path = os.path.join('.skale', LOG_DIRNAME)
     cmd = shlex.split(
-        f'tar -zcvf {backup_filepath} -C {HOME_DIR} '
+        f'tar -zcvf {backup_filepath} -C {G_CONF_HOME} '
         f'--exclude {log_skale_path} .skale'
     )
     try:
