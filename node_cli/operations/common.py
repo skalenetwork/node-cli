@@ -30,7 +30,7 @@ from distutils.dir_util import copy_tree
 
 from node_cli.configs import (
     CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
-    MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, SRC_FILEBEAT_CONFIG_PATH, HOME_DIR,
+    MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, SRC_FILEBEAT_CONFIG_PATH, G_CONF_HOME,
     FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE, FILEBEAT_CONFIG_PATH, FLASK_SECRET_KEY_FILE
 )
 from node_cli.utils.helper import read_json
@@ -83,4 +83,4 @@ def configure_flask():
 def unpack_backup_archive(backup_path: str) -> None:
     logger.info('Unpacking backup archive...')
     with tarfile.open(backup_path) as tar:
-        tar.extractall(path=HOME_DIR)
+        tar.extractall(path=G_CONF_HOME)

@@ -19,10 +19,18 @@
 
 import os
 import sys
-from pathlib import Path
+from node_cli.utils.global_config import read_g_config
 
-HOME_DIR = os.getenv('HOME_DIR') or str(Path.home())
-SKALE_DIR = os.path.join(HOME_DIR, '.skale')
+
+GLOBAL_SKALE_DIR = os.getenv('GLOBAL_SKALE_DIR') or '/etc/skale'
+GLOBAL_SKALE_CONF_FILENAME = 'conf.json'
+GLOBAL_SKALE_CONF_FILEPATH = os.path.join(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILENAME)
+GLOBAL_CONFIG = read_g_config(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+
+G_CONF_USER = GLOBAL_CONFIG['user']
+G_CONF_HOME = os.getenv('TEST_HOME_DIR') or GLOBAL_CONFIG['home_dir']
+
+SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')

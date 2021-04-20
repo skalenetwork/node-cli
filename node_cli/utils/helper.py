@@ -41,17 +41,20 @@ from jinja2 import Environment
 
 from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
-
 from node_cli.configs.env import (
     absent_params as absent_env_params,
     get_params as get_env_params
 )
-from node_cli.configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG
+from node_cli.configs import (
+    TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG, GLOBAL_SKALE_DIR,
+    GLOBAL_SKALE_CONF_FILEPATH
+)
 from node_cli.configs.cli_logger import (
     LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, STREAM_LOG_FORMAT,
     LOG_FILEPATH, DEBUG_LOG_FILEPATH, FILE_LOG_FORMAT
 )
 from node_cli.configs.routes import get_route
+from node_cli.utils.global_config import read_g_config
 
 
 logger = logging.getLogger(__name__)
@@ -157,15 +160,6 @@ def safe_get_config(config, key):
     except KeyError as e:
         logger.error(e)
         return None
-
-
-def no_node(f):
-    @wraps(f)
-    def inner(*args, **kwargs):
-        # todo: check that node is not installed yet!
-        return f(*args, **kwargs)
-
-    return inner
 
 
 def safe_load_texts():
@@ -325,3 +319,30 @@ def streamed_cmd(func):
             logging.getLogger('').addHandler(get_stream_handler())
         return func(*args, **kwargs)
     return wrapper
+
+
+def get_system_user() -> str:
+    user = os.getenv('SUDO_USER', os.getenv('USER'))
+    if not user:
+        raise ValueError('SUDO_USER or USER env variable should be set')
+    return user
+
+
+def is_user_valid(allow_root=True):
+    current_user = get_system_user()
+    if current_user == 'root' and allow_root:
+        return True
+    g_conf_user = get_g_conf_user()
+    return current_user == g_conf_user
+
+
+def get_g_conf():
+    return read_g_config(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+
+
+def get_g_conf_user():
+    return get_g_conf()['user']
+
+
+def get_g_conf_home():
+    return get_g_conf()['home_dir']

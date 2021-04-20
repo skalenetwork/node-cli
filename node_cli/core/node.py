@@ -29,7 +29,7 @@ import docker
 
 from node_cli.configs import (
     SKALE_DIR, INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME, HOME_DIR, RESTORE_SLEEP_TIMEOUT, TM_INIT_TIMEOUT
+    BACKUP_ARCHIVE_NAME, G_CONF_HOME, RESTORE_SLEEP_TIMEOUT, TM_INIT_TIMEOUT
 )
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
@@ -51,6 +51,8 @@ from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.helper import run_cmd, extract_env_params
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.decorators import check_not_inited, check_inited, check_user
+
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
@@ -69,6 +71,8 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
+@check_inited
+@check_user
 def register_node(name, p2p_ip,
                   public_ip, port, domain_name,
                   gas_limit=None,
@@ -100,10 +104,8 @@ def register_node(name, p2p_ip,
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
+@check_not_inited
 def init(env_filepath):
-    if is_node_inited():
-        print(TEXTS['node']['already_inited'])
-        return
     env = get_node_env(env_filepath)
     if env is None:
         return
@@ -127,6 +129,7 @@ def init(env_filepath):
     logger.info('Init procedure finished')
 
 
+@check_not_inited
 def restore(backup_path, env_filepath):
     env = get_node_env(env_filepath)
     if env is None:
@@ -164,10 +167,9 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
     return {k: v for k, v in env.items() if v != ''}
 
 
+@check_inited
+@check_user
 def update(env_filepath):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
     logger.info('Node update started')
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
     update_op(env_filepath, env)
@@ -215,7 +217,7 @@ def create_backup_archive(backup_filepath):
     print('Creating backup archive...')
     log_skale_path = os.path.join('.skale', LOG_DIRNAME)
     cmd = shlex.split(
-        f'tar -zcvf {backup_filepath} -C {HOME_DIR} '
+        f'tar -zcvf {backup_filepath} -C {G_CONF_HOME} '
         f'--exclude {log_skale_path} .skale'
     )
     try:
@@ -258,19 +260,17 @@ def set_maintenance_mode_off():
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
+@check_inited
+@check_user
 def turn_off(maintenance_on):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
     if maintenance_on:
         set_maintenance_mode_on()
     turn_off_op()
 
 
+@check_inited
+@check_user
 def turn_on(maintenance_off, sync_schains, env_file):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
     env = get_node_env(env_file, inited_node=True, sync_schains=sync_schains)
     turn_on_op(env)
     logger.info('Waiting for transaction manager initialization')
@@ -314,10 +314,8 @@ def get_node_status(status):
     return TEXTS['node']['status'][node_status]
 
 
+@check_inited
 def set_domain_name(domain_name):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
     print(f'Setting new domain name: {domain_name}')
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME,
