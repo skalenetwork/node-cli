@@ -4,19 +4,18 @@ import os
 import mock
 import pytest
 
-from node_cli.configs import ALLOCATION_FILEPATH
+from node_cli.configs import ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.resources import (
     compose_resource_allocation_config,
-    get_schain_volume_proportions,
     update_resource_allocation,
-    get_static_disk_alloc,
-    ResourceAlloc, SChainVolumeAlloc
+    get_cpu_alloc, get_memory_alloc,
+    compose_storage_limit, verify_disk_size
 )
 
 from node_cli.utils.helper import write_json, safe_load_yml
 
-SCHAIN_VOLUME_PARTS = {'test4': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'test': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'small': {'max_consensus_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 0, 'max_file_storage_bytes': 0, 'max_reserved_storage_bytes': 0}, 'medium': {'max_consensus_storage_bytes': 1, 'max_file_storage_bytes': 1, 'max_reserved_storage_bytes': 0, 'max_skaled_leveldb_storage_bytes': 1}, 'large': {'max_consensus_storage_bytes': 38, 'max_skaled_leveldb_storage_bytes': 38, 'max_file_storage_bytes': 38, 'max_reserved_storage_bytes': 12}}  # noqa
+SCHAIN_VOLUME_PARTS = {'large': {'max_consensus_storage_bytes': 22799980953, 'max_file_storage_bytes': 22799980953, 'max_reserved_storage_bytes': 7599993651, 'max_skaled_leveldb_storage_bytes': 22799980953}, 'medium': {'max_consensus_storage_bytes': 712499404, 'max_file_storage_bytes': 712499404, 'max_reserved_storage_bytes': 237499801, 'max_skaled_leveldb_storage_bytes': 712499404}, 'small': {'max_consensus_storage_bytes': 178124851, 'max_file_storage_bytes': 178124851, 'max_reserved_storage_bytes': 59374950, 'max_skaled_leveldb_storage_bytes': 178124851}, 'test': {'max_consensus_storage_bytes': 712499404, 'max_file_storage_bytes': 712499404, 'max_reserved_storage_bytes': 237499801, 'max_skaled_leveldb_storage_bytes': 712499404}, 'test4': {'max_consensus_storage_bytes': 712499404, 'max_file_storage_bytes': 712499404, 'max_reserved_storage_bytes': 237499801, 'max_skaled_leveldb_storage_bytes': 712499404}}  # noqa
 
 DEFAULT_ENV_TYPE = 'devnet'
 
@@ -24,12 +23,19 @@ SMALL_DISK_SIZE = 10
 NORMAL_DISK_SIZE = 80000000000
 BIG_DISK_SIZE = NORMAL_DISK_SIZE * 100
 
-
-def disk_alloc_mock(env_type):
-    return ResourceAlloc(128)
-
+TEST_MEMORY = 10000000
 
 INITIAL_CONFIG = {'test': 1}
+
+
+@pytest.fixture
+def env_configs():
+    return safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
+
+
+@pytest.fixture
+def schain_allocation_data():
+    return safe_load_yml(ALLOCATION_FILEPATH)
 
 
 @pytest.fixture
@@ -39,16 +45,8 @@ def resource_alloc_config():
     os.remove(RESOURCE_ALLOCATION_FILEPATH)
 
 
-def test_schain_resources_allocation():
-    allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
-    proportions = get_schain_volume_proportions(allocation_data)
-    res = ResourceAlloc(128)
-    schain_volume_alloc = SChainVolumeAlloc(res, proportions)
-    assert schain_volume_alloc.volume_alloc == SCHAIN_VOLUME_PARTS  # noqa
-
-
 def test_generate_resource_allocation_config():
-    with mock.patch('node_cli.core.resources.get_static_disk_alloc', new=disk_alloc_mock):
+    with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
         resource_allocation_config = compose_resource_allocation_config(DEFAULT_ENV_TYPE)
 
         assert resource_allocation_config['schain']['cpu_shares']['test4'] == 22
@@ -63,46 +61,45 @@ def test_generate_resource_allocation_config():
         assert isinstance(resource_allocation_config['schain']['mem']['medium'], int)
         assert isinstance(resource_allocation_config['schain']['mem']['large'], int)
 
-        assert resource_allocation_config['schain']['disk']['test4'] == 4
-        assert resource_allocation_config['schain']['disk']['test'] == 4
-        assert resource_allocation_config['schain']['disk']['small'] == 1
-        assert resource_allocation_config['schain']['disk']['medium'] == 4
-        assert resource_allocation_config['schain']['disk']['large'] == 128
+        assert resource_allocation_config['schain']['disk']['test4'] == 2374998016
+        assert resource_allocation_config['schain']['disk']['test'] == 2374998016
+        assert resource_allocation_config['schain']['disk']['small'] == 593749504
+        assert resource_allocation_config['schain']['disk']['medium'] == 2374998016
+        assert resource_allocation_config['schain']['disk']['large'] == 75999936512
 
         assert resource_allocation_config['ima']['cpu_shares'] == {'test4': 9, 'test': 9, 'small': 2, 'medium': 9, 'large': 307}  # noqa
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
+        print(resource_allocation_config['schain']['volume_limits'])
         assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
         assert resource_allocation_config['schain']['storage_limit'] == {
-            'test4': 4294967296,
-            'test': 4294967296,
-            'small': 4294967296,
-            'medium': 17179869184,
-            'large': 549755813888
+            'test4': 427499642,
+            'test': 427499642,
+            'small': 106874910,
+            'medium': 427499642,
+            'large': 13679988571
         }
 
 
 def test_update_allocation_config(resource_alloc_config):
-    with mock.patch('node_cli.core.resources.get_static_disk_alloc',
-                    new=disk_alloc_mock):
+    with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
         update_resource_allocation(DEFAULT_ENV_TYPE)
         with open(RESOURCE_ALLOCATION_FILEPATH) as jfile:
             assert json.load(jfile) != INITIAL_CONFIG
 
 
-def test_get_static_disk_alloc_devnet(net_params_file):
+def test_get_static_disk_alloc_devnet(env_configs, schain_allocation_data):
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=SMALL_DISK_SIZE):
         with pytest.raises(Exception):
-            get_static_disk_alloc(DEFAULT_ENV_TYPE)
+            verify_disk_size(env_configs, DEFAULT_ENV_TYPE)
 
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
-        normal_static_disk_alloc = get_static_disk_alloc(DEFAULT_ENV_TYPE)
+        verify_disk_size(env_configs, DEFAULT_ENV_TYPE)
 
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
-        big_static_disk_alloc = get_static_disk_alloc(DEFAULT_ENV_TYPE)
+        verify_disk_size(env_configs, DEFAULT_ENV_TYPE)
 
-    assert normal_static_disk_alloc.dict() == big_static_disk_alloc.dict()
-    assert normal_static_disk_alloc.dict() == {
+    assert schain_allocation_data[DEFAULT_ENV_TYPE]['disk'] == {
         'test4': 2374998016,
         'test': 2374998016,
         'small': 593749504,
@@ -111,19 +108,63 @@ def test_get_static_disk_alloc_devnet(net_params_file):
     }
 
 
-def test_get_static_disk_alloc_mainnet(net_params_file):
+def test_get_static_disk_alloc_mainnet(env_configs):
     env_type = 'mainnet'
+
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
         with pytest.raises(Exception):
-            get_static_disk_alloc(env_type)
+            verify_disk_size(env_configs, env_type)
 
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
-        big_static_disk_alloc = get_static_disk_alloc(env_type)
+        verify_disk_size(env_configs, env_type)
 
-    assert big_static_disk_alloc.dict() == {
-        'test4': 59374999552,
-        'test': 59374999552,
-        'small': 14843749888,
-        'medium': 59374999552,
-        'large': 1899999985664
+
+def test_get_cpu_alloc():
+    env_configs = safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
+    schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(env_configs)
+    schain_cpu_alloc_dict = schain_cpu_alloc.dict()
+    ima_cpu_alloc_dict = ima_cpu_alloc.dict()
+
+    assert schain_cpu_alloc_dict['test4'] == 22
+    assert schain_cpu_alloc_dict['test'] == 22
+    assert schain_cpu_alloc_dict['small'] == 5
+    assert schain_cpu_alloc_dict['medium'] == 22
+    assert schain_cpu_alloc_dict['large'] == 716
+
+    assert ima_cpu_alloc_dict['test4'] == 9
+    assert ima_cpu_alloc_dict['test'] == 9
+    assert ima_cpu_alloc_dict['small'] == 2
+    assert ima_cpu_alloc_dict['medium'] == 9
+    assert ima_cpu_alloc_dict['large'] == 307
+
+
+def test_get_memory_alloc():
+    env_configs = safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
+    with mock.patch('node_cli.core.resources.get_total_memory', return_value=TEST_MEMORY):
+        schain_mem_alloc, ima_mem_alloc = get_memory_alloc(env_configs)
+    schain_mem_alloc_dict = schain_mem_alloc.dict()
+    ima_mem_alloc_dict = ima_mem_alloc.dict()
+
+    assert schain_mem_alloc_dict['test4'] == 218750
+    assert schain_mem_alloc_dict['test'] == 218750
+    assert schain_mem_alloc_dict['small'] == 54687
+    assert schain_mem_alloc_dict['medium'] == 218750
+    assert schain_mem_alloc_dict['large'] == 7000000
+
+    assert ima_mem_alloc_dict['test4'] == 93750
+    assert ima_mem_alloc_dict['test'] == 93750
+    assert ima_mem_alloc_dict['small'] == 23437
+    assert ima_mem_alloc_dict['medium'] == 93750
+    assert ima_mem_alloc_dict['large'] == 3000000
+
+
+def test_compose_storage_limit():
+    schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
+    storage_limit = compose_storage_limit(schain_allocation_data['mainnet']['leveldb'])
+    assert storage_limit == {
+        'large': 341999997419,
+        'medium': 10687499919,
+        'small': 2671874979,
+        'test': 10687499919,
+        'test4': 10687499919
     }
