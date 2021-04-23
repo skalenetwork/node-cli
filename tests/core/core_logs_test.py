@@ -15,13 +15,13 @@ from node_cli.core.host import safe_mk_dirs
 
 CURRENT_TIMESTAMP = 1594903080
 CURRENT_DATETIME = datetime.utcfromtimestamp(CURRENT_TIMESTAMP)
-TEST_DUMP_DIR_PATH = '/tmp/skale-logs-dump-2020-07-16-12:38:00'
+TEST_DUMP_DIR_PATH = '/tmp/skale-logs-dump-2020-07-16--12-38-00'
 
 TEST_IMAGE = 'alpine'
 TEST_SKALE_NAME = 'skale_cli_test_container'
 TEST_ENTRYPOINT = 'echo Hello, SKALE!'
 
-TEST_ARCHIVE_FOLDER_NAME = 'skale-logs-dump-2020-07-16-12:38:00'
+TEST_ARCHIVE_FOLDER_NAME = 'skale-logs-dump-2020-07-16--12-38-00'
 TEST_ARCHIVE_FOLDER_PATH = os.path.join(G_CONF_HOME, f'{TEST_ARCHIVE_FOLDER_NAME}')
 TEST_ARCHIVE_PATH = os.path.join(G_CONF_HOME, f'{TEST_ARCHIVE_FOLDER_NAME}.tar.gz')
 
@@ -57,7 +57,7 @@ def skale_container():
 def test_create_dump_dir(mocked_g_config, backup_func):
     folder_path, folder_name = create_dump_dir()
     assert folder_path == TEST_DUMP_DIR_PATH
-    assert folder_name == 'skale-logs-dump-2020-07-16-12:38:00'
+    assert folder_name == 'skale-logs-dump-2020-07-16--12-38-00'
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)

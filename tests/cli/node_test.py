@@ -24,7 +24,7 @@ import mock
 import requests
 import logging
 
-from node_cli.configs import NODE_DATA_PATH, SKALE_DIR
+from node_cli.configs import NODE_DATA_PATH, SKALE_DIR, G_CONF_HOME
 from node_cli.cli.node import (init_node, node_info, register_node, signature,
                                update_node, backup_node, restore_node,
                                set_node_in_maintenance,
@@ -68,7 +68,7 @@ def test_register_node_with_error(resource_alloc, mocked_g_config):
             register_node,
             ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80', '-d', 'skale.test'])
     assert result.exit_code == 3
-    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
+    assert result.output == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
 def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
@@ -113,7 +113,7 @@ def test_register_with_no_alloc(mocked_g_config):
         ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
     assert result.exit_code == 8
     print(repr(result.output))
-    assert result.output == "Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n"  # noqa
+    assert result.output == f'Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn\'t been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
 def test_init_node(caplog):  # todo: write new init node test
@@ -177,7 +177,7 @@ def test_update_node_without_init():
             params,
             input='/dev/sdp')
         assert result.exit_code == 8
-        assert result.output == "Command failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n"  # noqa
+        assert result.output == f'Command failed with following errors:\n--------------------------------------------------\nNode hasn\'t been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
 def test_node_info_node_info():
