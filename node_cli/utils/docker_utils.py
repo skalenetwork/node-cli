@@ -50,6 +50,14 @@ def docker_client() -> DockerClient:
     return docker.from_env()
 
 
+def get_sanitized_container_name(container_info: dict) -> str:
+    return container_info['Names'][0].replace('/', '', 1)
+
+
+def get_containers(container_name_filter=None, _all=True) -> list:
+    return docker_client().containers.list(all=_all, filters={'name': container_name_filter})
+
+
 def get_all_schain_containers(_all=True) -> list:
     return docker_client().containers.list(all=_all, filters={'name': 'skale_schain_*'})
 
@@ -98,9 +106,18 @@ def safe_rm(container: Container, stop_timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kw
 def backup_container_logs(container: Container, tail=DOCKER_DEFAULT_TAIL_LINES) -> None:
     logger.info(f'Going to backup container logs: {container.name}')
     logs_backup_filepath = get_logs_backup_filepath(container)
-    with open(logs_backup_filepath, "wb") as out:
-        out.write(container.logs(tail=tail))
+    save_container_logs(container, logs_backup_filepath, tail)
     logger.debug(f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
+
+
+def save_container_logs(
+            container: Container,
+            log_filepath: str,
+            tail=DOCKER_DEFAULT_TAIL_LINES
+        ) -> None:
+    with open(log_filepath, "wb") as out:
+        out.write(container.logs(tail=tail))
+    logger.debug(f'Logs from {container.name} saved to {log_filepath}')
 
 
 def get_logs_backup_filepath(container: Container) -> str:

@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_system_user() -> str:
-    user = os.getenv('SUDO_USER', os.getenv('USER'))
+    user = os.getenv('USER', os.getenv('SUDO_USER'))
     if not user:
         raise ValueError('SUDO_USER or USER env variable should be set')
     return user
@@ -43,10 +43,6 @@ def generate_g_config_file(g_skale_dir: str, g_skale_conf_filepath: str) -> dict
     """Init global SKALE config file"""
     logger.info('Generating global SKALE config file...')
     os.makedirs(g_skale_dir, exist_ok=True)
-
-    user = os.environ['USER']
-    user = os.getenv('SUDO_USER', user)
-
     g_config = {
         'user': get_system_user(),
         'home_dir': os.path.expanduser('~')

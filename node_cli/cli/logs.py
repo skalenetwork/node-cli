@@ -20,7 +20,7 @@
 import sys
 
 import click
-from node_cli.utils.helper import download_dump
+from node_cli.core.logs import create_logs_dump
 from node_cli.configs.cli_logger import LOG_FILEPATH, DEBUG_LOG_FILEPATH
 from node_cli.utils.exit_codes import CLIExitCodes
 
@@ -52,8 +52,8 @@ def cli(debug):
 )
 @click.argument('path')
 def dump(container, path):
-    res = download_dump(path, container)
+    res = create_logs_dump(path, container)
     if res:
-        print(f'File {res} downloaded')
+        print(f'Logs dump created: {res}')
     else:
-        sys.exit(CLIExitCodes.BAD_API_RESPONSE)
+        sys.exit(CLIExitCodes.OPERATION_EXECUTION_ERROR)
