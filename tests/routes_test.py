@@ -4,8 +4,6 @@ from node_cli.configs.routes import (route_exists, get_route, get_all_available_
 
 
 ALL_V1_ROUTES = [
-    '/api/v1/logs/dump',
-
     '/api/v1/node/info',
     '/api/v1/node/register',
     '/api/v1/node/maintenance-on',
@@ -36,8 +34,8 @@ ALL_V1_ROUTES = [
 
 
 def test_route_exists():
-    assert route_exists('logs', 'dump', 'v1')
-    assert not route_exists('logshms', 'dumb', 'v1')
+    assert route_exists('node', 'signature', 'v1')
+    assert not route_exists('snode', 'mignature', 'v1')
 
 
 def test_get_route():
