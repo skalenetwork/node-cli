@@ -63,17 +63,16 @@ def test_create_dump_dir(mocked_g_config, backup_func):
 @freezegun.freeze_time(CURRENT_DATETIME)
 def test_create_logs_dump(backup_func, skale_container):
     archive_path = create_logs_dump(G_CONF_HOME)
+    safe_mk_dirs(TEST_ARCHIVE_FOLDER_PATH)
+    cmd = shlex.split(f'tar xf {archive_path} -C {TEST_ARCHIVE_FOLDER_PATH}')
+    run_cmd(cmd)
 
     test_container_log_path = os.path.join(
-        TEST_DUMP_DIR_PATH, 'containers', f'{TEST_SKALE_NAME}.log'
+        TEST_ARCHIVE_FOLDER_PATH, 'containers', f'{TEST_SKALE_NAME}.log'
     )
     with open(test_container_log_path) as data_file:
         content = data_file.read()
     assert content == 'Hello, SKALE!\n'
-
-    safe_mk_dirs(TEST_ARCHIVE_FOLDER_PATH)
-    cmd = shlex.split(f'tar xf {archive_path} -C {TEST_ARCHIVE_FOLDER_PATH}')
-    run_cmd(cmd)
 
     assert os.path.exists(os.path.join(TEST_ARCHIVE_FOLDER_PATH, 'removed_containers'))
     assert os.path.exists(os.path.join(TEST_ARCHIVE_FOLDER_PATH, 'cli'))
