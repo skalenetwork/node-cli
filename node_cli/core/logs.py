@@ -18,8 +18,8 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import shlex
 import shutil
+import logging
 import datetime
 
 from node_cli.core.host import safe_mk_dirs
@@ -29,6 +29,9 @@ from node_cli.utils.docker_utils import (
 )
 from node_cli.configs import REMOVED_CONTAINERS_FOLDER_PATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_logs_dump(path, filter_container=None):
@@ -51,6 +54,7 @@ def create_logs_dump(path, filter_container=None):
     shutil.copytree(LOG_DATA_PATH, cli_logs_path)
     shutil.copytree(REMOVED_CONTAINERS_FOLDER_PATH, removed_containers_logs_path)
     create_archive(archive_path, dump_folder_path)
+    rm_dump_dir(dump_folder_path)
     if not os.path.isfile(archive_path):
         return None
     return archive_path
@@ -61,10 +65,15 @@ def create_dump_dir():
     folder_name = f'skale-logs-dump-{time}'
     folder_path = os.path.join('/tmp', folder_name)
     containers_path = os.path.join(folder_path, 'containers')
+    logging.debug(f'Creating tmp dir for logs dump: {folder_path}')
     safe_mk_dirs(containers_path)
     return folder_path, folder_name
 
 
+def rm_dump_dir(dump_folder_path: str) -> None:
+    logger.debug(f'Going to remove tmp dir with logs dump: {dump_folder_path}')
+    shutil.rmtree(dump_folder_path)
+
+
 def create_archive(archive_path, source_path):
-    cmd = shlex.split(f'tar -czvf {archive_path} -C {source_path} .')
-    run_cmd(cmd)
+    run_cmd(['tar', '-czvf', archive_path, '-C', source_path, '.'])
