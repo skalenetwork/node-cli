@@ -4,7 +4,7 @@ import shutil
 
 import pytest
 
-from node_cli.configs import (CONTRACTS_PATH,
+from node_cli.configs import (CONTRACTS_PATH, G_CONF_HOME,
                               IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH)
 from node_cli.cli.validate import abi
 from tests.helper import run_command
@@ -53,11 +53,15 @@ def test_validate_abi(contract_valid_abi_files):
 
 def test_validate_abi_invalid_file(contract_abi_file_invalid):
     result = run_command(abi)
-    assert result.output == 'Some files do not exist or are incorrect\n                Filepath                   Status                 Msg              \n-----------------------------------------------------------------------------------\ntests/.skale/contracts_info/manager.json   error    Failed to load abi file as json\ntests/.skale/contracts_info/ima.json       ok                                      \n'  # noqa
+    assert 'Some files do not exist or are incorrect' in result.output
+    assert f'{G_CONF_HOME}.skale/contracts_info/manager.json   error    Failed to load abi file as json' in result.output # noqa
+    assert f'{G_CONF_HOME}.skale/contracts_info/ima.json       ok' in result.output
     assert result.exit_code == 0
 
 
 def test_validate_abi_empty_file(contract_abi_file_empty):
     result = run_command(abi)
-    assert result.output == 'Some files do not exist or are incorrect\n                Filepath                   Status       Msg     \n----------------------------------------------------------------\ntests/.skale/contracts_info/manager.json   error    No such file\ntests/.skale/contracts_info/ima.json       ok                   \n'  # noqa
+    assert 'Some files do not exist or are incorrect' in result.output
+    assert f'{G_CONF_HOME}.skale/contracts_info/manager.json   error    No such file' in result.output # noqa
+    assert f'{G_CONF_HOME}.skale/contracts_info/ima.json       ok' in result.output
     assert result.exit_code == 0

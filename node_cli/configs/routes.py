@@ -25,7 +25,6 @@ API_PREFIX = '/api'
 
 ROUTES = {
     'v1': {
-        'logs': ['dump'],
         'node': ['info', 'register', 'maintenance-on', 'maintenance-off', 'signature',
                  'send-tg-notification', 'exit/start', 'exit/status', 'set-domain-name'],
         'health': ['containers', 'schains', 'sgx'],

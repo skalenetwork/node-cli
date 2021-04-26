@@ -22,6 +22,7 @@ import requests
 
 from mock import MagicMock, Mock
 
+from node_cli.configs import G_CONF_HOME
 from node_cli.cli.wallet import wallet_info, send
 from tests.helper import run_command_mock, response_mock
 
@@ -88,4 +89,4 @@ def test_wallet_send_with_error():
         send,
         ['0x00000000000000000000000000000000', '10', '--yes'])
     assert result.exit_code == 3
-    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
+    assert result.output == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa

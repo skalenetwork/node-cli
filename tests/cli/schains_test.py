@@ -22,6 +22,7 @@ import time
 
 import requests
 
+from node_cli.configs import G_CONF_HOME
 from tests.helper import response_mock, run_command_mock
 from node_cli.cli.schains import (get_schain_config, ls, dkg, show_rules,
                                   repair, info_)
@@ -173,7 +174,7 @@ def test_repair():
                               ['test-schain', '--yes'])
     print(repr(result.output))
     assert result.exit_code == 3
-    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
+    assert result.output == f'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
 def test_info():
@@ -200,5 +201,5 @@ def test_info():
     )
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, info_,
                               ['schain not found'])
-    assert result.output == 'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\nYou can find more info in tests/.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
+    assert result.output == f'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
     assert result.exit_code == 3

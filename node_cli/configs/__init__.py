@@ -37,6 +37,7 @@ CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
+SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
 
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
