@@ -28,13 +28,10 @@ def test_generate_g_config_file(mocked_g_config):
 
 
 def test_get_system_user():
-    sudo_user = os.environ.get('SUDO_USER')
-    if sudo_user:
-        del os.environ['SUDO_USER']
-    os.environ['USER'] = 'test'
-    assert get_system_user() == 'test'
-    if sudo_user:
-        os.environ['SUDO_USER'] = sudo_user
+    with mock.patch('os.getuid', return_value=0):
+        assert get_system_user() == 'root'
+    with mock.patch('pwd.getpwuid', return_value=['test']):
+        assert get_system_user() == 'test'
 
 
 def test_is_user_valid(mocked_g_config):
