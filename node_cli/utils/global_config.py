@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import sys
 import json
 import logging
 
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_system_user() -> str:
-    user = os.getenv('USER', os.getenv('SUDO_USER'))
+    user = os.getenv('SUDO_USER', os.getenv('USER'))
     if not user:
         raise ValueError('SUDO_USER or USER env variable should be set')
     return user
@@ -41,13 +42,18 @@ def read_g_config(g_skale_dir: str, g_skale_conf_filepath: str) -> dict:
 
 def generate_g_config_file(g_skale_dir: str, g_skale_conf_filepath: str) -> dict:
     """Init global SKALE config file"""
-    logger.info('Generating global SKALE config file...')
+    print('Generating global SKALE config file...')
     os.makedirs(g_skale_dir, exist_ok=True)
     g_config = {
         'user': get_system_user(),
         'home_dir': os.path.expanduser('~')
     }
-    logger.info(f'{g_skale_conf_filepath} content: {g_config}')
-    with open(g_skale_conf_filepath, 'w') as outfile:
-        json.dump(g_config, outfile, indent=4)
+    print(f'{g_skale_conf_filepath} content: {g_config}')
+    try:
+        with open(g_skale_conf_filepath, 'w') as outfile:
+            json.dump(g_config, outfile, indent=4)
+    except PermissionError as e:
+        logger.exception(e)
+        print('No permissions to write into /etc directory')
+        sys.exit(7)
     return g_config
