@@ -19,6 +19,7 @@
 
 import os
 import sys
+import pwd
 import json
 import logging
 
@@ -26,10 +27,11 @@ logger = logging.getLogger(__name__)
 
 
 def get_system_user() -> str:
-    user = os.getenv('SUDO_USER', os.getenv('USER'))
-    if not user:
-        raise ValueError('SUDO_USER or USER env variable should be set')
-    return user
+    return pwd.getpwuid(os.getuid())[0]
+
+
+def get_home_dir() -> str:
+    return os.path.expanduser('~')
 
 
 def read_g_config(g_skale_dir: str, g_skale_conf_filepath: str) -> dict:
@@ -46,7 +48,7 @@ def generate_g_config_file(g_skale_dir: str, g_skale_conf_filepath: str) -> dict
     os.makedirs(g_skale_dir, exist_ok=True)
     g_config = {
         'user': get_system_user(),
-        'home_dir': os.path.expanduser('~')
+        'home_dir': get_home_dir()
     }
     print(f'{g_skale_conf_filepath} content: {g_config}')
     try:
