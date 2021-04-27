@@ -20,6 +20,7 @@
 import os
 import re
 import sys
+import pwd
 import json
 import yaml
 import shutil
@@ -322,10 +323,7 @@ def streamed_cmd(func):
 
 
 def get_system_user() -> str:
-    user = os.getenv('SUDO_USER', os.getenv('USER'))
-    if not user:
-        raise ValueError('SUDO_USER or USER env variable should be set')
-    return user
+    return pwd.getpwuid(os.getuid())[0]
 
 
 def is_user_valid(allow_root=True):
