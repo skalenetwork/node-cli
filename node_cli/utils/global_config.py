@@ -19,7 +19,6 @@
 
 import os
 import sys
-import pwd
 import json
 import logging
 
@@ -27,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_system_user() -> str:
-    return pwd.getpwuid(os.getuid())[0]
+    return 'root' if get_home_dir() == '/root' else os.getenv('SUDO_USER', os.getenv('USER'))
 
 
 def get_home_dir() -> str:
