@@ -28,10 +28,15 @@ def test_generate_g_config_file(mocked_g_config):
 
 
 def test_get_system_user():
-    with mock.patch('os.getuid', return_value=0):
+    with mock.patch('os.path.expanduser', return_value='/root'):
         assert get_system_user() == 'root'
-    with mock.patch('pwd.getpwuid', return_value=['test']):
-        assert get_system_user() == 'test'
+    sudo_user = os.environ.get('SUDO_USER')
+    if sudo_user:
+        del os.environ['SUDO_USER']
+    os.environ['USER'] = 'test'
+    assert get_system_user() == 'test'
+    if sudo_user:
+        os.environ['SUDO_USER'] = sudo_user
 
 
 def test_is_user_valid(mocked_g_config):
@@ -41,7 +46,7 @@ def test_is_user_valid(mocked_g_config):
     write_json(GLOBAL_SKALE_CONF_FILEPATH, {'user': 'skaletest'})
     assert not is_user_valid()
 
-    with mock.patch('os.getuid', return_value=0):
+    with mock.patch('os.path.expanduser', return_value='/root'):
         assert is_user_valid()
         assert not is_user_valid(allow_root=False)
 

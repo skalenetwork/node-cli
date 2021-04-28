@@ -20,7 +20,6 @@
 import os
 import re
 import sys
-import pwd
 import json
 import yaml
 import shutil
@@ -55,7 +54,7 @@ from node_cli.configs.cli_logger import (
     LOG_FILEPATH, DEBUG_LOG_FILEPATH, FILE_LOG_FORMAT
 )
 from node_cli.configs.routes import get_route
-from node_cli.utils.global_config import read_g_config
+from node_cli.utils.global_config import read_g_config, get_system_user
 
 
 logger = logging.getLogger(__name__)
@@ -320,10 +319,6 @@ def streamed_cmd(func):
             logging.getLogger('').addHandler(get_stream_handler())
         return func(*args, **kwargs)
     return wrapper
-
-
-def get_system_user() -> str:
-    return pwd.getpwuid(os.getuid())[0]
 
 
 def is_user_valid(allow_root=True):
