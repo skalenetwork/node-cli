@@ -30,8 +30,8 @@ GLOBAL_CONFIG = read_g_config(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
 G_CONF_USER = GLOBAL_CONFIG['user']
 G_CONF_HOME = os.getenv('TEST_HOME_DIR') or GLOBAL_CONFIG['home_dir']
 
-SKALE_DATA_DIR = '/var/lib/skale'
-FILESTORAGE_DIR = os.path.join(SKALE_DATA_DIR, 'filestorage')
+SKALE_STATE_DIR = '/var/lib/skale'
+FILESTORAGE_MAPPING = os.path.join(SKALE_STATE_DIR, 'filestorage')
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
 
