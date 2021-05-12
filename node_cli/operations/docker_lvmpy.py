@@ -22,7 +22,7 @@ import logging
 
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.git_utils import sync_repo
-from node_cli.configs import DOCKER_LVMPY_PATH, DOCKER_LVMPY_REPO_URL, FILESTORAGE_MAPPING
+from node_cli.configs import DOCKER_LVMPY_PATH, DOCKER_LVMPY_REPO_URL, FILESTORAGE_MAPPING, SCHAINS_MNT_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +31,7 @@ def update_docker_lvmpy_env(env):
     env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
+    env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR
     env['PATH'] = os.environ.get('PATH', None)
     return env
 
