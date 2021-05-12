@@ -6,7 +6,7 @@ from contextlib import contextmanager
 
 import logging
 
-from configs import SKALED_SSL_TEST_SCRIPT
+# from configs import SKALED_SSL_TEST_SCRIPT
 from tools.helper import run_cmd
 from core.helper import post_request, read_file
 
@@ -48,13 +48,13 @@ class SSLServerError(Exception):
     pass
 
 
-def check_cert_skaled(cert_path, key_path):
-    run_cmd([
-        SKALED_SSL_TEST_SCRIPT,
-        '--proto=https',
-        f'--ssl-key={key_path}',
-        f'--ssl-cert={cert_path}'
-    ])
+# def check_cert_skaled(cert_path, key_path):
+#     run_cmd([
+#         SKALED_SSL_TEST_SCRIPT,
+#         '--proto=https',
+#         f'--ssl-key={key_path}',
+#         f'--ssl-cert={cert_path}'
+#     ])
 
 
 def check_cert(cert_path, key_path, port=33333, no_client=False):
