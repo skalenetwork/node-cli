@@ -23,12 +23,13 @@ import logging
 import urllib.request
 from distutils.dir_util import copy_tree
 
-from core.operations.git_helper import update_repo
+from core.operations.git_helper import sync_repo, rm_local_repo
 from tools.docker_utils import (rm_all_schain_containers, rm_all_ima_containers, compose_pull,
                                 compose_build)
 from configs import (CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
                      MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, DOCKER_LVMPY_PATH,
-                     CONTAINER_CONFIG_PATH, FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE)
+                     CONTAINER_CONFIG_PATH, FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE,
+                     DOCKER_LVMPY_REPO_URL, SKALE_NODE_REPO_URL)
 from tools.helper import run_cmd, read_json
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,9 @@ def download_contracts(env):
 
 
 def docker_lvmpy_update(env):
-    update_repo(DOCKER_LVMPY_PATH, env["DOCKER_LVMPY_STREAM"])
+    rm_local_repo(DOCKER_LVMPY_PATH)
+    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env["DOCKER_LVMPY_STREAM"])
+
     logging.info('Running docker-lvmpy update script')
     env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
     env['VOLUME_GROUP'] = 'schains'
@@ -79,7 +82,8 @@ def update_skale_node(env):
 
 
 def update_skale_node_git(env):
-    update_repo(CONTAINER_CONFIG_PATH, env["CONTAINER_CONFIGS_STREAM"])
+    rm_local_repo(CONTAINER_CONFIG_PATH)
+    sync_repo(SKALE_NODE_REPO_URL, CONTAINER_CONFIG_PATH, env["CONTAINER_CONFIGS_STREAM"])
     compose_pull()
 
 
