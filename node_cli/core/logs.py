@@ -65,7 +65,7 @@ def create_dump_dir():
     folder_name = f'skale-logs-dump-{time}'
     folder_path = os.path.join(SKALE_TMP_DIR, folder_name)
     containers_path = os.path.join(folder_path, 'containers')
-    logging.debug(f'Creating tmp dir for logs dump: {folder_path}')
+    logger.debug(f'Creating tmp dir for logs dump: {folder_path}')
     safe_mk_dirs(containers_path)
     return folder_path, folder_name
 
