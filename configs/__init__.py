@@ -87,6 +87,7 @@ UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
 TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
 TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
+SKALED_SSL_TEST_SCRIPT = os.path.join(DATAFILES_FOLDER, 'skaled-ssl-test.sh')
 
 ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH,
                                    'schain_allocation.yml')
@@ -106,6 +107,10 @@ MYSQL_BACKUP_CONTAINER_FOLDER = '/mysql-backup'
 MYSQL_BACKUP_PATH = os.path.join(MYSQL_BACKUP_FOLDER, MYSQL_BACKUP_FILE_NAME)
 MYSQL_BACKUP_CONTAINER_PATH = os.path.join(MYSQL_BACKUP_CONTAINER_FOLDER,
                                            MYSQL_BACKUP_FILE_NAME)
+SSL_FOLDER_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
+SSL_CERT_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_cert')
+SSL_KEY_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_key')
+
 
 TM_INIT_TIMEOUT = 20
 RESTORE_SLEEP_TIMEOUT = 20
@@ -114,6 +119,7 @@ MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
 IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
+DEFAULT_SSL_CHECK_PORT = 4536
 
 SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'

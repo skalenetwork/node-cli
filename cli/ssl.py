@@ -20,8 +20,12 @@
 import click
 from terminaltables import SingleTable
 
-from core.helper import (get_request, safe_load_texts, upload_certs,
-                         print_err_response)
+from core.helper import (
+    get_request,
+    print_err_response,
+    safe_load_texts
+)
+from core.ssl import upload_cert
 
 
 TEXTS = safe_load_texts()
@@ -66,9 +70,10 @@ def status():
     prompt="Enter path to the certificate file",
     help='Path to the certificate file'
 )
-@click.option('--force', '-f', is_flag=True, help='Overwrite existing certificates')
+@click.option('--force', '-f', is_flag=True,
+              help='Overwrite existing certificates')
 def upload(key_path, cert_path, force):
-    status, payload = upload_certs(key_path, cert_path, force)
+    status, payload = upload_cert(cert_path, key_path, force)
     if status == 'ok':
         print(TEXTS['ssl']['uploaded'])
     else:
