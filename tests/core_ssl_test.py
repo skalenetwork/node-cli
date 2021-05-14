@@ -29,7 +29,7 @@ def cert_key_pair():
     yield cert_path, key_path
     if os.path.isfile(cert_path):
         pathlib.Path(cert_path).unlink()
-    if os.path.isfile(key_pat):
+    if os.path.isfile(key_path):
         pathlib.Path(key_path).unlink()
 
 
