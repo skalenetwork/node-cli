@@ -22,7 +22,8 @@ import logging
 
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.git_utils import sync_repo
-from node_cli.configs import DOCKER_LVMPY_PATH, DOCKER_LVMPY_REPO_URL
+from node_cli.configs import (DOCKER_LVMPY_PATH, DOCKER_LVMPY_REPO_URL,
+                              FILESTORAGE_MAPPING, SCHAINS_MNT_DIR)
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,8 @@ logger = logging.getLogger(__name__)
 def update_docker_lvmpy_env(env):
     env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
     env['VOLUME_GROUP'] = 'schains'
+    env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
+    env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR
     env['PATH'] = os.environ.get('PATH', None)
     return env
 
@@ -40,13 +43,13 @@ def sync_docker_lvmpy_repo(env):
 
 def docker_lvmpy_update(env):
     sync_docker_lvmpy_repo(env)
-    logging.info('Running docker-lvmpy update script')
+    logger.info('Running docker-lvmpy update script')
     update_docker_lvmpy_env(env)
     run_cmd(
         cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/update.sh'.split(),
         env=env
     )
-    logging.info('docker-lvmpy update done')
+    logger.info('docker-lvmpy update done')
 
 
 def docker_lvmpy_install(env):
@@ -56,4 +59,4 @@ def docker_lvmpy_install(env):
         cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/install.sh'.split(),
         env=env
     )
-    logging.info('docker-lvmpy installed')
+    logger.info('docker-lvmpy installed')

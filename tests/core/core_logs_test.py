@@ -1,4 +1,5 @@
 import os
+import time
 import shlex
 import shutil
 from datetime import datetime
@@ -49,6 +50,7 @@ def skale_container():
         detach=True,
         entrypoint=TEST_ENTRYPOINT
     )
+    time.sleep(10)
     yield
     container.remove(force=True)
 
