@@ -17,16 +17,15 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
+import shutil
 import logging
 
 from git.repo.base import Repo
 from git.exc import GitCommandError
 
+
 logger = logging.getLogger(__name__)
-
-
-def init_repo(repo_path: str) -> Repo:
-    return Repo(repo_path)
 
 
 def check_is_branch(repo: Repo, ref_name: str) -> bool:
@@ -39,12 +38,30 @@ def check_is_branch(repo: Repo, ref_name: str) -> bool:
         return False
 
 
-def update_repo(repo_path: str, ref_name: str) -> None:
+def sync_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
+    logger.info(f'Sync repo {repo_url} → {repo_path}')
+    if not os.path.isdir(os.path.join(repo_path, '.git')):
+        logger.info(f'Cloning {repo_url} → {repo_path}')
+        repo = Repo.clone_from(repo_url, repo_path)
+    else:
+        repo = Repo(repo_path)
     logger.info(f'Updating {repo_path} sources')
-    repo = init_repo(repo_path)
-    logger.info(f'Fetching {repo_path} changes')
+    fetch_pull_repo(repo, ref_name)
+
+
+def fetch_pull_repo(repo: Repo, ref_name: str) -> None:
+    repo_name = os.path.basename(repo.working_dir)
+    logger.info(f'Fetching {repo_name} changes')
     repo.remotes.origin.fetch()
     logger.info(f'Checkouting docker-lvmpy to {ref_name}')
     repo.git.checkout(ref_name)
     if check_is_branch(repo, ref_name):
         repo.remotes.origin.pull()
+
+
+def rm_local_repo(repo_path: str) -> None:
+    if os.path.exists(repo_path):
+        logger.info(f'{repo_path} exists, removing...')
+        shutil.rmtree(repo_path)
+    else:
+        logger.info(f'{repo_path} doesn\'t exist, skipping...')
