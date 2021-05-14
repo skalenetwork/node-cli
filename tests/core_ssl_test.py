@@ -27,8 +27,10 @@ def cert_key_pair():
         '-keyout', key_path
     ])
     yield cert_path, key_path
-    pathlib.Path(cert_path).unlink(missing_ok=True)
-    pathlib.Path(key_path).unlink(missing_ok=True)
+    if os.path.isfile(cert_path):
+        pathlib.Path(cert_path).unlink()
+    if os.path.isfile(key_pat):
+        pathlib.Path(key_path).unlink()
 
 
 @pytest.fixture
