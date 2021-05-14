@@ -73,7 +73,8 @@ def run_cmd(cmd, env={}, shell=False, secure=False,
 
 
 def format_output(res):
-    return res.stdout.decode('UTF-8').rstrip(), res.stderr.decode('UTF-8').rstrip()
+    return res.stdout.decode('UTF-8').rstrip(), \
+            res.stderr.decode('UTF-8').rstrip()
 
 
 def download_file(url, filepath):

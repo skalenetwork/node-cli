@@ -25,7 +25,7 @@ from core.helper import (
     print_err_response,
     safe_load_texts
 )
-from core.ssl import upload_certs
+from core.ssl import upload_cert
 
 
 TEXTS = safe_load_texts()
@@ -73,7 +73,7 @@ def status():
 @click.option('--force', '-f', is_flag=True,
               help='Overwrite existing certificates')
 def upload(key_path, cert_path, force):
-    status, payload = upload_certs(key_path, cert_path, force)
+    status, payload = upload_cert(cert_path, key_path, force)
     if status == 'ok':
         print(TEXTS['ssl']['uploaded'])
     else:
