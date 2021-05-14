@@ -49,15 +49,13 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
-def run_cmd(cmd, env={}, shell=False, secure=False,
-            raise_for_status=True, timeout=None):
+def run_cmd(cmd, env={}, shell=False, secure=False, raise_for_status=True):
     if not secure:
         logger.debug(f'Running: {cmd}')
     else:
         logger.debug('Running some secure command')
     res = subprocess.run(
-        cmd, shell=shell, stdout=PIPE, stderr=PIPE,
-        env={**env, **os.environ}, timeout=timeout
+        cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ}
     )
     if res.returncode:
         logger.debug(res.stdout.decode('UTF-8').rstrip())
