@@ -20,12 +20,13 @@
 import click
 from terminaltables import SingleTable
 
+from configs import DEFAULT_SSL_CHECK_PORT, SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
 from core.helper import (
     get_request,
     print_err_response,
     safe_load_texts
 )
-from core.ssl import upload_cert
+from core.ssl import check_cert, upload_cert
 
 
 TEXTS = safe_load_texts()
@@ -76,5 +77,44 @@ def upload(key_path, cert_path, force):
     status, payload = upload_cert(cert_path, key_path, force)
     if status == 'ok':
         print(TEXTS['ssl']['uploaded'])
+    else:
+        print_err_response(payload)
+
+
+@ssl.command(help="Check certificates")
+@click.option(
+    '--key-path', '-k',
+    help='Path to the key file',
+    default=SSL_KEY_FILEPATH
+)
+@click.option(
+    '--cert-path', '-c',
+    help='Path to the certificate file',
+    default=SSL_CERT_FILEPATH
+)
+@click.option(
+    '--port', '-p',
+    help='Port to start ssl healtcheck server',
+    type=int,
+    default=DEFAULT_SSL_CHECK_PORT
+)
+@click.option(
+    '--type', '-t',
+    'type_',
+    help='Check type',
+    type=click.Choice(['all', 'openssl', 'skaled']),
+    default='all'
+)
+@click.option('--no-client', is_flag=True, help='Skip client check')
+def check(key_path, cert_path, port, no_client, type_):
+    status, payload = check_cert(
+        cert_path,
+        key_path,
+        port=port,
+        check_type=type_,
+        no_client=no_client
+    )
+    if status == 'ok':
+        print(TEXTS['ssl']['check_passed'])
     else:
         print_err_response(payload)
