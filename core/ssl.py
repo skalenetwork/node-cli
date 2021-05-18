@@ -178,9 +178,10 @@ def send_saving_cert_request(key_path, cert_path, force):
         return post_request('ssl_upload', files=files_data)
 
 
-def upload_cert(cert_path, key_path, force):
+def upload_cert(cert_path, key_path, force, no_client=False):
     try:
-        check_cert_openssl(cert_path, key_path, silent=True)
+        check_cert_openssl(
+            cert_path, key_path, silent=True, no_client=no_client)
     except Exception as err:
         logger.exception('Certificate/key pair is incorrect')
         return 'error', f'Certificate check failed. {err}'

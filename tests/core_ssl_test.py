@@ -75,7 +75,7 @@ def test_verify_cert_bad_key(bad_key):
 @mock.patch('core.ssl.post_request')
 def test_upload_cert(pr_mock, cert_key_pair):
     cert, key = cert_key_pair
-    upload_cert(cert, key, force=False)
+    upload_cert(cert, key, force=False, no_client=True)
     args = pr_mock.call_args.args
     assert args[0] == 'ssl_upload'
     kwargs = pr_mock.call_args.kwargs
@@ -83,7 +83,7 @@ def test_upload_cert(pr_mock, cert_key_pair):
     assert kwargs['files']['ssl_key'][1].name == key
     assert kwargs['files']['json'][1] == '{"force": false}'
 
-    upload_cert(cert, key, force=True)
+    upload_cert(cert, key, force=True, no_client=True)
     args = pr_mock.call_args.args
     assert args[0] == 'ssl_upload'
     kwargs = pr_mock.call_args.kwargs
