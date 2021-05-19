@@ -17,7 +17,8 @@ a = Analysis(
        ("./datafiles/update.sh", "data/datafiles"),
        ("./datafiles/helper.sh", "data/datafiles"),
        ("./datafiles/turn-off.sh", "data/datafiles"),
-       ("./datafiles/turn-on.sh", "data/datafiles")
+       ("./datafiles/turn-on.sh", "data/datafiles"),
+       ("./datafiles/skaled-ssl-test", "data/datafiles")
     ],
     hiddenimports=[],
     hookspath=[],

@@ -4,7 +4,7 @@ import pathlib
 import mock
 import pytest
 
-from core.ssl import check_cert, SSLHealthcheckError, upload_cert
+from core.ssl import check_cert_openssl, SSLHealthcheckError, upload_cert
 from tools.helper import run_cmd
 
 
@@ -51,25 +51,31 @@ def bad_key(cert_key_pair):
 
 def test_verify_cert(cert_key_pair):
     cert, key = cert_key_pair
-    check_cert(cert, key, host=HOST, no_client=True)
+    check_cert_openssl(cert, key, host=HOST, no_client=True)
+
+
+def test_verify_cert_self_signed_alert(cert_key_pair):
+    cert, key = cert_key_pair
+    with pytest.raises(SSLHealthcheckError):
+        check_cert_openssl(cert, key, host=HOST, no_client=False)
 
 
 def test_verify_cert_bad_cert(bad_cert):
     cert, key = bad_cert
     with pytest.raises(SSLHealthcheckError):
-        check_cert(cert, key, host=HOST, no_client=True)
+        check_cert_openssl(cert, key, host=HOST, no_client=True)
 
 
 def test_verify_cert_bad_key(bad_key):
     cert, key = bad_key
     with pytest.raises(SSLHealthcheckError):
-        check_cert(cert, key, host=HOST, no_client=True)
+        check_cert_openssl(cert, key, host=HOST, no_client=True)
 
 
 @mock.patch('core.ssl.post_request')
 def test_upload_cert(pr_mock, cert_key_pair):
     cert, key = cert_key_pair
-    upload_cert(cert, key, force=False)
+    upload_cert(cert, key, force=False, no_client=True)
     args = pr_mock.call_args.args
     assert args[0] == 'ssl_upload'
     kwargs = pr_mock.call_args.kwargs
@@ -77,7 +83,7 @@ def test_upload_cert(pr_mock, cert_key_pair):
     assert kwargs['files']['ssl_key'][1].name == key
     assert kwargs['files']['json'][1] == '{"force": false}'
 
-    upload_cert(cert, key, force=True)
+    upload_cert(cert, key, force=True, no_client=True)
     args = pr_mock.call_args.args
     assert args[0] == 'ssl_upload'
     kwargs = pr_mock.call_args.kwargs

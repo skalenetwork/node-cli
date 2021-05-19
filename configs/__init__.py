@@ -87,7 +87,7 @@ UPDATE_SCRIPT = os.path.join(DATAFILES_FOLDER, 'update.sh')
 TURN_OFF_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-off.sh')
 TURN_ON_SCRIPT = os.path.join(DATAFILES_FOLDER, 'turn-on.sh')
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
-SKALED_SSL_TEST_SCRIPT = os.path.join(DATAFILES_FOLDER, 'skaled-ssl-test.sh')
+SKALED_SSL_TEST_SCRIPT = os.path.join(DATAFILES_FOLDER, 'skaled-ssl-test')
 
 ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH,
                                    'schain_allocation.yml')
