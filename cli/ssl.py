@@ -105,14 +105,24 @@ def upload(key_path, cert_path, force):
     type=click.Choice(['all', 'openssl', 'skaled']),
     default='all'
 )
-@click.option('--no-client', is_flag=True, help='Skip client check')
-def check(key_path, cert_path, port, no_client, type_):
+@click.option(
+    '--no-client',
+    is_flag=True,
+    help='Skip client connection for openssl check'
+)
+@click.option(
+    '--no-wss',
+    is_flag=True,
+    help='Skip wss server starting for skaled check'
+)
+def check(key_path, cert_path, port, no_client, type_, no_wss):
     status, payload = check_cert(
         cert_path,
         key_path,
         port=port,
         check_type=type_,
-        no_client=no_client
+        no_client=no_client,
+        no_wss=no_wss
     )
     if status == 'ok':
         print(TEXTS['ssl']['check_passed'])

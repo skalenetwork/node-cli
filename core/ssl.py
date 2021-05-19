@@ -90,28 +90,67 @@ def check_ssl_connection(host, port, silent=False):
             raise SSLHealthcheckError('OpenSSL connection verification failed')
 
 
-def check_cert_skaled(
+def run_skaled_https_healthcheck(
     cert_path,
     key_path,
     host='127.0.0.1',
     port=DEFAULT_SSL_CHECK_PORT
 ):
-    skaled_ssl_check_cmd = [
+    skaled_https_check_cmd = [
         SKALED_SSL_TEST_SCRIPT,
         '--ssl-cert', cert_path,
         '--ssl-key', key_path,
         '--bind', host,
         '--port', str(port)
     ]
-    with detached_subprocess(skaled_ssl_check_cmd, expose_output=True) as dp:
+    with detached_subprocess(skaled_https_check_cmd, expose_output=True) as dp:
         time.sleep(1)
         code = dp.poll()
         if code is not None:
-            logger.info('Skaled ssl check server successfully started')
+            logger.info('Skaled https check server successfully started')
         else:
-            logger.error('Skaled ssl check server was failed to start')
+            logger.error('Skaled https check server was failed to start')
             raise SSLHealthcheckError(
                 'Skaled https check was failed')
+
+
+def run_skaled_wss_healthcheck(
+    cert_path,
+    key_path,
+    host='127.0.0.1',
+    port=DEFAULT_SSL_CHECK_PORT
+):
+    skaled_wss_check_cmd = [
+        SKALED_SSL_TEST_SCRIPT,
+        '--ssl-cert', cert_path,
+        '--ssl-key', key_path,
+        '--bind', host,
+        '--port', str(port),
+        '--proto', 'wss',
+        '--echo'
+    ]
+
+    with detached_subprocess(skaled_wss_check_cmd, expose_output=True) as dp:
+        time.sleep(4)
+        code = dp.poll()
+        if code is not None:
+            logger.error('Skaled wss check server was failed to start')
+            raise SSLHealthcheckError(
+                'Skaled wss check was failed')
+        else:
+            logger.info('Skaled wss check server successfully started')
+
+
+def check_cert_skaled(
+    cert_path,
+    key_path,
+    host='127.0.0.1',
+    port=DEFAULT_SSL_CHECK_PORT,
+    no_wss=False
+):
+    run_skaled_https_healthcheck(cert_path, key_path, host, port)
+    if not no_wss:
+        run_skaled_wss_healthcheck(cert_path, key_path, host, port)
 
 
 @contextmanager
@@ -193,7 +232,8 @@ def check_cert(
     key_path=SSL_KEY_FILEPATH,
     port=DEFAULT_SSL_CHECK_PORT,
     check_type='all',
-    no_client=False
+    no_client=False,
+    no_wss=False
 ):
     if check_type in ('all', 'openssl'):
         try:
@@ -209,7 +249,7 @@ def check_cert(
         try:
             check_cert_skaled(
                 cert_path, key_path,
-                host='127.0.0.1', port=port
+                host='127.0.0.1', port=port, no_wss=no_wss
             )
         except Exception as err:
             logger.exception('Certificate/key pair is incorrect for skaled')
