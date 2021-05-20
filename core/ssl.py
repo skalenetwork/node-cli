@@ -199,7 +199,7 @@ def check_cert_openssl(
                     f'Healthcheck port is closed on {host}:{port}'
                 )
             check_ssl_connection(host, port, silent=silent)
-            logger.error('Healthcheck connection passed')
+            logger.info('Healthcheck connection passed')
 
 
 def send_saving_cert_request(key_path, cert_path, force):
