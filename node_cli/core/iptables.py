@@ -37,6 +37,7 @@ except (FileNotFoundError, AttributeError) as err:
 
 
 ALLOWED_INCOMING_TCP_PORTS = [
+    '80',  # filestorage
     '22',  # ssh
     '8080',  # http
     '443',  # https
