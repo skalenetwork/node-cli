@@ -159,9 +159,6 @@ def signature(validator_id):
 
 @node.command('backup', help="Generate backup file to restore SKALE node on another machine")
 @click.argument('backup_folder_path')
-@click.argument('env_file')
-@click.option('--no-database', is_flag=True,
-              help="Skip mysql backup")
 @streamed_cmd
 def backup_node(backup_folder_path):
     backup(backup_folder_path)
