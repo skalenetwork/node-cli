@@ -163,9 +163,8 @@ def signature(validator_id):
 @click.option('--no-database', is_flag=True,
               help="Skip mysql backup")
 @streamed_cmd
-def backup_node(backup_folder_path, env_file, no_database):
-    backup_mysql = True if not no_database else False
-    backup(backup_folder_path, env_file, backup_mysql)
+def backup_node(backup_folder_path):
+    backup(backup_folder_path)
 
 
 @node.command('restore', help="Restore SKALE node on another machine")
