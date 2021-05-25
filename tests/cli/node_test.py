@@ -339,16 +339,12 @@ def test_node_signature():
 
 def test_backup():
     Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
-    with mock.patch('node_cli.core.mysql_backup.run_mysql_cmd'):
-        result = run_command(
-            backup_node,
-            [
-                '/tmp',
-                './tests/test-env'
-            ]
-        )
-        assert result.exit_code == 0
-        assert 'Backup archive successfully created: /tmp/skale-node-backup-' in result.output
+    result = run_command(
+        backup_node,
+        ['/tmp']
+    )
+    assert result.exit_code == 0
+    assert 'Backup archive successfully created: /tmp/skale-node-backup-' in result.output
 
 
 def test_restore(mocked_g_config):
@@ -361,7 +357,6 @@ def test_restore(mocked_g_config):
         'Backup archive successfully created: ', '').replace('\n', '')
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.node.restore_op'), \
-            mock.patch('node_cli.core.node.restore_mysql_backup'), \
             mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
             mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         result = run_command(
