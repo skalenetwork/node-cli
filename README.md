@@ -117,10 +117,7 @@ You should specify the following environment variables:
 -   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
 -   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
 -   `FILEBEAT_URL` - URL to the Filebeat log server
--   `DB_USER`'  - MySQL user for local node database
--   `DB_PASSWORD` - Password for root user of node internal database
-      (equal to user password by default)
--   `DB_PORT` - Port for node internal database (default is `3306`)
+
 
 Optional variables:
 
@@ -152,12 +149,7 @@ skale node backup [BACKUP_FOLDER_PATH] [ENV_FILE]
 Arguments:
 
 - `BACKUP_FOLDER_PATH` - path to the folder where the backup file will be saved
-- `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
-`
 
-Optional arguments:
-
--   `--no-database` - skip mysql database backup (in case if mysql container is not started)
 
 #### Node Registration
 

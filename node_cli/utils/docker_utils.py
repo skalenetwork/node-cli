@@ -37,7 +37,7 @@ SCHAIN_REMOVE_TIMEOUT = 60
 IMA_REMOVE_TIMEOUT = 20
 
 MAIN_COMPOSE_CONTAINERS = 'skale-api bounty skale-admin'
-BASE_COMPOSE_SERVICES = 'transaction-manager skale-admin skale-api mysql bounty nginx watchdog filebeat'  # noqa
+BASE_COMPOSE_SERVICES = 'transaction-manager skale-admin skale-api bounty nginx watchdog filebeat'  # noqa
 MONITORING_COMPOSE_SERVICES = 'node-exporter advisor'
 NOTIFICATION_COMPOSE_SERVICES = 'celery redis'
 COMPOSE_TIMEOUT = 10

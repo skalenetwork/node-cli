@@ -34,7 +34,6 @@ from node_cli.configs import (
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
 from node_cli.core.iptables import configure_iptables
-from node_cli.core.mysql_backup import create_mysql_backup, restore_mysql_backup
 from node_cli.core.host import (
     is_node_inited, save_env_params,
     get_flask_secret_key, run_preinstall_checks
@@ -144,9 +143,6 @@ def restore(backup_path, env_filepath):
     env['BACKUP_RUN'] = 'True'  # should be str
     restore_op(env, backup_path)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
-    if not restore_mysql_backup(env_filepath):
-        print('WARNING: MySQL data restoring failed. '
-              'Check < skale logs cli > for more information')
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
     print('Node is restored from backup')
@@ -199,12 +195,7 @@ def get_node_signature(validator_id):
         return payload
 
 
-def backup(path, env_filepath, mysql_backup=True):
-    if mysql_backup:
-        if not create_mysql_backup(env_filepath):
-            print('Something went wrong while trying to create MySQL backup, '
-                  'check out < skale logs cli > output')
-            return
+def backup(path):
     backup_filepath = get_backup_filepath(path)
     create_backup_archive(backup_filepath)
 

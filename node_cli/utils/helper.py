@@ -131,8 +131,6 @@ def get_username():
 
 def extract_env_params(env_filepath):
     env_params = get_env_params(env_filepath)
-    if not env_params.get('DB_ROOT_PASSWORD'):
-        env_params['DB_ROOT_PASSWORD'] = env_params['DB_PASSWORD']
 
     absent_params = ', '.join(absent_env_params(env_params))
     if absent_params:
