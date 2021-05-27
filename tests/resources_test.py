@@ -9,8 +9,7 @@ from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.resources import (
     compose_resource_allocation_config,
     update_resource_allocation,
-    get_cpu_alloc, get_memory_alloc,
-    compose_storage_limit, verify_disk_size
+    get_cpu_alloc, get_memory_alloc, verify_disk_size
 )
 
 from node_cli.utils.helper import write_json, safe_load_yml
@@ -70,15 +69,7 @@ def test_generate_resource_allocation_config():
         assert resource_allocation_config['ima']['cpu_shares'] == {'test4': 9, 'test': 9, 'small': 2, 'medium': 9, 'large': 307}  # noqa
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
-        print(resource_allocation_config['schain']['volume_limits'])
         assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
-        assert resource_allocation_config['schain']['storage_limit'] == {
-            'test4': 427499642,
-            'test': 427499642,
-            'small': 106874910,
-            'medium': 427499642,
-            'large': 13679988571
-        }
 
 
 def test_update_allocation_config(resource_alloc_config):
@@ -158,13 +149,13 @@ def test_get_memory_alloc():
     assert ima_mem_alloc_dict['large'] == 3000000
 
 
-def test_compose_storage_limit():
-    schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
-    storage_limit = compose_storage_limit(schain_allocation_data['mainnet']['leveldb'])
-    assert storage_limit == {
-        'large': 341999997419,
-        'medium': 10687499919,
-        'small': 2671874979,
-        'test': 10687499919,
-        'test4': 10687499919
+def test_leveldb_limits():
+    with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
+        resource_allocation_config = compose_resource_allocation_config(DEFAULT_ENV_TYPE)
+    assert resource_allocation_config['schain']['leveldb_limits'] == {
+        'large': {'contract_storage': 13679988571, 'db_storage': 9119992381},
+        'medium': {'contract_storage': 427499642, 'db_storage': 284999761},
+        'small': {'contract_storage': 106874910, 'db_storage': 71249940},
+        'test': {'contract_storage': 427499642, 'db_storage': 284999761},
+        'test4': {'contract_storage': 427499642, 'db_storage': 284999761}
     }
