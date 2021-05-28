@@ -75,8 +75,8 @@ def compose_resource_allocation_config(env_type):
             'cpu_shares': schain_cpu_alloc.dict(),
             'mem': schain_mem_alloc.dict(),
             'disk': schain_allocation_data[env_type]['disk'],
-            'volume_limits': schain_allocation_data[env_type]['volume'],
-            'storage_limit': compose_storage_limit(schain_allocation_data[env_type]['leveldb'])
+            'volume_limits': schain_allocation_data[env_type]['volume_limits'],
+            'leveldb_limits': schain_allocation_data[env_type]['leveldb_limits']
         },
         'ima': {
             'cpu_shares': ima_cpu_alloc.dict(),
@@ -186,8 +186,3 @@ def get_allocation_option_name(schain):
 def get_disk_path():
     with open(DISK_MOUNTPOINT_FILEPATH) as f:
         return f.read().strip()
-
-
-def compose_storage_limit(leveldb_lim):
-    """Helper function was the backward compatibility with old skale-admin"""
-    return {k: leveldb_lim[k]['evm_storage_part'] for k in leveldb_lim.keys()}

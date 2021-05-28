@@ -8,23 +8,29 @@ devnet:
     small: 593749504
     test: 2374998016
     test4: 2374998016
-  leveldb:
+  leveldb_limits:
     large:
-      evm_storage_part: 13679988571
-      logs_storage_part: 9119992381
+      contract_storage: 13679988571
+      db_storage: 9119992381
     medium:
-      evm_storage_part: 427499642
-      logs_storage_part: 284999761
+      contract_storage: 427499642
+      db_storage: 284999761
     small:
-      evm_storage_part: 106874910
-      logs_storage_part: 71249940
+      contract_storage: 106874910
+      db_storage: 71249940
     test:
-      evm_storage_part: 427499642
-      logs_storage_part: 284999761
+      contract_storage: 427499642
+      db_storage: 284999761
     test4:
-      evm_storage_part: 427499642
-      logs_storage_part: 284999761
-  volume:
+      contract_storage: 427499642
+      db_storage: 284999761
+  rotate_after_block:
+    large: 1310721
+    medium: 40960
+    small: 10240
+    test: 40960
+    test4: 40960
+  volume_limits:
     large:
       max_consensus_storage_bytes: 22799980953
       max_file_storage_bytes: 22799980953
@@ -52,53 +58,59 @@ devnet:
       max_skaled_leveldb_storage_bytes: 712499404
 mainnet:
   disk:
-    large: 1899999985664
-    medium: 59374999552
-    small: 14843749888
-    test: 59374999552
-    test4: 59374999552
-  leveldb:
+    large: 1804999983104
+    medium: 56406249472
+    small: 14101562368
+    test: 56406249472
+    test4: 56406249472
+  leveldb_limits:
     large:
-      evm_storage_part: 341999997419
-      logs_storage_part: 227999998279
+      contract_storage: 324899996958
+      db_storage: 216599997972
     medium:
-      evm_storage_part: 10687499919
-      logs_storage_part: 7124999946
+      contract_storage: 10153124904
+      db_storage: 6768749936
     small:
-      evm_storage_part: 2671874979
-      logs_storage_part: 1781249986
+      contract_storage: 2538281226
+      db_storage: 1692187484
     test:
-      evm_storage_part: 10687499919
-      logs_storage_part: 7124999946
+      contract_storage: 10153124904
+      db_storage: 6768749936
     test4:
-      evm_storage_part: 10687499919
-      logs_storage_part: 7124999946
-  volume:
+      contract_storage: 10153124904
+      db_storage: 6768749936
+  rotate_after_block:
+    large: 31129628
+    medium: 972800
+    small: 243200
+    test: 972800
+    test4: 972800
+  volume_limits:
     large:
-      max_consensus_storage_bytes: 569999995699
-      max_file_storage_bytes: 569999995699
-      max_reserved_storage_bytes: 189999998566
-      max_skaled_leveldb_storage_bytes: 569999995699
+      max_consensus_storage_bytes: 541499994931
+      max_file_storage_bytes: 541499994931
+      max_reserved_storage_bytes: 180499998310
+      max_skaled_leveldb_storage_bytes: 541499994931
     medium:
-      max_consensus_storage_bytes: 17812499865
-      max_file_storage_bytes: 17812499865
-      max_reserved_storage_bytes: 5937499955
-      max_skaled_leveldb_storage_bytes: 17812499865
+      max_consensus_storage_bytes: 16921874841
+      max_file_storage_bytes: 16921874841
+      max_reserved_storage_bytes: 5640624947
+      max_skaled_leveldb_storage_bytes: 16921874841
     small:
-      max_consensus_storage_bytes: 4453124966
-      max_file_storage_bytes: 4453124966
-      max_reserved_storage_bytes: 1484374988
-      max_skaled_leveldb_storage_bytes: 4453124966
+      max_consensus_storage_bytes: 4230468710
+      max_file_storage_bytes: 4230468710
+      max_reserved_storage_bytes: 1410156236
+      max_skaled_leveldb_storage_bytes: 4230468710
     test:
-      max_consensus_storage_bytes: 17812499865
-      max_file_storage_bytes: 17812499865
-      max_reserved_storage_bytes: 5937499955
-      max_skaled_leveldb_storage_bytes: 17812499865
+      max_consensus_storage_bytes: 16921874841
+      max_file_storage_bytes: 16921874841
+      max_reserved_storage_bytes: 5640624947
+      max_skaled_leveldb_storage_bytes: 16921874841
     test4:
-      max_consensus_storage_bytes: 17812499865
-      max_file_storage_bytes: 17812499865
-      max_reserved_storage_bytes: 5937499955
-      max_skaled_leveldb_storage_bytes: 17812499865
+      max_consensus_storage_bytes: 16921874841
+      max_file_storage_bytes: 16921874841
+      max_reserved_storage_bytes: 5640624947
+      max_skaled_leveldb_storage_bytes: 16921874841
 qanet:
   disk:
     large: 189999939584
@@ -106,23 +118,29 @@ qanet:
     small: 1484374528
     test: 5937498112
     test4: 5937498112
-  leveldb:
+  leveldb_limits:
     large:
-      evm_storage_part: 34199989125
-      logs_storage_part: 22799992750
+      contract_storage: 34199989125
+      db_storage: 22799992750
     medium:
-      evm_storage_part: 1068749659
-      logs_storage_part: 712499773
+      contract_storage: 1068749659
+      db_storage: 712499773
     small:
-      evm_storage_part: 267187414
-      logs_storage_part: 178124943
+      contract_storage: 267187414
+      db_storage: 178124943
     test:
-      evm_storage_part: 1068749659
-      logs_storage_part: 712499773
+      contract_storage: 1068749659
+      db_storage: 712499773
     test4:
-      evm_storage_part: 1068749659
-      logs_storage_part: 712499773
-  volume:
+      contract_storage: 1068749659
+      db_storage: 712499773
+  rotate_after_block:
+    large: 3276803
+    medium: 102400
+    small: 25600
+    test: 102400
+    test4: 102400
+  volume_limits:
     large:
       max_consensus_storage_bytes: 56999981875
       max_file_storage_bytes: 56999981875
@@ -155,23 +173,29 @@ testnet:
     small: 1484374528
     test: 5937498112
     test4: 5937498112
-  leveldb:
+  leveldb_limits:
     large:
-      evm_storage_part: 34199989125
-      logs_storage_part: 22799992750
+      contract_storage: 34199989125
+      db_storage: 22799992750
     medium:
-      evm_storage_part: 1068749659
-      logs_storage_part: 712499773
+      contract_storage: 1068749659
+      db_storage: 712499773
     small:
-      evm_storage_part: 267187414
-      logs_storage_part: 178124943
+      contract_storage: 267187414
+      db_storage: 178124943
     test:
-      evm_storage_part: 1068749659
-      logs_storage_part: 712499773
+      contract_storage: 1068749659
+      db_storage: 712499773
     test4:
-      evm_storage_part: 1068749659
-      logs_storage_part: 712499773
-  volume:
+      contract_storage: 1068749659
+      db_storage: 712499773
+  rotate_after_block:
+    large: 3276803
+    medium: 102400
+    small: 25600
+    test: 102400
+    test4: 102400
+  volume_limits:
     large:
       max_consensus_storage_bytes: 56999981875
       max_file_storage_bytes: 56999981875
