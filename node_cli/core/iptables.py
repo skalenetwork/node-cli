@@ -39,10 +39,11 @@ except (FileNotFoundError, AttributeError) as err:
 ALLOWED_INCOMING_TCP_PORTS = [
     '80',  # filestorage
     '22',  # ssh
+    '311',  # watchdog https
     '8080',  # http
     '443',  # https
     '53',  # dns
-    '3009',  # watchdog
+    '3009',  # watchdog http
     '9100'  # node exporter
 ]
 
