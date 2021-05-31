@@ -23,6 +23,7 @@ from node_cli.cli.info import VERSION
 from node_cli.core.host import ( # noqa - tmp!
     prepare_host, link_env_file, run_preinstall_checks
 )
+from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.resources import update_resource_allocation
 
 from node_cli.operations.common import (
@@ -50,6 +51,7 @@ def update(env_filepath: str, env: str) -> None:
     download_filestorage_artifacts()
     docker_lvmpy_update(env)
     sync_skale_node(env)
+    generate_nginx_config()
 
     prepare_host(
         env_filepath,
@@ -86,6 +88,7 @@ def init(env_filepath: str, env: str) -> bool:
     configure_filebeat()
     configure_flask()
     configure_iptables()
+    generate_nginx_config()
 
     docker_lvmpy_install(env)
 

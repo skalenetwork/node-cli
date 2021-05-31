@@ -144,6 +144,7 @@ def test_update_node(mocked_g_config):
             mock.patch('node_cli.core.node.update_op'), \
             mock.patch('node_cli.core.node.get_flask_secret_key'), \
             mock.patch('node_cli.core.node.save_env_params'), \
+            mock.patch('node_cli.core.node.configure_firewall_rules'), \
             mock.patch('node_cli.core.host.prepare_host'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \

@@ -172,6 +172,7 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
 @check_user
 def update(env_filepath):
     logger.info('Node update started')
+    configure_firewall_rules()
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
     update_op(env_filepath, env)
     logger.info('Waiting for transaction manager initialization')

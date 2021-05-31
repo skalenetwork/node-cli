@@ -37,11 +37,13 @@ except (FileNotFoundError, AttributeError) as err:
 
 
 ALLOWED_INCOMING_TCP_PORTS = [
+    '80',  # filestorage
     '22',  # ssh
+    '311',  # watchdog https
     '8080',  # http
     '443',  # https
     '53',  # dns
-    '3009',  # watchdog
+    '3009',  # watchdog http
     '9100'  # node exporter
 ]
 
@@ -145,7 +147,7 @@ def accept_incoming(chain, port, protocol) -> None:
     t = iptc.Target(rule, 'ACCEPT')
     rule.target = t
     rule.add_match(match)
-    ensure_rule(chain, rule)
+    ensure_rule(chain, rule, insert=True)
 
 
 def accept_icmp(chain: iptc.Chain) -> None:
@@ -165,10 +167,13 @@ def add_icmp_rule(chain: iptc.Chain, icmp_type: str) -> None:
     ensure_rule(chain, rule)
 
 
-def ensure_rule(chain: iptc.Chain, rule: iptc.Rule) -> None:
+def ensure_rule(chain: iptc.Chain, rule: iptc.Rule, insert=False) -> None:
     if rule not in chain.rules:
         logger.debug(f'Adding rule: {rule_to_dict(rule)}, chain: {chain.name}')
-        chain.append_rule(rule)
+        if insert:
+            chain.insert_rule(rule)
+        else:
+            chain.append_rule(rule)
     else:
         logger.debug(f'Rule already present: {rule_to_dict(rule)}, chain: {chain.name}')
 
