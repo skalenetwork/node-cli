@@ -127,14 +127,18 @@ def get_logs_backup_filepath(container: Container) -> str:
     return os.path.join(REMOVED_CONTAINERS_FOLDER_PATH, log_file_name)
 
 
-def init_shared_volume(name: str):
+def init_shared_volume():
+    init_volume('snapshots-shared-space', 0)
+
+
+def init_volume(name: str, size: int):
     if is_volume_exists(name):
         return
-    size = 0
     logging.info(f'Creating volume - size: {size}, name: {name}')
     driver_opts = {'size': str(size)}
     volume = docker_client().volumes.create(
         name=name,
+        driver='lvmpy',
         driver_opts=driver_opts
     )
     return volume
