@@ -29,7 +29,8 @@ from node_cli.utils.helper import (
     write_json, read_json, run_cmd, extract_env_params, safe_load_yml
 )
 from node_cli.configs import (
-    ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH, SCHAIN_ALLOCATION_FILEPATH, SNAPSHOTS_SHARED_FOLDER_NAME
+    ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH,
+    SCHAIN_ALLOCATION_FILEPATH, SNAPSHOTS_SHARED_FOLDER_NAME
 )
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
