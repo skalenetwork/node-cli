@@ -23,11 +23,14 @@ from time import sleep
 
 import psutil
 
+from node_cli.utils.docker_utils import init_volume
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import (
     write_json, read_json, run_cmd, extract_env_params, safe_load_yml
 )
-from node_cli.configs import ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH
+from node_cli.configs import (
+    ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH, SCHAIN_ALLOCATION_FILEPATH
+)
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
     TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
@@ -59,6 +62,21 @@ def get_resource_allocation_info():
         return read_json(RESOURCE_ALLOCATION_FILEPATH)
     except FileNotFoundError:
         return None
+
+
+def get_schain_allocation_info():
+    logger.info(SCHAIN_ALLOCATION_FILEPATH)
+    if os.path.isfile(SCHAIN_ALLOCATION_FILEPATH):
+        return safe_load_yml(SCHAIN_ALLOCATION_FILEPATH)
+    else:
+        return None
+
+
+def get_shared_space_size(env_type):
+    schain_allocation = get_schain_allocation_info()
+    if not schain_allocation:
+        return None
+    return schain_allocation[env_type]['shared_space']
 
 
 def compose_resource_allocation_config(env_type):
@@ -186,3 +204,8 @@ def get_allocation_option_name(schain):
 def get_disk_path():
     with open(DISK_MOUNTPOINT_FILEPATH) as f:
         return f.read().strip()
+
+
+def init_shared_space_volume(env_type):
+    size = get_shared_space_size(env_type)
+    init_volume('snapshots-shared-space', size)
