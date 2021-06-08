@@ -47,6 +47,11 @@ def update(env_filepath: str, env: str) -> None:
     remove_dynamic_containers()
 
     backup_old_contracts()
+    download_contracts(env)
+    download_filestorage_artifacts()
+    docker_lvmpy_update(env)
+    sync_skale_node(env)
+    generate_nginx_config()
 
     prepare_host(
         env_filepath,
@@ -55,14 +60,7 @@ def update(env_filepath: str, env: str) -> None:
         env['ENV_TYPE'],
         allocation=True
     )
-    download_contracts(env)
-    download_filestorage_artifacts()
-
-    docker_lvmpy_update(env)
     init_shared_space_volume(env['ENV_TYPE'])
-
-    sync_skale_node(env)
-    generate_nginx_config()
 
     update_meta(
         VERSION,
