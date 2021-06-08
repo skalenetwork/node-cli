@@ -127,6 +127,29 @@ def get_logs_backup_filepath(container: Container) -> str:
     return os.path.join(REMOVED_CONTAINERS_FOLDER_PATH, log_file_name)
 
 
+def init_volume(name: str, size: int, dutils=None):
+    dutils = dutils or docker_client()
+    if is_volume_exists(name, dutils=dutils):
+        return
+    logging.info(f'Creating volume - size: {size}, name: {name}')
+    driver_opts = {'size': str(size)}
+    volume = dutils.volumes.create(
+        name=name,
+        driver='lvmpy',
+        driver_opts=driver_opts
+    )
+    return volume
+
+
+def is_volume_exists(name: str, dutils=None):
+    dutils = dutils or docker_client()
+    try:
+        dutils.volumes.get(name)
+    except docker.errors.NotFound:
+        return False
+    return True
+
+
 def compose_rm(env={}):
     logger.info(f'Removing {MAIN_COMPOSE_CONTAINERS} containers')
     run_cmd(

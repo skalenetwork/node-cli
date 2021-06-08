@@ -24,7 +24,7 @@ from node_cli.core.host import ( # noqa - tmp!
     prepare_host, link_env_file, run_preinstall_checks
 )
 from node_cli.core.nginx import generate_nginx_config
-from node_cli.core.resources import update_resource_allocation
+from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
 from node_cli.operations.common import (
     backup_old_contracts, download_contracts, download_filestorage_artifacts, configure_filebeat,
@@ -60,6 +60,8 @@ def update(env_filepath: str, env: str) -> None:
         env['ENV_TYPE'],
         allocation=True
     )
+    init_shared_space_volume(env['ENV_TYPE'])
+
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
@@ -91,6 +93,7 @@ def init(env_filepath: str, env: str) -> bool:
     generate_nginx_config()
 
     docker_lvmpy_install(env)
+    init_shared_space_volume(env['ENV_TYPE'])
 
     update_meta(
         VERSION,

@@ -23,11 +23,15 @@ from time import sleep
 
 import psutil
 
+from node_cli.utils.docker_utils import init_volume
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import (
     write_json, read_json, run_cmd, extract_env_params, safe_load_yml
 )
-from node_cli.configs import ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH
+from node_cli.configs import (
+    ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH,
+    SNAPSHOTS_SHARED_FOLDER_NAME
+)
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
     TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
@@ -186,3 +190,9 @@ def get_allocation_option_name(schain):
 def get_disk_path():
     with open(DISK_MOUNTPOINT_FILEPATH) as f:
         return f.read().strip()
+
+
+def init_shared_space_volume(env_type):
+    schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
+    size = schain_allocation_data[env_type]['shared_space']
+    init_volume(SNAPSHOTS_SHARED_FOLDER_NAME, size)
