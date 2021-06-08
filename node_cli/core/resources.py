@@ -30,7 +30,7 @@ from node_cli.utils.helper import (
 )
 from node_cli.configs import (
     ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH,
-    SCHAIN_ALLOCATION_FILEPATH, SNAPSHOTS_SHARED_FOLDER_NAME
+    SNAPSHOTS_SHARED_FOLDER_NAME
 )
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
@@ -63,21 +63,6 @@ def get_resource_allocation_info():
         return read_json(RESOURCE_ALLOCATION_FILEPATH)
     except FileNotFoundError:
         return None
-
-
-def get_schain_allocation_info():
-    logger.info(SCHAIN_ALLOCATION_FILEPATH)
-    if os.path.isfile(SCHAIN_ALLOCATION_FILEPATH):
-        return safe_load_yml(SCHAIN_ALLOCATION_FILEPATH)
-    else:
-        return None
-
-
-def get_shared_space_size(env_type):
-    schain_allocation = get_schain_allocation_info()
-    if not schain_allocation:
-        return None
-    return schain_allocation[env_type]['shared_space']
 
 
 def compose_resource_allocation_config(env_type):
@@ -208,5 +193,6 @@ def get_disk_path():
 
 
 def init_shared_space_volume(env_type):
-    size = get_shared_space_size(env_type)
+    schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
+    size = schain_allocation_data[env_type]['shared_space']
     init_volume(SNAPSHOTS_SHARED_FOLDER_NAME, size)
