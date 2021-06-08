@@ -33,7 +33,7 @@ G_CONF_HOME = os.getenv('TEST_HOME_DIR') or GLOBAL_CONFIG['home_dir']
 SKALE_STATE_DIR = '/var/lib/skale'
 FILESTORAGE_MAPPING = os.path.join(SKALE_STATE_DIR, 'filestorage')
 SCHAINS_MNT_DIR = '/mnt'
-SNAPSHOTS_SHARED_FOLDER_NAME = 'snapshots-shared-space'
+SNAPSHOTS_SHARED_FOLDER_NAME = 'shared-space'
 SNAPSHOTS_SHARED_FOLDER_PATH = os.path.join(SCHAINS_MNT_DIR, SNAPSHOTS_SHARED_FOLDER_NAME)
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')

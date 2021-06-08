@@ -29,7 +29,7 @@ from node_cli.utils.helper import (
     write_json, read_json, run_cmd, extract_env_params, safe_load_yml
 )
 from node_cli.configs import (
-    ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH, SCHAIN_ALLOCATION_FILEPATH
+    ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH, SCHAIN_ALLOCATION_FILEPATH, SNAPSHOTS_SHARED_FOLDER_NAME
 )
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
@@ -208,4 +208,4 @@ def get_disk_path():
 
 def init_shared_space_volume(env_type):
     size = get_shared_space_size(env_type)
-    init_volume('snapshots-shared-space', size)
+    init_volume(SNAPSHOTS_SHARED_FOLDER_NAME, size)
