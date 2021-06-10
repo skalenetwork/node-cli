@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+from typing import Dict
 
 from node_cli.cli.info import VERSION
 from node_cli.core.host import (  # noqa
