@@ -199,6 +199,7 @@ def get_disk_path():
 
 
 def init_shared_space_volume(env_type):
+    logger.info('Configuring shared space volume')
     schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
     size = schain_allocation_data[env_type]['shared_space']
     ensure_volume(SNAPSHOTS_SHARED_VOLUME, size)
