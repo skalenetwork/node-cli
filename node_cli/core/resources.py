@@ -23,14 +23,14 @@ from time import sleep
 
 import psutil
 
-from node_cli.utils.docker_utils import init_volume
+from node_cli.utils.docker_utils import ensure_volume
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import (
     write_json, read_json, run_cmd, extract_env_params, safe_load_yml
 )
 from node_cli.configs import (
     ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH,
-    SNAPSHOTS_SHARED_FOLDER_NAME
+    SNAPSHOTS_SHARED_VOLUME
 )
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
@@ -39,6 +39,10 @@ from node_cli.configs.resource_allocation import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class NotEnoughDiskSpaceError(Exception):
+    pass
 
 
 class ResourceAlloc:
@@ -79,8 +83,8 @@ def compose_resource_allocation_config(env_type):
             'cpu_shares': schain_cpu_alloc.dict(),
             'mem': schain_mem_alloc.dict(),
             'disk': schain_allocation_data[env_type]['disk'],
-            'volume_limits': schain_allocation_data[env_type]['volume_limits'],
-            'leveldb_limits': schain_allocation_data[env_type]['leveldb_limits']
+            'volume_limits': schain_allocation_data[env_type]['volume_limits'],  # noqa
+            'leveldb_limits': schain_allocation_data[env_type]['leveldb_limits']  # noqa
         },
         'ima': {
             'cpu_shares': ima_cpu_alloc.dict(),
@@ -160,7 +164,9 @@ def verify_disk_size(env_configs: dict, env_type: str) -> dict:
 
 def check_disk_size(disk_size: int, env_disk_size: int):
     if env_disk_size > disk_size:
-        raise Exception(f'Disk size: {disk_size}, required disk size: {env_disk_size}')
+        raise NotEnoughDiskSpaceError(
+            f'Disk size: {disk_size}, required disk size: {env_disk_size}'
+        )
 
 
 def get_disk_size() -> int:
@@ -195,4 +201,4 @@ def get_disk_path():
 def init_shared_space_volume(env_type):
     schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
     size = schain_allocation_data[env_type]['shared_space']
-    init_volume(SNAPSHOTS_SHARED_FOLDER_NAME, size)
+    ensure_volume(SNAPSHOTS_SHARED_VOLUME, size)
