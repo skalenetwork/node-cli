@@ -52,6 +52,7 @@ def sync_docker_lvmpy_repo(env):
 
 def docker_lvmpy_update(env):
     sync_docker_lvmpy_repo(env)
+    ensure_filestorage_mapping()
     logger.info('Running docker-lvmpy update script')
     update_docker_lvmpy_env(env)
     run_cmd(
