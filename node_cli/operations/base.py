@@ -18,9 +18,10 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+from typing import Dict
 
 from node_cli.cli.info import VERSION
-from node_cli.core.host import ( # noqa - tmp!
+from node_cli.core.host import (  # noqa
     prepare_host, link_env_file, run_preinstall_checks
 )
 from node_cli.core.nginx import generate_nginx_config
@@ -36,13 +37,13 @@ from node_cli.operations.skale_node import sync_skale_node, update_images
 from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
 from node_cli.utils.meta import update_meta
-from node_cli.utils.print_formatters import print_failed_requirements_checks # noqa - tmp!
+from node_cli.utils.print_formatters import print_failed_requirements_checks  # noqa
 
 
 logger = logging.getLogger(__name__)
 
 
-def update(env_filepath: str, env: str) -> None:
+def update(env_filepath: str, env: Dict) -> None:
     compose_rm(env)
     remove_dynamic_containers()
 

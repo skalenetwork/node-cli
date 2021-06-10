@@ -26,7 +26,7 @@ import psutil
 import shutil
 import socket
 from collections import namedtuple
-from typing import List
+from typing import Dict, List
 
 import docker
 import yaml
@@ -74,7 +74,7 @@ class BaseChecker:
 
 
 class MachineChecker(BaseChecker):
-    def __init__(self, requirements: dict) -> None:
+    def __init__(self, requirements: Dict) -> None:
         self.requirements = requirements
 
     def cpu_total(self) -> CheckResult:

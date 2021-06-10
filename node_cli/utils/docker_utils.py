@@ -139,11 +139,12 @@ def get_logs_backup_filepath(container: Container) -> str:
     return os.path.join(REMOVED_CONTAINERS_FOLDER_PATH, log_file_name)
 
 
-def init_volume(name: str, size: int, dutils=None):
+def ensure_volume(name: str, size: int, dutils=None):
     dutils = dutils or docker_client()
     if is_volume_exists(name, dutils=dutils):
+        logger.info(f'Volume with name {name} already exits')
         return
-    logging.info(f'Creating volume - size: {size}, name: {name}')
+    logger.info(f'Creating volume - size: {size}, name: {name}')
     driver_opts = {'size': str(size)}
     volume = dutils.volumes.create(
         name=name,

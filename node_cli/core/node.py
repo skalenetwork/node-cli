@@ -28,8 +28,14 @@ from enum import Enum
 import docker
 
 from node_cli.configs import (
-    SKALE_DIR, INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME, G_CONF_HOME, RESTORE_SLEEP_TIMEOUT, TM_INIT_TIMEOUT
+    FILESTORAGE_MAPPING,
+    SKALE_DIR,
+    INIT_ENV_FILEPATH,
+    BACKUP_ARCHIVE_NAME,
+    G_CONF_HOME,
+    RESTORE_SLEEP_TIMEOUT,
+    SCHAINS_MNT_DIR,
+    TM_INIT_TIMEOUT
 )
 from node_cli.configs.cli_logger import LOG_DIRNAME
 
@@ -158,6 +164,8 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
         env_params = extract_env_params(INIT_ENV_FILEPATH)
     env = {
         'SKALE_DIR': SKALE_DIR,
+        'SCHAINS_MNT_DIR': SCHAINS_MNT_DIR,
+        'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
         **env_params
     }
     if inited_node:

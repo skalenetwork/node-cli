@@ -37,12 +37,22 @@ def update_docker_lvmpy_env(env):
     return env
 
 
+def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
+    if not os.path.isdir(FILESTORAGE_MAPPING):
+        os.makedirs(FILESTORAGE_MAPPING)
+
+
 def sync_docker_lvmpy_repo(env):
-    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env["DOCKER_LVMPY_STREAM"])
+    sync_repo(
+        DOCKER_LVMPY_REPO_URL,
+        DOCKER_LVMPY_PATH,
+        env["DOCKER_LVMPY_STREAM"]
+    )
 
 
 def docker_lvmpy_update(env):
     sync_docker_lvmpy_repo(env)
+    ensure_filestorage_mapping()
     logger.info('Running docker-lvmpy update script')
     update_docker_lvmpy_env(env)
     run_cmd(
@@ -54,6 +64,7 @@ def docker_lvmpy_update(env):
 
 def docker_lvmpy_install(env):
     sync_docker_lvmpy_repo(env)
+    ensure_filestorage_mapping()
     update_docker_lvmpy_env(env)
     run_cmd(
         cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/install.sh'.split(),
