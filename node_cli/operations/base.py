@@ -49,9 +49,9 @@ def update(env_filepath: str, env: Dict) -> None:
 
     backup_old_contracts()
     download_contracts(env)
+    sync_skale_node(env)
     download_filestorage_artifacts()
     docker_lvmpy_update(env)
-    sync_skale_node(env)
     generate_nginx_config()
 
     prepare_host(
