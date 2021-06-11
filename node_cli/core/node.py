@@ -20,7 +20,6 @@
 import datetime
 import logging
 import os
-import shlex
 import subprocess
 import time
 from enum import Enum
@@ -32,12 +31,12 @@ from node_cli.configs import (
     SKALE_DIR,
     INIT_ENV_FILEPATH,
     BACKUP_ARCHIVE_NAME,
-    G_CONF_HOME,
     RESTORE_SLEEP_TIMEOUT,
     SCHAINS_MNT_DIR,
-    TM_INIT_TIMEOUT
+    TM_INIT_TIMEOUT,
+    LOG_PATH
 )
-from node_cli.configs.cli_logger import LOG_DIRNAME
+from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.iptables import configure_iptables
 from node_cli.core.host import (
@@ -56,7 +55,11 @@ from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.helper import run_cmd, extract_env_params
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.decorators import check_not_inited, check_inited, check_user
+from node_cli.utils.decorators import (
+    check_not_inited,
+    check_inited,
+    check_user
+)
 
 
 logger = logging.getLogger(__name__)
@@ -220,11 +223,14 @@ def get_backup_filepath(base_path):
 
 def create_backup_archive(backup_filepath):
     print('Creating backup archive...')
-    log_skale_path = os.path.join('.skale', LOG_DIRNAME)
-    cmd = shlex.split(
-        f'tar -zcvf {backup_filepath} -C {G_CONF_HOME} '
-        f'--exclude {log_skale_path} .skale'
-    )
+    cli_log_path = CLI_LOG_DATA_PATH
+    container_log_path = LOG_PATH
+    cmd = [
+        'tar', '-zcvf', backup_filepath,
+        '--exclude', container_log_path,
+        '--exclude', cli_log_path,
+        SKALE_DIR,
+    ]
     try:
         run_cmd(cmd)
         print(f'Backup archive successfully created: {backup_filepath}')
@@ -309,7 +315,10 @@ def get_node_info(format):
         elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
             print(TEXTS['service']['node_not_registered'])
         else:
-            print_node_info(node_info, get_node_status(int(node_info['status'])))
+            print_node_info(
+                node_info,
+                get_node_status(int(node_info['status']))
+            )
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
