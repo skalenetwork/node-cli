@@ -20,9 +20,12 @@
 import datetime
 import logging
 import os
-import subprocess
+import tarfile
 import time
+from contextlib import contextmanager
 from enum import Enum
+from pathlib import Path
+from typing import Tuple
 
 import docker
 
@@ -52,7 +55,7 @@ from node_cli.utils.print_formatters import (
     print_failed_requirements_checks, print_node_cmd_error, print_node_info
 )
 from node_cli.utils.helper import error_exit, get_request, post_request
-from node_cli.utils.helper import run_cmd, extract_env_params
+from node_cli.utils.helper import extract_env_params
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.decorators import (
@@ -218,25 +221,54 @@ def get_backup_filename():
 
 
 def get_backup_filepath(base_path):
-    return os.path.join(base_path, get_backup_filename())
+    return os.path.abspath(os.path.join(base_path, get_backup_filename()))
+
+
+@contextmanager
+def chdir(dest):
+    old = os.getcwd()
+    try:
+        os.chdir(dest)
+        yield
+    finally:
+        os.chdir(old)
+
+
+def pack_dir(source: str, dest: str, exclude: Tuple[str] = ()):
+    logger.info('Packing dir %s to %s excluding %s', source, dest, exclude)
+
+    source, dest = Path(source), Path(dest)
+    exclude = [Path(e).relative_to(source.parent) for e in exclude]
+
+    def logfilter(tarinfo):
+        path = Path(tarinfo.name)
+        for e in exclude:
+            logger.debug('Cheking if %s is parent of %s', e, tarinfo.name)
+            try:
+                path.relative_to(e)
+            except ValueError:
+                pass
+            else:
+                logger.debug('Excluding %s', tarinfo.name)
+                return None
+        return tarinfo
+
+    with chdir(source.parent):
+        with tarfile.open(dest, 'w:gz') as tar:
+            tar.add(source.name, filter=logfilter)
+    logger.info('Packing finished %s', source)
 
 
 def create_backup_archive(backup_filepath):
     print('Creating backup archive...')
     cli_log_path = CLI_LOG_DATA_PATH
     container_log_path = LOG_PATH
-    cmd = [
-        'tar', '-zcvf', backup_filepath,
-        '--exclude', container_log_path,
-        '--exclude', cli_log_path,
+    pack_dir(
         SKALE_DIR,
-    ]
-    try:
-        run_cmd(cmd)
-        print(f'Backup archive successfully created: {backup_filepath}')
-    except subprocess.CalledProcessError:
-        logger.exception('Backup archive creation failed')
-        print_node_cmd_error()
+        backup_filepath,
+        exclude=(cli_log_path, container_log_path)
+    )
+    print('Backup archive succesfully created')
 
 
 def set_maintenance_mode_on():
