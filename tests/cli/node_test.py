@@ -345,7 +345,8 @@ def test_backup():
         ['/tmp']
     )
     assert result.exit_code == 0
-    assert 'Backup archive successfully created: /tmp/skale-node-backup-' in result.output
+    print(result.output)
+    assert 'Backup archive succesfully created ' in result.output
 
 
 def test_restore(mocked_g_config):
