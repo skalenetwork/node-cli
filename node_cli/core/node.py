@@ -268,7 +268,7 @@ def create_backup_archive(backup_filepath):
         backup_filepath,
         exclude=(cli_log_path, container_log_path)
     )
-    print('Backup archive succesfully created')
+    print(f'Backup archive succesfully created {backup_filepath}')
 
 
 def set_maintenance_mode_on():
