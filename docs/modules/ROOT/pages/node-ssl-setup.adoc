@@ -1,0 +1,142 @@
+= Node SSL Setup
+
+== General info
+Node SSL certificates support secure communication with sChain endpoints. By default, each node of a SKALE Chain listens on HTTP and WS ports. If SSL certs exist on the node, then HTTPS and WSS ports are also turned on. 
+
+Node SSL certificates aren't required to start a node, register it, or create sChains. However, dApp developers using SKALE Chains need HTTPS/WSS endpoints to work with toolings such as API based wallets and other integrations. Therefore, SSL certificates are required for SKALE Network validator nodes.
+
+== Node SSL onboarding
+Here's an example of a step-by-step process of setting up validator node SSL. 
+
+=== Prerequisites
+To upload SSL certificates to the node, you’ll have to do a few steps on your side which may vary depending on your domain name provider, certificate authority, etc. <<reference-letsencrypt-tutorial, See here for reference example>> of how use free Let's Encrypt certificates. 
+
+The steps include:
+* getting domain names for each node.
+* issuing SSL certificates for them.
+* uploading certificates to the node.
+* setting up domain name for the node in the SKALE Manager smart contracts.
+
+[NOTE]
+This procedure will vary depending on your domain management service (Google Domains, GoDaddy, etc).
+
+=== 1. Domain name and redirects
+
+The first thing you will need is the domain name. You’ll need one per node, so it makes sense to set up a subdomain for each one and set up redirects. Let’s say you own `awesome-validator.com` and run two nodes with the following IP addresses, names, and redirects:
+
+[%header,cols=3*]
+|===
+| Node name
+| Node IP
+| Redirect
+
+|node-0
+|123.1.23.5
+|node-0.awesome-validator.com
+
+|node-1
+|5.46.34.25
+|node-1.awesome-validator.com
+|===
+
+=== 2. Verify redirects
+
+You can verify that redirects work by sending a request to the watchdog API on 3009 port using your domain name.
+
+=== 3. Issue SSL certificates
+
+Once you have all redirects for your nodes, you can move to the SSL certificates. You will need SSL certs issued by one of the <<trusted-authorities, Trusted CAs>>. Once you've decided on the certificate issuer, you have several options - issue a separate certificate for each subdomain (node-0.awesome-validator.com, node-1.awesome-validator.com) or issue a single Wildcard SSL for all nodes (*.awesome-validator.com). As a result, you should have 2 main files saved and copied to the respective nodes:
+
+* Certificate file (usually called something like fullchain.pem or cert.pem)
+* Private key file (usually called something like privkey.pem, pk.pem)
+
+=== 4. Upload certificates to the SKALE Node
+
+Once you copied the certificate and private key file, all you have to do is to run the following command:
+
+```shell
+skale ssl upload -c $PATH_TO_CERT_FILE -k $PATH_TO_KEY_FILE
+```
+
+[NOTE]
+Add -f flag to the command to override existing certificates on the node
+
+Once certificates are uploaded, you can check them by running:
+
+```shell
+skale ssl status
+```
+
+=== 5. Set domain name for your node in the SKALE Manager smart contracts
+
+To set the domain name of the registered node with SKALE manager, execute the following node-cli command on each respective node:
+
+```shell
+skale node set-domain -d node-0.awesome-validator.com
+```
+
+See full reference for the `set-domain` command https://github.com/skalenetwork/node-cli#domain-name[here].
+
+[NOTE]
+In the recent version of the SKALE Manager smart contracts domain name is required during the node registration
+
+Be sure get a domain in advance to provide it when adding a new node to the network:
+
+```shell
+skale node register --ip 1.2.3.4 -d node-0.awesome-validator.com --name node-0-AV
+```
+
+[NOTE]
+If you already registered your node, then command will fail. If you are trying to set the domain for an already registered node, simply use `skale node set-domain -d node-0.awesome-validator.com`.
+
+See full reference for the `register` command https://github.com/skalenetwork/node-cli#node-registration[here].
+
+=== Trusted authorities
+
+When choosing CA for getting your SSL certificate, consider a source that will be trusted by most major browsers, operating systems, and other devices.
+
+Here’s a list of links that can help you with your decision:
+
+* List of major CA providers: https://en.wikipedia.org/wiki/Certificate_authority#Providers
+* CAs trusted by Mozilla: https://wiki.mozilla.org/CA/Included_Certificates
+* CAs trusted by Apple: https://support.apple.com/en-us/HT204132, https://support.apple.com/en-us/HT209144
+
+Also, here’s a list of the most popular and well-known SSL providers:
+
+* DigiCert https://www.digicert.com/
+* GeoTrust https://www.geotrust.com/
+* RapidSSL https://www.rapidssl.com/
+
+Besides that, usually, you could purchase an SSL certificate from your domain provider. That could be the most convenient way for you to manage everything from a single place:
+
+* GoDaddy https://godaddy.com/web-security/ssl-certificate
+* NameCheap http://namecheap.com/
+* Name.com https://www.name.com/ssl
+
+Most of them usually providing you with a few options like RapidSSL and DigiCert.
+
+[WARNING]
+Certificates provided by Letsencrypt are widely used now and trusted by most operating systems and devices, so it’s OK to use them for your node, but don't forget about renewals since Letsencrypt certs expire in 3 months. You can read more about Letsencrypt security and trust here: https://letsencrypt.org/certificates/ and https://letsencrypt.org/2018/08/06/trusted-by-all-major-root-programs.html
+ 
+[NOTE]
+Generally, Letsencrypt SSL certs are considered safe, but there are some opponents to the idea of a 'free SSL certs for everybody': https://medium.com/swlh/why-lets-encrypt-is-a-really-really-really-bad-idea-d69308887801
+
+=== Reference Letsencrypt tutorial
+
+This brief tutorial shows you how to generate a wildcard SSL using Letsencrypt.
+
+==== 1. Install Certbot
+
+https://certbot.eff.org/lets-encrypt/ubuntufocal-nginx
+
+==== 2. Run
+
+```shell
+certbot certonly --standalone -d my.domain.com
+```
+
+==== 3. Copy .pem files to secure place
+
+```shell
+cp *.pem ~/[SECURE_DIR]
+```

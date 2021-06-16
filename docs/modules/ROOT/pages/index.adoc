@@ -77,7 +77,7 @@ Options:
 Initialize a SKALE node on current machine
 
 [WARNING]
-**Please avoid re-initialization**: First run `skale node info` to confirm current state of intialization.
+**Please avoid re-initialization**: First run `skale node info` to confirm current state of initialization.
 
 ```shell
 skale node init [ENV_FILE]
@@ -320,7 +320,7 @@ skale schains repair SCHAIN_NAME
 
 === Health commands
 
-> Prefix: `skale health`
+Prefix: `skale health`
 
 ==== SKALE containers
 

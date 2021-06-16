@@ -1,2 +1,3 @@
 * xref:index.adoc[Overview]
+* xref:node-ssl-setup[Node SSL Setup]
 * xref:changing-node-ip.adoc[Changing a Node IP]
