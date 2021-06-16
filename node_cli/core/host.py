@@ -85,9 +85,9 @@ def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:
     logger.info('Checking that host meets requirements ...')
     requirements = get_env_params(env_type)
     checkers = [
-        MachineChecker(requirements),
-        PackagesChecker(requirements),
-        DockerChecker(requirements)
+        MachineChecker(requirements['server']),
+        PackagesChecker(requirements['package']),
+        DockerChecker(requirements['docker'])
     ]
     result = []
     for checker in checkers:
