@@ -1,0 +1,31 @@
+= Changing a Node IP
+
+You can't change your node IP address, but what's possible is to remove the node with the incorrect/old IP address and register a new node under the correct/new IP while keeping the old SGX key. Please contact the core team before proceeding for further guidance.
+
+[NOTE]
+It's recommended to use a **permanent IP that can dynamically point to a node's machine IP (for example, elastic IP)** so you can update machines if needed without having to change the IP recorded in SKALE Manager during node registration.
+
+[IMPORTANT]
+If you must change your node IP in SKALE Manager, you must perform a node exit and re-registration between the time after getBounty is called and before 72 hours (3 days) elapses in the next month. Also, performing a node exit could be expensive to the node operator if it's currently supporting SKALE Chains.
+
+To perform a node exit, and register a new machine and IP:
+
+. Be sure to backup SKALE Node and SGX Wallet.
+. Be sure you have your SGX Backup key.
+. Execute `skale exit start` on the exiting node during the time window between getBounty and 72 hours from the UTC start of the month.
+. Verify the exit process by executing `skale exit status`. (You don't need to wait for exit to finalize)
+. Create a new node machine (`skale node init .env`, `skale wallet info`).
+. From the old machine, move your node address funds to the new node wallet address `skale wallet send [new_address] [amount]`.
+. Unlink the old node address `sk-val validator unlink-address [OLD_NODE_ADDRESS] `
+. Link the new node to the validator ID `skale node signature [VALIDATOR_ID]`, `sk-val validator link-address [NEW_NODE_ADDRESS] [NEW_NODE_SIGNATURE]`
+. Register the node with under the new IP `skale node register --name [NODE_NAME] --ip [NODE_IP] --port [PORT]`.
+
+To perform a node exit, keep the original node machine and its data and update the IP, follow these steps (NOT RECOMMENDED):
+
+. Perform the general node exit procedure steps 1 and 2 above.
+. Be sure you have securely saved the sgx_key_name before moving to step 3.
+. Remove .skale directory, remove all old containers, volumes, etc
+. Do skale node init again.
+. Go to `~/.skale/node_data/node_config.json` and replace `sgx_key_name` field with the old one.
+. Link the node to the validator ID again.
+. Register node with a new IP.

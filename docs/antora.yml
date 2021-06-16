@@ -1,0 +1,5 @@
+name: node-cli
+title: Node CLI
+version: v2.0.x
+nav:
+  - modules/ROOT/nav.adoc
