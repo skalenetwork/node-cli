@@ -124,6 +124,8 @@ def restore(env, backup_path):
     link_env_file()
     configure_iptables()
     docker_lvmpy_install(env)
+    init_shared_space_volume(env['ENV_TYPE'])
+
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
