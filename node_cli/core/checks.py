@@ -63,8 +63,12 @@ def node_check(func):
         try:
             return func(*args, **kwargs)
         except Exception as err:
-            logger.error('%s check errored with %s', func.__name__, err)
-            return CheckResult(name=func.__name__, status='error', info=err)
+            logger.exception('%s check errored')
+            return CheckResult(
+                name=func.__name__,
+                status='error',
+                info=repr(err)
+            )
     return wrapper
 
 
@@ -233,6 +237,7 @@ class DockerChecker(BaseChecker):
                 name=name,
                 info='Docker api request failed. Is docker installed?'
             )
+        logger.info('Docker version info %s', version_info)
         actual_version = self.docker_client.version()['Version']
         expected_version = self.requirements['docker-engine']
         info = {
@@ -256,6 +261,7 @@ class DockerChecker(BaseChecker):
                 name=name,
                 info='Docker api request failed. Is docker installed?'
             )
+        logger.info('Docker version info %s', version_info)
         actual_version = version_info['ApiVersion']
         expected_version = self.requirements['docker-api']
         info = {
@@ -309,8 +315,7 @@ class DockerChecker(BaseChecker):
 
     def _check_docker_alive_option(self, config: dict) -> tuple:
         actual_value = config.get('live-restore', None)
-        expected_value = True
-        if actual_value != expected_value:
+        if actual_value is not True:
             info = (
                 'Docker daemon live-restore option '
                 'should be set as "true"'
