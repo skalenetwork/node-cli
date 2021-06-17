@@ -132,7 +132,7 @@ def init(env_filepath):
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
         return
-    logger.info('Waiting for transaction manager initialization')
+    logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
         error_exit(
@@ -189,7 +189,7 @@ def update(env_filepath):
     configure_firewall_rules()
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
     update_op(env_filepath, env)
-    logger.info('Waiting for transaction manager initialization')
+    logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
         print_node_cmd_error()
@@ -316,7 +316,7 @@ def turn_off(maintenance_on):
 def turn_on(maintenance_off, sync_schains, env_file):
     env = get_node_env(env_file, inited_node=True, sync_schains=sync_schains)
     turn_on_op(env)
-    logger.info('Waiting for transaction manager initialization')
+    logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
         print_node_cmd_error()

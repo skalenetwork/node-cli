@@ -40,7 +40,7 @@ def test_checks_errored():
     for c in r:
         if c.name != 'network':
             assert c.status == 'error', c.name
-            assert isinstance(c.info, KeyError), c.name
+            assert c.info.startswith('KeyError'), c.name
 
 
 def test_checks_cpu_total(server_req):

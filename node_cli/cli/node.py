@@ -244,7 +244,7 @@ def _set_domain_name(domain):
     default='mainnet',
     help='Network to check'
 )
-def check_requirements(network):
+def check(network):
     run_checks(network)
 
 

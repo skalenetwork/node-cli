@@ -157,7 +157,7 @@ def test_update_node(mocked_g_config):
             params,
             input='/dev/sdp')
         assert result.exit_code == 0
-        # assert result.output == 'Updating the node...\nWaiting for transaction manager initialization ...\nUpdate procedure finished\n'  # noqa
+        # assert result.output == 'Updating the node...\nWaiting for containers initialization ...\nUpdate procedure finished\n'  # noqa
 
 
 def test_update_node_without_init():
