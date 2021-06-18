@@ -13,7 +13,7 @@ from node_cli.configs import (
     SSL_CERT_FILEPATH,
     SSL_KEY_FILEPATH
 )
-from node_cli.utils.helper import post_request, read_file
+from node_cli.utils.helper import post_request
 from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
@@ -21,12 +21,17 @@ logger = logging.getLogger(__name__)
 COMMUNICATION_TIMEOUT = 3
 
 
+def read_file_bytes(path, mode='rb'):
+    with open(path, mode) as f:
+        return f
+
+
 def load_ssl_files(key_path, cert_path):
     return {
         'ssl_key': (os.path.basename(key_path),
-                    read_file(key_path), 'application/octet-stream'),
+                    read_file_bytes(key_path), 'application/octet-stream'),
         'ssl_cert': (os.path.basename(cert_path),
-                     read_file(cert_path), 'application/octet-stream')
+                     read_file_bytes(cert_path), 'application/octet-stream')
     }
 
 
