@@ -258,9 +258,9 @@ def get_file_handler(log_filepath, log_level):
     return f_handler
 
 
-def read_file(path, mode='rb'):
-    with open(path, mode) as f:
-        return f
+def read_file(path):
+    with open(path, 'r') as file:
+        return file.read()
 
 
 def to_camel_case(snake_str):
