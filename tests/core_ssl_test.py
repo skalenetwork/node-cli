@@ -4,8 +4,8 @@ import pathlib
 import mock
 import pytest
 
-from core.ssl import check_cert_openssl, SSLHealthcheckError, upload_cert
-from tools.helper import run_cmd
+from node_cli.core.ssl import check_cert_openssl, SSLHealthcheckError, upload_cert
+from node_cli.utils.helper import run_cmd
 
 
 HOST = '127.0.0.1'
@@ -72,7 +72,7 @@ def test_verify_cert_bad_key(bad_key):
         check_cert_openssl(cert, key, host=HOST, no_client=True)
 
 
-@mock.patch('core.ssl.post_request')
+@mock.patch('node_cli.core.ssl.post_request')
 def test_upload_cert(pr_mock, cert_key_pair):
     cert, key = cert_key_pair
     upload_cert(cert, key, force=False, no_client=True)
