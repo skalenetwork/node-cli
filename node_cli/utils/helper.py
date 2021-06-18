@@ -17,15 +17,18 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import os
 import re
 import sys
-import json
+
 import yaml
 import shutil
 import requests
 import subprocess
 import urllib.request
+
+import urllib.parse
 from functools import wraps
 
 import logging
@@ -49,12 +52,12 @@ from node_cli.configs import (
     TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG, GLOBAL_SKALE_DIR,
     GLOBAL_SKALE_CONF_FILEPATH
 )
-from node_cli.configs.cli_logger import (
-    LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, STREAM_LOG_FORMAT,
-    LOG_FILEPATH, DEBUG_LOG_FILEPATH, FILE_LOG_FORMAT
-)
 from node_cli.configs.routes import get_route
 from node_cli.utils.global_config import read_g_config, get_system_user
+
+from node_cli.configs.cli_logger import (
+    FILE_LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
+    LOG_FILEPATH, STREAM_LOG_FORMAT, DEBUG_LOG_FILEPATH)
 
 
 logger = logging.getLogger(__name__)
@@ -116,13 +119,6 @@ def process_template(source, destination, data):
     processed_template = Environment().from_string(template).render(data)
     with open(destination, "w") as f:
         f.write(processed_template)
-
-
-def read_file(path):
-    file = open(path, 'r')
-    text = file.read()
-    file.close()
-    return text
 
 
 def get_username():
@@ -262,32 +258,9 @@ def get_file_handler(log_filepath, log_level):
     return f_handler
 
 
-def load_ssl_files(key_path, cert_path):
-    return {
-        'ssl_key': (os.path.basename(key_path),
-                    read_file(key_path), 'application/octet-stream'),
-        'ssl_cert': (os.path.basename(cert_path),
-                     read_file(cert_path), 'application/octet-stream')
-    }
-
-
-def upload_certs(key_path, cert_path, force):
-    with open(key_path, 'rb') as key_file, open(cert_path, 'rb') as cert_file:
-        files_data = {
-            'ssl_key': (os.path.basename(key_path), key_file,
-                        'application/octet-stream'),
-            'ssl_cert': (os.path.basename(cert_path), cert_file,
-                         'application/octet-stream')
-        }
-        files_data['json'] = (
-            None, json.dumps({'force': force}),
-            'application/json'
-        )
-        return post_request(
-            blueprint='ssl',
-            method='upload',
-            files=files_data
-        )
+def read_file(path, mode='rb'):
+    with open(path, mode) as f:
+        return f
 
 
 def to_camel_case(snake_str):

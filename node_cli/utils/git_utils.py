@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import shutil
 import logging
 
 from git.repo.base import Repo
@@ -56,3 +57,11 @@ def fetch_pull_repo(repo: Repo, ref_name: str) -> None:
     repo.git.checkout(ref_name)
     if check_is_branch(repo, ref_name):
         repo.remotes.origin.pull()
+
+
+def rm_local_repo(repo_path: str) -> None:
+    if os.path.exists(repo_path):
+        logger.info(f'{repo_path} exists, removing...')
+        shutil.rmtree(repo_path)
+    else:
+        logger.info(f'{repo_path} doesn\'t exist, skipping...')
