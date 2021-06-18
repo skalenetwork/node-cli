@@ -20,7 +20,7 @@
 import logging
 
 from node_cli.utils.helper import run_cmd
-from node_cli.utils.git_utils import sync_repo
+from node_cli.utils.git_utils import sync_repo, rm_local_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
 from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_NODE_REPO_URL
 
@@ -43,6 +43,7 @@ def sync_skale_node(env: dict) -> None:
 
 
 def sync_skale_node_git(env: dict) -> None:
+    rm_local_repo(CONTAINER_CONFIG_PATH)
     sync_repo(
         SKALE_NODE_REPO_URL,
         CONTAINER_CONFIG_PATH,

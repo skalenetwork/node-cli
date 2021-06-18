@@ -410,6 +410,23 @@ skale ssl upload
 
 Admin API URL: \[GET] `/api/ssl/upload`
 
+
+#### Check ssl certificate
+
+Check ssl certificate be connecting to healthcheck ssl server
+
+```shell
+skale ssl check
+```
+
+##### Options
+
+-   `-c/--cert-path` - Path to the certificate file (default: uploaded using `skale ssl upload` certificate)
+-   `-k/--key-path` - Path to the key file (default: uploaded using `skale ssl upload` key)
+-   `--type/-t` - Check type (`openssl` - openssl cli check, `skaled` - skaled-based check, `all` - both)
+-   `--port/-p` - Port to start healthcheck server (defualt: `4536`)
+-   `--no-client` - Skip client connection (only make sure server started without errors)
+
 ### Logs commands
 
 > Prefix: `skale logs`
