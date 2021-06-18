@@ -16,8 +16,7 @@ def requirements_data():
             'memory': 100,
             'swap': 100
         },
-        'packages': {
-            'docker-compose': '1.27.4',
+        'package': {
             'iptables_persistant': '0.0.0',
             'lvm2': '0.0.0',
             'test-package': '2.2.2'
@@ -25,76 +24,96 @@ def requirements_data():
         'docker': {
             'docker-engine': '0.0.0',
             'docker-api': '0.0.0',
+            'docker-compose': '1.27.4'
         }
     }
 
 
-def test_checks_cpu_total(requirements_data):
-    checker = MachineChecker(requirements_data)
+@pytest.fixture
+def server_req(requirements_data):
+    return requirements_data['server']
+
+
+def test_checks_errored():
+    checker = MachineChecker({})
+    r = checker.check()
+    for c in r:
+        if c.name != 'network':
+            assert c.status == 'error', c.name
+            assert c.info.startswith('KeyError'), c.name
+
+
+def test_checks_cpu_total(server_req):
+    checker = MachineChecker(server_req)
     r = checker.cpu_total()
     assert r.name == 'cpu-total'
     assert r.status == 'ok'
-    requirements_data['server']['cpu_total'] = 10000  # too big
-    checker = MachineChecker(requirements_data)
+    server_req['cpu_total'] = 10000  # too big
+    checker = MachineChecker(server_req)
     r = checker.cpu_total()
     assert r.name == 'cpu-total'
-    assert r.status == 'error'
-    assert checker.cpu_total().status == 'error'
+    assert r.status == 'failed'
+    assert checker.cpu_total().status == 'failed'
 
 
-def test_checks_cpu_physical(requirements_data):
-    checker = MachineChecker(requirements_data)
+def test_checks_cpu_physical(server_req):
+    checker = MachineChecker(server_req)
     r = checker.cpu_physical()
     assert r.name == 'cpu-physical'
     assert r.status == 'ok'
-    requirements_data['server']['cpu_physical'] = 10000  # too big
-    checker = MachineChecker(requirements_data)
+    server_req['cpu_physical'] = 10000  # too big
+    checker = MachineChecker(server_req)
     r = checker.cpu_physical()
     assert r.name == 'cpu-physical'
-    assert r.status == 'error'
+    assert r.status == 'failed'
 
 
-def test_checks_memory(requirements_data):
-    checker = MachineChecker(requirements_data)
+def test_checks_memory(server_req):
+    checker = MachineChecker(server_req)
     r = checker.memory()
     assert r.name == 'memory'
     assert r.status == 'ok'
     # too big
-    requirements_data['server']['memory'] = 10000000000000
-    checker = MachineChecker(requirements_data)
+    server_req['memory'] = 10000000000000
+    checker = MachineChecker(server_req)
     r = checker.memory()
     assert r.name == 'memory'
-    assert r.status == 'error'
+    assert r.status == 'failed'
 
 
-def test_checks_machine_check(requirements_data):
-    checker = MachineChecker(requirements_data)
-    result = checker.check()
-    assert any([r.status == 'ok' for r in result])
-
-
-def test_checks_swap(requirements_data):
-    checker = MachineChecker(requirements_data)
+def test_checks_swap(server_req):
+    checker = MachineChecker(server_req)
     r = checker.swap()
     assert r.name == 'swap'
     assert r.status == 'ok'
     # too big
-    requirements_data['server']['swap'] = 10000000000000
-    checker = MachineChecker(requirements_data)
+    server_req['swap'] = 10000000000000
+    checker = MachineChecker(server_req)
     r = checker.swap()
     assert r.name == 'swap'
-    assert r.status == 'error'
+    assert r.status == 'failed'
 
 
-def test_checks_network(requirements_data):
-    checker = MachineChecker(requirements_data)
+def test_checks_network(server_req):
+    checker = MachineChecker(server_req)
     r = checker.network()
     assert r.status == 'ok'
     assert r.name == 'network'
 
 
-def test_checks_docker_engine(requirements_data):
-    checker = DockerChecker(requirements_data)
+def test_checks_machine_check(server_req):
+    checker = MachineChecker(server_req)
+    result = checker.check()
+    assert any([r.status == 'ok' for r in result])
+
+
+@pytest.fixture
+def docker_req(requirements_data):
+    return requirements_data['docker']
+
+
+def test_checks_docker_engine(docker_req):
+    checker = DockerChecker(docker_req)
 
     r = checker.docker_engine()
     assert r.name == 'docker-engine'
@@ -103,18 +122,18 @@ def test_checks_docker_engine(requirements_data):
     with mock.patch('shutil.which', return_value=None):
         r = checker.docker_engine()
         assert r.name == 'docker-engine'
-        assert r.status == 'error'
+        assert r.status == 'failed'
         assert r.info == 'No such command: "docker"'
 
-    requirements_data['docker']['docker-engine'] = '111.111.111'
+    docker_req['docker-engine'] = '111.111.111'
     r = checker.docker_engine()
     assert r.name == 'docker-engine'
-    assert r.status == 'error'
+    assert r.status == 'failed'
     assert r.info['expected_version'] == '111.111.111'
 
 
-def test_checks_docker_api(requirements_data):
-    checker = DockerChecker(requirements_data)
+def test_checks_docker_api(docker_req):
+    checker = DockerChecker(docker_req)
 
     r = checker.docker_api()
     assert r.name == 'docker-api'
@@ -123,18 +142,86 @@ def test_checks_docker_api(requirements_data):
     with mock.patch('shutil.which', return_value=None):
         r = checker.docker_api()
         assert r.name == 'docker-api'
-        assert r.status == 'error'
+        assert r.status == 'failed'
         assert r.info == 'No such command: "docker"'
 
-    requirements_data['docker']['docker-api'] = '111.111.111'
+    docker_req['docker-api'] = '111.111.111'
     r = checker.docker_api()
     assert r.name == 'docker-api'
-    assert r.status == 'error'
+    assert r.status == 'failed'
     assert r.info['expected_version'] == '111.111.111'
 
 
-def test_checks_apt_package(requirements_data):
-    checker = PackagesChecker(requirements_data)
+@pytest.fixture
+def docker_compose_pkg_1_27_4():
+    pipmain(['install', 'docker-compose==1.27.4'])
+    time.sleep(10)
+    yield
+    pipmain(['uninstall', 'docker-compose', '-y'])
+
+
+@pytest.fixture
+def docker_compose_pkg_1_24_1():
+    pipmain(['install', 'docker-compose==1.24.1'])
+    time.sleep(10)
+    yield
+    pipmain(['uninstall', 'docker-compose', '-y'])
+
+
+def test_checks_docker_compose_good_pkg(docker_req, docker_compose_pkg_1_27_4):
+    checker = DockerChecker(package_req)
+    print('Debug: ', checker.docker_compose())
+
+    r = checker.docker_compose()
+    r.name == 'docker-compose'
+    r.status == 'ok'
+
+
+def test_checks_docker_compose_no_pkg(docker_req):
+    checker = DockerChecker(package_req)
+    r = checker.docker_compose()
+    r.name == 'docker-compose'
+    r.status == 'ok'
+
+
+def test_checks_docker_compose_invalid_version(
+    docker_req,
+    docker_compose_pkg_1_24_1
+):
+    checker = DockerChecker(docker_req)
+    r = checker.docker_compose()
+    r.name == 'docker-compose'
+    r.status == 'ok'
+
+
+def test_checks_docker_config(docker_req):
+    checker = DockerChecker(docker_req)
+    valid_config = {
+        'live-restore': True
+    }
+    r = checker._check_docker_alive_option(valid_config)
+    assert r[0] is True
+    assert r[1] == 'Docker daemon live-restore option is set as "true"'
+
+    invalid_config = {
+        'live-restore': False
+    }
+    r = checker._check_docker_alive_option(invalid_config)
+    assert r[0] is False
+    assert r[1] == 'Docker daemon live-restore option should be set as "true"'
+
+    r = checker._check_docker_alive_option({})
+    assert r[0] is False
+    assert r[1] == 'Docker daemon live-restore option should be set as "true"'
+
+
+@pytest.fixture
+def package_req(requirements_data):
+    return requirements_data['package']
+
+
+def test_checks_apt_package(package_req):
+    checker = PackagesChecker(package_req)
     res_mock = mock.Mock()
     res_mock.stdout = b"""Package: test-package
         Version: 5.2.1-2
@@ -156,7 +243,7 @@ def test_checks_apt_package(requirements_data):
     with mock.patch('node_cli.core.checks.run_cmd', run_cmd_mock):
         r = checker._check_apt_package(apt_package_name)
         assert r.name == 'test-package'
-        assert r.status == 'error'
+        assert r.status == 'failed'
 
     res_mock.stdout = b"""Package: test-package
         Version: 2.2.2
@@ -165,66 +252,3 @@ def test_checks_apt_package(requirements_data):
         r = checker._check_apt_package(apt_package_name)
         assert r.name == 'test-package'
         assert r.status == 'ok'
-
-
-@pytest.fixture
-def docker_compose_pkg_1_27_4():
-    pipmain(['install', 'docker-compose==1.27.4'])
-    time.sleep(10)
-    yield
-    pipmain(['uninstall', 'docker-compose', '-y'])
-
-
-@pytest.fixture
-def docker_compose_pkg_1_24_1():
-    pipmain(['install', 'docker-compose==1.24.1'])
-    time.sleep(10)
-    yield
-    pipmain(['uninstall', 'docker-compose', '-y'])
-
-
-def test_checks_docker_compose_valid_pkg(
-        requirements_data, docker_compose_pkg_1_27_4):
-    checker = PackagesChecker(requirements_data)
-    print('Debug: ', checker.docker_compose())
-
-    r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
-
-
-def test_checks_docker_compose_no_pkg(
-        requirements_data):
-    checker = PackagesChecker(requirements_data)
-    r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
-
-
-def test_checks_docker_compose_invalid_version(
-        requirements_data, docker_compose_pkg_1_24_1):
-    checker = PackagesChecker(requirements_data)
-    r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
-
-
-def test_checks_docker_config():
-    checker = DockerChecker(requirements_data)
-    valid_config = {
-        'live-restore': True
-    }
-    r = checker._check_docker_alive_option(valid_config)
-    assert r[0] is True
-    assert r[1] == 'Docker daemon live-restore option is set as "true"'
-
-    invalid_config = {
-        'live-restore': False
-    }
-    r = checker._check_docker_alive_option(invalid_config)
-    assert r[0] is False
-    assert r[1] == 'Docker daemon live-restore option should be set as "true"'
-
-    r = checker._check_docker_alive_option({})
-    assert r[0] is False
-    assert r[1] == 'Docker daemon live-restore option should be set as "true"'
