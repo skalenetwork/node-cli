@@ -18,12 +18,12 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-import sys
 import os
 import re
 import shutil
-from functools import wraps
+import sys
 import urllib.parse
+from functools import wraps
 
 import logging
 import logging.handlers as py_handlers
@@ -32,7 +32,11 @@ from logging import Formatter, StreamHandler
 import requests
 import yaml
 
-from configs import TEXT_FILE, ADMIN_HOST, ADMIN_PORT, ROUTES
+from configs import (
+    ADMIN_HOST, ADMIN_PORT,
+    ROUTES,
+    TEXT_FILE
+)
 from configs.cli_logger import (
     FILE_LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
     LOG_FILEPATH, STREAM_LOG_FORMAT, DEBUG_LOG_FILEPATH)
@@ -170,33 +174,9 @@ def get_stream_handler():
     return stream_handler
 
 
-def load_ssl_files(key_path, cert_path):
-    return {
-        'ssl_key': (os.path.basename(key_path),
-                    read_file(key_path), 'application/octet-stream'),
-        'ssl_cert': (os.path.basename(cert_path),
-                     read_file(cert_path), 'application/octet-stream')
-    }
-
-
 def read_file(path, mode='rb'):
     with open(path, mode) as f:
         return f
-
-
-def upload_certs(key_path, cert_path, force):
-    with open(key_path, 'rb') as key_file, open(cert_path, 'rb') as cert_file:
-        files_data = {
-            'ssl_key': (os.path.basename(key_path), key_file,
-                        'application/octet-stream'),
-            'ssl_cert': (os.path.basename(cert_path), cert_file,
-                         'application/octet-stream')
-        }
-        files_data['json'] = (
-            None, json.dumps({'force': force}),
-            'application/json'
-        )
-        return post_request('ssl_upload', files=files_data)
 
 
 def to_camel_case(snake_str):

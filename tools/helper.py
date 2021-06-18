@@ -49,17 +49,21 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
-def run_cmd(cmd, env={}, shell=False, secure=False):
+def run_cmd(cmd, env={}, shell=False, secure=False, raise_for_status=True):
     if not secure:
         logger.debug(f'Running: {cmd}')
     else:
         logger.debug('Running some secure command')
-    res = subprocess.run(cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ})
+    res = subprocess.run(
+        cmd, shell=shell, stdout=PIPE, stderr=PIPE, env={**env, **os.environ}
+    )
     if res.returncode:
         logger.debug(res.stdout.decode('UTF-8').rstrip())
         logger.error('Error during shell execution:')
         logger.error(res.stderr.decode('UTF-8').rstrip())
-        res.check_returncode()
+        print(res.stderr.decode('UTF-8').rstrip())
+        if raise_for_status:
+            res.check_returncode()
     else:
         logger.debug('Command is executed successfully. Command log:')
         logger.debug(res.stdout.decode('UTF-8').rstrip())
@@ -67,7 +71,8 @@ def run_cmd(cmd, env={}, shell=False, secure=False):
 
 
 def format_output(res):
-    return res.stdout.decode('UTF-8').rstrip(), res.stderr.decode('UTF-8').rstrip()
+    return res.stdout.decode('UTF-8').rstrip(), \
+            res.stderr.decode('UTF-8').rstrip()
 
 
 def download_file(url, filepath):
