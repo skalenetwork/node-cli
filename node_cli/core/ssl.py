@@ -219,7 +219,11 @@ def send_saving_cert_request(key_path, cert_path, force):
             None, json.dumps({'force': force}),
             'application/json'
         )
-        return post_request('ssl_upload', files=files_data)
+        return post_request(
+            blueprint='ssl',
+            method='upload',
+            files=files_data
+        )
 
 
 def upload_cert(cert_path, key_path, force, no_client=False):
