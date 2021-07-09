@@ -4,20 +4,19 @@
 # if distutils.distutils_path.endswith('__init__.py'):
 #    distutils.distutils_path = os.path.dirname(distutils.distutils_path)
 
+import importlib.util
+
+libxtwrapper_path = importlib.util.find_spec('libxtwrapper').origin
+
+
 block_cipher = None
 
 a = Analysis(
-    ['main.py'],
+    ['node_cli/main.py'],
     pathex=['.'],
-    binaries=[],
+    binaries=[(libxtwrapper_path, '.')],
     datas=[
        ("./text.yml", "data"),
-       ("./datafiles/install.sh", "data/datafiles"),
-       ("./datafiles/backup-install.sh", "data/datafiles"),
-       ("./datafiles/update.sh", "data/datafiles"),
-       ("./datafiles/helper.sh", "data/datafiles"),
-       ("./datafiles/turn-off.sh", "data/datafiles"),
-       ("./datafiles/turn-on.sh", "data/datafiles"),
        ("./datafiles/skaled-ssl-test", "data/datafiles")
     ],
     hiddenimports=[],

@@ -20,7 +20,7 @@ def test_download_filestorage_artifacts():
     assert False
 
 
-def test_update_skale_node():
+def test_update_skale_node_repo():
     assert False
 
 
