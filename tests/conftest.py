@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of SKALE.py
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -18,23 +18,114 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """ SKALE config test """
 
-import json
 import os
+import mock
+import yaml
+import json
 
 import pytest
 
-from readsettings import ReadSettings
-from configs import CONFIG_FILEPATH
-from configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs import (
+  ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH
+)
+from node_cli.utils.global_config import generate_g_config_file
+from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+
+
+TEST_ENV_PARAMS = """
+mainnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 2000000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+testnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+testnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+qanet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+devnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 80000000000
+
+  packages:
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+    docker-compose: 1.1.3
+
+  docker:
+    docker-api: 1.1.3
+    docker-engine: 1.1.3
+"""
 
 
 @pytest.fixture
-def config(monkeypatch):
-    cli_config = ReadSettings(CONFIG_FILEPATH)
-    cli_config['host'] = 'https://test.com'
-    cli_config.save()
-    yield
-    cli_config.clear()
+def net_params_file():
+    with open(ENVIRONMENT_PARAMS_FILEPATH, 'w') as f:
+        yaml.dump(
+            yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader),
+            stream=f,
+            Dumper=yaml.Dumper
+        )
+    yield ENVIRONMENT_PARAMS_FILEPATH
+    os.remove(ENVIRONMENT_PARAMS_FILEPATH)
+
+
+@pytest.fixture()
+def mocked_g_config():
+    with mock.patch('os.path.expanduser', return_value='tests/'):
+        generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+        yield
+        generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-from configs.env import NotValidEnvParamsError, validate_params
+from node_cli.configs.env import NotValidEnvParamsError, validate_params
 
 
 def test_validate_params():

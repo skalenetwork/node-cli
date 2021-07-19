@@ -11,18 +11,16 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 1.  [Installation](#installation)
 2.  [CLI usage](#cli-usage)  
     2.1 [Top level commands](#top-level-commands)  
-    2.2 [User](#user-commands)  
-    2.3 [Node](#node-commands)  
-    2.4 [Wallet](#wallet-commands)  
-    2.5 [sChains](#schain-commands)  
-    2.6 [Containers](#containers-commands)  
-    2.7 [SGX](#sgx-commands)  
-    2.8 [SSL](#ssl-commands)  
-    2.9 [Logs](#logs-commands)  
-    2.10 [Resources allocation](#resources-allocation-commands)  
-    2.11 [Validate](#validate-commands)  
-
-3.  [Development](#development)
+    2.2 [Node](#node-commands)  
+    2.3 [Wallet](#wallet-commands)  
+    2.4 [sChains](#schain-commands)  
+    2.5 [Health](#health-commands)  
+    2.6 [SSL](#ssl-commands)  
+    2.7 [Logs](#logs-commands)  
+    2.8 [Resources allocation](#resources-allocation-commands)  
+    2.9 [Validate](#validate-commands)  
+3.  [Exit codes](#exit-codes)
+4.  [Development](#development)
 
 ## Installation
 
@@ -108,11 +106,7 @@ Arguments:
 
 - `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
 
-Required options:
-
--   `--dry-run` - create only needed files and directories and don't create containers
-
-You should also specify the following environment variables:
+You should specify the following environment variables:
 
 -   `SGX_SERVER_URL` - SGX server URL
 -   `DISK_MOUNTPOINT` - disk mount point for storing sChains data
@@ -123,10 +117,7 @@ You should also specify the following environment variables:
 -   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
 -   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
 -   `FILEBEAT_URL` - URL to the Filebeat log server
--   `DB_USER`'  - MySQL user for local node database
--   `DB_PASSWORD` - Password for root user of node internal database
-      (equal to user password by default)
--   `DB_PORT` - Port for node internal database (default is `3306`)
+
 
 Optional variables:
 
@@ -158,12 +149,7 @@ skale node backup [BACKUP_FOLDER_PATH] [ENV_FILE]
 Arguments:
 
 - `BACKUP_FOLDER_PATH` - path to the folder where the backup file will be saved
-- `ENV_FILE` - path to .env file (required parameters are listed in the `skale init` command)
-`
 
-Optional arguments:
-
--   `--no-database` - skip mysql database backup (in case if mysql container is not started)
 
 #### Node Registration
 
@@ -305,7 +291,7 @@ Optional arguments:
 
 `--yes` - Send without additional confirmation
 
-### SKALE Chain commands
+### sChain commands
 
 > Prefix: `skale schains`
 
@@ -351,58 +337,40 @@ Turn on repair mode for SKALE Chain
 skale schains repair SCHAIN_NAME
 ```
 
-#### SKALE Chain healthcheck
+### Health commands
 
-Show healthcheck results for all SKALE Chains on the node
+> Prefix: `skale health`
 
-```shell
-skale schains checks
-```
-
-Options:
-
--   `--json` - Show data in JSON format
-
-### Container commands
-
-Node container commands
-
-> Prefix: `skale containers`
-
-#### List containers
+#### SKALE containers
 
 List all SKALE containers running on the connected node
 
 ```shell
-skale containers ls
+skale health containers
 ```
 
 Options:
 
 -   `-a/--all` - list all containers (by default - only running)
 
-#### SKALE Chain containers
+#### sChains healthchecks
 
-List of SKALE chain containers running on the connected node
+Show health check results for all SKALE Chains on the node
 
 ```shell
-skale containers schains
+skale health schains
 ```
 
 Options:
 
--   `-a/--all` - list all SKALE chain containers (by default - only running)
+-   `--json` - Show data in JSON format
 
-### SGX commands
-
-> Prefix: `skale sgx`
-
-#### Status
+#### SGX
 
 Status of the SGX server. Returns the SGX server URL and connection status.
 
 ```shell
-$ skale sgx status
+$ skale health sgx
 
 SGX server status:
 ┌────────────────┬────────────────────────────┐
@@ -411,8 +379,6 @@ SGX server status:
 │ Status         │ CONNECTED                  │
 └────────────────┴────────────────────────────┘
 ```
-
-Admin API URL: \[GET] `/api/ssl/sgx`
 
 ### SSL commands
 
@@ -533,6 +499,22 @@ skale validate abi
 Options:
 
 -   `--json` - show validation result in json format 
+
+## Exit codes
+
+Exit codes conventions for SKALE CLI tools
+
+- `0` - Everything is OK
+- `1` - General error exit code
+- `3` - Bad API response**
+- `4` - Script execution error**
+- `5` - Transaction error*
+- `6` - Revert error*
+- `7` - Bad user error**
+- `8` - Node state error**
+
+`*` - `validator-cli` only  
+`**` - `node-cli` only
 
 ## Development
 

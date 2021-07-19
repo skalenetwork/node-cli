@@ -21,16 +21,15 @@ def find_version(*file_paths):
 extras_require = {
     'linter': [
         "flake8==3.7.9",
-        "isort>=4.2.15,<5.4.3",
+        "isort>=4.2.15,<5.8.1",
     ],
     'dev': [
-        "boto3==1.13.19",
         "bumpversion==0.6.0",
-        "pytest==5.4.3",
+        "pytest==6.2.3",
         "pytest-cov==2.9.0",
         "twine==2.0.0",
         "mock==4.0.2",
-        "when-changed"
+        "freezegun==0.3.15"
     ]
 }
 
@@ -43,7 +42,7 @@ setup(
     name='node-cli',
     # *IMPORTANT*: Don't manually change the version here.
     # Use the 'bumpversion' utility instead.
-    version=find_version("cli", "__init__.py"),
+    version=find_version("node_cli", "cli", "__init__.py"),
     include_package_data=True,
     description='SKALE client tools',
     long_description_markdown_filename='README.md',
@@ -52,19 +51,20 @@ setup(
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
         "click==7.1.2",
-        "confuse",
         "docker==4.2.2",
-        "readsettings==3.4.5",
         "PyInstaller==3.6",
         "texttable==1.6.2",
         "python-dateutil==2.8.1",
         "Jinja2==2.11.2",
         "psutil==5.7.0",
-        "pycryptodome==3.9.7",
         "python-dotenv==0.13.0",
         "terminaltables==3.1.0",
         "requests==2.23.0",
-        "GitPython==3.1.12"
+        "GitPython==3.1.14",
+        "PyYAML==5.4.1",
+        "packaging==20.9",
+        "python-debian==0.1.39",
+        "python-iptables==1.0.0"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,

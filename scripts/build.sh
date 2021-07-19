@@ -28,7 +28,7 @@ OS=`uname -s`-`uname -m`
 #CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 LATEST_COMMIT=$(git rev-parse HEAD)
 CURRENT_DATETIME="`date "+%Y-%m-%d %H:%M:%S"`";
-DIST_INFO_FILEPATH=$PARENT_DIR/cli/info.py
+DIST_INFO_FILEPATH=$PARENT_DIR/node_cli/cli/info.py
 
 touch $DIST_INFO_FILEPATH
 
@@ -40,7 +40,7 @@ echo "VERSION = '$VERSION'" >> $DIST_INFO_FILEPATH
 
 EXECUTABLE_NAME=skale-$VERSION-$OS
 
-pyinstaller --onefile main.spec --hidden-import=eth_hash.backends.pysha3
+pyinstaller --onefile main.spec
 
 mv $PARENT_DIR/dist/main $PARENT_DIR/dist/$EXECUTABLE_NAME
 
