@@ -78,7 +78,7 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
     save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
     if allocation:
-        update_resource_allocation(env_type)
+        update_resource_allocation(env_type, disk_mountpoint)
 
 
 def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:

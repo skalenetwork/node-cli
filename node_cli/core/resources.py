@@ -20,6 +20,7 @@
 import os
 import logging
 from time import sleep
+from typing import Dict
 
 import psutil
 
@@ -69,14 +70,14 @@ def get_resource_allocation_info():
         return None
 
 
-def compose_resource_allocation_config(env_type):
+def compose_resource_allocation_config(env_type: str, blockdev: str) -> Dict:
     env_configs = safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
     schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
 
     schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(env_configs)
     schain_mem_alloc, ima_mem_alloc = get_memory_alloc(env_configs)
 
-    verify_disk_size(env_configs, env_type)
+    verify_disk_size(env_configs, env_type, blockdev)
 
     return {
         'schain': {
@@ -103,8 +104,9 @@ def generate_resource_allocation_config(env_file, force=False) -> None:
     if env_params is None:
         return
     logger.info('Generating resource allocation file ...')
+    env_type, blockdev = env_params['ENV_TYPE'], env_params['DISK_MOUNTPOINT']
     try:
-        update_resource_allocation(env_params['ENV_TYPE'])
+        update_resource_allocation(env_type, blockdev)
     except Exception as e:
         logger.exception(e)
         print('Can\'t generate resource allocation file, check out CLI logs')
@@ -115,8 +117,11 @@ def generate_resource_allocation_config(env_file, force=False) -> None:
         )
 
 
-def update_resource_allocation(env_type) -> None:
-    resource_allocation_config = compose_resource_allocation_config(env_type)
+def update_resource_allocation(env_type: str, blockdev: str) -> None:
+    resource_allocation_config = compose_resource_allocation_config(
+        env_type,
+        blockdev
+    )
     write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
 
 
@@ -156,8 +161,8 @@ def get_cpu_alloc(env_configs):
     )
 
 
-def verify_disk_size(env_configs: dict, env_type: str) -> dict:
-    disk_size = get_disk_size()
+def verify_disk_size(env_configs: Dict, env_type: str, blockdev: str) -> Dict:
+    disk_size = get_disk_size(blockdev)
     env_disk_size = env_configs['envs'][env_type]['server']['disk']
     check_disk_size(disk_size, env_disk_size)
 
@@ -169,8 +174,8 @@ def check_disk_size(disk_size: int, env_disk_size: int):
         )
 
 
-def get_disk_size() -> int:
-    disk_path = get_disk_path()
+def get_disk_size(blockdev: str = None) -> int:
+    disk_path = blockdev or get_disk_path()
     disk_size_cmd = construct_disk_size_cmd(disk_path)
     output = run_cmd(disk_size_cmd).stdout.decode('utf-8')
     return int(output)
