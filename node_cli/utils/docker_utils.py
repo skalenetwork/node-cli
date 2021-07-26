@@ -55,6 +55,7 @@ NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
 
 DOCKER_DEFAULT_STOP_TIMEOUT = 20
+DOCKER_DEFAULT_HEAD_LINES = 400
 DOCKER_DEFAULT_TAIL_LINES = 10000
 
 
@@ -125,9 +126,14 @@ def backup_container_logs(container: Container, tail=DOCKER_DEFAULT_TAIL_LINES) 
 def save_container_logs(
             container: Container,
             log_filepath: str,
-            tail=DOCKER_DEFAULT_TAIL_LINES
+            head: int = DOCKER_DEFAULT_HEAD_LINES,
+            tail: int = DOCKER_DEFAULT_TAIL_LINES
         ) -> None:
-    with open(log_filepath, "wb") as out:
+    with open(log_filepath, 'wb') as out:
+        out.write(container.logs(tail=tail))
+    with open(log_filepath, 'ab') as out:
+        out.write(b'=' * 100)
+    with open(log_filepath, 'ab') as out:
         out.write(container.logs(tail=tail))
     logger.debug(f'Logs from {container.name} saved to {log_filepath}')
 
