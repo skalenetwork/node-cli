@@ -12,8 +12,7 @@ from node_cli.core.host2.docker_config import (
     ensure_docker_daemon_config,
     link_socket_to_default_path,
     NoSocketFileError,
-    OverridenConfigExsitsError,
-    reload_docker_service
+    OverridenConfigExsitsError
 )
 
 
