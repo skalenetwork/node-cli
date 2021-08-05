@@ -44,6 +44,7 @@ CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
+SKALE_RUN_DIR = '/var/run/skale'
 
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
@@ -143,7 +144,7 @@ SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'
 
 DOCKER_DEAMON_CONFIG_PATH = '/etc/docker/daemon.json'
-DOCKER_DEFAULT_SOCKET_PATH = '/var/run/docker.sock'
+DOCKER_DAEMON_HOSTS = ['fd://', 'unix:///var/run/skale/docker.sock']
 DOCKER_SERVICE_CONFIG_DIR = '/etc/systemd/system/docker.service.d'
 DOCKER_SERVICE_CONFIG_PATH = '/etc/systemd/system/docker.service.d/no-host.conf'
 DOCKER_SOCKET_PATH = '/var/run/skale/docker.sock'

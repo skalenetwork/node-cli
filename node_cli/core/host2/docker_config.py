@@ -1,21 +1,24 @@
 import enum
-import filecmp
 import json
 import logging
 import os
 import pathlib
 import time
 import typing
-from typing import Optional
+from typing import Optional, Tuple
+
 
 from node_cli.configs import (
     DOCKER_DEAMON_CONFIG_PATH,
-    DOCKER_DEFAULT_SOCKET_PATH,
+    DOCKER_DAEMON_HOSTS,
     DOCKER_SERVICE_CONFIG_DIR,
     DOCKER_SERVICE_CONFIG_PATH,
-    DOCKER_SOCKET_PATH
+    DOCKER_SOCKET_PATH,
+    SKALE_RUN_DIR
 )
 from node_cli.utils.helper import run_cmd
+from node_cli.utils.docker_utils import docker_client, get_containers
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +33,9 @@ def get_content(filename: Path) -> Optional[str]:
         return f.read()
 
 
+gdclient = docker_client()
+
+
 class DockerConfigError(Exception):
     pass
 
@@ -39,6 +45,14 @@ class OverridenConfigExsitsError(DockerConfigError):
 
 
 class NoSocketFileError(DockerConfigError):
+    pass
+
+
+class ContainersExistError(DockerConfigError):
+    pass
+
+
+class SocketInitTimeoutError(DockerConfigError):
     pass
 
 
@@ -81,7 +95,8 @@ def ensure_service_overriden_config(
 
 
 def ensure_docker_daemon_config(
-    daemon_config_path: Path = DOCKER_DEAMON_CONFIG_PATH
+        daemon_config_path: Path = DOCKER_DEAMON_CONFIG_PATH,
+        daemon_hosts: Path = DOCKER_DAEMON_HOSTS
 ) -> None:
     logger.info('Ensuring docker daemon config')
     config = {}
@@ -89,11 +104,11 @@ def ensure_docker_daemon_config(
         with open(daemon_config_path, 'r') as daemon_config:
             config = json.load(daemon_config)
     if config.get('live-restore') is True and \
-       config.get('hosts') == ['unix:///var/lib/skale/docker.sock']:
+       config.get('hosts') == daemon_hosts:
         return DockerConfigResult.UNCHANGED
     config.update({
         'live-restore': True,
-        'hosts': ['unix:///var/lib/skale/docker.sock']
+        'hosts': daemon_hosts
     })
     logger.info('Updating docker daemon config')
     with open(daemon_config_path, 'w') as daemon_config:
@@ -104,39 +119,70 @@ def ensure_docker_daemon_config(
 def restart_docker_service(
         docker_service_name: str = 'docker'
 ) -> DockerConfigResult:
+    logger.info('Executing daemon-reload')
+    run_cmd(['systemctl', 'daemon-reload'])
+
     logger.info('Restarting docker service')
     run_cmd(['systemctl', 'restart', docker_service_name])
     return DockerConfigResult.CHANGED
 
 
-def link_socket_to_default_path(
+def is_socket_existed(socket_path: Path = DOCKER_SOCKET_PATH) -> bool:
+    return os.path.exists(socket_path)
+
+
+def wait_for_socket_initialization(
         socket_path: Path = DOCKER_SOCKET_PATH,
-        default_path: Path = DOCKER_DEFAULT_SOCKET_PATH
+        allowed_time: int = 300
 ) -> None:
-    logger.info('Ensuring symlink to custom docker socket')
-    if not os.path.isfile(socket_path):
-        raise NoSocketFileError(f'socket {socket_path} does not exist')
-    if os.path.islink(default_path) and \
-       filecmp.cmp(socket_path, default_path):
-        return DockerConfigResult.UNCHANGED
-    logger.info('Creating symlink to custom docker socket')
-    os.symlink(socket_path, default_path)
-    return DockerConfigResult.CHANGED
+    logger.info('Waiting for docker inititalization')
+    start_ts = time.time()
+    while int(time.time() - start_ts) < allowed_time and \
+            not is_socket_existed():
+        time.sleep(2)
+    if not is_socket_existed():
+        raise SocketInitTimeoutError(
+            f'Socket was not able to init in {allowed_time}'
+        )
+    logger.info('Socket initialized successfully')
+
+
+def ensure_run_dir(run_dir: Path = SKALE_RUN_DIR) -> DockerConfigResult:
+    if not os.path.isdir(run_dir):
+        os.makedirs(run_dir)
+        return DockerConfigResult.CHANGED
+    return DockerConfigResult.UNCHANGED
+
+
+def assert_no_containers(ignore: Tuple[str] = ()):
+    containers = [
+        c.name
+        for c in get_containers()
+        if c.name not in ignore
+    ]
+    if len(containers) > 0:
+        logger.fatal('%s containers exist', ' '.join(containers))
+        raise ContainersExistError(
+            f'Existed containers amount {len(containers)}'
+        )
 
 
 def configure_docker() -> None:
+    logger.info('Checking that there are no containers')
+    assert_no_containers()
     logger.info('Configuring docker')
-    pre_restart_tasks = [
+    pre_restart_tasks = (
+        ensure_run_dir,
         ensure_docker_service_config_dir,
         ensure_service_overriden_config,
         ensure_docker_daemon_config
-    ]
-    results = [
-        task()
-        for task in pre_restart_tasks
-    ]
-    if any(results, DockerConfigResult.CHANGED):
+    )
+    results = (task() for task in pre_restart_tasks)
+    results = list(results)
+    logger.info('Docker config changes %s', results)
+    if not is_socket_existed() or \
+       any(r == DockerConfigResult.CHANGED for r in results):
         restart_docker_service()
-        time.sleep(20)
-    link_socket_to_default_path()
+        wait_for_socket_initialization()
+
     logger.info('Docker configuration finished')

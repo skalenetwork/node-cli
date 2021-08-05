@@ -36,7 +36,7 @@ from node_cli.configs import (
     REDIS_DATA_PATH, SCHAINS_DATA_PATH, LOG_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH,
-    SKALE_TMP_DIR
+    SKALE_RUN_DIR, SKALE_TMP_DIR
 )
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH
@@ -107,7 +107,7 @@ def make_dirs():
             CONTRACTS_PATH, ETH_STATE_PATH, NODE_CERTS_PATH,
             REMOVED_CONTAINERS_FOLDER_PATH,
             SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH, REDIS_DATA_PATH,
-            SKALE_TMP_DIR
+            SKALE_RUN_DIR, SKALE_TMP_DIR
     ):
         safe_mk_dirs(dir_path)
 
@@ -130,7 +130,8 @@ def save_env_params(env_filepath):
 
 def link_env_file():
     if not (os.path.islink(CONFIGS_ENV_FILEPATH) or os.path.isfile(CONFIGS_ENV_FILEPATH)):
-        logger.info(f'Creating symlink {SKALE_DIR_ENV_FILEPATH} → {CONFIGS_ENV_FILEPATH}')
+        logger.info(
+            f'Creating symlink {SKALE_DIR_ENV_FILEPATH} → {CONFIGS_ENV_FILEPATH}')
         os.symlink(SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH)
 
 

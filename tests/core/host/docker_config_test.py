@@ -1,20 +1,33 @@
-import filecmp
 import json
 import os
 import pathlib
 import shutil
+from contextlib import contextmanager
+from timeit import default_timer as timer
 
+import docker
 import pytest
 
 from node_cli.core.host2.docker_config import (
+    assert_no_containers,
+    ContainersExistError,
     DockerConfigResult,
-    ensure_docker_service_config_dir,
-    ensure_service_overriden_config,
     ensure_docker_daemon_config,
-    link_socket_to_default_path,
-    NoSocketFileError,
-    OverridenConfigExsitsError
+    ensure_docker_service_config_dir,
+    ensure_run_dir,
+    ensure_service_overriden_config,
+    OverridenConfigExsitsError,
+    SocketInitTimeoutError,
+    wait_for_socket_initialization
 )
+
+
+@contextmanager
+def in_time(seconds):
+    start_ts = timer()
+    yield
+    ts_diff = timer() - start_ts
+    assert ts_diff < seconds, (ts_diff, seconds)
 
 
 @pytest.fixture
@@ -69,7 +82,10 @@ def test_ensure_docker_daemon_config(tmp_dir):
     with open(daemon_config_path, 'r') as daemon_config_file:
         conf = json.load(daemon_config_file)
         assert conf['live-restore'] is True
-        assert conf['hosts'] == ['unix:///var/lib/skale/docker.sock']
+        assert conf['hosts'] == [
+            'fd://',
+            'unix:///var/run/skale/docker.sock'
+        ]
     assert r == DockerConfigResult.CHANGED
 
     conf.pop('hosts')
@@ -81,20 +97,47 @@ def test_ensure_docker_daemon_config(tmp_dir):
     with open(daemon_config_path, 'r') as daemon_config_file:
         conf = json.load(daemon_config_file)
         assert conf['live-restore'] is True
-        assert conf['hosts'] == ['unix:///var/lib/skale/docker.sock']
+        assert conf['hosts'] == [
+            'fd://',
+            'unix:///var/run/skale/docker.sock'
+        ]
         assert conf['test'] == 'TEST'
     assert r == DockerConfigResult.CHANGED
 
 
-def test_link_socket_to_default_path(tmp_dir):
-    socket_path = os.path.join(tmp_dir, 'new.socket')
-    default_path = os.path.join(tmp_dir, 'default.socket')
-
-    with pytest.raises(NoSocketFileError):
-        link_socket_to_default_path(socket_path, default_path)
-
-    pathlib.Path(socket_path).touch()
-    r = link_socket_to_default_path(socket_path, default_path)
-    assert os.path.islink(default_path)
-    assert filecmp.cmp(socket_path, default_path)
+def test_ensure_run_dir(tmp_dir):
+    run_dir = os.path.join(tmp_dir, 'run')
+    r = ensure_run_dir(run_dir)
+    assert os.path.isdir(run_dir)
     assert r == DockerConfigResult.CHANGED
+
+    r = ensure_run_dir(run_dir)
+    assert os.path.isdir(run_dir)
+    assert r == DockerConfigResult.UNCHANGED
+
+
+@pytest.fixture
+def container():
+    client = docker.from_env()
+    c = client.containers.run('hello-world', detach=True)
+    yield c
+    c.remove(force=True)
+
+
+def test_assert_no_contaners():
+    assert_no_containers(ignore=('ganache',))
+
+
+def test_assert_no_containers_failed(container):
+    with pytest.raises(ContainersExistError):
+        assert_no_containers()
+
+
+def test_wait_for_socket_initialization(tmp_dir):
+    socket_path = os.path.join(tmp_dir, 'd.socket')
+    with in_time(2):
+        with pytest.raises(SocketInitTimeoutError):
+            wait_for_socket_initialization(socket_path, allowed_time=5)
+    pathlib.Path(socket_path).touch()
+    with in_time(1):
+        wait_for_socket_initialization(socket_path)
