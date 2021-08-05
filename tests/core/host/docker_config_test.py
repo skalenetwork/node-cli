@@ -135,7 +135,7 @@ def test_assert_no_containers_failed(container):
 
 def test_wait_for_socket_initialization(tmp_dir):
     socket_path = os.path.join(tmp_dir, 'd.socket')
-    with in_time(2):
+    with in_time(8):
         with pytest.raises(SocketInitTimeoutError):
             wait_for_socket_initialization(socket_path, allowed_time=5)
     pathlib.Path(socket_path).touch()
