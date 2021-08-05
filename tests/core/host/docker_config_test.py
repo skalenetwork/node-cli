@@ -8,7 +8,7 @@ from timeit import default_timer as timer
 import docker
 import pytest
 
-from node_cli.core.host2.docker_config import (
+from node_cli.core.docker_config import (
     assert_no_containers,
     ContainersExistError,
     DockerConfigResult,
