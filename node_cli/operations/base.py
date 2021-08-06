@@ -48,7 +48,8 @@ def update(env_filepath: str, env: Dict) -> None:
     compose_rm(env)
     remove_dynamic_containers()
 
-    configure_docker()
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
 
     backup_old_contracts()
     download_contracts(env)
