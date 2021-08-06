@@ -138,9 +138,9 @@ def wait_for_socket_initialization(
     logger.info('Waiting for docker inititalization')
     start_ts = time.time()
     while int(time.time() - start_ts) < allowed_time and \
-            not is_socket_existed():
+            not is_socket_existed(socket_path):
         time.sleep(2)
-    if not is_socket_existed():
+    if not is_socket_existed(socket_path):
         raise SocketInitTimeoutError(
             f'Socket was not able to init in {allowed_time}'
         )
