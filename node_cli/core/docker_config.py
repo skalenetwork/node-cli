@@ -168,8 +168,6 @@ def assert_no_containers(ignore: Tuple[str] = ()):
 
 
 def configure_docker() -> None:
-    logger.info('Checking that there are no containers')
-    assert_no_containers()
     logger.info('Configuring docker')
     pre_restart_tasks = (
         ensure_run_dir,
