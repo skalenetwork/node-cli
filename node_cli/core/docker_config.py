@@ -112,7 +112,7 @@ def ensure_docker_daemon_config(
     })
     logger.info('Updating docker daemon config')
     with open(daemon_config_path, 'w') as daemon_config:
-        config = json.dump(config, daemon_config)
+        json.dump(config, daemon_config)
     return DockerConfigResult.CHANGED
 
 

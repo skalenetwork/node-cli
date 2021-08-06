@@ -145,7 +145,7 @@ SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'
 
 DOCKER_DEAMON_CONFIG_PATH = '/etc/docker/daemon.json'
-DOCKER_DAEMON_HOSTS = ['fd://', 'unix:///var/run/skale/docker.sock']
+DOCKER_DAEMON_HOSTS = ('fd://', 'unix:///var/run/skale/docker.sock')
 DOCKER_SERVICE_CONFIG_DIR = '/etc/systemd/system/docker.service.d'
 DOCKER_SERVICE_CONFIG_PATH = '/etc/systemd/system/docker.service.d/no-host.conf'
 DOCKER_SOCKET_PATH = '/var/run/skale/docker.sock'
