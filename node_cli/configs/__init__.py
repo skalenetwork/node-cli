@@ -41,6 +41,7 @@ SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
+REPORTS_PATH = os.path.join(SKALE_DIR, 'reports')
 BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
@@ -148,3 +149,5 @@ DOCKER_DAEMON_HOSTS = ['fd://', 'unix:///var/run/skale/docker.sock']
 DOCKER_SERVICE_CONFIG_DIR = '/etc/systemd/system/docker.service.d'
 DOCKER_SERVICE_CONFIG_PATH = '/etc/systemd/system/docker.service.d/no-host.conf'
 DOCKER_SOCKET_PATH = '/var/run/skale/docker.sock'
+
+CHECK_REPORT_PATH = os.path.join(REPORTS_PATH, 'checks.json')
