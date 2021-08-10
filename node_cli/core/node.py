@@ -46,6 +46,7 @@ from node_cli.core.host import (
     is_node_inited, save_env_params,
     get_flask_secret_key, run_preinstall_checks
 )
+from node_cli.core.checks import generate_report_from_checks, save_report
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
     update_op,
@@ -384,6 +385,7 @@ def run_checks(network: str) -> None:
         return
 
     failed_checks = run_preinstall_checks(network)
+    save_report(generate_report_from_checks(failed_checks))
     if not failed_checks:
         print('Requirements checking succesfully finished!')
     else:
