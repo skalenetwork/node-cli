@@ -215,6 +215,28 @@ def test_checks_docker_config(docker_req):
     assert r[1] == 'Docker daemon live-restore option should be set as "true"'
 
 
+def test_checks_docker_hosts(docker_req):
+    checker = DockerChecker(docker_req)
+    valid_config = {'hosts': ['unix:///var/run/skale/docker.sock', 'fd://']}
+    r = checker._check_docker_hosts_option(valid_config)
+    assert r == (True, 'Hosts is properly configured')
+
+    invalid_config = {'hosts': []}
+    r = checker._check_docker_hosts_option(invalid_config)
+    assert r == (
+        False,
+        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']"  # noqa
+    )
+
+    invalid_config = {'hosts': ['http://127.0.0.1:8080']}
+    r = checker._check_docker_hosts_option(invalid_config)
+    assert r == (False, "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']")  # noqa
+
+    invalid_config = {'hosts': ['fd://']}
+    r = checker._check_docker_hosts_option(invalid_config)
+    assert r == (False, "Docker daemon hosts is misconfigured. Missing hosts: ['unix:///var/run/skale/docker.sock']")  # noqa
+
+
 @pytest.fixture
 def package_req(requirements_data):
     return requirements_data['package']

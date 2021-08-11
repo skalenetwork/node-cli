@@ -24,6 +24,7 @@ from node_cli.cli.info import VERSION
 from node_cli.core.host import (  # noqa
     prepare_host, link_env_file, run_preinstall_checks
 )
+from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
@@ -46,6 +47,9 @@ logger = logging.getLogger(__name__)
 def update(env_filepath: str, env: Dict) -> None:
     compose_rm(env)
     remove_dynamic_containers()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
 
     backup_old_contracts()
     download_contracts(env)
