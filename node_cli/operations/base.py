@@ -38,7 +38,7 @@ from node_cli.operations.skale_node import sync_skale_node, update_images
 from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
 from node_cli.utils.meta import update_meta
-from node_cli.utils.print_formatters import print_failed_requirements_checks
+# from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 
 logger = logging.getLogger(__name__)
@@ -85,10 +85,13 @@ def update(env_filepath: str, env: Dict) -> None:
 def init(env_filepath: str, env: str) -> bool:
     sync_skale_node(env)
 
-    failed_checks = run_preinstall_checks(env['ENV_TYPE'])
-    if failed_checks:
-        print_failed_requirements_checks(failed_checks)
-        return False
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    # failed_checks = run_preinstall_checks(env['ENV_TYPE'])
+    # if failed_checks:
+    #    print_failed_requirements_checks(failed_checks)
+    #    return False
 
     prepare_host(
         env_filepath,
@@ -134,10 +137,13 @@ def turn_on(env):
 def restore(env, backup_path):
     unpack_backup_archive(backup_path)
 
-    failed_checks = run_preinstall_checks(env['ENV_TYPE'])
-    if failed_checks:
-        print_failed_requirements_checks(failed_checks)
-        return False
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    # failed_checks = run_preinstall_checks(env['ENV_TYPE'])
+    # if failed_checks:
+    #    print_failed_requirements_checks(failed_checks)
+    #    return False
 
     link_env_file()
     configure_iptables()
