@@ -57,14 +57,24 @@ def test_ensure_service_overriden_config(tmp_dir):
     r = ensure_service_overriden_config(overriden_config_path)
     with open(overriden_config_path) as overriden_config_file:
         assert overriden_config_file.read() == '\n'.join(
-            ['[Service]', 'ExecStart=', 'ExecStart=/usr/bin/dockerd']
+            [
+                '[Service]',
+                'ExecStart=',
+                'ExecStart=/usr/bin/dockerd',
+                'ExecStartPre=/bin/mkdir -p /var/run/skale'
+            ]
         )
     assert r == DockerConfigResult.CHANGED
 
     r = ensure_service_overriden_config(overriden_config_path)
     with open(overriden_config_path) as overriden_config_file:
         assert overriden_config_file.read() == '\n'.join(
-            ['[Service]', 'ExecStart=', 'ExecStart=/usr/bin/dockerd']
+            [
+                '[Service]',
+                'ExecStart=',
+                'ExecStart=/usr/bin/dockerd',
+                'ExecStartPre=/bin/mkdir -p /var/run/skale'
+            ]
         )
     assert r == DockerConfigResult.UNCHANGED
 
