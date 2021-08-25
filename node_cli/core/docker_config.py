@@ -78,8 +78,14 @@ def ensure_service_overriden_config(
 ) -> DockerConfigResult:
     logger.info('Ensuring docker service override config')
     config = get_content(config_filepath)
+    socket_dir = pathlib.Path(DOCKER_SOCKET_PATH).parent.absolute()
     expected_config = '\n'.join(
-        ['[Service]', 'ExecStart=', 'ExecStart=/usr/bin/dockerd']
+        [
+            '[Service]',
+            'ExecStart=',
+            'ExecStart=/usr/bin/dockerd',
+            f'ExecStartPre=/bin/mkdir -p {socket_dir}'
+         ]
     )
 
     if not os.path.isfile(config_filepath):
