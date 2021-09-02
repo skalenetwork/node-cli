@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import itertools
 import os
 import logging
 from time import sleep
@@ -55,6 +56,7 @@ NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
 
 DOCKER_DEFAULT_STOP_TIMEOUT = 20
+
 DOCKER_DEFAULT_HEAD_LINES = 400
 DOCKER_DEFAULT_TAIL_LINES = 10000
 
@@ -132,12 +134,14 @@ def save_container_logs(
     head: int = DOCKER_DEFAULT_HEAD_LINES,
     tail: int = DOCKER_DEFAULT_TAIL_LINES
 ) -> None:
+    log_stream = container.logs(stream=True)
+    head_lines = b'\n'.join(itertools.islice(log_stream, head))
+    separator = b'=' * 80
+    tail_lines = container.logs(tail=tail)
     with open(log_filepath, 'wb') as out:
-        out.write(container.logs(tail=tail))
-    with open(log_filepath, 'ab') as out:
-        out.write(b'=' * 100)
-    with open(log_filepath, 'ab') as out:
-        out.write(container.logs(tail=tail))
+        out.write(head_lines)
+        out.write(separator)
+        out.write(tail_lines)
     logger.debug(f'Logs from {container.name} saved to {log_filepath}')
 
 
