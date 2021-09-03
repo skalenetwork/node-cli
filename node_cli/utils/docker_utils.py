@@ -125,7 +125,7 @@ def backup_container_logs(container: Container, tail=DOCKER_DEFAULT_TAIL_LINES) 
     logger.info(f'Going to backup container logs: {container.name}')
     logs_backup_filepath = get_logs_backup_filepath(container)
     save_container_logs(container, logs_backup_filepath, tail)
-    logger.debug(
+    logger.info(
         f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
 
 
