@@ -12,9 +12,11 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+LINES = 10
+
 
 def main():
-    for i in range(20000):
+    for i in range(10):
         logger.info(f'Test {i}')
     logger.info('Waiting')
 

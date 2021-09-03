@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import io
 import itertools
 import os
 import logging
@@ -134,10 +135,12 @@ def save_container_logs(
     head: int = DOCKER_DEFAULT_HEAD_LINES,
     tail: int = DOCKER_DEFAULT_TAIL_LINES
 ) -> None:
-    log_stream = container.logs(stream=True)
-    head_lines = b'\n'.join(itertools.islice(log_stream, head))
-    separator = b'=' * 80
+    separator = b'=' * 80 + b'\n'
     tail_lines = container.logs(tail=tail)
+    lines_number = len(io.BytesIO(tail_lines).readlines())
+    head = min(lines_number, head)
+    log_stream = container.logs(stream=True, follow=True)
+    head_lines = b''.join(itertools.islice(log_stream, head))
     with open(log_filepath, 'wb') as out:
         out.write(head_lines)
         out.write(separator)
