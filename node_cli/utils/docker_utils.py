@@ -17,6 +17,8 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import io
+import itertools
 import os
 import logging
 from time import sleep
@@ -55,6 +57,8 @@ NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
 
 DOCKER_DEFAULT_STOP_TIMEOUT = 20
+
+DOCKER_DEFAULT_HEAD_LINES = 400
 DOCKER_DEFAULT_TAIL_LINES = 10000
 
 
@@ -109,30 +113,42 @@ def safe_rm(container: Container, stop_timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kw
     """
     container_name = container.name
     backup_container_logs(container)
-    logger.debug(
+    logger.info(
         f'Stopping container: {container_name}, timeout: {stop_timeout}')
     container.stop(timeout=stop_timeout)
-    logger.debug(f'Removing container: {container_name}, kwargs: {kwargs}')
+    logger.info(f'Removing container: {container_name}, kwargs: {kwargs}')
     container.remove(**kwargs)
     logger.info(f'Container removed: {container_name}')
 
 
-def backup_container_logs(container: Container, tail=DOCKER_DEFAULT_TAIL_LINES) -> None:
+def backup_container_logs(
+    container: Container,
+    head: int = DOCKER_DEFAULT_HEAD_LINES,
+    tail: int = DOCKER_DEFAULT_TAIL_LINES
+) -> None:
     logger.info(f'Going to backup container logs: {container.name}')
     logs_backup_filepath = get_logs_backup_filepath(container)
     save_container_logs(container, logs_backup_filepath, tail)
-    logger.debug(
+    logger.info(
         f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
 
 
 def save_container_logs(
     container: Container,
     log_filepath: str,
-    tail=DOCKER_DEFAULT_TAIL_LINES
+    head: int = DOCKER_DEFAULT_HEAD_LINES,
+    tail: int = DOCKER_DEFAULT_TAIL_LINES
 ) -> None:
-    with open(log_filepath, "wb") as out:
-        out.write(container.logs(tail=tail))
-    logger.debug(f'Logs from {container.name} saved to {log_filepath}')
+    separator = b'=' * 80 + b'\n'
+    tail_lines = container.logs(tail=tail)
+    lines_number = len(io.BytesIO(tail_lines).readlines())
+    head = min(lines_number, head)
+    log_stream = container.logs(stream=True, follow=True)
+    head_lines = b''.join(itertools.islice(log_stream, head))
+    with open(log_filepath, 'wb') as out:
+        out.write(head_lines)
+        out.write(separator)
+        out.write(tail_lines)
 
 
 def get_logs_backup_filepath(container: Container) -> str:

@@ -73,8 +73,12 @@ def test_create_logs_dump(backup_func, skale_container):
         TEST_ARCHIVE_FOLDER_PATH, 'containers', f'{TEST_SKALE_NAME}.log'
     )
     with open(test_container_log_path) as data_file:
-        content = data_file.read()
-    assert content == 'Hello, SKALE!\n'
+        content = data_file.readlines()
+    assert content == [
+        'Hello, SKALE!\n',
+        '================================================================================\n',   # noqa
+        'Hello, SKALE!\n'
+    ]
 
     assert os.path.exists(os.path.join(TEST_ARCHIVE_FOLDER_PATH, 'removed_containers'))
     assert os.path.exists(os.path.join(TEST_ARCHIVE_FOLDER_PATH, 'cli'))
