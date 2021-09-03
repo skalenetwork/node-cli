@@ -16,7 +16,7 @@ LINES = 10
 
 
 def main():
-    for i in range(10):
+    for i in range(LINES):
         logger.info(f'Test {i}')
     logger.info('Waiting')
 
