@@ -121,7 +121,11 @@ def safe_rm(container: Container, stop_timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kw
     logger.info(f'Container removed: {container_name}')
 
 
-def backup_container_logs(container: Container, tail=DOCKER_DEFAULT_TAIL_LINES) -> None:
+def backup_container_logs(
+    container: Container,
+    head: int = DOCKER_DEFAULT_HEAD_LINES,
+    tail: int = DOCKER_DEFAULT_TAIL_LINES
+) -> None:
     logger.info(f'Going to backup container logs: {container.name}')
     logs_backup_filepath = get_logs_backup_filepath(container)
     save_container_logs(container, logs_backup_filepath, tail)
