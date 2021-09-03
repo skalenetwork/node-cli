@@ -149,7 +149,6 @@ def save_container_logs(
         out.write(head_lines)
         out.write(separator)
         out.write(tail_lines)
-    logger.debug(f'Logs from {container.name} saved to {log_filepath}')
 
 
 def get_logs_backup_filepath(container: Container) -> str:
