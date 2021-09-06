@@ -111,7 +111,7 @@ Optional variables:
 Restore SKALE node on another machine
 
 ```shell
-skale node restore [BACKUP_PATH] [ENV_FILE]
+skale node restore [BACKUP_PATH]
 ```
 
 Arguments:
@@ -124,7 +124,7 @@ Arguments:
 Generate backup file to restore SKALE node on another machine
 
 ```shell
-skale node backup [BACKUP_FOLDER_PATH] [ENV_FILE]
+skale node backup [BACKUP_FOLDER_PATH]
 ```
 
 Arguments:
