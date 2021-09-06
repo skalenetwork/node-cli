@@ -116,7 +116,10 @@ def init(env_filepath: str, env: str) -> bool:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_resource_allocation(env_type=env['ENV_TYPE'])
+    update_resource_allocation(
+        disk_device=env['DISK_MOUNTPOINT'],
+        env_type=env['ENV_TYPE']
+    )
     update_images(env)
     compose_up(env)
     return True
@@ -155,5 +158,8 @@ def restore(env, backup_path):
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_resource_allocation(env_type=env['ENV_TYPE'])
+    update_resource_allocation(
+        disk_device=env['DISK_MOUNTPOINT'],
+        env_type=env['ENV_TYPE']
+    )
     compose_up(env)

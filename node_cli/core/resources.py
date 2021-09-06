@@ -20,6 +20,7 @@
 import os
 import logging
 from time import sleep
+from typing import Dict
 
 import psutil
 
@@ -35,7 +36,7 @@ from node_cli.configs import (
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
     TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
-    MEMORY_FACTOR, DISK_MOUNTPOINT_FILEPATH, MAX_CPU_SHARES
+    MEMORY_FACTOR, MAX_CPU_SHARES
 )
 
 logger = logging.getLogger(__name__)
@@ -69,14 +70,20 @@ def get_resource_allocation_info():
         return None
 
 
-def compose_resource_allocation_config(env_type):
-    env_configs = safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
+def compose_resource_allocation_config(
+    disk_device: str,
+    env_type: str,
+    params_by_env_type: Dict = None
+) -> Dict:
+    params_by_env_type = params_by_env_type or \
+        safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
+    common_config = params_by_env_type['common']
+    env_configs = params_by_env_type['envs'][env_type]
+    schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(common_config)
+    schain_mem_alloc, ima_mem_alloc = get_memory_alloc(common_config)
     schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
 
-    schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(env_configs)
-    schain_mem_alloc, ima_mem_alloc = get_memory_alloc(env_configs)
-
-    verify_disk_size(env_configs, env_type)
+    verify_disk_size(disk_device, env_configs)
 
     return {
         'schain': {
@@ -104,7 +111,10 @@ def generate_resource_allocation_config(env_file, force=False) -> None:
         return
     logger.info('Generating resource allocation file ...')
     try:
-        update_resource_allocation(env_params['ENV_TYPE'])
+        update_resource_allocation(
+            env_params['DISK_MOUNTPOINT'],
+            env_params['ENV_TYPE']
+        )
     except Exception as e:
         logger.exception(e)
         print('Can\'t generate resource allocation file, check out CLI logs')
@@ -115,8 +125,10 @@ def generate_resource_allocation_config(env_file, force=False) -> None:
         )
 
 
-def update_resource_allocation(env_type) -> None:
-    resource_allocation_config = compose_resource_allocation_config(env_type)
+def update_resource_allocation(disk_device: str, env_type: str) -> None:
+    resource_allocation_config = compose_resource_allocation_config(
+        disk_device, env_type
+    )
     write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
 
 
@@ -138,16 +150,16 @@ def get_total_memory():
     return sum(memory) / TIMES * MEMORY_FACTOR
 
 
-def get_memory_alloc(env_configs):
-    mem_proportions = env_configs['common']['schain']['mem']
+def get_memory_alloc(common_config: Dict) -> ResourceAlloc:
+    mem_proportions = common_config['schain']['mem']
     available_memory = get_total_memory()
     schain_memory = mem_proportions['skaled'] * available_memory
     ima_memory = mem_proportions['ima'] * available_memory
     return ResourceAlloc(schain_memory), ResourceAlloc(ima_memory)
 
 
-def get_cpu_alloc(env_configs):
-    cpu_proportions = env_configs['common']['schain']['cpu']
+def get_cpu_alloc(common_config: Dict) -> ResourceAlloc:
+    cpu_proportions = common_config['schain']['cpu']
     schain_max_cpu_shares = int(cpu_proportions['skaled'] * MAX_CPU_SHARES)
     ima_max_cpu_shares = int(cpu_proportions['ima'] * MAX_CPU_SHARES)
     return (
@@ -156,9 +168,12 @@ def get_cpu_alloc(env_configs):
     )
 
 
-def verify_disk_size(env_configs: dict, env_type: str) -> dict:
-    disk_size = get_disk_size()
-    env_disk_size = env_configs['envs'][env_type]['server']['disk']
+def verify_disk_size(
+    disk_device: str,
+    env_configs: dict,
+) -> Dict:
+    disk_size = get_disk_size(disk_device)
+    env_disk_size = env_configs['server']['disk']
     check_disk_size(disk_size, env_disk_size)
 
 
@@ -169,9 +184,8 @@ def check_disk_size(disk_size: int, env_disk_size: int):
         )
 
 
-def get_disk_size() -> int:
-    disk_path = get_disk_path()
-    disk_size_cmd = construct_disk_size_cmd(disk_path)
+def get_disk_size(disk_device: str) -> int:
+    disk_size_cmd = construct_disk_size_cmd(disk_device)
     output = run_cmd(disk_size_cmd).stdout.decode('utf-8')
     return int(output)
 
@@ -191,11 +205,6 @@ def check_is_partition(disk_path):
 def get_allocation_option_name(schain):
     part_of_node = int(schain['partOfNode'])
     return SchainTypes(part_of_node).name
-
-
-def get_disk_path():
-    with open(DISK_MOUNTPOINT_FILEPATH) as f:
-        return f.read().strip()
 
 
 def init_shared_space_volume(env_type):
