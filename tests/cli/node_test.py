@@ -17,16 +17,13 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import pathlib
 
 import mock
-import pytest
 import requests
 import logging
 
 from node_cli.configs import SKALE_DIR, G_CONF_HOME
-from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.cli.node import (node_info, register_node, signature,
                                backup_node, restore_node,
                                set_node_in_maintenance,
