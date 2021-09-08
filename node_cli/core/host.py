@@ -43,8 +43,7 @@ from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
 from node_cli.utils.print_formatters import print_abi_validation_errors
-from node_cli.configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
-                                                  SGX_SERVER_URL_FILEPATH)
+from node_cli.configs.resource_allocation import SGX_SERVER_URL_FILEPATH
 
 from node_cli.utils.helper import safe_load_texts, validate_abi
 
@@ -76,10 +75,9 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
     make_dirs()
     save_env_params(env_filepath)
-    save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
     if allocation:
-        update_resource_allocation(env_type)
+        update_resource_allocation(disk_mountpoint, env_type)
 
 
 def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:
@@ -114,14 +112,8 @@ def make_dirs():
         safe_mk_dirs(dir_path)
 
 
-def save_disk_mountpoint(disk_mountpoint):
-    logger.info(f'Saving disk_mountpoint option to {DISK_MOUNTPOINT_FILEPATH}')
-    with open(DISK_MOUNTPOINT_FILEPATH, 'w') as f:
-        f.write(disk_mountpoint)
-
-
 def save_sgx_server_url(sgx_server_url):
-    logger.info(f'Saving disk_mountpoint option to {SGX_SERVER_URL_FILEPATH}')
+    logger.info(f'Saving sgx_server_url option to {SGX_SERVER_URL_FILEPATH}')
     with open(SGX_SERVER_URL_FILEPATH, 'w') as f:
         f.write(sgx_server_url)
 

@@ -142,7 +142,7 @@ def init(env_filepath):
         )
         return
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
+    update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
     logger.info('Init procedure finished')
 
 
@@ -157,7 +157,7 @@ def restore(backup_path, env_filepath):
     restore_op(env, backup_path)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
+    update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
     print('Node is restored from backup')
 
 

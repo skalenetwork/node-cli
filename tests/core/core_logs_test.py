@@ -51,8 +51,10 @@ def skale_container():
         entrypoint=TEST_ENTRYPOINT
     )
     time.sleep(10)
-    yield
-    container.remove(force=True)
+    try:
+        yield TEST_SKALE_NAME
+    finally:
+        container.remove(force=True)
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
