@@ -40,6 +40,7 @@ from node_cli.configs import (
     ENVIRONMENT_PARAMS_FILEPATH,
     CHECK_REPORT_PATH
 )
+from node_cli.core.resources import get_disk_size
 from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
@@ -170,8 +171,9 @@ class BaseChecker:
 
 
 class MachineChecker(BaseChecker):
-    def __init__(self, requirements: Dict) -> None:
+    def __init__(self, requirements: Dict, disk_device: str) -> None:
         self.requirements = requirements
+        self.disk_device = disk_device
 
     @preinstall
     def cpu_total(self) -> CheckResult:
@@ -217,6 +219,19 @@ class MachineChecker(BaseChecker):
         actual_gb = round(actual / 1024 ** 3, 2)
         expected_gb = round(expected / 1024 ** 3, 2)
         info = f'Expected swap memory {expected_gb} GB, actual {actual_gb} GB'
+        if actual < expected:
+            return self._failed(name=name, info=info)
+        else:
+            return self._ok(name=name, info=info)
+
+    @preinstall
+    def disk(self) -> CheckResult:
+        name = 'disk'
+        actual = get_disk_size(self.disk_device)
+        expected = self.requirements['disk']
+        actual_gb = round(actual / 1024 ** 3, 2)
+        expected_gb = round(expected / 1024 ** 3, 2)
+        info = f'Expected disk size {expected_gb} GB, actual {actual_gb} GB'
         if actual < expected:
             return self._failed(name=name, info=info)
         else:
