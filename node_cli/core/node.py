@@ -43,10 +43,13 @@ from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.iptables import configure_iptables
 from node_cli.core.host import (
-    is_node_inited, save_env_params,
-    get_flask_secret_key, run_preinstall_checks
+    is_node_inited, save_env_params, get_flask_secret_key
 )
-from node_cli.core.checks import generate_report_from_checks, save_report
+from node_cli.core.checks import (
+    generate_report_from_checks,
+    run_preinstall_checks,
+    save_report
+)
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
     update_op,
@@ -189,13 +192,15 @@ def update(env_filepath):
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
-    update_op(env_filepath, env)
-    logger.info('Waiting for containers initialization')
-    time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive():
+    res = update_op(env_filepath, env)
+    if res:
+        logger.info('Waiting for containers initialization')
+        time.sleep(TM_INIT_TIMEOUT)
+    if not res or not is_base_containers_alive():
         print_node_cmd_error()
         return
-    logger.info('Node update finished')
+    else:
+        logger.info('Node update finished')
 
 
 def get_node_signature(validator_id):

@@ -18,40 +18,51 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import os
+import shutil
+from typing import Dict
 
 from node_cli.utils.helper import run_cmd
-from node_cli.utils.git_utils import sync_repo, rm_local_repo
+from node_cli.utils.git_utils import clone_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
-from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_NODE_REPO_URL
+from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
+    CONTAINER_CONFIG_TMP_PATH,
+    SKALE_NODE_REPO_URL
+)
 
 
 logger = logging.getLogger(__name__)
 
 
-def update_images(env: dict) -> None:
+def update_images(env: Dict) -> None:
     if 'CONTAINER_CONFIGS_DIR' in env:
         compose_build()
     else:
         compose_pull()
 
 
-def sync_skale_node(env: dict) -> None:
-    if 'CONTAINER_CONFIGS_DIR' in env:
-        sync_skale_node_dev(env)
+def download_skale_node(env: Dict) -> None:
+    if os.path.isdir(CONTAINER_CONFIG_TMP_PATH):
+        shutil.rmtree(CONTAINER_CONFIG_TMP_PATH)
+    stream = env['CONTAINER_CONFIGS_STREAM']
+    src = env['CONTAINER_CONFIGS_DIR']
+    dest = CONTAINER_CONFIG_TMP_PATH
+    if src:
+        sync_dirs(src, dest)
     else:
-        sync_skale_node_git(env)
+        clone_repo(
+            SKALE_NODE_REPO_URL,
+            CONTAINER_CONFIG_PATH,
+            stream
+        )
 
 
-def sync_skale_node_git(env: dict) -> None:
-    rm_local_repo(CONTAINER_CONFIG_PATH)
-    sync_repo(
-        SKALE_NODE_REPO_URL,
-        CONTAINER_CONFIG_PATH,
-        env["CONTAINER_CONFIGS_STREAM"]
-    )
+def sync_skale_node():
+    sync_dirs(CONTAINER_CONFIG_TMP_PATH, CONTAINER_CONFIG_PATH)
 
 
-def sync_skale_node_dev(env: dict) -> None:
-    logger.info(f'Syncing {CONTAINER_CONFIG_PATH} with {env["CONTAINER_CONFIGS_DIR"]}')
-    run_cmd(f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/ {CONTAINER_CONFIG_PATH}'.split())
-    run_cmd(f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/.git {CONTAINER_CONFIG_PATH}'.split())
+def sync_dirs(src: str, dest: str) -> None:
+    logger.info(f'Syncing {dest} with {src}')
+    run_cmd(['rsync', '-r', f'{src}/', dest])
+    run_cmd(['rsync', '-r', f'{src}/.git', dest])

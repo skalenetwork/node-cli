@@ -54,10 +54,32 @@ CLOUDFLARE_DNS_HOST = '1.1.1.1'
 CLOUDFLARE_DNS_HOST_PORT = 443
 
 
-def get_env_params(network: str = 'mainnet'):
-    with open(ENVIRONMENT_PARAMS_FILEPATH) as requirements_file:
+def get_env_params(
+    network: str = 'mainnet',
+    environment_params_path: str = ENVIRONMENT_PARAMS_FILEPATH
+) -> Dict:
+    with open(environment_params_path) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata['envs'][network]
+
+
+def run_preinstall_checks(
+    env_type: str = 'mainnet',
+    environment_params_path: str = ENVIRONMENT_PARAMS_FILEPATH
+) -> ListChecks:
+    logger.info('Checking that host meets requirements ...')
+    requirements = get_env_params(env_type)
+    checkers = [
+        MachineChecker(requirements['server']),
+        PackagesChecker(requirements['package']),
+        DockerChecker(requirements['docker'])
+    ]
+    result = []
+    for checker in checkers:
+        result.extend(filter(lambda r: r.status != 'ok', checker.check()))
+    if result:
+        logger.info('Host is not fully meet the requirements')
+    return result
 
 
 def node_check(func):
@@ -253,7 +275,7 @@ class DockerChecker(BaseChecker):
                 name=name,
                 info='Docker api request failed. Is docker installed?'
             )
-        logger.info('Docker version info %s', version_info)
+        logger.debug('Docker version info %s', version_info)
         actual_version = self.docker_client.version()['Version']
         expected_version = self.requirements['docker-engine']
         info = {
