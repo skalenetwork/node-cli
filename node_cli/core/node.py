@@ -386,12 +386,16 @@ def set_domain_name(domain_name):
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def run_checks(network: str) -> None:
+def run_checks(disk: str, network: str, environment_params_path: str) -> None:
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
 
-    failed_checks = run_preinstall_checks(network)
+    failed_checks = run_preinstall_checks(
+        disk,
+        network,
+        environment_params_path
+    )
     save_report(generate_report_from_checks(failed_checks))
     if not failed_checks:
         print('Requirements checking succesfully finished!')

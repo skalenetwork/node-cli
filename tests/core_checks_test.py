@@ -14,7 +14,8 @@ def requirements_data():
             'cpu_total': 1,
             'cpu_physical': 1,
             'memory': 100,
-            'swap': 100
+            'swap': 100,
+            'disk': 100000000
         },
         'package': {
             'iptables_persistant': '0.0.0',
@@ -35,21 +36,21 @@ def server_req(requirements_data):
 
 
 def test_checks_errored():
-    checker = MachineChecker({})
+    checker = MachineChecker({}, 'test-disk')
     r = checker.check()
     for c in r:
-        if c.name != 'network':
+        if c.name != 'network' and c.name != 'disk':
             assert c.status == 'error', c.name
             assert c.info.startswith('KeyError'), c.name
 
 
 def test_checks_cpu_total(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.cpu_total()
     assert r.name == 'cpu-total'
     assert r.status == 'ok'
     server_req['cpu_total'] = 10000  # too big
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.cpu_total()
     assert r.name == 'cpu-total'
     assert r.status == 'failed'
@@ -57,54 +58,79 @@ def test_checks_cpu_total(server_req):
 
 
 def test_checks_cpu_physical(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.cpu_physical()
     assert r.name == 'cpu-physical'
     assert r.status == 'ok'
     server_req['cpu_physical'] = 10000  # too big
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.cpu_physical()
     assert r.name == 'cpu-physical'
     assert r.status == 'failed'
 
 
 def test_checks_memory(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.memory()
     assert r.name == 'memory'
     assert r.status == 'ok'
     # too big
     server_req['memory'] = 10000000000000
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.memory()
     assert r.name == 'memory'
     assert r.status == 'failed'
 
 
 def test_checks_swap(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.swap()
     assert r.name == 'swap'
     assert r.status == 'ok'
     # too big
     server_req['swap'] = 10000000000000
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.swap()
     assert r.name == 'swap'
     assert r.status == 'failed'
 
 
 def test_checks_network(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.network()
     assert r.status == 'ok'
     assert r.name == 'network'
 
 
+def test_checks_disk(server_req):
+    checker = MachineChecker(server_req, 'test-disk')
+    r = checker.disk()
+    assert r.status == 'error'
+    assert r.name == 'disk'
+
+    checker = MachineChecker(server_req, 'test-disk')
+    checker._get_disk_size = mock.Mock(return_value=float('inf'))
+    r = checker.disk()
+    assert r.status == 'ok'
+    assert r.name == 'disk'
+
+    checker = MachineChecker(server_req, 'test-disk')
+    checker._get_disk_size = mock.Mock(return_value=50)
+    r = checker.disk()
+    assert r.status == 'failed'
+    assert r.name == 'disk'
+    assert r.info == 'Expected disk size 0.09 GB, actual 0.0 GB'
+
+
 def test_checks_machine_check(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     result = checker.check()
-    assert any([r.status == 'ok' for r in result])
+    assert not all([r.status == 'ok' for r in result])
+
+    checker = MachineChecker(server_req, 'test-disk')
+    checker._get_disk_size = mock.Mock(return_value=float('inf'))
+    result = checker.check()
+    assert all([r.status == 'ok' for r in result])
 
 
 @pytest.fixture
@@ -235,6 +261,14 @@ def test_checks_docker_hosts(docker_req):
     invalid_config = {'hosts': ['fd://']}
     r = checker._check_docker_hosts_option(invalid_config)
     assert r == (False, "Docker daemon hosts is misconfigured. Missing hosts: ['unix:///var/run/skale/docker.sock']")  # noqa
+
+
+def test_checks_docker_pre_post_install_checks(docker_req):
+    checker = DockerChecker(docker_req)
+    result = checker.preinstall_check()
+    assert len(result) == 3
+    result = checker.postinstall_check()
+    assert len(result) == 2
 
 
 @pytest.fixture
