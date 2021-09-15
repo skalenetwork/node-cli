@@ -310,3 +310,17 @@ def get_g_conf_user():
 
 def get_g_conf_home():
     return get_g_conf()['home_dir']
+
+
+def rm_dir(folder: str) -> None:
+    if os.path.exists(folder):
+        logger.info(f'{folder} exists, removing...')
+        shutil.rmtree(folder)
+    else:
+        logger.info(f'{folder} doesn\'t exist, skipping...')
+
+
+def sync_dirs(src: str, dest: str) -> None:
+    logger.info(f'Syncing {dest} with {src}')
+    run_cmd(['rsync', '-r', f'{src}/', dest])
+    run_cmd(['rsync', '-r', f'{src}/.git', dest])

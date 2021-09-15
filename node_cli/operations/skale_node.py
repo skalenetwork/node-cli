@@ -18,11 +18,9 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import os
-import shutil
-from typing import Dict
+from typing import Optional
 
-from node_cli.utils.helper import run_cmd
+from node_cli.utils.helper import rm_dir, sync_dirs
 from node_cli.utils.git_utils import clone_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
 from node_cli.configs import (
@@ -35,18 +33,15 @@ from node_cli.configs import (
 logger = logging.getLogger(__name__)
 
 
-def update_images(env: Dict) -> None:
-    if 'CONTAINER_CONFIGS_DIR' in env:
+def update_images(local: bool = False) -> None:
+    if local:
         compose_build()
     else:
         compose_pull()
 
 
-def download_skale_node(env: Dict) -> None:
-    if os.path.isdir(CONTAINER_CONFIG_TMP_PATH):
-        shutil.rmtree(CONTAINER_CONFIG_TMP_PATH)
-    stream = env['CONTAINER_CONFIGS_STREAM']
-    src = env['CONTAINER_CONFIGS_DIR']
+def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
+    rm_dir(CONTAINER_CONFIG_TMP_PATH)
     dest = CONTAINER_CONFIG_TMP_PATH
     if src:
         sync_dirs(src, dest)
@@ -60,9 +55,3 @@ def download_skale_node(env: Dict) -> None:
 
 def sync_skale_node():
     sync_dirs(CONTAINER_CONFIG_TMP_PATH, CONTAINER_CONFIG_PATH)
-
-
-def sync_dirs(src: str, dest: str) -> None:
-    logger.info(f'Syncing {dest} with {src}')
-    run_cmd(['rsync', '-r', f'{src}/', dest])
-    run_cmd(['rsync', '-r', f'{src}/.git', dest])
