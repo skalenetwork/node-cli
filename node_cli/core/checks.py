@@ -82,18 +82,35 @@ def run_preinstall_checks(
     return result
 
 
-def node_check(func):
+def check_quietly(check, *args, **kwargs):
+    try:
+        return check(*args, **kwargs)
+    except Exception as err:
+        logger.exception('%s check errored')
+        return CheckResult(
+            name=check.__name__,
+            status='error',
+            info=repr(err)
+        )
+
+
+def preinstall(func):
+    func._check_type = 'preinstall'
+
     @wraps(func)
     def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as err:
-            logger.exception('%s check errored')
-            return CheckResult(
-                name=func.__name__,
-                status='error',
-                info=repr(err)
-            )
+        return check_quietly(func, *args, **kwargs)
+
+    return wrapper
+
+
+def postinstall(func):
+    func._check_type = 'postinstall'
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return check_quietly(func, *args, **kwargs)
+
     return wrapper
 
 
@@ -117,13 +134,38 @@ class BaseChecker:
     def _failed(self, name: str, info: Optional[Dict] = None) -> CheckResult:
         return CheckResult(name=name, status='failed', info=info)
 
-    def check(self) -> ListChecks:
-        myself = inspect.stack()[0][3]
-        check_methods = inspect.getmembers(
+    def _get_preinstall(self) -> ListChecks:
+        return inspect.getmembers(
             type(self),
             predicate=lambda m: inspect.isfunction(m) and
-            not m.__name__.startswith('_') and not m.__name__ == myself
+            getattr(m, '_check_type', None) == 'preinstall'
         )
+
+    def _get_postinstall(self) -> ListChecks:
+        return inspect.getmembers(
+            type(self),
+            predicate=lambda m: inspect.isfunction(m) and
+            getattr(m, '_check_type', None) == 'postinstall'
+        )
+
+    def _get_all(self) -> ListChecks:
+        print(getattr(getattr(self, 'cpu_total'), '_check_type'))
+        return inspect.getmembers(
+            type(self),
+            predicate=lambda m: inspect.isfunction(m) and
+            getattr(m, '_check_type', None) is not None
+        )
+
+    def preinstall_check(self) -> ListChecks:
+        check_methods = self._get_preinstall()
+        return [cm[1](self) for cm in check_methods]
+
+    def post_install_check(self) -> ListChecks:
+        check_methods = self._get_postinstall()
+        return [cm[1](self) for cm in check_methods]
+
+    def check(self) -> ListChecks:
+        check_methods = self._get_all()
         return [cm[1](self) for cm in check_methods]
 
 
@@ -131,7 +173,7 @@ class MachineChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         self.requirements = requirements
 
-    @node_check
+    @preinstall
     def cpu_total(self) -> CheckResult:
         name = 'cpu-total'
         actual = psutil.cpu_count(logical=True)
@@ -142,7 +184,7 @@ class MachineChecker(BaseChecker):
         else:
             return self._ok(name=name, info=info)
 
-    @node_check
+    @preinstall
     def cpu_physical(self) -> CheckResult:
         name = 'cpu-physical'
         actual = psutil.cpu_count(logical=False)
@@ -153,7 +195,7 @@ class MachineChecker(BaseChecker):
         else:
             return self._ok(name=name, info=info)
 
-    @node_check
+    @preinstall
     def memory(self) -> CheckResult:
         name = 'memory'
         actual = psutil.virtual_memory().total,
@@ -167,7 +209,7 @@ class MachineChecker(BaseChecker):
         else:
             return self._ok(name=name, info=info)
 
-    @node_check
+    @preinstall
     def swap(self) -> CheckResult:
         name = 'swap'
         actual = psutil.swap_memory().total
@@ -180,7 +222,7 @@ class MachineChecker(BaseChecker):
         else:
             return self._ok(name=name, info=info)
 
-    @node_check
+    @preinstall
     def network(self) -> CheckResult:
         name = 'network'
         try:
@@ -197,23 +239,23 @@ class PackagesChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         self.requirements = requirements
 
-    @node_check
+    @preinstall
     def iptables_persistent(self) -> CheckResult:
         return self._check_apt_package('iptables-persistent')
 
-    @node_check
+    @preinstall
     def lvm2(self) -> CheckResult:
         return self._check_apt_package('lvm2')
 
-    @node_check
+    @preinstall
     def btrfs_progs(self) -> CheckResult:
         return self._check_apt_package('btrfs-progs')
 
-    @node_check
+    @preinstall
     def lsof(self) -> CheckResult:
         return self._check_apt_package('lsof')
 
-    @node_check
+    @preinstall
     def psmisc(self) -> CheckResult:
         return self._check_apt_package('psmisc')
 
@@ -263,7 +305,7 @@ class DockerChecker(BaseChecker):
         except Exception as err:
             logger.error(f'Request to docker api failed {err}')
 
-    @node_check
+    @preinstall
     def docker_engine(self) -> CheckResult:
         name = 'docker-engine'
         if self._check_docker_command() is None:
@@ -287,7 +329,7 @@ class DockerChecker(BaseChecker):
         else:
             return self._ok(name=name, info=info)
 
-    @node_check
+    @preinstall
     def docker_api(self) -> CheckResult:
         name = 'docker-api'
         if self._check_docker_command() is None:
@@ -311,7 +353,7 @@ class DockerChecker(BaseChecker):
         else:
             return self._ok(name=name, info=info)
 
-    @node_check
+    @preinstall
     def docker_compose(self) -> CheckResult:
         name = 'docker-compose'
         cmd = shutil.which('docker-compose')
@@ -368,13 +410,13 @@ class DockerChecker(BaseChecker):
         sactual, sexpected = set(actual_value), set(DOCKER_DAEMON_HOSTS)
         if sactual & sexpected != sexpected:
             missing = sorted(sexpected - sactual)
-            info = f'Docker daemon hosts is misconfigured. Missing hosts: {missing}'
+            info = f'Docker daemon hosts is misconfigured. Missing hosts: {missing}'  # noqa
             return False, info
         else:
             info = 'Hosts is properly configured'
             return True, info
 
-    @node_check
+    @postinstall
     def keeping_containers_alive(self) -> CheckResult:
         name = 'live-restore'
         config = self._get_docker_config()
@@ -384,7 +426,7 @@ class DockerChecker(BaseChecker):
         else:
             return self._failed(name=name, info=info)
 
-    @node_check
+    @postinstall
     def hosts_config(self) -> CheckResult:
         name = 'docker-hosts'
         config = self._get_docker_config()
