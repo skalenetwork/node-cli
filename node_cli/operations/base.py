@@ -21,7 +21,7 @@ import logging
 from typing import Dict
 
 from node_cli.cli.info import VERSION
-from node_cli.configs import CONTAINER_CONFIG_TMP_PATH
+from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
 from node_cli.core.host import link_env_file, prepare_host
 
 from node_cli.core.docker_config import configure_docker
@@ -45,7 +45,10 @@ logger = logging.getLogger(__name__)
 
 
 def update(env_filepath: str, env: Dict) -> None:
-    download_skale_node(env)
+    download_skale_node(
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['CONTAINER_CONFIGS_DIR']
+    )
     failed_checks = run_preinstall_checks(
         env['ENV_TYPE'],
         CONTAINER_CONFIG_TMP_PATH
@@ -82,12 +85,15 @@ def update(env_filepath: str, env: Dict) -> None:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_images(env)
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
 
 
 def init(env_filepath: str, env: str) -> bool:
-    download_skale_node(env)
+    download_skale_node(
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['CONTAINER_CONFIGS_DIR']
+    )
     failed_checks = run_preinstall_checks(
         env['ENV_TYPE'],
         CONTAINER_CONFIG_TMP_PATH
@@ -128,7 +134,7 @@ def init(env_filepath: str, env: str) -> bool:
         disk_device=env['DISK_MOUNTPOINT'],
         env_type=env['ENV_TYPE']
     )
-    update_images(env)
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
     return True
 
@@ -147,14 +153,16 @@ def turn_on(env):
 
 def restore(env, backup_path):
     unpack_backup_archive(backup_path)
+    failed_checks = run_preinstall_checks(
+        env['ENV_TYPE'],
+        CONTAINER_CONFIG_PATH
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+        return False
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
-
-    # failed_checks = run_preinstall_checks(env['ENV_TYPE'])
-    # if failed_checks:
-    #    print_failed_requirements_checks(failed_checks)
-    #    return False
 
     link_env_file()
     configure_iptables()

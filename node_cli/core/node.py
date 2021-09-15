@@ -192,11 +192,13 @@ def update(env_filepath):
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
-    res = update_op(env_filepath, env)
-    if res:
+    success = update_op(env_filepath, env)
+    if success:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
-    if not res or not is_base_containers_alive():
+    alive = is_base_containers_alive()
+    logger.info('IVD success %s, alive %s', success, alive)
+    if not success or not alive:
         print_node_cmd_error()
         return
     else:
