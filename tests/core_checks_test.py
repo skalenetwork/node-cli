@@ -1,10 +1,17 @@
-import time
 from pip._internal import main as pipmain
+import time
 
 import mock
 import pytest
 
-from node_cli.core.checks import DockerChecker, MachineChecker, PackagesChecker
+from node_cli.core.checks import (
+    CheckType,
+    DockerChecker,
+    get_all_checkers,
+    get_checks,
+    MachineChecker,
+    PackageChecker
+)
 
 
 @pytest.fixture
@@ -277,7 +284,7 @@ def package_req(requirements_data):
 
 
 def test_checks_apt_package(package_req):
-    checker = PackagesChecker(package_req)
+    checker = PackageChecker(package_req)
     res_mock = mock.Mock()
     res_mock.stdout = b"""Package: test-package
         Version: 5.2.1-2
@@ -308,3 +315,23 @@ def test_checks_apt_package(package_req):
         r = checker._check_apt_package(apt_package_name)
         assert r.name == 'test-package'
         assert r.status == 'ok'
+
+
+def test_get_all_checkers(requirements_data):
+    disk = 'test-disk'
+    checkers = get_all_checkers(disk, requirements_data)
+    assert len(checkers) == 3
+    assert isinstance(checkers[0], MachineChecker)
+    assert isinstance(checkers[1], PackageChecker)
+    assert isinstance(checkers[2], DockerChecker)
+
+
+def test_get_checks(requirements_data):
+    disk = 'test-disk'
+    checkers = get_all_checkers(disk, requirements_data)
+    checks = get_checks(checkers)
+    assert len(checks) == 16
+    checks = get_checks(checkers, check_type=CheckType.PREINSTALL)
+    assert len(checks) == 14
+    checks = get_checks(checkers, check_type=CheckType.POSTINSTALL)
+    assert len(checks) == 2

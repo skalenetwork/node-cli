@@ -22,8 +22,7 @@ import shutil
 import logging
 import datetime
 
-from node_cli.core.host import safe_mk_dirs
-from node_cli.utils.helper import run_cmd
+from node_cli.utils.helper import run_cmd, safe_mkdir
 from node_cli.utils.docker_utils import (
     save_container_logs, get_containers
 )
@@ -66,7 +65,7 @@ def create_dump_dir():
     folder_path = os.path.join(SKALE_TMP_DIR, folder_name)
     containers_path = os.path.join(folder_path, 'containers')
     logger.debug(f'Creating tmp dir for logs dump: {folder_path}')
-    safe_mk_dirs(containers_path)
+    safe_mkdir(containers_path)
     return folder_path, folder_name
 
 

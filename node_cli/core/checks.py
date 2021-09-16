@@ -43,10 +43,10 @@ from debian import debian_support
 from packaging.version import parse as version_parse
 
 from node_cli.configs import (
+    CHECK_REPORT_PATH,
+    CONTAINER_CONFIG_PATH,
     DOCKER_CONFIG_FILEPATH,
     DOCKER_DAEMON_HOSTS,
-    ENVIRONMENT_PARAMS_FILEPATH,
-    CHECK_REPORT_PATH
 )
 from node_cli.core.resources import get_disk_size
 from node_cli.utils.helper import run_cmd
@@ -68,8 +68,12 @@ FuncList = List[Func]
 
 def get_env_params(
     env_type: str = 'mainnet',
-    environment_params_path: str = ENVIRONMENT_PARAMS_FILEPATH
+    config_path: str = CONTAINER_CONFIG_PATH
 ) -> Dict:
+    environment_params_path = os.path.join(
+        config_path,
+        'environment_params.yaml'
+    )
     with open(environment_params_path) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata['envs'][env_type]
@@ -252,7 +256,7 @@ class MachineChecker(BaseChecker):
             return self._failed(name=name, info=info)
 
 
-class PackagesChecker(BaseChecker):
+class PackageChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         self.requirements = requirements
 
@@ -456,7 +460,7 @@ def get_checks(
     check_type: CheckType = CheckType.ALL
 ) -> FuncList:
     return list(
-        itertools.chain(
+        itertools.chain.from_iterable(
             (
                 checker.get_checks(check_type=check_type)
                 for checker in checkers
@@ -468,7 +472,7 @@ def get_checks(
 def get_all_checkers(disk: str, requirements: Dict) -> List[BaseChecker]:
     return [
         MachineChecker(requirements['server'], disk),
-        PackagesChecker(requirements['package']),
+        PackageChecker(requirements['package']),
         DockerChecker(requirements['docker'])
     ]
 
@@ -476,11 +480,11 @@ def get_all_checkers(disk: str, requirements: Dict) -> List[BaseChecker]:
 def run_checks(
     disk: str,
     env_type: str = 'mainnet',
-    environment_params_path: str = ENVIRONMENT_PARAMS_FILEPATH,
+    config_path: str = CONTAINER_CONFIG_PATH,
     check_type: CheckType = CheckType.ALL
 ) -> ResultList:
     logger.info('Executing checks. Type: %s.', check_type)
-    requirements = get_env_params(environment_params_path)
+    requirements = get_env_params(env_type, config_path)
     checkers = get_all_checkers(disk, requirements)
     checks = get_checks(checkers, check_type)
     failed = []

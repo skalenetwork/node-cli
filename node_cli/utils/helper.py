@@ -320,6 +320,16 @@ def rm_dir(folder: str) -> None:
         logger.info(f'{folder} doesn\'t exist, skipping...')
 
 
+def safe_mkdir(path: str, print_res: bool = False):
+    if os.path.exists(path):
+        return
+    msg = f'Creating {path} directory...'
+    logger.info(msg)
+    if print_res:
+        print(msg)
+    os.makedirs(path, exist_ok=True)
+
+
 def rsync_dirs(src: str, dest: str) -> None:
     logger.info(f'Syncing {dest} with {src}')
     run_cmd(['rsync', '-r', f'{src}/', dest])

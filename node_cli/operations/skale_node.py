@@ -21,7 +21,7 @@ import logging
 import shutil
 from typing import Optional
 
-from node_cli.utils.helper import rm_dir, rsync_dirs
+from node_cli.utils.helper import rm_dir, rsync_dirs, safe_mkdir
 from node_cli.utils.git_utils import clone_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
 from node_cli.configs import (
@@ -43,6 +43,7 @@ def update_images(local: bool = False) -> None:
 
 def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
     rm_dir(CONTAINER_CONFIG_TMP_PATH)
+    safe_mkdir(CONTAINER_CONFIG_TMP_PATH)
     dest = CONTAINER_CONFIG_TMP_PATH
     if src:
         rsync_dirs(src, dest)

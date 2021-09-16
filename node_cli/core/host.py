@@ -35,11 +35,14 @@ from node_cli.configs import (
     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH,
     SKALE_RUN_DIR, SKALE_TMP_DIR
 )
-from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.resource_allocation import (
+    RESOURCE_ALLOCATION_FILEPATH,
+    SGX_SERVER_URL_FILEPATH
+)
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
+from node_cli.utils.helper import safe_mkdir
 from node_cli.utils.print_formatters import print_abi_validation_errors
-from node_cli.configs.resource_allocation import SGX_SERVER_URL_FILEPATH
 
 from node_cli.utils.helper import safe_load_texts, validate_abi
 
@@ -89,7 +92,7 @@ def make_dirs():
             REPORTS_PATH, REDIS_DATA_PATH,
             SKALE_RUN_DIR, SKALE_TMP_DIR
     ):
-        safe_mk_dirs(dir_path)
+        safe_mkdir(dir_path)
 
 
 def save_sgx_server_url(sgx_server_url):
@@ -103,29 +106,22 @@ def save_env_params(env_filepath):
 
 
 def link_env_file():
-    if not (os.path.islink(CONFIGS_ENV_FILEPATH) or os.path.isfile(CONFIGS_ENV_FILEPATH)):
+    if not (os.path.islink(CONFIGS_ENV_FILEPATH) or
+            os.path.isfile(CONFIGS_ENV_FILEPATH)):
         logger.info(
-            f'Creating symlink {SKALE_DIR_ENV_FILEPATH} → {CONFIGS_ENV_FILEPATH}')
+            'Creating symlink %s → %s',
+            SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
+        )
         os.symlink(SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH)
 
 
 def init_logs_dir():
-    safe_mk_dirs(LOG_DATA_PATH)
-    safe_mk_dirs(REMOVED_CONTAINERS_FOLDER_PATH)
+    safe_mkdir(LOG_DATA_PATH)
+    safe_mkdir(REMOVED_CONTAINERS_FOLDER_PATH)
 
 
 def init_data_dir():
-    safe_mk_dirs(NODE_DATA_PATH)
-
-
-def safe_mk_dirs(path, print_res=False):
-    if os.path.exists(path):
-        return
-    msg = f'Creating {path} directory...'
-    logger.info(msg)
-    if print_res:
-        print(msg)
-    os.makedirs(path, exist_ok=True)
+    safe_mkdir(NODE_DATA_PATH)
 
 
 def validate_abi_files(json_result=False):
