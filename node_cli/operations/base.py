@@ -34,7 +34,7 @@ from node_cli.operations.common import (
 )
 from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
-from node_cli.core.checks import run_preinstall_checks
+from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
 from node_cli.utils.meta import update_meta
@@ -49,9 +49,11 @@ def update(env_filepath: str, env: Dict) -> None:
         env['CONTAINER_CONFIGS_STREAM'],
         env['CONTAINER_CONFIGS_DIR']
     )
-    failed_checks = run_preinstall_checks(
+    failed_checks = run_host_checks(
+        env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
-        CONTAINER_CONFIG_TMP_PATH
+        CONTAINER_CONFIG_TMP_PATH,
+        check_type=CheckType.PREINSTALL
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
@@ -87,6 +89,15 @@ def update(env_filepath: str, env: Dict) -> None:
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
+    failed_checks = run_host_checks(
+        env['DISK_MOUNTPOINT'],
+        env['ENV_TYPE'],
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.POSTINSTALL
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+        return False
 
 
 def init(env_filepath: str, env: str) -> bool:
@@ -94,9 +105,11 @@ def init(env_filepath: str, env: str) -> bool:
         env['CONTAINER_CONFIGS_STREAM'],
         env['CONTAINER_CONFIGS_DIR']
     )
-    failed_checks = run_preinstall_checks(
+    failed_checks = run_host_checks(
+        env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
-        CONTAINER_CONFIG_TMP_PATH
+        CONTAINER_CONFIG_TMP_PATH,
+        check_type=CheckType.PREINSTALL
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
@@ -136,6 +149,16 @@ def init(env_filepath: str, env: str) -> bool:
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
+
+    failed_checks = run_host_checks(
+        env['DISK_MOUNTPOINT'],
+        env['ENV_TYPE'],
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.POSTINSTALL
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+        return False
     return True
 
 
@@ -153,7 +176,8 @@ def turn_on(env):
 
 def restore(env, backup_path):
     unpack_backup_archive(backup_path)
-    failed_checks = run_preinstall_checks(
+    failed_checks = run_host_checks(
+        env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH
     )
@@ -179,3 +203,12 @@ def restore(env, backup_path):
         env_type=env['ENV_TYPE']
     )
     compose_up(env)
+    failed_checks = run_host_checks(
+        env['DISK_MOUNTPOINT'],
+        env['ENV_TYPE'],
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.POSTINSTALL
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+        return False

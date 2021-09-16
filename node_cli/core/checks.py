@@ -18,18 +18,26 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import enum
+import functools
 import inspect
+import itertools
 import json
 import logging
 import os
-import psutil
 import shutil
 import socket
 from collections import namedtuple
 from functools import wraps
-from typing import Dict, List, Optional, Tuple
+from typing import (
+    Any, Callable, cast,
+    Dict, List,
+    Optional,
+    Tuple, TypeVar, Union
+)
 
-import docker
+import docker  # type: ignore
+import psutil  # type: ignore
 import yaml
 from debian import debian_support
 from packaging.version import parse as version_parse
@@ -47,43 +55,27 @@ logger = logging.getLogger(__name__)
 
 
 CheckResult = namedtuple('CheckResult', ['name', 'status', 'info'])
-ListChecks = List[CheckResult]
+ResultList = List[CheckResult]
 
 
 NETWORK_CHECK_TIMEOUT = 4
 CLOUDFLARE_DNS_HOST = '1.1.1.1'
 CLOUDFLARE_DNS_HOST_PORT = 443
 
+Func = TypeVar('Func', bound=Callable[..., Any])
+FuncList = List[Func]
+
 
 def get_env_params(
-    network: str = 'mainnet',
+    env_type: str = 'mainnet',
     environment_params_path: str = ENVIRONMENT_PARAMS_FILEPATH
 ) -> Dict:
     with open(environment_params_path) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
-        return ydata['envs'][network]
+        return ydata['envs'][env_type]
 
 
-def run_preinstall_checks(
-    env_type: str = 'mainnet',
-    environment_params_path: str = ENVIRONMENT_PARAMS_FILEPATH
-) -> ListChecks:
-    logger.info('Checking that host meets requirements ...')
-    requirements = get_env_params(env_type)
-    checkers = [
-        MachineChecker(requirements['server']),
-        PackagesChecker(requirements['package']),
-        DockerChecker(requirements['docker'])
-    ]
-    result = []
-    for checker in checkers:
-        result.extend(filter(lambda r: r.status != 'ok', checker.check()))
-    if result:
-        logger.info('Host is not fully meet the requirements')
-    return result
-
-
-def check_quietly(check, *args, **kwargs):
+def check_quietly(check: Func, *args, **kwargs) -> CheckResult:
     try:
         return check(*args, **kwargs)
     except Exception as err:
@@ -95,27 +87,35 @@ def check_quietly(check, *args, **kwargs):
         )
 
 
-def preinstall(func):
-    func._check_type = 'preinstall'
+class CheckType(enum.Enum):
+    PREINSTALL = 1
+    POSTINSTALL = 2
+    ALL = 3
+
+
+def preinstall(func) -> Func:
+    func._check_type = CheckType.PREINSTALL
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> CheckResult:
         return check_quietly(func, *args, **kwargs)
 
-    return wrapper
+    return cast(Func, wrapper)
 
 
-def postinstall(func):
-    func._check_type = 'postinstall'
+def postinstall(func) -> Func:
+    func._check_type = CheckType.POSTINSTALL
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> CheckResult:
         return check_quietly(func, *args, **kwargs)
 
-    return wrapper
+    return cast(Func, wrapper)
 
 
-def generate_report_from_checks(checks_result: List[CheckResult]) -> Dict:
+def generate_report_from_checks(
+    checks_result: List[CheckResult]
+) -> List[Dict]:
     report = [
         {'name': cr.name, 'status': cr.status}
         for cr in checks_result
@@ -129,45 +129,44 @@ def save_report(report: Dict):
 
 
 class BaseChecker:
-    def _ok(self, name: str, info: Optional[Dict] = None) -> CheckResult:
+    def _ok(
+        self,
+        name: str,
+        info: Optional[Union[str, Dict]] = None
+    ) -> CheckResult:
         return CheckResult(name=name, status='ok', info=info)
 
-    def _failed(self, name: str, info: Optional[Dict] = None) -> CheckResult:
+    def _failed(
+        self,
+        name: str,
+        info: Optional[Union[str, Dict]] = None
+    ) -> CheckResult:
         return CheckResult(name=name, status='failed', info=info)
 
-    def _get_preinstall(self) -> ListChecks:
-        return inspect.getmembers(
+    def get_checks(self, check_type: CheckType = CheckType.ALL) -> FuncList:
+        allowed_types = [check_type]
+
+        if check_type == CheckType.ALL:
+            allowed_types = [CheckType.PREINSTALL, CheckType.POSTINSTALL]
+
+        methods = inspect.getmembers(
             type(self),
             predicate=lambda m: inspect.isfunction(m) and
-            getattr(m, '_check_type', None) == 'preinstall'
+            getattr(m, '_check_type', None) in allowed_types
         )
+        return [functools.partial(m[1], self) for m in methods]
 
-    def _get_postinstall(self) -> ListChecks:
-        return inspect.getmembers(
-            type(self),
-            predicate=lambda m: inspect.isfunction(m) and
-            getattr(m, '_check_type', None) == 'postinstall'
-        )
+    def preinstall_check(self) -> ResultList:
+        check_methods = self.get_checks(check_type=CheckType.PREINSTALL)
+        return [cm() for cm in check_methods]
 
-    def _get_all(self) -> ListChecks:
-        print(getattr(getattr(self, 'cpu_total'), '_check_type'))
-        return inspect.getmembers(
-            type(self),
-            predicate=lambda m: inspect.isfunction(m) and
-            getattr(m, '_check_type', None) is not None
-        )
+    def postinstall_check(self) -> ResultList:
+        check_methods = self.get_checks(check_type=CheckType.POSTINSTALL)
+        return [cm() for cm in check_methods]
 
-    def preinstall_check(self) -> ListChecks:
-        check_methods = self._get_preinstall()
-        return [cm[1](self) for cm in check_methods]
-
-    def post_install_check(self) -> ListChecks:
-        check_methods = self._get_postinstall()
-        return [cm[1](self) for cm in check_methods]
-
-    def check(self) -> ListChecks:
-        check_methods = self._get_all()
-        return [cm[1](self) for cm in check_methods]
+    def check(self) -> ResultList:
+        check_methods = self.get_checks()
+        return [cm() for cm in check_methods]
 
 
 class MachineChecker(BaseChecker):
@@ -200,8 +199,8 @@ class MachineChecker(BaseChecker):
     @preinstall
     def memory(self) -> CheckResult:
         name = 'memory'
-        actual = psutil.virtual_memory().total,
-        actual = actual[0]
+        mem_info = psutil.virtual_memory().total,
+        actual = mem_info[0]
         expected = self.requirements['memory']
         actual_gb = round(actual / 1024 ** 3, 2)
         expected_gb = round(expected / 1024 ** 3, 2)
@@ -224,10 +223,13 @@ class MachineChecker(BaseChecker):
         else:
             return self._ok(name=name, info=info)
 
+    def _get_disk_size(self) -> int:
+        return get_disk_size(self.disk_device)
+
     @preinstall
     def disk(self) -> CheckResult:
         name = 'disk'
-        actual = get_disk_size(self.disk_device)
+        actual = self._get_disk_size()
         expected = self.requirements['disk']
         actual_gb = round(actual / 1024 ** 3, 2)
         expected_gb = round(expected / 1024 ** 3, 2)
@@ -253,6 +255,29 @@ class MachineChecker(BaseChecker):
 class PackagesChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         self.requirements = requirements
+
+    def _check_apt_package(self, package_name: str,
+                           version: str = None) -> CheckResult:
+        # TODO: check versions
+        dpkg_cmd_result = run_cmd(
+            ['dpkg', '-s', package_name], check_code=False)
+        output = dpkg_cmd_result.stdout.decode('utf-8').strip()
+        if dpkg_cmd_result.returncode != 0:
+            return self._failed(name=package_name, info=output)
+
+        actual_version = self._version_from_dpkg_output(output)
+        expected_version = self.requirements[package_name]
+        info = {
+            'expected_version': expected_version,
+            'actual_version': actual_version
+        }
+        compare_result = debian_support.version_compare(
+            actual_version, expected_version
+        )
+        if compare_result == -1:
+            return self._failed(name=package_name, info=info)
+        else:
+            return self._ok(name=package_name, info=info)
 
     @preinstall
     def iptables_persistent(self) -> CheckResult:
@@ -282,43 +307,21 @@ class PackagesChecker(BaseChecker):
         ))
         return v_line.split()[1]
 
-    def _check_apt_package(self, package_name: str,
-                           version: str = None) -> CheckResult:
-        # TODO: check versions
-        dpkg_cmd_result = run_cmd(
-            ['dpkg', '-s', package_name], check_code=False)
-        output = dpkg_cmd_result.stdout.decode('utf-8').strip()
-        if dpkg_cmd_result.returncode != 0:
-            return self._failed(name=package_name, info=output)
-
-        actual_version = self._version_from_dpkg_output(output)
-        expected_version = self.requirements[package_name]
-        info = {
-            'expected_version': expected_version,
-            'actual_version': actual_version
-        }
-        compare_result = debian_support.version_compare(
-            actual_version, expected_version
-        )
-        if compare_result == -1:
-            return self._failed(name=package_name, info=info)
-        else:
-            return self._ok(name=package_name, info=info)
-
 
 class DockerChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         self.docker_client = docker.from_env()
         self.requirements = requirements
 
-    def _check_docker_command(self) -> str:
+    def _check_docker_command(self) -> Optional[str]:
         return shutil.which('docker')
 
-    def _get_docker_version_info(self) -> Dict:
+    def _get_docker_version_info(self) -> Optional[Dict]:
         try:
             return self.docker_client.version()
         except Exception as err:
             logger.error(f'Request to docker api failed {err}')
+            return None
 
     @preinstall
     def docker_engine(self) -> CheckResult:
@@ -356,7 +359,7 @@ class DockerChecker(BaseChecker):
                 name=name,
                 info='Docker api request failed. Is docker installed?'
             )
-        logger.info('Docker version info %s', version_info)
+        logger.debug('Docker version info %s', version_info)
         actual_version = version_info['ApiVersion']
         expected_version = self.requirements['docker-api']
         info = {
@@ -386,10 +389,6 @@ class DockerChecker(BaseChecker):
         actual_version = output.split(',')[0].split()[-1].strip()
         expected_version = self.requirements['docker-compose']
 
-        info = {
-            'expected_version': expected_version,
-            'actual_version': actual_version
-        }
         info = f'Expected docker-compose version {expected_version}, actual {actual_version}'  # noqa
         if version_parse(actual_version) < version_parse(expected_version):
             return self._failed(name=name, info=info)
@@ -450,3 +449,45 @@ class DockerChecker(BaseChecker):
             return self._ok(name=name, info=info)
         else:
             return self._failed(name=name, info=info)
+
+
+def get_checks(
+    checkers: List[BaseChecker],
+    check_type: CheckType = CheckType.ALL
+) -> FuncList:
+    return list(
+        itertools.chain(
+            (
+                checker.get_checks(check_type=check_type)
+                for checker in checkers
+            )
+        )
+    )
+
+
+def get_all_checkers(disk: str, requirements: Dict) -> List[BaseChecker]:
+    return [
+        MachineChecker(requirements['server'], disk),
+        PackagesChecker(requirements['package']),
+        DockerChecker(requirements['docker'])
+    ]
+
+
+def run_checks(
+    disk: str,
+    env_type: str = 'mainnet',
+    environment_params_path: str = ENVIRONMENT_PARAMS_FILEPATH,
+    check_type: CheckType = CheckType.ALL
+) -> ResultList:
+    logger.info('Executing checks. Type: %s.', check_type)
+    requirements = get_env_params(environment_params_path)
+    checkers = get_all_checkers(disk, requirements)
+    checks = get_checks(checkers, check_type)
+    failed = []
+    for check in checks:
+        r = check()
+        if r.status != 'ok':
+            failed.append(r)
+    if failed:
+        logger.info('Host is not fully meet the requirements')
+    return failed

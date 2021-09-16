@@ -47,7 +47,7 @@ from node_cli.core.host import (
 )
 from node_cli.core.checks import (
     generate_report_from_checks,
-    run_preinstall_checks,
+    run_checks as run_host_checks,
     save_report
 )
 from node_cli.core.resources import update_resource_allocation
@@ -391,7 +391,7 @@ def run_checks(disk: str, network: str, environment_params_path: str) -> None:
         print(TEXTS['node']['not_inited'])
         return
 
-    failed_checks = run_preinstall_checks(
+    failed_checks = run_host_checks(
         disk,
         network,
         environment_params_path

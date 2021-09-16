@@ -78,12 +78,9 @@ def compose_resource_allocation_config(
     params_by_env_type = params_by_env_type or \
         safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
     common_config = params_by_env_type['common']
-    env_configs = params_by_env_type['envs'][env_type]
     schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(common_config)
     schain_mem_alloc, ima_mem_alloc = get_memory_alloc(common_config)
     schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
-
-    verify_disk_size(disk_device, env_configs)
 
     return {
         'schain': {

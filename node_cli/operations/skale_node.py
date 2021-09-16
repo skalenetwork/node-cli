@@ -18,9 +18,10 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import shutil
 from typing import Optional
 
-from node_cli.utils.helper import rm_dir, sync_dirs
+from node_cli.utils.helper import rm_dir, rsync_dirs
 from node_cli.utils.git_utils import clone_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
 from node_cli.configs import (
@@ -44,7 +45,7 @@ def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
     rm_dir(CONTAINER_CONFIG_TMP_PATH)
     dest = CONTAINER_CONFIG_TMP_PATH
     if src:
-        sync_dirs(src, dest)
+        rsync_dirs(src, dest)
     else:
         clone_repo(
             SKALE_NODE_REPO_URL,
@@ -54,4 +55,4 @@ def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
 
 
 def sync_skale_node():
-    sync_dirs(CONTAINER_CONFIG_TMP_PATH, CONTAINER_CONFIG_PATH)
+    shutil.move(CONTAINER_CONFIG_TMP_PATH, CONTAINER_CONFIG_PATH)

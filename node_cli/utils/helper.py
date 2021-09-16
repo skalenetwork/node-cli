@@ -320,7 +320,7 @@ def rm_dir(folder: str) -> None:
         logger.info(f'{folder} doesn\'t exist, skipping...')
 
 
-def sync_dirs(src: str, dest: str) -> None:
+def rsync_dirs(src: str, dest: str) -> None:
     logger.info(f'Syncing {dest} with {src}')
     run_cmd(['rsync', '-r', f'{src}/', dest])
     run_cmd(['rsync', '-r', f'{src}/.git', dest])
