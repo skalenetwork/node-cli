@@ -483,7 +483,7 @@ def run_checks(
     config_path: str = CONTAINER_CONFIG_PATH,
     check_type: CheckType = CheckType.ALL
 ) -> ResultList:
-    logger.info('Executing checks. Type: %s.', check_type)
+    logger.info('Executing checks. Type: %s', check_type)
     requirements = get_env_params(env_type, config_path)
     checkers = get_all_checkers(disk, requirements)
     checks = get_checks(checkers, check_type)

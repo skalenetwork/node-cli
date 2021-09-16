@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import functools
 import logging
 from typing import Dict
 
@@ -44,30 +45,53 @@ from node_cli.utils.print_formatters import print_failed_requirements_checks
 logger = logging.getLogger(__name__)
 
 
-def update(env_filepath: str, env: Dict) -> None:
-    download_skale_node(
-        env['CONTAINER_CONFIGS_STREAM'],
-        env['CONTAINER_CONFIGS_DIR']
-    )
-    failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
-        env['ENV_TYPE'],
-        CONTAINER_CONFIG_TMP_PATH,
-        check_type=CheckType.PREINSTALL
-    )
-    if failed_checks:
-        print_failed_requirements_checks(failed_checks)
-        return False
+def checked_host(func):
+    @functools.wraps(func)
+    def wrapper(env_filepath: str, env: Dict, *args, **kwargs):
+        download_skale_node(
+            env['CONTAINER_CONFIGS_STREAM'],
+            env['CONTAINER_CONFIGS_DIR']
+        )
+        failed_checks = run_host_checks(
+            env['DISK_MOUNTPOINT'],
+            env['ENV_TYPE'],
+            CONTAINER_CONFIG_TMP_PATH,
+            check_type=CheckType.PREINSTALL
+        )
+        if failed_checks:
+            print_failed_requirements_checks(failed_checks)
+            return False
 
+        result = func(env_filepath, env, *args, **kwargs)
+        if not result:
+            return result
+
+        failed_checks = run_host_checks(
+            env['DISK_MOUNTPOINT'],
+            env['ENV_TYPE'],
+            CONTAINER_CONFIG_PATH,
+            check_type=CheckType.POSTINSTALL
+        )
+        if failed_checks:
+            print_failed_requirements_checks(failed_checks)
+            return False
+        return True
+
+    return wrapper
+
+
+@checked_host
+def update(env_filepath: str, env: Dict) -> None:
     compose_rm(env)
     remove_dynamic_containers()
+
+    sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
     backup_old_contracts()
     download_contracts(env)
-    sync_skale_node()
 
     download_filestorage_artifacts()
     docker_lvmpy_update(env)
@@ -89,32 +113,11 @@ def update(env_filepath: str, env: Dict) -> None:
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
-    failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
-        env['ENV_TYPE'],
-        CONTAINER_CONFIG_PATH,
-        check_type=CheckType.POSTINSTALL
-    )
-    if failed_checks:
-        print_failed_requirements_checks(failed_checks)
-        return False
+    return True
 
 
+@checked_host
 def init(env_filepath: str, env: str) -> bool:
-    download_skale_node(
-        env['CONTAINER_CONFIGS_STREAM'],
-        env['CONTAINER_CONFIGS_DIR']
-    )
-    failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
-        env['ENV_TYPE'],
-        CONTAINER_CONFIG_TMP_PATH,
-        check_type=CheckType.PREINSTALL
-    )
-    if failed_checks:
-        print_failed_requirements_checks(failed_checks)
-        return False
-
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -149,16 +152,6 @@ def init(env_filepath: str, env: str) -> bool:
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
-
-    failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
-        env['ENV_TYPE'],
-        CONTAINER_CONFIG_PATH,
-        check_type=CheckType.POSTINSTALL
-    )
-    if failed_checks:
-        print_failed_requirements_checks(failed_checks)
-        return False
     return True
 
 
@@ -203,6 +196,7 @@ def restore(env, backup_path):
         env_type=env['ENV_TYPE']
     )
     compose_up(env)
+
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],

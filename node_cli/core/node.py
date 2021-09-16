@@ -197,7 +197,6 @@ def update(env_filepath):
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
     alive = is_base_containers_alive()
-    logger.info('IVD success %s, alive %s', success, alive)
     if not success or not alive:
         print_node_cmd_error()
         return

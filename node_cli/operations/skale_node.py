@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import os
 import shutil
 from typing import Optional
 
@@ -56,4 +57,6 @@ def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
 
 
 def sync_skale_node():
-    shutil.move(CONTAINER_CONFIG_TMP_PATH, CONTAINER_CONFIG_PATH)
+    if os.path.isdir(CONTAINER_CONFIG_PATH):
+        shutil.rmtree(CONTAINER_CONFIG_PATH)
+    shutil.move(CONTAINER_CONFIG_TMP_PATH, f'{CONTAINER_CONFIG_PATH}/')
