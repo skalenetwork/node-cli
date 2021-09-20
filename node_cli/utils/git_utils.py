@@ -56,7 +56,7 @@ def fetch_pull_repo(repo_path: str, ref_name: str) -> None:
     repo_name = os.path.basename(repo.working_dir)
     logger.info(f'Fetching {repo_name} changes')
     repo.remotes.origin.fetch()
-    logger.info(f'Checkouting docker-lvmpy to {ref_name}')
+    logger.info(f'Checkouting {repo_path} to {ref_name}')
     repo.git.checkout(ref_name)
     if check_is_branch(repo, ref_name):
         repo.remotes.origin.pull()

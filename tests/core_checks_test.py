@@ -1,3 +1,4 @@
+import os
 from pip._internal import main as pipmain
 import time
 
@@ -7,10 +8,14 @@ import pytest
 from node_cli.core.checks import (
     CheckType,
     DockerChecker,
+    generate_report_from_result,
     get_all_checkers,
     get_checks,
+    get_report,
     MachineChecker,
-    PackageChecker
+    merge_reports,
+    PackageChecker,
+    save_report
 )
 
 
@@ -138,6 +143,15 @@ def test_checks_machine_check(server_req):
     checker._get_disk_size = mock.Mock(return_value=float('inf'))
     result = checker.check()
     assert all([r.status == 'ok' for r in result])
+    report = generate_report_from_result(result)
+    assert report == [
+        {'name': 'cpu-physical', 'status': 'ok'},
+        {'name': 'cpu-total', 'status': 'ok'},
+        {'name': 'disk', 'status': 'ok'},
+        {'name': 'memory', 'status': 'ok'},
+        {'name': 'network', 'status': 'ok'},
+        {'name': 'swap', 'status': 'ok'}
+    ]
 
 
 @pytest.fixture
@@ -203,8 +217,6 @@ def docker_compose_pkg_1_24_1():
 
 def test_checks_docker_compose_good_pkg(docker_req, docker_compose_pkg_1_27_4):
     checker = DockerChecker(package_req)
-    print('Debug: ', checker.docker_compose())
-
     r = checker.docker_compose()
     r.name == 'docker-compose'
     r.status == 'ok'
@@ -335,3 +347,31 @@ def test_get_checks(requirements_data):
     assert len(checks) == 14
     checks = get_checks(checkers, check_type=CheckType.POSTINSTALL)
     assert len(checks) == 2
+
+
+def test_get_save_report(tmp_dir_path):
+    path = os.path.join(tmp_dir_path, 'checks.json')
+    report = get_report(path)
+    assert report == []
+    report.append({'name': 'test', 'status': 'ok', 'info': 'Test'})
+    save_report(report, path)
+    saved_report = get_report(path)
+    assert saved_report == report
+
+
+def test_merge_report():
+    old_report = [
+        {'name': 'test1', 'status': 'ok', 'info': 'Test'},
+        {'name': 'test2', 'status': 'failed', 'info': 'Test1'},
+        {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
+    ]
+    new_report = [
+        {'name': 'test1', 'status': 'ok', 'info': 'Test'},
+        {'name': 'test2', 'status': 'ok', 'info': 'Test1'}
+    ]
+    report = merge_reports(old_report, new_report)
+    assert report == [
+        {'name': 'test1', 'status': 'ok', 'info': 'Test'},
+        {'name': 'test2', 'status': 'ok', 'info': 'Test1'},
+        {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
+    ]

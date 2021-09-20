@@ -31,7 +31,10 @@ from node_cli.core.node import (
     turn_off, turn_on, get_node_info,
     set_domain_name, run_checks
 )
-from node_cli.configs import DEFAULT_NODE_BASE_PORT
+from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
+    DEFAULT_NODE_BASE_PORT
+)
 from node_cli.configs.env import ALLOWED_ENV_TYPES
 from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
 
@@ -244,8 +247,20 @@ def _set_domain_name(domain):
     default='mainnet',
     help='Network to check'
 )
-def check(network):
-    run_checks(network)
+@click.option(
+    '--env-params',
+    type=str,
+    default=CONTAINER_CONFIG_PATH,
+    help='Path to environment parameters file'
+)
+@click.option(
+    '--disk', '-d',
+    type=str,
+    default=None,
+    help='Disk device'
+)
+def check(network, env_params, disk):
+    run_checks(network, env_params, disk)
 
 
 @node.command(help='Reconfigure iptables rules')

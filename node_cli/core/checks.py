@@ -31,10 +31,9 @@ from collections import namedtuple
 from functools import wraps
 from typing import (
     Any, Callable, cast,
-    Dict, List,
-    Optional,
-    Tuple, TypeVar, Union
-)
+    Dict, Iterable, Iterator,
+    List, Optional,
+    Tuple, TypeVar, Union, )
 
 import docker  # type: ignore
 import psutil  # type: ignore
@@ -117,19 +116,52 @@ def postinstall(func) -> Func:
     return cast(Func, wrapper)
 
 
-def generate_report_from_checks(
-    checks_result: List[CheckResult]
+def generate_report_from_result(
+    check_result: List[CheckResult]
 ) -> List[Dict]:
     report = [
         {'name': cr.name, 'status': cr.status}
-        for cr in checks_result
+        for cr in check_result
     ]
     return report
 
 
-def save_report(report: Dict):
-    with open(CHECK_REPORT_PATH, 'w') as report_file:
-        json.dump(report, report_file)
+def dedup(seq: Iterable, key: Optional[Func] = None) -> Iterator:
+    seen = set()
+    for item in seq:
+        e = item if key is None else key(item)
+        if e not in seen:
+            yield item
+            seen.add(e)
+
+
+def get_report(report_path: str = CHECK_REPORT_PATH) -> List[Dict]:
+    saved_report = []
+    if os.path.isfile(report_path):
+        with open(report_path) as report_file:
+            saved_report = json.load(report_file)
+    return saved_report
+
+
+def save_report(
+    new_report: List[Dict],
+    report_path: str = CHECK_REPORT_PATH
+) -> None:
+    with open(report_path, 'w') as report_file:
+        json.dump(new_report, report_file, indent=4)
+
+
+def merge_reports(
+    old_report: List[Dict],
+    new_report: List[Dict],
+) -> List[Dict]:
+    return list(dedup(
+        itertools.chain(
+            new_report,
+            old_report
+        ),
+        key=lambda r: r['name']
+    ))
 
 
 class BaseChecker:
@@ -487,11 +519,14 @@ def run_checks(
     requirements = get_env_params(env_type, config_path)
     checkers = get_all_checkers(disk, requirements)
     checks = get_checks(checkers, check_type)
-    failed = []
-    for check in checks:
-        r = check()
-        if r.status != 'ok':
-            failed.append(r)
+    results = [check() for check in checks]
+
+    saved_report = get_report()
+    report = generate_report_from_result(results)
+    new_report = merge_reports(saved_report, report)
+    save_report(new_report)
+
+    failed = list(filter(lambda r: r.status != 'ok', results))
     if failed:
         logger.info('Host is not fully meet the requirements')
     return failed

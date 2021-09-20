@@ -25,11 +25,12 @@ import time
 from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import docker
 
 from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
     FILESTORAGE_MAPPING,
     SKALE_DIR,
     INIT_ENV_FILEPATH,
@@ -39,17 +40,14 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
     LOG_PATH
 )
+from node_cli.configs.env import get_env_config
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.iptables import configure_iptables
 from node_cli.core.host import (
     is_node_inited, save_env_params, get_flask_secret_key
 )
-from node_cli.core.checks import (
-    generate_report_from_checks,
-    run_checks as run_host_checks,
-    save_report
-)
+from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
     update_op,
@@ -385,17 +383,23 @@ def set_domain_name(domain_name):
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def run_checks(disk: str, network: str, environment_params_path: str) -> None:
+def run_checks(
+    network: str = 'mainnet',
+    container_config_filepath: str = CONTAINER_CONFIG_PATH,
+    disk: Optional[str] = None
+) -> None:
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
 
+    if disk is None:
+        env = get_env_config()
+        disk = env['DISK_MOUNTPOINT']
     failed_checks = run_host_checks(
         disk,
         network,
-        environment_params_path
+        container_config_filepath
     )
-    save_report(generate_report_from_checks(failed_checks))
     if not failed_checks:
         print('Requirements checking succesfully finished!')
     else:

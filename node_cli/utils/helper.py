@@ -46,7 +46,7 @@ from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.configs.env import (
     absent_params as absent_env_params,
-    get_params as get_env_params
+    get_env_config
 )
 from node_cli.configs import (
     TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG, GLOBAL_SKALE_DIR,
@@ -126,7 +126,7 @@ def get_username():
 
 
 def extract_env_params(env_filepath):
-    env_params = get_env_params(env_filepath)
+    env_params = get_env_config(env_filepath)
 
     absent_params = ', '.join(absent_env_params(env_params))
     if absent_params:
