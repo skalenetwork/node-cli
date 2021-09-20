@@ -21,7 +21,6 @@ import io
 import itertools
 import os
 import logging
-from time import sleep
 
 import docker
 from docker.client import DockerClient
@@ -60,6 +59,8 @@ DOCKER_DEFAULT_STOP_TIMEOUT = 20
 
 DOCKER_DEFAULT_HEAD_LINES = 400
 DOCKER_DEFAULT_TAIL_LINES = 10000
+
+COMPOSE_SHUTDOWN_TIMEOUT = 40
 
 
 def docker_client() -> DockerClient:
@@ -183,20 +184,14 @@ def is_volume_exists(name: str, dutils=None):
 
 
 def compose_rm(env={}):
-    logger.info(f'Removing {MAIN_COMPOSE_CONTAINERS} containers')
+    logger.info('Removing compose containers')
     run_cmd(
         cmd=(
             'docker-compose',
             '-f', COMPOSE_PATH,
-            'rm', '-s', '-f', *MAIN_COMPOSE_CONTAINERS
+            'down',
+            '-t', str(COMPOSE_SHUTDOWN_TIMEOUT),
         ),
-        env=env
-    )
-    logger.info(f'Sleeping for {COMPOSE_TIMEOUT} seconds')
-    sleep(COMPOSE_TIMEOUT)
-    logger.info('Removing all compose containers')
-    run_cmd(
-        cmd=('docker-compose', '-f', COMPOSE_PATH, 'rm', '-s', '-f'),
         env=env
     )
     logger.info('Compose containers removed')
