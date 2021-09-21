@@ -46,7 +46,7 @@ from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.configs.env import (
     absent_params as absent_env_params,
-    get_params as get_env_params
+    get_env_config
 )
 from node_cli.configs import (
     TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG, GLOBAL_SKALE_DIR,
@@ -126,7 +126,7 @@ def get_username():
 
 
 def extract_env_params(env_filepath):
-    env_params = get_env_params(env_filepath)
+    env_params = get_env_config(env_filepath)
 
     absent_params = ', '.join(absent_env_params(env_params))
     if absent_params:
@@ -310,3 +310,27 @@ def get_g_conf_user():
 
 def get_g_conf_home():
     return get_g_conf()['home_dir']
+
+
+def rm_dir(folder: str) -> None:
+    if os.path.exists(folder):
+        logger.info(f'{folder} exists, removing...')
+        shutil.rmtree(folder)
+    else:
+        logger.info(f'{folder} doesn\'t exist, skipping...')
+
+
+def safe_mkdir(path: str, print_res: bool = False):
+    if os.path.exists(path):
+        return
+    msg = f'Creating {path} directory...'
+    logger.info(msg)
+    if print_res:
+        print(msg)
+    os.makedirs(path, exist_ok=True)
+
+
+def rsync_dirs(src: str, dest: str) -> None:
+    logger.info(f'Syncing {dest} with {src}')
+    run_cmd(['rsync', '-r', f'{src}/', dest])
+    run_cmd(['rsync', '-r', f'{src}/.git', dest])

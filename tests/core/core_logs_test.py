@@ -10,8 +10,7 @@ import freezegun
 from node_cli.core.logs import create_dump_dir, create_logs_dump
 from node_cli.configs import G_CONF_HOME, SKALE_TMP_DIR
 from node_cli.utils.docker_utils import docker_client
-from node_cli.utils.helper import run_cmd
-from node_cli.core.host import safe_mk_dirs
+from node_cli.utils.helper import run_cmd, safe_mkdir
 
 
 CURRENT_TIMESTAMP = 1594903080
@@ -67,7 +66,7 @@ def test_create_dump_dir(mocked_g_config, backup_func):
 @freezegun.freeze_time(CURRENT_DATETIME)
 def test_create_logs_dump(backup_func, skale_container):
     archive_path = create_logs_dump(G_CONF_HOME)
-    safe_mk_dirs(TEST_ARCHIVE_FOLDER_PATH)
+    safe_mkdir(TEST_ARCHIVE_FOLDER_PATH)
     cmd = shlex.split(f'tar xf {archive_path} -C {TEST_ARCHIVE_FOLDER_PATH}')
     run_cmd(cmd)
 

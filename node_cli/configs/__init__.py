@@ -37,14 +37,15 @@ SNAPSHOTS_SHARED_VOLUME = 'shared-space'
 SCHAINS_MNT_DIR = '/mnt'
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
+SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
+CONTAINER_CONFIG_TMP_PATH = os.path.join(SKALE_TMP_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 REPORTS_PATH = os.path.join(SKALE_DIR, 'reports')
 BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
-SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
 SKALE_RUN_DIR = '/var/run/skale'
 
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
