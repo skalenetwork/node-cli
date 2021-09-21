@@ -385,7 +385,7 @@ def set_domain_name(domain_name):
 
 def run_checks(
     network: str = 'mainnet',
-    container_config_filepath: str = CONTAINER_CONFIG_PATH,
+    container_config_path: str = CONTAINER_CONFIG_PATH,
     disk: Optional[str] = None
 ) -> None:
     if not is_node_inited():
@@ -398,7 +398,7 @@ def run_checks(
     failed_checks = run_host_checks(
         disk,
         network,
-        container_config_filepath
+        container_config_path
     )
     if not failed_checks:
         print('Requirements checking succesfully finished!')
