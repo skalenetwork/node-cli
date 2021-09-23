@@ -33,7 +33,8 @@ optional_params = {
     'DISABLE_DRY_RUN': '',
     'DEFAULT_GAS_LIMIT': '',
     'DEFAULT_GAS_PRICE_WEI': '',
-    'DISABLE_IMA': ''
+    'DISABLE_IMA': '',
+    'SKIP_DOCKER_CONFIG': ''
 }
 
 

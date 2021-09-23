@@ -27,7 +27,7 @@ import shutil
 import socket
 from collections import namedtuple
 from functools import wraps
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 import docker
 import yaml
@@ -35,7 +35,10 @@ from debian import debian_support
 from packaging.version import parse as version_parse
 
 from node_cli.configs import (
-    DOCKER_CONFIG_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH
+    DOCKER_CONFIG_FILEPATH,
+    DOCKER_DAEMON_HOSTS,
+    ENVIRONMENT_PARAMS_FILEPATH,
+    CHECK_REPORT_PATH
 )
 from node_cli.utils.helper import run_cmd
 
@@ -72,11 +75,24 @@ def node_check(func):
     return wrapper
 
 
+def generate_report_from_checks(checks_result: List[CheckResult]) -> Dict:
+    report = [
+        {'name': cr.name, 'status': cr.status}
+        for cr in checks_result
+    ]
+    return report
+
+
+def save_report(report: Dict):
+    with open(CHECK_REPORT_PATH, 'w') as report_file:
+        json.dump(report, report_file)
+
+
 class BaseChecker:
-    def _ok(self, name: str, info=None) -> CheckResult:
+    def _ok(self, name: str, info: Optional[Dict] = None) -> CheckResult:
         return CheckResult(name=name, status='ok', info=info)
 
-    def _failed(self, name: str, info=None) -> CheckResult:
+    def _failed(self, name: str, info: Optional[Dict] = None) -> CheckResult:
         return CheckResult(name=name, status='failed', info=info)
 
     def check(self) -> ListChecks:
@@ -156,7 +172,7 @@ class MachineChecker(BaseChecker):
 
 
 class PackagesChecker(BaseChecker):
-    def __init__(self, requirements: dict) -> None:
+    def __init__(self, requirements: Dict) -> None:
         self.requirements = requirements
 
     @node_check
@@ -212,14 +228,14 @@ class PackagesChecker(BaseChecker):
 
 
 class DockerChecker(BaseChecker):
-    def __init__(self, requirements: dict) -> None:
+    def __init__(self, requirements: Dict) -> None:
         self.docker_client = docker.from_env()
         self.requirements = requirements
 
     def _check_docker_command(self) -> str:
         return shutil.which('docker')
 
-    def _get_docker_version_info(self) -> dict:
+    def _get_docker_version_info(self) -> Dict:
         try:
             return self.docker_client.version()
         except Exception as err:
@@ -301,7 +317,7 @@ class DockerChecker(BaseChecker):
         else:
             return self._ok(name=name, info=info)
 
-    def _get_docker_config(self) -> dict:
+    def _get_docker_config(self) -> Dict:
         if not os.path.isfile(DOCKER_CONFIG_FILEPATH):
             logger.error(f'No such file {DOCKER_CONFIG_FILEPATH}')
             return {}
@@ -313,7 +329,7 @@ class DockerChecker(BaseChecker):
                 return {}
             return docker_config
 
-    def _check_docker_alive_option(self, config: dict) -> tuple:
+    def _check_docker_alive_option(self, config: Dict) -> Tuple:
         actual_value = config.get('live-restore', None)
         if actual_value is not True:
             info = (
@@ -325,11 +341,32 @@ class DockerChecker(BaseChecker):
             info = 'Docker daemon live-restore option is set as "true"'
             return True, info
 
+    def _check_docker_hosts_option(self, config: Dict) -> Tuple:
+        actual_value = config.get('hosts', None)
+        sactual, sexpected = set(actual_value), set(DOCKER_DAEMON_HOSTS)
+        if sactual & sexpected != sexpected:
+            missing = sorted(sexpected - sactual)
+            info = f'Docker daemon hosts is misconfigured. Missing hosts: {missing}'
+            return False, info
+        else:
+            info = 'Hosts is properly configured'
+            return True, info
+
     @node_check
     def keeping_containers_alive(self) -> CheckResult:
         name = 'live-restore'
         config = self._get_docker_config()
         is_ok, info = self._check_docker_alive_option(config)
+        if is_ok:
+            return self._ok(name=name, info=info)
+        else:
+            return self._failed(name=name, info=info)
+
+    @node_check
+    def hosts_config(self) -> CheckResult:
+        name = 'docker-hosts'
+        config = self._get_docker_config()
+        is_ok, info = self._check_docker_hosts_option(config)
         if is_ok:
             return self._ok(name=name, info=info)
         else:
