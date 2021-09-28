@@ -46,9 +46,10 @@ from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     DOCKER_CONFIG_FILEPATH,
     DOCKER_DAEMON_HOSTS,
+    REPORTS_PATH
 )
 from node_cli.core.resources import get_disk_size
-from node_cli.utils.helper import run_cmd
+from node_cli.utils.helper import run_cmd, safe_mkdir
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +148,7 @@ def save_report(
     new_report: List[Dict],
     report_path: str = CHECK_REPORT_PATH
 ) -> None:
+    safe_mkdir(REPORTS_PATH)
     with open(report_path, 'w') as report_file:
         json.dump(new_report, report_file, indent=4)
 
