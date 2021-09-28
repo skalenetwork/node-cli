@@ -51,7 +51,7 @@ def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
     else:
         clone_repo(
             SKALE_NODE_REPO_URL,
-            CONTAINER_CONFIG_PATH,
+            CONTAINER_CONFIG_TMP_PATH,
             stream
         )
 

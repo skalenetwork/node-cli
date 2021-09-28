@@ -50,7 +50,7 @@ def checked_host(func):
     def wrapper(env_filepath: str, env: Dict, *args, **kwargs):
         download_skale_node(
             env['CONTAINER_CONFIGS_STREAM'],
-            env['CONTAINER_CONFIGS_DIR']
+            env.get('CONTAINER_CONFIGS_DIR')
         )
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
