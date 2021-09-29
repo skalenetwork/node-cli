@@ -127,8 +127,8 @@ def init(env_filepath):
     env = get_node_env(env_filepath)
     if env is None:
         return
-    init_result = init_op(env_filepath, env)
-    if not init_result:
+    inited_ok = init_op(env_filepath, env)
+    if not inited_ok:
         error_exit(
             'Init operation failed',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
@@ -155,7 +155,13 @@ def restore(backup_path, env_filepath):
     save_env_params(env_filepath)
     env['SKALE_DIR'] = SKALE_DIR
     env['BACKUP_RUN'] = 'True'  # should be str
-    restore_op(env, backup_path)
+    restored_ok = restore_op(env, backup_path)
+    if not restored_ok:
+        error_exit(
+            'Restore operation failed',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+        return
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
@@ -190,12 +196,12 @@ def update(env_filepath):
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
-    success = update_op(env_filepath, env)
-    if success:
+    update_ok = update_op(env_filepath, env)
+    if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
     alive = is_base_containers_alive()
-    if not success or not alive:
+    if not update_ok or not alive:
         print_node_cmd_error()
         return
     else:
