@@ -366,13 +366,19 @@ def get_node_status(status):
 
 
 @check_inited
-def set_domain_name(domain_name):
+def set_domain_name(domain_name, gas_limit, gas_price):
     print(f'Setting new domain name: {domain_name}')
+    if gas_limit:
+        print(f'Custom gas limit will be used: {gas_limit}')
+    if gas_price:
+        print(f'Custom gas price will be used: {gas_price}')
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME,
         method='set-domain-name',
         json={
-            'domain_name': domain_name
+            'domain_name': domain_name,
+            'gas_limit': gas_limit,
+            'gas_price': gas_price
         }
     )
     if status == 'ok':

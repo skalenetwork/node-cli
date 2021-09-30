@@ -229,12 +229,24 @@ def _turn_on(maintenance_off, sync_schains, env_file):
     type=str,
     help='Node domain name'
 )
+@click.option(
+    '--gas-limit',
+    default=None,
+    type=int,
+    help='Gas limit for registration transaction'
+)
+@click.option(
+    '--gas-price',
+    default=None,
+    type=int,
+    help='Gas price for registration transaction in Gwei'
+)
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to set domain name?')
 @streamed_cmd
-def _set_domain_name(domain):
-    set_domain_name(domain)
+def _set_domain_name(domain, gas_limit, gas_price):
+    set_domain_name(domain, gas_limit, gas_price)
 
 
 @node.command(help='Check if node meet network requirements')
