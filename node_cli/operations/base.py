@@ -206,3 +206,4 @@ def restore(env, backup_path):
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
         return False
+    return True
