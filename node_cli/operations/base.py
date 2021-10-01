@@ -173,7 +173,7 @@ def restore(env, backup_path):
         env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
-        check_type=CheckType.POSTINSTALL
+        check_type=CheckType.PREINSTALL
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
