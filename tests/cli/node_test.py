@@ -389,3 +389,20 @@ def test_set_domain_name():
             _set_domain_name, ['-d', 'skale.test', '--yes'])
     assert result.exit_code == 0
     assert result.output == 'Setting new domain name: skale.test\nDomain name successfully changed\n'  # noqa
+
+
+def test_set_domain_name_with_custom_gas():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+
+    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+        result = run_command_mock(
+            'node_cli.utils.helper.requests.post',
+            resp_mock,
+            _set_domain_name,
+            ['-d', 'skale.test', '--yes', '--gas-price', '100', '--gas-limit', '100000']
+        )
+    assert result.exit_code == 0
+    assert result.output == 'Setting new domain name: skale.test\nCustom gas limit will be used: 100000\nCustom gas price will be used: 100\nDomain name successfully changed\n'  # noqa
