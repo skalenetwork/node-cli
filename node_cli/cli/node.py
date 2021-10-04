@@ -114,19 +114,19 @@ def node_info(format):
     '--gas-limit',
     default=None,
     type=int,
-    help='Gas limit for registration transaction'
+    help=TEXTS['gas_limit']['help']
 )
 @click.option(
     '--gas-price',
     default=None,
     type=int,
-    help='Gas price for registration transaction in Gwei'
+    help=TEXTS['gas_price']['help']
 )
 @click.option(
     '--skip-dry-run',
     is_flag=True,
     default=False,
-    help='Skip dry run for registration transaction'
+    help=TEXTS['skip_dry_run']['help']
 )
 @streamed_cmd
 def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
@@ -233,13 +233,13 @@ def _turn_on(maintenance_off, sync_schains, env_file):
     '--gas-limit',
     default=None,
     type=int,
-    help='Gas limit for registration transaction'
+    help=TEXTS['gas_limit']['help']
 )
 @click.option(
     '--gas-price',
     default=None,
     type=int,
-    help='Gas price for registration transaction in Gwei'
+    help=TEXTS['gas_price']['help']
 )
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
