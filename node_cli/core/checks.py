@@ -458,7 +458,7 @@ class DockerChecker(BaseChecker):
             return True, info
 
     def _check_docker_hosts_option(self, config: Dict) -> Tuple:
-        actual_value = config.get('hosts', None)
+        actual_value = config.get('hosts', [])
         sactual, sexpected = set(actual_value), set(DOCKER_DAEMON_HOSTS)
         if sactual & sexpected != sexpected:
             missing = sorted(sexpected - sactual)

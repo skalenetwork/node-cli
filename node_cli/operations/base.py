@@ -172,7 +172,8 @@ def restore(env, backup_path):
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
-        CONTAINER_CONFIG_PATH
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.PREINSTALL
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
