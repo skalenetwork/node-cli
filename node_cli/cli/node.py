@@ -110,27 +110,9 @@ def node_info(format):
     type=str,
     help='Node domain name'
 )
-@click.option(
-    '--gas-limit',
-    default=None,
-    type=int,
-    help=TEXTS['gas_limit']['help']
-)
-@click.option(
-    '--gas-price',
-    default=None,
-    type=int,
-    help=TEXTS['gas_price']['help']
-)
-@click.option(
-    '--skip-dry-run',
-    is_flag=True,
-    default=False,
-    help=TEXTS['skip_dry_run']['help']
-)
 @streamed_cmd
-def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
-    register(name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
+def register_node(name, ip, port, domain):
+    register(name, ip, ip, port, domain)
 
 
 @node.command('init', help="Initialize SKALE node")
@@ -229,24 +211,12 @@ def _turn_on(maintenance_off, sync_schains, env_file):
     type=str,
     help='Node domain name'
 )
-@click.option(
-    '--gas-limit',
-    default=None,
-    type=int,
-    help=TEXTS['gas_limit']['help']
-)
-@click.option(
-    '--gas-price',
-    default=None,
-    type=int,
-    help=TEXTS['gas_price']['help']
-)
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to set domain name?')
 @streamed_cmd
-def _set_domain_name(domain, gas_limit, gas_price):
-    set_domain_name(domain, gas_limit, gas_price)
+def _set_domain_name(domain):
+    set_domain_name(domain)
 
 
 @node.command(help='Check if node meet network requirements')
