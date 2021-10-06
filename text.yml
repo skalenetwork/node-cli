@@ -60,10 +60,3 @@ exit:
     in_progress: "Node exiting is in progress"
     wait_for_rotations: "Node is waiting to finish rotations"
     completed: "Node exiting is completed"
-
-gas_price:
-  help: Gas price value in Gwei for transaction
-gas_limit:
-  help: Custom gas limit for transaction
-skip_dry_run:
-  help: Skip dry run for transaction
