@@ -87,10 +87,7 @@ class NodeStatuses(Enum):
 @check_inited
 @check_user
 def register_node(name, p2p_ip,
-                  public_ip, port, domain_name,
-                  gas_limit=None,
-                  gas_price=None,
-                  skip_dry_run=False):
+                  public_ip, port, domain_name):
 
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
@@ -102,10 +99,7 @@ def register_node(name, p2p_ip,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port,
-        'domain_name': domain_name,
-        'gas_limit': gas_limit,
-        'gas_price': gas_price,
-        'skip_dry_run': skip_dry_run
+        'domain_name': domain_name
     }
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME,
