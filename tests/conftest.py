@@ -29,7 +29,8 @@ import pytest
 import yaml
 
 from node_cli.configs import (
-  ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH
+  ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
+  REMOVED_CONTAINERS_FOLDER_PATH
 )
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
@@ -130,6 +131,16 @@ def tmp_dir_path():
     path.mkdir(parents=True)
     try:
         yield plain_path
+    finally:
+        shutil.rmtree(path)
+
+
+@pytest.fixture()
+def removed_containers_folder():
+    path = pathlib.Path(REMOVED_CONTAINERS_FOLDER_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    try:
+        yield REMOVED_CONTAINERS_FOLDER_PATH
     finally:
         shutil.rmtree(path)
 
