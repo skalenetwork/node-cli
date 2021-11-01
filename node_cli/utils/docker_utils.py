@@ -113,10 +113,10 @@ def safe_rm(container: Container, stop_timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kw
     folder. Then stops and removes container with specified params.
     """
     container_name = container.name
-    backup_container_logs(container)
     logger.info(
         f'Stopping container: {container_name}, timeout: {stop_timeout}')
     container.stop(timeout=stop_timeout)
+    backup_container_logs(container)
     logger.info(f'Removing container: {container_name}, kwargs: {kwargs}')
     container.remove(**kwargs)
     logger.info(f'Container removed: {container_name}')

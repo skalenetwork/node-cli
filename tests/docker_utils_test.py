@@ -1,10 +1,13 @@
 import os
 import time
+from time import sleep
 
 import docker
 import pytest
 
-from node_cli.utils.docker_utils import save_container_logs
+from node_cli.utils.docker_utils import save_container_logs, safe_rm
+from node_cli.configs import REMOVED_CONTAINERS_FOLDER_PATH
+
 
 client = docker.from_env()
 
@@ -25,7 +28,10 @@ def simple_container(simple_image, docker_hc):
         yield c
     finally:
         if c is not None:
-            c.remove(force=True)
+            try:
+                c.remove(force=True)
+            except Exception:
+                pass
 
 
 def test_save_container_logs(simple_container, tmp_dir_path):
@@ -40,7 +46,7 @@ def test_save_container_logs(simple_container, tmp_dir_path):
         'INFO:__main__:Test 2\n',
         'INFO:__main__:Test 3\n',
         'INFO:__main__:Test 4\n',
-        '================================================================================\n',  # noqa
+        '================================================================================\n',
         'INFO:__main__:Test 1\n',
         'INFO:__main__:Test 2\n',
         'INFO:__main__:Test 3\n',
@@ -68,3 +74,12 @@ def test_save_container_logs(simple_container, tmp_dir_path):
         'INFO:__main__:Test 9\n',
         'INFO:__main__:Waiting\n'
     ]
+
+
+def test_safe_rm(simple_container, removed_containers_folder):
+    sleep(10)
+    safe_rm(simple_container)
+    log_path = os.path.join(REMOVED_CONTAINERS_FOLDER_PATH, 'simple-container-0.log')
+    with open(log_path) as log_file:
+        log_lines = log_file.readlines()
+    assert log_lines[-1] == 'signal_handler completed, exiting...\n'
