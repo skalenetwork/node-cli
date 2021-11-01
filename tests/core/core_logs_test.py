@@ -64,7 +64,7 @@ def test_create_dump_dir(mocked_g_config, backup_func):
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
-def test_create_logs_dump(backup_func, skale_container):
+def test_create_logs_dump(backup_func, skale_container, removed_containers_folder):
     archive_path = create_logs_dump(G_CONF_HOME)
     safe_mkdir(TEST_ARCHIVE_FOLDER_PATH)
     cmd = shlex.split(f'tar xf {archive_path} -C {TEST_ARCHIVE_FOLDER_PATH}')
@@ -90,7 +90,7 @@ def test_create_logs_dump(backup_func, skale_container):
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
-def test_create_logs_dump_one_container(backup_func, skale_container):
+def test_create_logs_dump_one_container(backup_func, skale_container, removed_containers_folder):
     create_logs_dump(G_CONF_HOME, filter_container='abc')
     test_container_log_path = os.path.join(
         TEST_DUMP_DIR_PATH, 'containers', f'{TEST_SKALE_NAME}.log'
