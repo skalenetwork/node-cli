@@ -103,7 +103,6 @@ def rm_all_ima_containers():
 
 def remove_containers(containers, stop_timeout):
     for container in containers:
-        logger.info(f'Removing container: {container.name}')
         safe_rm(container, stop_timeout=stop_timeout)
 
 
