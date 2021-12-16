@@ -104,7 +104,7 @@ def print_schains(schains):
         date = datetime.datetime.fromtimestamp(schain['startDate'])
         rows.append([
             schain['name'],
-            schain['owner'],
+            schain['mainnetOwner'],
             schain['partOfNode'],
             schain['lifetime'],
             format_date(date),
