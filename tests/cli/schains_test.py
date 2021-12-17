@@ -33,14 +33,14 @@ def test_ls():
     time.tzset()
     payload = [
         {
-            'name': 'test_schain1', 'owner': '0x123',
+            'name': 'test_schain1', 'mainnetOwner': '0x123',
             'indexInOwnerList': 3, 'partOfNode': 0,
             'lifetime': 5, 'startDate': 1570115385,
             'deposit': 1000000000000000000, 'index': 3
         },
         {
             'name': 'crazy_cats1',
-            'owner': '0x321',
+            'mainnetOwner': '0x321',
             'indexInOwnerList': 8, 'partOfNode': 0,
             'lifetime': 5, 'startDate': 1570469410,
             'deposit': 1000000000000000000, 'index': 8
@@ -102,7 +102,7 @@ def test_get_schain_config():
                  'wsRpcPort': 10014,
                  'wssRpcPort': 10019,
                  'publicKey': 'public_key',
-                 'owner': '0xe3213',
+                 'mainnetOwner': '0xe3213',
                  'schainIndex': 1,
                  'ip': '213.13.123.13',
                  'publicIP': '1.1.1.1'
@@ -112,7 +112,7 @@ def test_get_schain_config():
                  'httpsRpcPort': 10084, 'wsRpcPort': 10080,
                  'wssRpcPort': 10085,
                  'publicKey': 'public_key352',
-                 'owner': '0x323',
+                 'mainnetOwner': '0x323',
                  'schainIndex': 2, 'ip': '2.2.2.2',
                  'publicIP': '3.3.3.3'
                  }]}
@@ -125,7 +125,7 @@ def test_get_schain_config():
                               resp_mock,
                               get_schain_config, ['test1'])
     assert result.exit_code == 0
-    assert result.output == "{'nodeInfo': {'basePort': 10011,\n              'bindIP': '123.123.123.123',\n              'httpRpcPort': 10009,\n              'httpsRpcPort': 11118,\n              'nodeID': 2,\n              'nodeName': 'testnet-1',\n              'wsRpcPort': 10118,\n              'wssRpcPort': 13219},\n 'sChain': {'nodes': [{'basePort': 10011,\n                       'httpRpcPort': 10013,\n                       'httpsRpcPort': 10018,\n                       'ip': '213.13.123.13',\n                       'nodeID': 2,\n                       'nodeName': 'testnet-1',\n                       'owner': '0xe3213',\n                       'publicIP': '1.1.1.1',\n                       'publicKey': 'public_key',\n                       'schainIndex': 1,\n                       'wsRpcPort': 10014,\n                       'wssRpcPort': 10019},\n                      {'basePort': 10077,\n                       'httpRpcPort': 10079,\n                       'httpsRpcPort': 10084,\n                       'ip': '2.2.2.2',\n                       'nodeID': 0,\n                       'nodeName': 'testnet-2',\n                       'owner': '0x323',\n                       'publicIP': '3.3.3.3',\n                       'publicKey': 'public_key352',\n                       'schainIndex': 2,\n                       'wsRpcPort': 10080,\n                       'wssRpcPort': 10085}],\n            'schainID': 1,\n            'schainName': 'test1'}}\n"  # noqa
+    assert result.output == "{'nodeInfo': {'basePort': 10011,\n              'bindIP': '123.123.123.123',\n              'httpRpcPort': 10009,\n              'httpsRpcPort': 11118,\n              'nodeID': 2,\n              'nodeName': 'testnet-1',\n              'wsRpcPort': 10118,\n              'wssRpcPort': 13219},\n 'sChain': {'nodes': [{'basePort': 10011,\n                       'httpRpcPort': 10013,\n                       'httpsRpcPort': 10018,\n                       'ip': '213.13.123.13',\n                       'nodeID': 2,\n                       'nodeName': 'testnet-1',\n                       'mainnetOwner': '0xe3213',\n                       'publicIP': '1.1.1.1',\n                       'publicKey': 'public_key',\n                       'schainIndex': 1,\n                       'wsRpcPort': 10014,\n                       'wssRpcPort': 10019},\n                      {'basePort': 10077,\n                       'httpRpcPort': 10079,\n                       'httpsRpcPort': 10084,\n                       'ip': '2.2.2.2',\n                       'nodeID': 0,\n                       'nodeName': 'testnet-2',\n                       'mainnetOwner': '0x323',\n                       'publicIP': '3.3.3.3',\n                       'publicKey': 'public_key352',\n                       'schainIndex': 2,\n                       'wsRpcPort': 10080,\n                       'wssRpcPort': 10085}],\n            'schainID': 1,\n            'schainName': 'test1'}}\n"  # noqa
 
 
 def test_schain_rules():
@@ -181,7 +181,7 @@ def test_info():
     payload = {
         'name': 'attractive-ed-asich',
         'id': '0xfb3b68013fa494407b691b4b603d84c66076c0a5ac96a7d6b162d7341d74fa61',
-        'owner': '0x1111111111111111111111111111111111111111',
+        'mainnetOwner': '0x1111111111111111111111111111111111111111',
         'part_of_node': 0, 'dkg_status': 3, 'is_deleted': False,
         'first_run': False, 'repair_mode': False
     }
