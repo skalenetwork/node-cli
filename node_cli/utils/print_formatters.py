@@ -97,18 +97,22 @@ def print_schains(schains):
         'Size',
         'Lifetime',
         'Created At',
-        'Deposit'
+        'Deposit',
+        'Generation',
+        'Originator',
     ]
     rows = []
     for schain in schains:
         date = datetime.datetime.fromtimestamp(schain['startDate'])
         rows.append([
             schain['name'],
-            schain['owner'],
+            schain['mainnetOwner'],
             schain['partOfNode'],
             schain['lifetime'],
             format_date(date),
             schain['deposit'],
+            schain['generation'],
+            schain['originator'],
         ])
     print(Formatter().table(headers, rows))
 
