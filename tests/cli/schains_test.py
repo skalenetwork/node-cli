@@ -33,17 +33,17 @@ def test_ls():
     time.tzset()
     payload = [
         {
-            'name': 'test_schain1', 'owner': '0x123',
+            'name': 'test_schain1', 'mainnetOwner': '0x123',
             'indexInOwnerList': 3, 'partOfNode': 0,
             'lifetime': 5, 'startDate': 1570115385,
-            'deposit': 1000000000000000000, 'index': 3
+            'deposit': 1000000000000000000, 'index': 3, 'generation': 1, 'originator': '0x465'
         },
         {
             'name': 'crazy_cats1',
-            'owner': '0x321',
+            'mainnetOwner': '0x321',
             'indexInOwnerList': 8, 'partOfNode': 0,
             'lifetime': 5, 'startDate': 1570469410,
-            'deposit': 1000000000000000000, 'index': 8
+            'deposit': 1000000000000000000, 'index': 8, 'generation': 0, 'originator': '0x0'
         }
     ]
     resp_mock = response_mock(
@@ -52,7 +52,7 @@ def test_ls():
     )
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, ls)
     assert result.exit_code == 0
-    assert result.output == '    Name       Owner   Size   Lifetime        Created At              Deposit      \n-----------------------------------------------------------------------------------\ntest_schain1   0x123   0      5          Oct 03 2019 16:09:45   1000000000000000000\ncrazy_cats1    0x321   0      5          Oct 07 2019 18:30:10   1000000000000000000\n'  # noqa
+    assert result.output == '    Name       Owner   Size   Lifetime        Created At              Deposit         Generation   Originator\n-------------------------------------------------------------------------------------------------------------\ntest_schain1   0x123   0      5          Oct 03 2019 16:09:45   1000000000000000000   1            0x465     \ncrazy_cats1    0x321   0      5          Oct 07 2019 18:30:10   1000000000000000000   0            0x0       \n'  # noqa
 
 
 def test_dkg():
