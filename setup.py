@@ -59,7 +59,7 @@ setup(
         "psutil==5.7.0",
         "python-dotenv==0.13.0",
         "terminaltables==3.1.0",
-        "requests==2.23.0",
+        "requests==2.27.1",
         "GitPython==3.1.14",
         "PyYAML==5.4.1",
         "packaging==20.9",
