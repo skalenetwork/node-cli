@@ -141,7 +141,7 @@ def print_dkg_statuses(statuses):
 def print_schains_healthchecks(schains):
     headers = [
         'sChain Name',
-        'Data directory',
+        'Config directory',
         'DKG',
         'Config file',
         'Volume',
@@ -156,12 +156,12 @@ def print_schains_healthchecks(schains):
         healthchecks = schain['healthchecks']
         rows.append([
             schain['name'],
-            healthchecks['data_dir'],
+            healthchecks['config_dir'],
             healthchecks['dkg'],
             healthchecks['config'],
             healthchecks['volume'],
             healthchecks['container'],
-            healthchecks['ima_container'],
+            healthchecks.get('ima_container', 'No IMA'),
             healthchecks['firewall_rules'],
             healthchecks['rpc'],
             healthchecks['blocks']
