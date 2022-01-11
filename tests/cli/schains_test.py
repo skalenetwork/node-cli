@@ -131,14 +131,15 @@ def test_get_schain_config():
 def test_schain_rules():
     payload = {
         'endpoints': [
-            {'ip': '127.0.0.1', 'port': 10000},
-            {'ip': '127.0.0.1', 'port': 10001},
-            {'ip': '127.0.0.1', 'port': 10004},
-            {'ip': '127.0.0.1', 'port': 10005},
-            {'ip': None, 'port': 10003},
-            {'ip': None, 'port': 10002},
-            {'ip': None, 'port': 10008},
-            {'ip': None, 'port': 10007}
+            {'port': 10000, 'first_ip': '127.0.0.2', 'last_ip': '127.0.0.2'},
+            {'port': 10001, 'first_ip': '127.0.0.2', 'last_ip': '127.0.0.2'},
+            {'port': 10002, 'first_ip': None, 'last_ip': None},
+            {'port': 10003, 'first_ip': None, 'last_ip': None},
+            {'port': 10004, 'first_ip': '127.0.0.2', 'last_ip': '127.0.0.2'},
+            {'port': 10005, 'first_ip': '127.0.0.2', 'last_ip': '127.0.0.2'},
+            {'port': 10007, 'first_ip': None, 'last_ip': None},
+            {'port': 10008, 'first_ip': None, 'last_ip': None},
+            {'port': 10009, 'first_ip': None, 'last_ip': None}
         ]
     }
     resp_mock = response_mock(
@@ -149,7 +150,7 @@ def test_schain_rules():
         'node_cli.utils.helper.requests.get', resp_mock, show_rules, ['schain-test'])
     assert result.exit_code == 0
     print(repr(result.output))
-    assert result.output == 'Port       Ip    \n-----------------\n10000   127.0.0.1\n10001   127.0.0.1\n10002   None     \n10003   None     \n10004   127.0.0.1\n10005   127.0.0.1\n10007   None     \n10008   None     \n'  # noqa
+    assert result.output == '      IP range          Port \n-----------------------------\n127.0.0.2 - 127.0.0.2   10000\n127.0.0.2 - 127.0.0.2   10001\nAll IPs                 10002\nAll IPs                 10003\n127.0.0.2 - 127.0.0.2   10004\n127.0.0.2 - 127.0.0.2   10005\nAll IPs                 10007\nAll IPs                 10008\nAll IPs                 10009\n'  # noqa
 
 
 def test_repair():

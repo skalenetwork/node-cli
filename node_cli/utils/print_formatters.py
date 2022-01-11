@@ -141,7 +141,7 @@ def print_dkg_statuses(statuses):
 def print_schains_healthchecks(schains):
     headers = [
         'sChain Name',
-        'Data directory',
+        'Config directory',
         'DKG',
         'Config file',
         'Volume',
@@ -156,12 +156,12 @@ def print_schains_healthchecks(schains):
         healthchecks = schain['healthchecks']
         rows.append([
             schain['name'],
-            healthchecks['data_dir'],
+            healthchecks['config_dir'],
             healthchecks['dkg'],
             healthchecks['config'],
             healthchecks['volume'],
             healthchecks['container'],
-            healthchecks['ima_container'],
+            healthchecks.get('ima_container', 'No IMA'),
             healthchecks['firewall_rules'],
             healthchecks['rpc'],
             healthchecks['blocks']
@@ -229,14 +229,17 @@ def print_firewall_rules(rules, raw=False):
     if raw:
         print(json.dumpes(rules))
     headers = [
-        'Port',
-        'Ip'
+        'IP range',
+        'Port'
     ]
     rows = []
     for rule in sorted(rules, key=lambda r: r['port']):
+        ip_range = 'All IPs'
+        if rule["first_ip"] and rule["last_ip"]:
+            ip_range = f'{rule["first_ip"]} - {rule["last_ip"]}'
         rows.append([
-            rule['port'],
-            rule['ip']
+            ip_range,
+            rule['port']
         ])
     print(Formatter().table(headers, rows))
 
