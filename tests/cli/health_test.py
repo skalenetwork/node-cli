@@ -57,7 +57,7 @@ def test_checks():
                 "dkg": False,
                 "config": False,
                 "volume": False,
-                "container": False,
+                "skaled_container": False,
                 "ima_container": False,
                 "firewall_rules": False,
                 "rpc": False,
@@ -79,7 +79,7 @@ def test_checks():
                               resp_mock, schains, ['--json'])
 
     assert result.exit_code == 0
-    assert result.output == '[{"name": "test_schain", "healthchecks": {"config_dir": true, "dkg": false, "config": false, "volume": false, "container": false, "ima_container": false, "firewall_rules": false, "rpc": false, "blocks": false}}]\n'  # noqa
+    assert result.output == '[{"name": "test_schain", "healthchecks": {"config_dir": true, "dkg": false, "config": false, "volume": false, "skaled_container": false, "ima_container": false, "firewall_rules": false, "rpc": false, "blocks": false}}]\n'  # noqa
 
 
 def test_sgx_status():
