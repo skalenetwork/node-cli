@@ -160,7 +160,7 @@ def print_schains_healthchecks(schains):
             healthchecks['dkg'],
             healthchecks['config'],
             healthchecks['volume'],
-            healthchecks['container'],
+            healthchecks['skaled_container'],
             healthchecks.get('ima_container', 'No IMA'),
             healthchecks['firewall_rules'],
             healthchecks['rpc'],
