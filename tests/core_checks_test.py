@@ -1,10 +1,22 @@
-import time
+import os
 from pip._internal import main as pipmain
+import time
 
 import mock
 import pytest
 
-from node_cli.core.checks import DockerChecker, MachineChecker, PackagesChecker
+from node_cli.core.checks import (
+    CheckType,
+    DockerChecker,
+    generate_report_from_result,
+    get_all_checkers,
+    get_checks,
+    get_report,
+    MachineChecker,
+    merge_reports,
+    PackageChecker,
+    save_report
+)
 
 
 @pytest.fixture
@@ -14,7 +26,8 @@ def requirements_data():
             'cpu_total': 1,
             'cpu_physical': 1,
             'memory': 100,
-            'swap': 100
+            'swap': 100,
+            'disk': 100000000
         },
         'package': {
             'iptables_persistant': '0.0.0',
@@ -35,21 +48,21 @@ def server_req(requirements_data):
 
 
 def test_checks_errored():
-    checker = MachineChecker({})
+    checker = MachineChecker({}, 'test-disk')
     r = checker.check()
     for c in r:
-        if c.name != 'network':
+        if c.name != 'network' and c.name != 'disk':
             assert c.status == 'error', c.name
             assert c.info.startswith('KeyError'), c.name
 
 
 def test_checks_cpu_total(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.cpu_total()
     assert r.name == 'cpu-total'
     assert r.status == 'ok'
     server_req['cpu_total'] = 10000  # too big
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.cpu_total()
     assert r.name == 'cpu-total'
     assert r.status == 'failed'
@@ -57,54 +70,88 @@ def test_checks_cpu_total(server_req):
 
 
 def test_checks_cpu_physical(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.cpu_physical()
     assert r.name == 'cpu-physical'
     assert r.status == 'ok'
     server_req['cpu_physical'] = 10000  # too big
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.cpu_physical()
     assert r.name == 'cpu-physical'
     assert r.status == 'failed'
 
 
 def test_checks_memory(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.memory()
     assert r.name == 'memory'
     assert r.status == 'ok'
     # too big
     server_req['memory'] = 10000000000000
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.memory()
     assert r.name == 'memory'
     assert r.status == 'failed'
 
 
 def test_checks_swap(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.swap()
     assert r.name == 'swap'
     assert r.status == 'ok'
     # too big
     server_req['swap'] = 10000000000000
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.swap()
     assert r.name == 'swap'
     assert r.status == 'failed'
 
 
 def test_checks_network(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     r = checker.network()
     assert r.status == 'ok'
     assert r.name == 'network'
 
 
+def test_checks_disk(server_req):
+    checker = MachineChecker(server_req, 'test-disk')
+    r = checker.disk()
+    assert r.status == 'error'
+    assert r.name == 'disk'
+
+    checker = MachineChecker(server_req, 'test-disk')
+    checker._get_disk_size = mock.Mock(return_value=float('inf'))
+    r = checker.disk()
+    assert r.status == 'ok'
+    assert r.name == 'disk'
+
+    checker = MachineChecker(server_req, 'test-disk')
+    checker._get_disk_size = mock.Mock(return_value=50)
+    r = checker.disk()
+    assert r.status == 'failed'
+    assert r.name == 'disk'
+    assert r.info == 'Expected disk size 0.09 GB, actual 0.0 GB'
+
+
 def test_checks_machine_check(server_req):
-    checker = MachineChecker(server_req)
+    checker = MachineChecker(server_req, 'test-disk')
     result = checker.check()
-    assert any([r.status == 'ok' for r in result])
+    assert not all([r.status == 'ok' for r in result])
+
+    checker = MachineChecker(server_req, 'test-disk')
+    checker._get_disk_size = mock.Mock(return_value=float('inf'))
+    result = checker.check()
+    assert all([r.status == 'ok' for r in result])
+    report = generate_report_from_result(result)
+    assert report == [
+        {'name': 'cpu-physical', 'status': 'ok'},
+        {'name': 'cpu-total', 'status': 'ok'},
+        {'name': 'disk', 'status': 'ok'},
+        {'name': 'memory', 'status': 'ok'},
+        {'name': 'network', 'status': 'ok'},
+        {'name': 'swap', 'status': 'ok'}
+    ]
 
 
 @pytest.fixture
@@ -170,8 +217,6 @@ def docker_compose_pkg_1_24_1():
 
 def test_checks_docker_compose_good_pkg(docker_req, docker_compose_pkg_1_27_4):
     checker = DockerChecker(package_req)
-    print('Debug: ', checker.docker_compose())
-
     r = checker.docker_compose()
     r.name == 'docker-compose'
     r.status == 'ok'
@@ -237,13 +282,21 @@ def test_checks_docker_hosts(docker_req):
     assert r == (False, "Docker daemon hosts is misconfigured. Missing hosts: ['unix:///var/run/skale/docker.sock']")  # noqa
 
 
+def test_checks_docker_pre_post_install_checks(docker_req):
+    checker = DockerChecker(docker_req)
+    result = checker.preinstall_check()
+    assert len(result) == 3
+    result = checker.postinstall_check()
+    assert len(result) == 2
+
+
 @pytest.fixture
 def package_req(requirements_data):
     return requirements_data['package']
 
 
 def test_checks_apt_package(package_req):
-    checker = PackagesChecker(package_req)
+    checker = PackageChecker(package_req)
     res_mock = mock.Mock()
     res_mock.stdout = b"""Package: test-package
         Version: 5.2.1-2
@@ -274,3 +327,51 @@ def test_checks_apt_package(package_req):
         r = checker._check_apt_package(apt_package_name)
         assert r.name == 'test-package'
         assert r.status == 'ok'
+
+
+def test_get_all_checkers(requirements_data):
+    disk = 'test-disk'
+    checkers = get_all_checkers(disk, requirements_data)
+    assert len(checkers) == 3
+    assert isinstance(checkers[0], MachineChecker)
+    assert isinstance(checkers[1], PackageChecker)
+    assert isinstance(checkers[2], DockerChecker)
+
+
+def test_get_checks(requirements_data):
+    disk = 'test-disk'
+    checkers = get_all_checkers(disk, requirements_data)
+    checks = get_checks(checkers)
+    assert len(checks) == 16
+    checks = get_checks(checkers, check_type=CheckType.PREINSTALL)
+    assert len(checks) == 14
+    checks = get_checks(checkers, check_type=CheckType.POSTINSTALL)
+    assert len(checks) == 2
+
+
+def test_get_save_report(tmp_dir_path):
+    path = os.path.join(tmp_dir_path, 'checks.json')
+    report = get_report(path)
+    assert report == []
+    report.append({'name': 'test', 'status': 'ok', 'info': 'Test'})
+    save_report(report, path)
+    saved_report = get_report(path)
+    assert saved_report == report
+
+
+def test_merge_report():
+    old_report = [
+        {'name': 'test1', 'status': 'ok', 'info': 'Test'},
+        {'name': 'test2', 'status': 'failed', 'info': 'Test1'},
+        {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
+    ]
+    new_report = [
+        {'name': 'test1', 'status': 'ok', 'info': 'Test'},
+        {'name': 'test2', 'status': 'ok', 'info': 'Test1'}
+    ]
+    report = merge_reports(old_report, new_report)
+    assert report == [
+        {'name': 'test1', 'status': 'ok', 'info': 'Test'},
+        {'name': 'test2', 'status': 'ok', 'info': 'Test1'},
+        {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
+    ]

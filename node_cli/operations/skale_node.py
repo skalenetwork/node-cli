@@ -18,40 +18,45 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import os
+import shutil
+from typing import Optional
 
-from node_cli.utils.helper import run_cmd
-from node_cli.utils.git_utils import sync_repo, rm_local_repo
+from node_cli.utils.helper import rm_dir, rsync_dirs, safe_mkdir
+from node_cli.utils.git_utils import clone_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
-from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_NODE_REPO_URL
+from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
+    CONTAINER_CONFIG_TMP_PATH,
+    SKALE_NODE_REPO_URL
+)
 
 
 logger = logging.getLogger(__name__)
 
 
-def update_images(env: dict) -> None:
-    if 'CONTAINER_CONFIGS_DIR' in env:
+def update_images(local: bool = False) -> None:
+    if local:
         compose_build()
     else:
         compose_pull()
 
 
-def sync_skale_node(env: dict) -> None:
-    if 'CONTAINER_CONFIGS_DIR' in env:
-        sync_skale_node_dev(env)
+def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
+    rm_dir(CONTAINER_CONFIG_TMP_PATH)
+    safe_mkdir(CONTAINER_CONFIG_TMP_PATH)
+    dest = CONTAINER_CONFIG_TMP_PATH
+    if src:
+        rsync_dirs(src, dest)
     else:
-        sync_skale_node_git(env)
+        clone_repo(
+            SKALE_NODE_REPO_URL,
+            CONTAINER_CONFIG_TMP_PATH,
+            stream
+        )
 
 
-def sync_skale_node_git(env: dict) -> None:
-    rm_local_repo(CONTAINER_CONFIG_PATH)
-    sync_repo(
-        SKALE_NODE_REPO_URL,
-        CONTAINER_CONFIG_PATH,
-        env["CONTAINER_CONFIGS_STREAM"]
-    )
-
-
-def sync_skale_node_dev(env: dict) -> None:
-    logger.info(f'Syncing {CONTAINER_CONFIG_PATH} with {env["CONTAINER_CONFIGS_DIR"]}')
-    run_cmd(f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/ {CONTAINER_CONFIG_PATH}'.split())
-    run_cmd(f'rsync -r {env["CONTAINER_CONFIGS_DIR"]}/.git {CONTAINER_CONFIG_PATH}'.split())
+def sync_skale_node():
+    if os.path.isdir(CONTAINER_CONFIG_PATH):
+        shutil.rmtree(CONTAINER_CONFIG_PATH)
+    shutil.move(CONTAINER_CONFIG_TMP_PATH, f'{CONTAINER_CONFIG_PATH}/')

@@ -24,10 +24,6 @@ from shutil import copyfile
 from urllib.parse import urlparse
 
 from node_cli.core.resources import update_resource_allocation
-from node_cli.core.checks import (
-    get_env_params, DockerChecker, ListChecks,
-    MachineChecker, PackagesChecker
-)
 
 from node_cli.configs import (
     ADMIN_PORT, DEFAULT_URL_SCHEME, NODE_DATA_PATH,
@@ -39,12 +35,14 @@ from node_cli.configs import (
     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH,
     SKALE_RUN_DIR, SKALE_TMP_DIR
 )
-from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.resource_allocation import (
+    RESOURCE_ALLOCATION_FILEPATH,
+    SGX_SERVER_URL_FILEPATH
+)
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
+from node_cli.utils.helper import safe_mkdir
 from node_cli.utils.print_formatters import print_abi_validation_errors
-from node_cli.configs.resource_allocation import (DISK_MOUNTPOINT_FILEPATH,
-                                                  SGX_SERVER_URL_FILEPATH)
 
 from node_cli.utils.helper import safe_load_texts, validate_abi
 
@@ -76,26 +74,9 @@ def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
     make_dirs()
     save_env_params(env_filepath)
-    save_disk_mountpoint(disk_mountpoint)
     save_sgx_server_url(sgx_server_url)
     if allocation:
-        update_resource_allocation(env_type)
-
-
-def run_preinstall_checks(env_type: str = 'mainnet') -> ListChecks:
-    logger.info('Checking that host meets requirements ...')
-    requirements = get_env_params(env_type)
-    checkers = [
-        MachineChecker(requirements['server']),
-        PackagesChecker(requirements['package']),
-        DockerChecker(requirements['docker'])
-    ]
-    result = []
-    for checker in checkers:
-        result.extend(filter(lambda r: r.status != 'ok', checker.check()))
-    if result:
-        logger.info('Host is not fully meet the requirements')
-    return result
+        update_resource_allocation(disk_mountpoint, env_type)
 
 
 def is_node_inited():
@@ -111,17 +92,11 @@ def make_dirs():
             REPORTS_PATH, REDIS_DATA_PATH,
             SKALE_RUN_DIR, SKALE_TMP_DIR
     ):
-        safe_mk_dirs(dir_path)
-
-
-def save_disk_mountpoint(disk_mountpoint):
-    logger.info(f'Saving disk_mountpoint option to {DISK_MOUNTPOINT_FILEPATH}')
-    with open(DISK_MOUNTPOINT_FILEPATH, 'w') as f:
-        f.write(disk_mountpoint)
+        safe_mkdir(dir_path)
 
 
 def save_sgx_server_url(sgx_server_url):
-    logger.info(f'Saving disk_mountpoint option to {SGX_SERVER_URL_FILEPATH}')
+    logger.info(f'Saving sgx_server_url option to {SGX_SERVER_URL_FILEPATH}')
     with open(SGX_SERVER_URL_FILEPATH, 'w') as f:
         f.write(sgx_server_url)
 
@@ -131,29 +106,22 @@ def save_env_params(env_filepath):
 
 
 def link_env_file():
-    if not (os.path.islink(CONFIGS_ENV_FILEPATH) or os.path.isfile(CONFIGS_ENV_FILEPATH)):
+    if not (os.path.islink(CONFIGS_ENV_FILEPATH) or
+            os.path.isfile(CONFIGS_ENV_FILEPATH)):
         logger.info(
-            f'Creating symlink {SKALE_DIR_ENV_FILEPATH} → {CONFIGS_ENV_FILEPATH}')
+            'Creating symlink %s → %s',
+            SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
+        )
         os.symlink(SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH)
 
 
 def init_logs_dir():
-    safe_mk_dirs(LOG_DATA_PATH)
-    safe_mk_dirs(REMOVED_CONTAINERS_FOLDER_PATH)
+    safe_mkdir(LOG_DATA_PATH)
+    safe_mkdir(REMOVED_CONTAINERS_FOLDER_PATH)
 
 
 def init_data_dir():
-    safe_mk_dirs(NODE_DATA_PATH)
-
-
-def safe_mk_dirs(path, print_res=False):
-    if os.path.exists(path):
-        return
-    msg = f'Creating {path} directory...'
-    logger.info(msg)
-    if print_res:
-        print(msg)
-    os.makedirs(path, exist_ok=True)
+    safe_mkdir(NODE_DATA_PATH)
 
 
 def validate_abi_files(json_result=False):

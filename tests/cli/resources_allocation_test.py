@@ -24,11 +24,10 @@ import requests
 
 import pytest
 
-from node_cli.core.host import safe_mk_dirs
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
 )
-from node_cli.utils.helper import write_json
+from node_cli.utils.helper import safe_mkdir, write_json
 from tests.helper import response_mock, run_command_mock
 
 from node_cli.cli.resources_allocation import show, generate
@@ -39,11 +38,6 @@ from tests.resources_test import BIG_DISK_SIZE
 TEST_CONFIG = {'test': 1}
 
 
-def check_node_dir():
-    if not os.path.exists(NODE_DATA_PATH):
-        safe_mk_dirs(NODE_DATA_PATH)
-
-
 @pytest.fixture
 def resource_alloc_config():
     write_json(RESOURCE_ALLOCATION_FILEPATH, TEST_CONFIG)
@@ -52,7 +46,6 @@ def resource_alloc_config():
 
 
 def test_show(resource_alloc_config):
-    check_node_dir()
     resp_mock = response_mock(requests.codes.created)
     write_json(RESOURCE_ALLOCATION_FILEPATH, TEST_CONFIG)
     result = run_command_mock(
@@ -65,9 +58,10 @@ def test_show(resource_alloc_config):
 
 
 def test_generate():
-    check_node_dir()
+    safe_mkdir(NODE_DATA_PATH)
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
+    with mock.patch('node_cli.core.resources.get_disk_size',
+                    return_value=BIG_DISK_SIZE):
         result = run_command_mock(
             'node_cli.utils.helper.post_request',
             resp_mock,
@@ -80,9 +74,9 @@ def test_generate():
 
 
 def test_generate_already_exists(resource_alloc_config):
-    check_node_dir()
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
+    with mock.patch('node_cli.core.resources.get_disk_size',
+                    return_value=BIG_DISK_SIZE):
         result = run_command_mock(
             'node_cli.utils.helper.post_request',
             resp_mock,
