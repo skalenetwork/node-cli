@@ -79,6 +79,7 @@ def update(env_filepath: str, env: Dict) -> None:
         env['DOCKER_LVMPY_STREAM']
     )
     update_images(env)
+    env['SGX_DIR'] = '/root/sgx-sim'
     compose_up(env)
 
 
@@ -118,6 +119,7 @@ def init(env_filepath: str, env: str) -> bool:
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env)
+    env['SGX_DIR'] = '/root/sgx-sim'
     compose_up(env)
     return True
 
