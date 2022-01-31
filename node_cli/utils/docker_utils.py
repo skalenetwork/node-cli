@@ -48,7 +48,8 @@ BASE_COMPOSE_SERVICES = (
     'nginx',
     'redis',
     'watchdog',
-    'filebeat'
+    'filebeat',
+    'skale-sgx'
 )
 MONITORING_COMPOSE_SERVICES = ('node-exporter', 'advisor')
 NOTIFICATION_COMPOSE_SERVICES = ('celery',)
