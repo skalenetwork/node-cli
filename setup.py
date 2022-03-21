@@ -65,7 +65,7 @@ setup(
         "packaging==20.9",
         "python-debian==0.1.39",
         "python-iptables==1.0.0",
-        "MarkupSafe==2.1.1",
+        "MarkupSafe==2.0.1",
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
