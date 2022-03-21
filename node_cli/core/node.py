@@ -25,11 +25,12 @@ import time
 from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import docker
 
 from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
     FILESTORAGE_MAPPING,
     SKALE_DIR,
     INIT_ENV_FILEPATH,
@@ -39,14 +40,14 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
     LOG_PATH
 )
+from node_cli.configs.env import get_env_config
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.iptables import configure_iptables
 from node_cli.core.host import (
-    is_node_inited, save_env_params,
-    get_flask_secret_key, run_preinstall_checks
+    is_node_inited, save_env_params, get_flask_secret_key
 )
-from node_cli.core.checks import generate_report_from_checks, save_report
+from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
     update_op,
@@ -86,10 +87,7 @@ class NodeStatuses(Enum):
 @check_inited
 @check_user
 def register_node(name, p2p_ip,
-                  public_ip, port, domain_name,
-                  gas_limit=None,
-                  gas_price=None,
-                  skip_dry_run=False):
+                  public_ip, port, domain_name):
 
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
@@ -101,10 +99,7 @@ def register_node(name, p2p_ip,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port,
-        'domain_name': domain_name,
-        'gas_limit': gas_limit,
-        'gas_price': gas_price,
-        'skip_dry_run': skip_dry_run
+        'domain_name': domain_name
     }
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME,
@@ -126,8 +121,8 @@ def init(env_filepath):
     env = get_node_env(env_filepath)
     if env is None:
         return
-    init_result = init_op(env_filepath, env)
-    if not init_result:
+    inited_ok = init_op(env_filepath, env)
+    if not inited_ok:
         error_exit(
             'Init operation failed',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
@@ -142,7 +137,7 @@ def init(env_filepath):
         )
         return
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
+    update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
     logger.info('Init procedure finished')
 
 
@@ -154,10 +149,16 @@ def restore(backup_path, env_filepath):
     save_env_params(env_filepath)
     env['SKALE_DIR'] = SKALE_DIR
     env['BACKUP_RUN'] = 'True'  # should be str
-    restore_op(env, backup_path)
+    restored_ok = restore_op(env, backup_path)
+    if not restored_ok:
+        error_exit(
+            'Restore operation failed',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+        return
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
+    update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
     print('Node is restored from backup')
 
 
@@ -189,13 +190,16 @@ def update(env_filepath):
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
-    update_op(env_filepath, env)
-    logger.info('Waiting for containers initialization')
-    time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive():
+    update_ok = update_op(env_filepath, env)
+    if update_ok:
+        logger.info('Waiting for containers initialization')
+        time.sleep(TM_INIT_TIMEOUT)
+    alive = is_base_containers_alive()
+    if not update_ok or not alive:
         print_node_cmd_error()
         return
-    logger.info('Node update finished')
+    else:
+        logger.info('Node update finished')
 
 
 def get_node_signature(validator_id):
@@ -379,13 +383,23 @@ def set_domain_name(domain_name):
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def run_checks(network: str) -> None:
+def run_checks(
+    network: str = 'mainnet',
+    container_config_path: str = CONTAINER_CONFIG_PATH,
+    disk: Optional[str] = None
+) -> None:
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
 
-    failed_checks = run_preinstall_checks(network)
-    save_report(generate_report_from_checks(failed_checks))
+    if disk is None:
+        env = get_env_config()
+        disk = env['DISK_MOUNTPOINT']
+    failed_checks = run_host_checks(
+        disk,
+        network,
+        container_config_path
+    )
     if not failed_checks:
         print('Requirements checking succesfully finished!')
     else:

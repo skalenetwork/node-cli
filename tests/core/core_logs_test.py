@@ -10,8 +10,7 @@ import freezegun
 from node_cli.core.logs import create_dump_dir, create_logs_dump
 from node_cli.configs import G_CONF_HOME, SKALE_TMP_DIR
 from node_cli.utils.docker_utils import docker_client
-from node_cli.utils.helper import run_cmd
-from node_cli.core.host import safe_mk_dirs
+from node_cli.utils.helper import run_cmd, safe_mkdir
 
 
 CURRENT_TIMESTAMP = 1594903080
@@ -51,8 +50,10 @@ def skale_container():
         entrypoint=TEST_ENTRYPOINT
     )
     time.sleep(10)
-    yield
-    container.remove(force=True)
+    try:
+        yield TEST_SKALE_NAME
+    finally:
+        container.remove(force=True)
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
@@ -63,9 +64,9 @@ def test_create_dump_dir(mocked_g_config, backup_func):
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
-def test_create_logs_dump(backup_func, skale_container):
+def test_create_logs_dump(backup_func, skale_container, removed_containers_folder):
     archive_path = create_logs_dump(G_CONF_HOME)
-    safe_mk_dirs(TEST_ARCHIVE_FOLDER_PATH)
+    safe_mkdir(TEST_ARCHIVE_FOLDER_PATH)
     cmd = shlex.split(f'tar xf {archive_path} -C {TEST_ARCHIVE_FOLDER_PATH}')
     run_cmd(cmd)
 
@@ -73,8 +74,12 @@ def test_create_logs_dump(backup_func, skale_container):
         TEST_ARCHIVE_FOLDER_PATH, 'containers', f'{TEST_SKALE_NAME}.log'
     )
     with open(test_container_log_path) as data_file:
-        content = data_file.read()
-    assert content == 'Hello, SKALE!\n'
+        content = data_file.readlines()
+    assert content == [
+        'Hello, SKALE!\n',
+        '================================================================================\n',   # noqa
+        'Hello, SKALE!\n'
+    ]
 
     assert os.path.exists(os.path.join(TEST_ARCHIVE_FOLDER_PATH, 'removed_containers'))
     assert os.path.exists(os.path.join(TEST_ARCHIVE_FOLDER_PATH, 'cli'))
@@ -85,7 +90,7 @@ def test_create_logs_dump(backup_func, skale_container):
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
-def test_create_logs_dump_one_container(backup_func, skale_container):
+def test_create_logs_dump_one_container(backup_func, skale_container, removed_containers_folder):
     create_logs_dump(G_CONF_HOME, filter_container='abc')
     test_container_log_path = os.path.join(
         TEST_DUMP_DIR_PATH, 'containers', f'{TEST_SKALE_NAME}.log'

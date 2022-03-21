@@ -18,15 +18,19 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """ SKALE config test """
 
-import os
-import mock
-import yaml
 import json
+import os
+import pathlib
+import shutil
 
+import docker
+import mock
 import pytest
+import yaml
 
 from node_cli.configs import (
-  ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH
+  ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
+  REMOVED_CONTAINERS_FOLDER_PATH
 )
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
@@ -118,6 +122,53 @@ def net_params_file():
         )
     yield ENVIRONMENT_PARAMS_FILEPATH
     os.remove(ENVIRONMENT_PARAMS_FILEPATH)
+
+
+@pytest.fixture()
+def tmp_dir_path():
+    plain_path = 'tests/tmp/'
+    path = pathlib.Path(plain_path)
+    path.mkdir(parents=True)
+    try:
+        yield plain_path
+    finally:
+        shutil.rmtree(path)
+
+
+@pytest.fixture()
+def removed_containers_folder():
+    path = pathlib.Path(REMOVED_CONTAINERS_FOLDER_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    try:
+        yield REMOVED_CONTAINERS_FOLDER_PATH
+    finally:
+        shutil.rmtree(path)
+
+
+@pytest.fixture()
+def simple_image():
+    client = docker.from_env()
+    name = 'simple-image'
+    try:
+        client.images.build(
+            tag=name,
+            rm=True,
+            nocache=True,
+            path='tests/simple_container'
+        )
+        yield name
+    finally:
+        client.images.remove(name, force=True)
+
+
+@pytest.fixture()
+def docker_hc():
+    client = docker.from_env()
+    return client.api.create_host_config(
+        log_config=docker.types.LogConfig(
+            type=docker.types.LogConfig.types.JSON
+        )
+    )
 
 
 @pytest.fixture()

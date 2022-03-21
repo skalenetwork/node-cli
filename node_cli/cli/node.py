@@ -110,27 +110,9 @@ def node_info(format):
     type=str,
     help='Node domain name'
 )
-@click.option(
-    '--gas-limit',
-    default=None,
-    type=int,
-    help='Gas limit for registration transaction'
-)
-@click.option(
-    '--gas-price',
-    default=None,
-    type=int,
-    help='Gas price for registration transaction in Gwei'
-)
-@click.option(
-    '--skip-dry-run',
-    is_flag=True,
-    default=False,
-    help='Skip dry run for registration transaction'
-)
 @streamed_cmd
-def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
-    register(name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
+def register_node(name, ip, port, domain):
+    register(name, ip, ip, port, domain)
 
 
 @node.command('init', help="Initialize SKALE node")

@@ -45,7 +45,7 @@ def absent_params(params):
     )
 
 
-def get_params(env_filepath):
+def get_env_config(env_filepath: str = SKALE_DIR_ENV_FILEPATH):
     load_dotenv(dotenv_path=env_filepath)
     params = base_params.copy()
     params.update(optional_params)

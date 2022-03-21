@@ -20,7 +20,7 @@
 import logging
 import sys
 from pathlib import Path
-from node_cli.configs import IPTABLES_DIR, IPTABLES_RULES_STATE_FILEPATH
+from node_cli.configs import IPTABLES_DIR, IPTABLES_RULES_STATE_FILEPATH, ENV
 from node_cli.utils.helper import run_cmd
 
 
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 try:
     import iptc
 except (FileNotFoundError, AttributeError) as err:
-    if "pytest" in sys.modules:
+    if "pytest" in sys.modules or ENV == 'dev':
         from collections import namedtuple  # hotfix for tests
         iptc = namedtuple('iptc', ['Chain', 'Rule'])
     else:

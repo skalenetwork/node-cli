@@ -33,17 +33,17 @@ def test_ls():
     time.tzset()
     payload = [
         {
-            'name': 'test_schain1', 'owner': '0x123',
+            'name': 'test_schain1', 'mainnetOwner': '0x123',
             'indexInOwnerList': 3, 'partOfNode': 0,
             'lifetime': 5, 'startDate': 1570115385,
-            'deposit': 1000000000000000000, 'index': 3
+            'deposit': 1000000000000000000, 'index': 3, 'generation': 1, 'originator': '0x465'
         },
         {
             'name': 'crazy_cats1',
-            'owner': '0x321',
+            'mainnetOwner': '0x321',
             'indexInOwnerList': 8, 'partOfNode': 0,
             'lifetime': 5, 'startDate': 1570469410,
-            'deposit': 1000000000000000000, 'index': 8
+            'deposit': 1000000000000000000, 'index': 8, 'generation': 0, 'originator': '0x0'
         }
     ]
     resp_mock = response_mock(
@@ -52,7 +52,7 @@ def test_ls():
     )
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, ls)
     assert result.exit_code == 0
-    assert result.output == '    Name       Owner   Size   Lifetime        Created At              Deposit      \n-----------------------------------------------------------------------------------\ntest_schain1   0x123   0      5          Oct 03 2019 16:09:45   1000000000000000000\ncrazy_cats1    0x321   0      5          Oct 07 2019 18:30:10   1000000000000000000\n'  # noqa
+    assert result.output == '    Name       Owner   Size   Lifetime        Created At              Deposit         Generation   Originator\n-------------------------------------------------------------------------------------------------------------\ntest_schain1   0x123   0      5          Oct 03 2019 16:09:45   1000000000000000000   1            0x465     \ncrazy_cats1    0x321   0      5          Oct 07 2019 18:30:10   1000000000000000000   0            0x0       \n'  # noqa
 
 
 def test_dkg():
@@ -131,14 +131,15 @@ def test_get_schain_config():
 def test_schain_rules():
     payload = {
         'endpoints': [
-            {'ip': '127.0.0.1', 'port': 10000},
-            {'ip': '127.0.0.1', 'port': 10001},
-            {'ip': '127.0.0.1', 'port': 10004},
-            {'ip': '127.0.0.1', 'port': 10005},
-            {'ip': None, 'port': 10003},
-            {'ip': None, 'port': 10002},
-            {'ip': None, 'port': 10008},
-            {'ip': None, 'port': 10007}
+            {'port': 10000, 'first_ip': '127.0.0.2', 'last_ip': '127.0.0.2'},
+            {'port': 10001, 'first_ip': '127.0.0.2', 'last_ip': '127.0.0.2'},
+            {'port': 10002, 'first_ip': None, 'last_ip': None},
+            {'port': 10003, 'first_ip': None, 'last_ip': None},
+            {'port': 10004, 'first_ip': '127.0.0.2', 'last_ip': '127.0.0.2'},
+            {'port': 10005, 'first_ip': '127.0.0.2', 'last_ip': '127.0.0.2'},
+            {'port': 10007, 'first_ip': None, 'last_ip': None},
+            {'port': 10008, 'first_ip': None, 'last_ip': None},
+            {'port': 10009, 'first_ip': None, 'last_ip': None}
         ]
     }
     resp_mock = response_mock(
@@ -149,7 +150,7 @@ def test_schain_rules():
         'node_cli.utils.helper.requests.get', resp_mock, show_rules, ['schain-test'])
     assert result.exit_code == 0
     print(repr(result.output))
-    assert result.output == 'Port       Ip    \n-----------------\n10000   127.0.0.1\n10001   127.0.0.1\n10002   None     \n10003   None     \n10004   127.0.0.1\n10005   127.0.0.1\n10007   None     \n10008   None     \n'  # noqa
+    assert result.output == '      IP range          Port \n-----------------------------\n127.0.0.2 - 127.0.0.2   10000\n127.0.0.2 - 127.0.0.2   10001\nAll IPs                 10002\nAll IPs                 10003\n127.0.0.2 - 127.0.0.2   10004\n127.0.0.2 - 127.0.0.2   10005\nAll IPs                 10007\nAll IPs                 10008\nAll IPs                 10009\n'  # noqa
 
 
 def test_repair():
