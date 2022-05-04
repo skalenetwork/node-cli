@@ -417,7 +417,11 @@ class DockerChecker(BaseChecker):
             info = 'No such command: "docker-compose"'
             return self._failed(name=name, info=info)
 
-        v_cmd_result = run_cmd(['docker-compose', '-v'], check_code=False)
+        v_cmd_result = run_cmd(
+            ['docker-compose', '-v'],
+            check_code=False,
+            separate_stderr=True
+        )
         output = v_cmd_result.stdout.decode('utf-8').rstrip()
         if v_cmd_result.returncode != 0:
             output = v_cmd_result.stdout.decode('utf-8')
