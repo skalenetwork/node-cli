@@ -94,7 +94,7 @@ def run_cmd(
     else:
         logger.debug('Running some secure command')
     stdout, stderr = subprocess.PIPE, subprocess.PIPE
-    if separate_stderr:
+    if not separate_stderr:
         stderr = subprocess.STDOUT
     res = subprocess.run(
         cmd,
