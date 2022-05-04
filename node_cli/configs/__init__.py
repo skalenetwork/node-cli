@@ -51,6 +51,7 @@ SKALE_RUN_DIR = '/var/run/skale'
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
+SYNC_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-sync.yml')
 FILESTORAGE_INFO_FILE = os.path.join(
     CONTAINER_CONFIG_PATH, 'filestorage_info.json')
 FILESTORAGE_ARTIFACTS_FILE = os.path.join(

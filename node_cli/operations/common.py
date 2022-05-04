@@ -49,13 +49,6 @@ def download_contracts(env):
     urllib.request.urlretrieve(env['IMA_CONTRACTS_ABI_URL'], IMA_CONTRACTS_FILEPATH)
 
 
-def download_filestorage_artifacts():
-    logger.info('Updating filestorage artifacts')
-    fs_artifacts_url = read_json(FILESTORAGE_INFO_FILE)['artifacts_url']
-    logger.debug(f'Downloading {fs_artifacts_url} to {FILESTORAGE_ARTIFACTS_FILE}')
-    urllib.request.urlretrieve(fs_artifacts_url, FILESTORAGE_ARTIFACTS_FILE)
-
-
 def configure_filebeat():
     logger.info('Configuring filebeat...')
     copyfile(SRC_FILEBEAT_CONFIG_PATH, FILEBEAT_CONFIG_PATH)

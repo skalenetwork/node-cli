@@ -51,7 +51,7 @@ from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
     update_op,
-    init_op, turn_off_op, turn_on_op, restore_op
+    init_op, turn_off_op, turn_on_op, restore_op, init_sync_op
 )
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks, print_node_cmd_error, print_node_info
@@ -141,6 +141,18 @@ def init(env_filepath):
     logger.info('Init procedure finished')
 
 
+def init_sync(env_filepath: str) -> None:
+    env = get_node_env(env_filepath, sync_node=True)
+    if env is None:
+        return
+    inited_ok = init_sync_op(env_filepath, env)
+    if not inited_ok:
+        error_exit(
+            'Init operation failed',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+
+
 @check_not_inited
 def restore(backup_path, env_filepath):
     env = get_node_env(env_filepath)
@@ -162,24 +174,24 @@ def restore(backup_path, env_filepath):
     print('Node is restored from backup')
 
 
-def get_node_env(env_filepath, inited_node=False, sync_schains=None):
+def get_node_env(env_filepath, inited_node=False, sync_schains=None, sync_node=False):
     if env_filepath is not None:
-        env_params = extract_env_params(env_filepath)
+        env_params = extract_env_params(env_filepath, sync_node=sync_node)
         if env_params is None:
             return
         save_env_params(env_filepath)
     else:
-        env_params = extract_env_params(INIT_ENV_FILEPATH)
+        env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
     env = {
         'SKALE_DIR': SKALE_DIR,
         'SCHAINS_MNT_DIR': SCHAINS_MNT_DIR,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
         **env_params
     }
-    if inited_node:
+    if inited_node and not sync_node:
         flask_secret_key = get_flask_secret_key()
         env['FLASK_SECRET_KEY'] = flask_secret_key
-    if sync_schains:
+    if sync_schains and not sync_node:
         env['BACKUP_RUN'] = 'True'
     return {k: v for k, v in env.items() if v != ''}
 

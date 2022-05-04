@@ -69,12 +69,19 @@ def get_flask_secret_key():
         return key_file.read().strip()
 
 
-def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
-                 allocation=False):
+def prepare_host(
+    env_filepath: str,
+    disk_mountpoint: str,
+    env_type: str,
+    sgx_server_url: str = None,
+    allocation: bool = False
+):
     logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
     make_dirs()
     save_env_params(env_filepath)
-    save_sgx_server_url(sgx_server_url)
+
+    if sgx_server_url:
+        save_sgx_server_url(sgx_server_url)
     if allocation:
         update_resource_allocation(disk_mountpoint, env_type)
 

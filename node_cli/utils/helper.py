@@ -125,9 +125,8 @@ def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
-def extract_env_params(env_filepath):
-    env_params = get_env_config(env_filepath)
-
+def extract_env_params(env_filepath, sync_node=False):
+    env_params = get_env_config(env_filepath, sync_node=sync_node)
     absent_params = ', '.join(absent_env_params(env_params))
     if absent_params:
         click.echo(f"Your env file({env_filepath}) have some absent params: "
