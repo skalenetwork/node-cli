@@ -36,7 +36,7 @@ from node_cli.configs import (
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
     TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
-    MEMORY_FACTOR, MAX_CPU_SHARES
+    SYNC_NODE_DIVIDER, MEMORY_FACTOR, MAX_CPU_SHARES
 )
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,8 @@ class ResourceAlloc:
             'test': value / TEST_DIVIDER,
             'small': value / SMALL_DIVIDER,
             'medium': value / MEDIUM_DIVIDER,
-            'large': value / LARGE_DIVIDER
+            'large': value / LARGE_DIVIDER,
+            'sync_node': value / SYNC_NODE_DIVIDER,
         }
         if not fractional:
             for k in self.values:
