@@ -109,8 +109,7 @@ DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
 SKALED_SSL_TEST_SCRIPT = os.path.join(DATAFILES_FOLDER, 'skaled-ssl-test')
 
-ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH,
-                                   'schain_allocation.yml')
+ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'schain_allocation.yml')
 
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
