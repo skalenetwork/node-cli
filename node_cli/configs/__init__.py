@@ -52,10 +52,6 @@ SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
 SYNC_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-sync.yml')
-FILESTORAGE_INFO_FILE = os.path.join(
-    CONTAINER_CONFIG_PATH, 'filestorage_info.json')
-FILESTORAGE_ARTIFACTS_FILE = os.path.join(
-    NODE_DATA_PATH, 'filestorage_artifacts.json')
 ENVIRONMENT_PARAMS_FILEPATH = os.path.join(
     CONTAINER_CONFIG_PATH, 'environment_params.yaml')
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
