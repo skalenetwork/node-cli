@@ -45,7 +45,6 @@ def resource_alloc_config():
 
 
 def test_generate_resource_allocation_config():
-    disk_device = '/dev/test'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
         resource_allocation_config = compose_resource_allocation_config(DEFAULT_ENV_TYPE)
 
@@ -160,7 +159,6 @@ def test_get_memory_alloc(params_by_env_type):
 
 
 def test_leveldb_limits():
-    disk_device = '/dev/test'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
         resource_allocation_config = compose_resource_allocation_config(DEFAULT_ENV_TYPE)
     assert resource_allocation_config['schain']['leveldb_limits'] == {
