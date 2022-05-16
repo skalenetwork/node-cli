@@ -91,7 +91,7 @@ def check_ssl_connection(host, port, silent=False):
         time.sleep(1)
         code = dp.poll()
         if code is not None:
-            logger.error('Healthcheck connection failed')
+            logger.error('Healthcheck connection failed with code %d', code)
             raise SSLHealthcheckError('OpenSSL connection verification failed')
 
 
