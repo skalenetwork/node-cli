@@ -150,7 +150,7 @@ def ensure_btrfs_kernel_module_autoloaded(
     modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH
 ):
     if not is_btrfs_module_autoloaded(modules_filepath):
-        ensure_btrfs_kernel_module_autoloaded(modules_filepath)
+        add_btrfs_module_to_autoload(modules_filepath)
 
 
 def validate_abi_files(json_result=False):
