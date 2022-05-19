@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2019-Present SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ import click
 
 from node_cli.core.node import (
     configure_firewall_rules,
-    get_node_signature, init, init_sync, restore,
+    get_node_signature, init, restore,
     register_node as register,
     update, backup,
     set_maintenance_mode_on, set_maintenance_mode_off,
@@ -120,13 +120,6 @@ def register_node(name, ip, port, domain):
 @streamed_cmd
 def init_node(env_file):
     init(env_file)
-
-
-@node.command('init-sync', help="Initialize sync SKALE node")
-@click.argument('env_file')
-@streamed_cmd
-def _init_sync(env_file):
-    init_sync(env_file)
 
 
 @node.command('update', help='Update node from .env file')

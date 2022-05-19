@@ -50,8 +50,7 @@ from node_cli.core.host import (
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
-    update_op,
-    init_op, turn_off_op, turn_on_op, restore_op, init_sync_op
+    update_op, init_op, turn_off_op, turn_on_op, restore_op, init_sync_op, update_sync_op
 )
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks, print_node_cmd_error, print_node_info
@@ -70,6 +69,7 @@ from node_cli.utils.decorators import (
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
 
+SYNC_BASE_CONTAINERS_AMOUNT = 2
 BASE_CONTAINERS_AMOUNT = 5
 BLUEPRINT_NAME = 'node'
 
@@ -139,6 +139,7 @@ def init(env_filepath):
     logger.info('Init procedure finished')
 
 
+@check_not_inited
 def init_sync(env_filepath: str) -> None:
     env = get_node_env(env_filepath, sync_node=True)
     if env is None:
@@ -149,6 +150,31 @@ def init_sync(env_filepath: str) -> None:
             'Init operation failed',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
+    logger.info('Waiting for containers initialization')
+    time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive(sync_node=True):
+        error_exit(
+            'Containers are not running',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+    logger.info('Sync node initialized successfully')
+
+
+@check_inited
+@check_user
+def update_sync(env_filepath):
+    logger.info('Node update started')
+    env = get_node_env(env_filepath, sync_node=True)
+    update_ok = update_sync_op(env_filepath, env)
+    if update_ok:
+        logger.info('Waiting for containers initialization')
+        time.sleep(TM_INIT_TIMEOUT)
+    alive = is_base_containers_alive(sync_node=True)
+    if not update_ok or not alive:
+        print_node_cmd_error()
+        return
+    else:
+        logger.info('Node update finished')
 
 
 @check_not_inited
@@ -340,13 +366,14 @@ def turn_on(maintenance_off, sync_schains, env_file):
         set_maintenance_mode_off()
 
 
-def is_base_containers_alive():
+def is_base_containers_alive(sync_node: bool = False):
     dclient = docker.from_env()
     containers = dclient.containers.list()
     skale_containers = list(filter(
         lambda c: c.name.startswith('skale_'), containers
     ))
-    return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
+    containers_amount = SYNC_BASE_CONTAINERS_AMOUNT if sync_node else BASE_CONTAINERS_AMOUNT
+    return len(skale_containers) >= containers_amount
 
 
 def get_node_info(format):

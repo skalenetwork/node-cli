@@ -176,7 +176,37 @@ def init_sync(env_filepath: str, env: str) -> bool:
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up_sync(env)
+    return True
 
+
+def update_sync(env_filepath: str, env: Dict) -> None:
+    compose_rm(env)
+    remove_dynamic_containers()
+
+    sync_skale_node()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    backup_old_contracts()
+    download_contracts(env)
+
+    docker_lvmpy_update(env)
+    generate_nginx_config()
+
+    prepare_host(
+        env_filepath,
+        env['ENV_TYPE'],
+        allocation=True
+    )
+
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM']
+    )
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+    compose_up_sync(env)
     return True
 
 
