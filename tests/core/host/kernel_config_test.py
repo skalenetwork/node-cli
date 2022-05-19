@@ -10,7 +10,7 @@ from node_cli.core.host import (
 
 @pytest.fixture
 def tmp_path(tmp_dir_path):
-    path = os.path.join(tmp_dir_path)
+    path = os.path.join(tmp_dir_path, 'modules')
     return path
 
 
