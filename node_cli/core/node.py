@@ -127,7 +127,6 @@ def init(env_filepath):
             'Init operation failed',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
-        return
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
@@ -135,9 +134,8 @@ def init(env_filepath):
             'Containers are not running',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
-        return
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
+    update_resource_allocation(env['ENV_TYPE'])
     logger.info('Init procedure finished')
 
 
@@ -167,10 +165,9 @@ def restore(backup_path, env_filepath):
             'Restore operation failed',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
-        return
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
+    update_resource_allocation(env['ENV_TYPE'])
     print('Node is restored from backup')
 
 

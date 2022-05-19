@@ -100,9 +100,7 @@ def update(env_filepath: str, env: Dict) -> None:
 
     prepare_host(
         env_filepath,
-        env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
-        env['SGX_SERVER_URL'],
         allocation=True
     )
     init_shared_space_volume(env['ENV_TYPE'])
@@ -126,9 +124,7 @@ def init(env_filepath: str, env: str) -> bool:
 
     prepare_host(
         env_filepath,
-        env['DISK_MOUNTPOINT'],
-        env_type=env['ENV_TYPE'],
-        sgx_server_url=env['SGX_SERVER_URL']
+        env_type=env['ENV_TYPE']
     )
     link_env_file()
     download_contracts(env)
@@ -146,10 +142,7 @@ def init(env_filepath: str, env: str) -> bool:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_resource_allocation(
-        disk_device=env['DISK_MOUNTPOINT'],
-        env_type=env['ENV_TYPE']
-    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
     return True
@@ -167,7 +160,6 @@ def init_sync(env_filepath: str, env: str) -> bool:
 
     prepare_host(
         env_filepath,
-        env['DISK_MOUNTPOINT'],
         env_type=env['ENV_TYPE'],
     )
     link_env_file()
@@ -181,10 +173,7 @@ def init_sync(env_filepath: str, env: str) -> bool:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_resource_allocation(
-        disk_device=env['DISK_MOUNTPOINT'],
-        env_type=env['ENV_TYPE']
-    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up_sync(env)
 
@@ -228,10 +217,7 @@ def restore(env, backup_path):
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_resource_allocation(
-        disk_device=env['DISK_MOUNTPOINT'],
-        env_type=env['ENV_TYPE']
-    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
     compose_up(env)
 
     failed_checks = run_host_checks(

@@ -74,9 +74,8 @@ def test_generate_resource_allocation_config():
 
 
 def test_update_allocation_config(resource_alloc_config):
-    block_device = '/dev/test'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
-        update_resource_allocation(block_device, DEFAULT_ENV_TYPE)
+        update_resource_allocation(DEFAULT_ENV_TYPE)
         with open(RESOURCE_ALLOCATION_FILEPATH) as jfile:
             assert json.load(jfile) != INITIAL_CONFIG
 

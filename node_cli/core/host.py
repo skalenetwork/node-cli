@@ -71,19 +71,15 @@ def get_flask_secret_key():
 
 def prepare_host(
     env_filepath: str,
-    disk_mountpoint: str,
     env_type: str,
-    sgx_server_url: str = None,
     allocation: bool = False
 ):
-    logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
+    logger.info(f'Preparing host started')
     make_dirs()
     save_env_params(env_filepath)
 
-    if sgx_server_url:
-        save_sgx_server_url(sgx_server_url)
     if allocation:
-        update_resource_allocation(disk_mountpoint, env_type)
+        update_resource_allocation(env_type)
 
 
 def is_node_inited():
@@ -100,12 +96,6 @@ def make_dirs():
             SKALE_RUN_DIR, SKALE_TMP_DIR
     ):
         safe_mkdir(dir_path)
-
-
-def save_sgx_server_url(sgx_server_url):
-    logger.info(f'Saving sgx_server_url option to {SGX_SERVER_URL_FILEPATH}')
-    with open(SGX_SERVER_URL_FILEPATH, 'w') as f:
-        f.write(sgx_server_url)
 
 
 def save_env_params(env_filepath):
