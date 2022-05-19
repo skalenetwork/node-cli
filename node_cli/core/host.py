@@ -133,7 +133,7 @@ def is_btrfs_module_autoloaded(modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH):
             map(
                 lambda line: line.strip(),
                 filter(
-                    lambda line: line.startswith('#'),
+                    lambda line: not line.startswith('#'),
                     modules_file.readlines()
                 )
             )
@@ -143,7 +143,7 @@ def is_btrfs_module_autoloaded(modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH):
 
 def add_btrfs_module_to_autoload(modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH):
     with open(modules_filepath, 'w') as modules_file:
-        modules_file.writeline(BTRFS_KERNEL_MODULE)
+        modules_file.write(f'{BTRFS_KERNEL_MODULE}\n')
 
 
 def ensure_btrfs_kernel_module_autoloaded(

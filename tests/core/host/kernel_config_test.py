@@ -17,16 +17,8 @@ def tmp_path(tmp_dir_path):
 def test_btrfs_module_autoload_config(tmp_path):
     ensure_btrfs_kernel_module_autoloaded(tmp_path)
     assert is_btrfs_module_autoloaded(tmp_path)
-
-    with open(tmp_path, 'w') as tmp_file:
-        tmp_file.write('')
-
-    assert not is_btrfs_module_autoloaded(tmp_path)
-
-    with open(tmp_path, 'w') as tmp_file:
-        tmp_file.write('# btrfs')
-
-    assert not is_btrfs_module_autoloaded(tmp_path)
+    with open(tmp_path) as tmp_file:
+        tmp_file.read() == 'btrfs\n'
 
 
 def test_is_btrfs_module_autoloaded_negative(tmp_path):
