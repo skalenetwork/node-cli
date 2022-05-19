@@ -20,15 +20,13 @@
 import pathlib
 
 import mock
-import requests
 import logging
 
-from node_cli.configs import SKALE_DIR, G_CONF_HOME
+from node_cli.configs import SKALE_DIR
 from node_cli.cli.sync_node import _init_sync, _update_sync
 from node_cli.utils.helper import init_default_logger
 
 from tests.helper import (
-    response_mock, run_command_mock,
     run_command, subprocess_run_mock
 )
 from tests.resources_test import BIG_DISK_SIZE

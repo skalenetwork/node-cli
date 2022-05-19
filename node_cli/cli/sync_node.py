@@ -25,6 +25,7 @@ from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
 
 TEXTS = safe_load_texts()
 
+
 @click.group()
 def sync_node_cli():
     pass

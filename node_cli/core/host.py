@@ -36,8 +36,7 @@ from node_cli.configs import (
     SKALE_RUN_DIR, SKALE_TMP_DIR
 )
 from node_cli.configs.resource_allocation import (
-    RESOURCE_ALLOCATION_FILEPATH,
-    SGX_SERVER_URL_FILEPATH
+    RESOURCE_ALLOCATION_FILEPATH
 )
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
