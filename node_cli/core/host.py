@@ -26,7 +26,8 @@ from urllib.parse import urlparse
 from node_cli.core.resources import update_resource_allocation
 
 from node_cli.configs import (
-    ADMIN_PORT, DEFAULT_URL_SCHEME, NODE_DATA_PATH,
+    ADMIN_PORT, AUTOLOAD_KERNEL_MODULES_PATH,
+    BTRFS_KERNEL_MODULE, DEFAULT_URL_SCHEME, NODE_DATA_PATH,
     SKALE_DIR, CONTAINER_CONFIG_PATH, CONTRACTS_PATH,
     ETH_STATE_PATH, NODE_CERTS_PATH, SGX_CERTS_PATH,
     REPORTS_PATH, REDIS_DATA_PATH,
@@ -122,6 +123,34 @@ def init_logs_dir():
 
 def init_data_dir():
     safe_mkdir(NODE_DATA_PATH)
+
+
+def is_btrfs_module_autoloaded(modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH):
+    if not os.path.isfile(modules_filepath):
+        return False
+    with open(modules_filepath) as modules_file:
+        modules = set(
+            map(
+                lambda line: line.strip(),
+                filter(
+                    lambda line: line.startswith('#'),
+                    modules_file.readlines()
+                )
+            )
+        )
+        return BTRFS_KERNEL_MODULE in modules
+
+
+def add_btrfs_module_to_autoload(modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH):
+    with open(modules_filepath, 'w') as modules_file:
+        modules_file.writeline(BTRFS_KERNEL_MODULE)
+
+
+def ensure_btrfs_kernel_module_autoloaded(
+    modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH
+):
+    if not is_btrfs_module_autoloaded(modules_filepath):
+        ensure_btrfs_kernel_module_autoloaded(modules_filepath)
 
 
 def validate_abi_files(json_result=False):
