@@ -29,11 +29,9 @@ from shutil import copyfile
 from distutils.dir_util import copy_tree
 
 from node_cli.configs import (
-    CONTRACTS_PATH, BACKUP_CONTRACTS_PATH,
-    MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH, SRC_FILEBEAT_CONFIG_PATH, G_CONF_HOME,
-    FILESTORAGE_INFO_FILE, FILESTORAGE_ARTIFACTS_FILE, FILEBEAT_CONFIG_PATH, FLASK_SECRET_KEY_FILE
+    CONTRACTS_PATH, BACKUP_CONTRACTS_PATH, MANAGER_CONTRACTS_FILEPATH, IMA_CONTRACTS_FILEPATH,
+    SRC_FILEBEAT_CONFIG_PATH, G_CONF_HOME, FILEBEAT_CONFIG_PATH, FLASK_SECRET_KEY_FILE
 )
-from node_cli.utils.helper import read_json
 
 
 logger = logging.getLogger(__name__)
@@ -47,13 +45,6 @@ def backup_old_contracts():
 def download_contracts(env):
     urllib.request.urlretrieve(env['MANAGER_CONTRACTS_ABI_URL'], MANAGER_CONTRACTS_FILEPATH)
     urllib.request.urlretrieve(env['IMA_CONTRACTS_ABI_URL'], IMA_CONTRACTS_FILEPATH)
-
-
-def download_filestorage_artifacts():
-    logger.info('Updating filestorage artifacts')
-    fs_artifacts_url = read_json(FILESTORAGE_INFO_FILE)['artifacts_url']
-    logger.debug(f'Downloading {fs_artifacts_url} to {FILESTORAGE_ARTIFACTS_FILE}')
-    urllib.request.urlretrieve(fs_artifacts_url, FILESTORAGE_ARTIFACTS_FILE)
 
 
 def configure_filebeat():

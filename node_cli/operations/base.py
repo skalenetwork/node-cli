@@ -30,14 +30,16 @@ from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
 from node_cli.operations.common import (
-    backup_old_contracts, download_contracts, download_filestorage_artifacts, configure_filebeat,
+    backup_old_contracts, download_contracts, configure_filebeat,
     configure_flask, unpack_backup_archive
 )
 from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
-from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
+from node_cli.utils.docker_utils import (
+    compose_rm, compose_up, remove_dynamic_containers, compose_up_sync
+)
 from node_cli.utils.meta import update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
@@ -93,14 +95,11 @@ def update(env_filepath: str, env: Dict) -> None:
     backup_old_contracts()
     download_contracts(env)
 
-    download_filestorage_artifacts()
     docker_lvmpy_update(env)
     generate_nginx_config()
 
     prepare_host(
         env_filepath,
-        env['DISK_MOUNTPOINT'],
-        env['SGX_SERVER_URL'],
         env['ENV_TYPE'],
         allocation=True
     )
@@ -125,13 +124,10 @@ def init(env_filepath: str, env: str) -> bool:
 
     prepare_host(
         env_filepath,
-        env['DISK_MOUNTPOINT'],
-        env['SGX_SERVER_URL'],
-        env_type=env['ENV_TYPE'],
+        env_type=env['ENV_TYPE']
     )
     link_env_file()
     download_contracts(env)
-    download_filestorage_artifacts()
 
     configure_filebeat()
     configure_flask()
@@ -146,12 +142,71 @@ def init(env_filepath: str, env: str) -> bool:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_resource_allocation(
-        disk_device=env['DISK_MOUNTPOINT'],
-        env_type=env['ENV_TYPE']
-    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
+    return True
+
+
+def init_sync(env_filepath: str, env: str) -> bool:
+    download_skale_node(
+        env['CONTAINER_CONFIGS_STREAM'],
+        env.get('CONTAINER_CONFIGS_DIR')
+    )
+    sync_skale_node()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    prepare_host(
+        env_filepath,
+        env_type=env['ENV_TYPE'],
+    )
+    link_env_file()
+    download_contracts(env)
+
+    generate_nginx_config()
+    docker_lvmpy_install(env)
+
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM']
+    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+    compose_up_sync(env)
+    return True
+
+
+def update_sync(env_filepath: str, env: Dict) -> None:
+    compose_rm(env)
+    remove_dynamic_containers()
+
+    sync_skale_node()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    backup_old_contracts()
+    download_contracts(env)
+
+    docker_lvmpy_update(env)
+    generate_nginx_config()
+
+    prepare_host(
+        env_filepath,
+        env['ENV_TYPE'],
+        allocation=True
+    )
+
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM']
+    )
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+    compose_up_sync(env)
     return True
 
 
@@ -192,10 +247,7 @@ def restore(env, backup_path):
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_resource_allocation(
-        disk_device=env['DISK_MOUNTPOINT'],
-        env_type=env['ENV_TYPE']
-    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
     compose_up(env)
 
     failed_checks = run_host_checks(

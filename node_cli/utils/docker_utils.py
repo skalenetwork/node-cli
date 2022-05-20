@@ -29,6 +29,7 @@ from docker.models.containers import Container
 from node_cli.utils.helper import run_cmd, str_to_bool
 from node_cli.configs import (
     COMPOSE_PATH,
+    SYNC_COMPOSE_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
     SKALE_DIR
@@ -220,7 +221,11 @@ def get_up_compose_cmd(services):
     return ('docker-compose', '-f', COMPOSE_PATH, 'up', '-d', *services)
 
 
-def compose_up(env):
+def get_up_compose_sync_cmd():
+    return ('docker-compose', '-f', SYNC_COMPOSE_PATH, 'up', '-d')
+
+
+def compose_up(env, sync_node=False):
     logger.info('Running base set of containers')
 
     if 'SGX_CERTIFICATES_DIR_NAME' not in env:
@@ -233,3 +238,8 @@ def compose_up(env):
     if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
         logger.info('Running containers for Telegram notifications')
         run_cmd(cmd=get_up_compose_cmd(NOTIFICATION_COMPOSE_SERVICES), env=env)
+
+
+def compose_up_sync(env) -> None:
+    logger.info('Running containers for sync node')
+    run_cmd(cmd=get_up_compose_sync_cmd(), env=env)

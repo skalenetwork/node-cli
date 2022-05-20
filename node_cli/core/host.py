@@ -36,8 +36,7 @@ from node_cli.configs import (
     SKALE_RUN_DIR, SKALE_TMP_DIR
 )
 from node_cli.configs.resource_allocation import (
-    RESOURCE_ALLOCATION_FILEPATH,
-    SGX_SERVER_URL_FILEPATH
+    RESOURCE_ALLOCATION_FILEPATH
 )
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
@@ -69,14 +68,17 @@ def get_flask_secret_key():
         return key_file.read().strip()
 
 
-def prepare_host(env_filepath, disk_mountpoint, sgx_server_url, env_type,
-                 allocation=False):
-    logger.info(f'Preparing host started, disk_mountpoint: {disk_mountpoint}')
+def prepare_host(
+    env_filepath: str,
+    env_type: str,
+    allocation: bool = False
+):
+    logger.info(f'Preparing host started')
     make_dirs()
     save_env_params(env_filepath)
-    save_sgx_server_url(sgx_server_url)
+
     if allocation:
-        update_resource_allocation(disk_mountpoint, env_type)
+        update_resource_allocation(env_type)
 
 
 def is_node_inited():
@@ -93,12 +95,6 @@ def make_dirs():
             SKALE_RUN_DIR, SKALE_TMP_DIR
     ):
         safe_mkdir(dir_path)
-
-
-def save_sgx_server_url(sgx_server_url):
-    logger.info(f'Saving sgx_server_url option to {SGX_SERVER_URL_FILEPATH}')
-    with open(SGX_SERVER_URL_FILEPATH, 'w') as f:
-        f.write(sgx_server_url)
 
 
 def save_env_params(env_filepath):

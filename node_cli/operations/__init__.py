@@ -20,6 +20,8 @@
 from node_cli.operations.base import (  # noqa
     update as update_op,
     init as init_op,
+    init_sync as init_sync_op,
+    update_sync as update_sync_op,
     turn_off as turn_off_op,
     turn_on as turn_on_op,
     restore as restore_op

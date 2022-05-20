@@ -36,7 +36,7 @@ from node_cli.configs import (
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
     TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
-    MEMORY_FACTOR, MAX_CPU_SHARES
+    SYNC_NODE_DIVIDER, MEMORY_FACTOR, MAX_CPU_SHARES
 )
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,8 @@ class ResourceAlloc:
             'test': value / TEST_DIVIDER,
             'small': value / SMALL_DIVIDER,
             'medium': value / MEDIUM_DIVIDER,
-            'large': value / LARGE_DIVIDER
+            'large': value / LARGE_DIVIDER,
+            'sync_node': value / SYNC_NODE_DIVIDER,
         }
         if not fractional:
             for k in self.values:
@@ -71,7 +72,6 @@ def get_resource_allocation_info():
 
 
 def compose_resource_allocation_config(
-    disk_device: str,
     env_type: str,
     params_by_env_type: Dict = None
 ) -> Dict:
@@ -109,7 +109,6 @@ def generate_resource_allocation_config(env_file, force=False) -> None:
     logger.info('Generating resource allocation file ...')
     try:
         update_resource_allocation(
-            env_params['DISK_MOUNTPOINT'],
             env_params['ENV_TYPE']
         )
     except Exception as e:
@@ -122,10 +121,8 @@ def generate_resource_allocation_config(env_file, force=False) -> None:
         )
 
 
-def update_resource_allocation(disk_device: str, env_type: str) -> None:
-    resource_allocation_config = compose_resource_allocation_config(
-        disk_device, env_type
-    )
+def update_resource_allocation(env_type: str) -> None:
+    resource_allocation_config = compose_resource_allocation_config(env_type)
     write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
 
 
