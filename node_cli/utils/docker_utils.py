@@ -183,12 +183,13 @@ def is_volume_exists(name: str, dutils=None):
     return True
 
 
-def compose_rm(env={}):
+def compose_rm(env={}, sync_node: bool = False):
     logger.info('Removing compose containers')
+    compose_path = get_compose_path(sync_node)
     run_cmd(
         cmd=(
             'docker-compose',
-            '-f', COMPOSE_PATH,
+            '-f', compose_path,
             'down',
             '-t', str(COMPOSE_SHUTDOWN_TIMEOUT),
         ),
@@ -197,20 +198,22 @@ def compose_rm(env={}):
     logger.info('Compose containers removed')
 
 
-def compose_pull():
+def compose_pull(sync_node: bool = False):
     logger.info('Pulling compose containers')
+    compose_path = get_compose_path(sync_node)
     run_cmd(
-        cmd=('docker-compose', '-f', COMPOSE_PATH, 'pull'),
+        cmd=('docker-compose', '-f', compose_path, 'pull'),
         env={
             'SKALE_DIR': SKALE_DIR
         }
     )
 
 
-def compose_build():
+def compose_build(sync_node: bool = False):
     logger.info('Building compose containers')
+    compose_path = get_compose_path(sync_node)
     run_cmd(
-        cmd=('docker-compose', '-f', COMPOSE_PATH, 'build'),
+        cmd=('docker-compose', '-f', compose_path, 'build'),
         env={
             'SKALE_DIR': SKALE_DIR
         }
@@ -223,6 +226,10 @@ def get_up_compose_cmd(services):
 
 def get_up_compose_sync_cmd():
     return ('docker-compose', '-f', SYNC_COMPOSE_PATH, 'up', '-d')
+
+
+def get_compose_path(sync_node: bool) -> str:
+    return SYNC_COMPOSE_PATH if sync_node else COMPOSE_PATH
 
 
 def compose_up(env, sync_node=False):

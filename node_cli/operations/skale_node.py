@@ -35,11 +35,11 @@ from node_cli.configs import (
 logger = logging.getLogger(__name__)
 
 
-def update_images(local: bool = False) -> None:
+def update_images(local: bool = False, sync_node: bool = False) -> None:
     if local:
-        compose_build()
+        compose_build(sync_node=sync_node)
     else:
-        compose_pull()
+        compose_pull(sync_node=sync_node)
 
 
 def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
