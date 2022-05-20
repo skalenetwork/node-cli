@@ -174,15 +174,19 @@ def init_sync(env_filepath: str, env: str) -> bool:
         env['DOCKER_LVMPY_STREAM']
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
-    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
     compose_up_sync(env)
     return True
 
 
 def update_sync(env_filepath: str, env: Dict) -> None:
-    compose_rm(env)
+    compose_rm(env, sync_node=True)
     remove_dynamic_containers()
 
+    download_skale_node(
+        env['CONTAINER_CONFIGS_STREAM'],
+        env.get('CONTAINER_CONFIGS_DIR')
+    )
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -205,7 +209,7 @@ def update_sync(env_filepath: str, env: Dict) -> None:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM']
     )
-    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
     compose_up_sync(env)
     return True
 
