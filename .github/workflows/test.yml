@@ -28,7 +28,10 @@ jobs:
         flake8 .
     - name: Build binary
       run: |
-        bash scripts/build.sh 1.0.0 test-branch
+        bash scripts/build.sh 1.0.0 test-branch normal
+    - name: Build binary sync
+      run: |
+        bash scripts/build.sh 1.0.0 test-branch sync
     - name: Run tests
       run: |
         bash ./scripts/run_tests.sh
