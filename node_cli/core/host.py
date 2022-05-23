@@ -142,15 +142,19 @@ def is_btrfs_module_autoloaded(modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH):
 
 
 def add_btrfs_module_to_autoload(modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH):
-    with open(modules_filepath, 'w') as modules_file:
+    with open(modules_filepath, 'a') as modules_file:
         modules_file.write(f'{BTRFS_KERNEL_MODULE}\n')
 
 
 def ensure_btrfs_kernel_module_autoloaded(
     modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH
 ):
+    logger.debug('Checking if btrfs is in %s', modules_filepath)
     if not is_btrfs_module_autoloaded(modules_filepath):
+        logger.info('Adding btrfs module to %s', modules_filepath)
         add_btrfs_module_to_autoload(modules_filepath)
+    else:
+        logger.debug('btrfs is already in %s', modules_filepath)
 
 
 def validate_abi_files(json_result=False):
