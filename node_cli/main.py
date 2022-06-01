@@ -77,7 +77,7 @@ def info():
 
 def get_sources_list():
     if TYPE == 'sync':
-        return [sync_node_cli]
+        return [sync_node_cli, ssl_cli]
     else:
         return [
             cli,
