@@ -107,8 +107,6 @@ else:
 TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
 DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
-SKALED_SSL_TEST_SCRIPT = os.path.join(DATAFILES_FOLDER, 'skaled-ssl-test')
-
 ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'schain_allocation.yml')
 
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
@@ -123,11 +121,6 @@ DEFAULT_NODE_BASE_PORT = 10000
 
 BACKUP_ARCHIVE_NAME = 'skale-node-backup'
 
-SSL_FOLDER_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
-SSL_CERT_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_cert')
-SSL_KEY_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_key')
-
-
 TM_INIT_TIMEOUT = 20
 RESTORE_SLEEP_TIMEOUT = 20
 
@@ -135,8 +128,6 @@ MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
 IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
-
-DEFAULT_SSL_CHECK_PORT = 4536
 
 SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'
