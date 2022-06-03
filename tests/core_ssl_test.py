@@ -4,7 +4,8 @@ import pathlib
 import mock
 import pytest
 
-from node_cli.core.ssl import check_cert_openssl, SSLHealthcheckError, upload_cert
+from node_cli.core.ssl import upload_cert
+from node_cli.core.ssl.check import check_cert_openssl, SSLHealthcheckError
 from node_cli.utils.helper import run_cmd
 
 
