@@ -1,13 +1,12 @@
 import os
 import pathlib
 
-import mock
 import pytest
 
 from node_cli.core.ssl import upload_cert
 from node_cli.core.ssl.check import check_cert_openssl, SSLHealthcheckError
 from node_cli.utils.helper import run_cmd
-
+from node_cli.configs.ssl import SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
 
 HOST = '127.0.0.1'
 
@@ -73,23 +72,13 @@ def test_verify_cert_bad_key(bad_key):
         check_cert_openssl(cert, key, host=HOST, no_client=True)
 
 
-@mock.patch('node_cli.core.ssl.post_request')
-def test_upload_cert(pr_mock, cert_key_pair):
+def test_upload_cert(cert_key_pair):
     cert, key = cert_key_pair
+
+    assert not os.path.isfile(SSL_KEY_FILEPATH)
+    assert not os.path.isfile(SSL_CERT_FILEPATH)
+
     upload_cert(cert, key, force=False, no_client=True)
-    # args = pr_mock.call_args.args
-    # assert args[0] == 'ssl_upload'
-    kwargs = pr_mock.call_args.kwargs
-    assert kwargs['files']['ssl_cert'][1].name == cert
-    assert kwargs['files']['ssl_key'][1].name == key
-    assert kwargs['files']['json'][1] == '{"force": false}'
 
-    upload_cert(cert, key, force=True, no_client=True)
-    # args = pr_mock.call_args.args
-    # assert args[0] == 'ssl_upload'
-    kwargs = pr_mock.call_args.kwargs
-    assert kwargs['files']['ssl_cert'][1].name == cert
-    assert kwargs['files']['ssl_key'][1].name == key
-    assert kwargs['files']['json'][1] == '{"force": true}'
-
-    assert pr_mock.call_count == 2
+    assert os.path.isfile(SSL_KEY_FILEPATH)
+    assert os.path.isfile(SSL_CERT_FILEPATH)
