@@ -72,7 +72,7 @@ def test_verify_cert_bad_key(bad_key):
         check_cert_openssl(cert, key, host=HOST, no_client=True)
 
 
-def test_upload_cert(cert_key_pair):
+def test_upload_cert(ssl_folder, cert_key_pair):
     cert, key = cert_key_pair
 
     assert not os.path.isfile(SSL_KEY_FILEPATH)

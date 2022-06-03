@@ -21,7 +21,7 @@ import logging
 from node_cli.configs.ssl import CERTS_UPLOADED_ERR_MSG
 
 from node_cli.core.ssl.check import check_cert_openssl
-from node_cli.core.ssl.utils import is_ssl_folder_empty, save_cert_key_pair
+from node_cli.core.ssl.utils import is_ssl_folder_empty, copy_cert_key_pair
 from node_cli.utils.helper import ok_result
 
 logger = logging.getLogger(__name__)
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 def upload_cert(cert_path, key_path, force, no_client=False):
     try:
+        pass
         check_cert_openssl(
             cert_path, key_path, silent=True, no_client=no_client)
     except Exception as err:
@@ -36,5 +37,5 @@ def upload_cert(cert_path, key_path, force, no_client=False):
         return 'error', f'Certificate check failed. {err}'
     if not is_ssl_folder_empty() and not force:
         return 'error', CERTS_UPLOADED_ERR_MSG
-    save_cert_key_pair(key_path, cert_path)
+    copy_cert_key_pair(key_path, cert_path)
     return ok_result()

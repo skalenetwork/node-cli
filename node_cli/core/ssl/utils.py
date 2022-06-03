@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import shutil
 import logging
 import subprocess
 from contextlib import contextmanager
@@ -27,11 +28,9 @@ from node_cli.configs.ssl import SSL_CERT_FILEPATH, SSL_KEY_FILEPATH, SSL_FOLDER
 logger = logging.getLogger(__name__)
 
 
-def save_cert_key_pair(cert, key):
-    with open(SSL_CERT_FILEPATH, 'wb') as cert_file:
-        cert_file.write(cert)
-    with open(SSL_KEY_FILEPATH, 'wb') as key_file:
-        key_file.write(key)
+def copy_cert_key_pair(cert, key):
+    shutil.copyfile(cert, SSL_CERT_FILEPATH)
+    shutil.copyfile(key, SSL_KEY_FILEPATH)
 
 
 def cert_from_file(cert_filepath):
