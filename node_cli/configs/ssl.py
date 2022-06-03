@@ -19,7 +19,7 @@
 
 import os
 
-from configs import NODE_DATA_PATH, DATAFILES_FOLDER
+from node_cli.configs import NODE_DATA_PATH, DATAFILES_FOLDER
 
 
 DEFAULT_SSL_CHECK_PORT = 4536
