@@ -190,9 +190,9 @@ def resource_alloc():
 
 @pytest.fixture
 def ssl_folder():
-  if os.path.isdir(SSL_FOLDER_PATH):
+    if os.path.isdir(SSL_FOLDER_PATH):
+        shutil.rmtree(SSL_FOLDER_PATH)
+    path = pathlib.Path(SSL_FOLDER_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    yield
     shutil.rmtree(SSL_FOLDER_PATH)
-  path = pathlib.Path(SSL_FOLDER_PATH)
-  path.mkdir(parents=True, exist_ok=True)
-  yield
-  shutil.rmtree(SSL_FOLDER_PATH)
