@@ -37,5 +37,5 @@ def upload_cert(cert_path, key_path, force, no_client=False):
         return 'error', f'Certificate check failed. {err}'
     if not is_ssl_folder_empty() and not force:
         return 'error', CERTS_UPLOADED_ERR_MSG
-    copy_cert_key_pair(key_path, cert_path)
+    copy_cert_key_pair(cert_path, key_path)
     return ok_result()
