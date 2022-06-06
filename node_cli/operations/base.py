@@ -37,7 +37,12 @@ from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_i
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
-from node_cli.utils.docker_utils import compose_rm, compose_up, remove_dynamic_containers
+from node_cli.utils.docker_utils import (
+    compose_rm,
+    compose_up,
+    docker_prune,
+    remove_dynamic_containers
+)
 from node_cli.utils.meta import update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
@@ -113,6 +118,7 @@ def update(env_filepath: str, env: Dict) -> None:
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
+    docker_prune(all_artifacts=True)
     return True
 
 
