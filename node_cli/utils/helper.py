@@ -349,3 +349,11 @@ def rsync_dirs(src: str, dest: str) -> None:
     logger.info(f'Syncing {dest} with {src}')
     run_cmd(['rsync', '-r', f'{src}/', dest])
     run_cmd(['rsync', '-r', f'{src}/.git', dest])
+
+
+def ok_result(payload: dict = None):
+    return 'ok', payload
+
+
+def err_result(msg: str = None):
+    return 'error', msg

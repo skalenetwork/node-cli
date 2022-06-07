@@ -29,11 +29,12 @@ import pytest
 import yaml
 
 from node_cli.configs import (
-  ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
-  REMOVED_CONTAINERS_FOLDER_PATH
+    ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
+    REMOVED_CONTAINERS_FOLDER_PATH
 )
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.ssl import SSL_FOLDER_PATH
 
 
 TEST_ENV_PARAMS = """
@@ -185,3 +186,15 @@ def resource_alloc():
         json.dump({}, alloc_file)
     yield RESOURCE_ALLOCATION_FILEPATH
     os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+@pytest.fixture
+def ssl_folder():
+    if os.path.isdir(SSL_FOLDER_PATH):
+        shutil.rmtree(SSL_FOLDER_PATH)
+    path = pathlib.Path(SSL_FOLDER_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    try:
+        yield
+    finally:
+        shutil.rmtree(SSL_FOLDER_PATH)
