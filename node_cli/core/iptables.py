@@ -18,8 +18,10 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import socket
 import sys
 from pathlib import Path
+
 from node_cli.configs import IPTABLES_DIR, IPTABLES_RULES_STATE_FILEPATH, ENV
 from node_cli.utils.helper import run_cmd
 
@@ -38,7 +40,6 @@ except (FileNotFoundError, AttributeError) as err:
 
 ALLOWED_INCOMING_TCP_PORTS = [
     '80',  # filestorage
-    '22',  # ssh
     '311',  # watchdog https
     '8080',  # http
     '443',  # https
@@ -131,15 +132,28 @@ def drop_all_udp(chain: iptc.Chain) -> None:
     ensure_rule(chain, r)
 
 
+def get_ssh_port(ssh_service_name='ssh'):
+    return socket.getservbyname('ssh')
+
+
+def allow_ssh(chain: iptc.Chain) -> None:
+    ssh_port = get_ssh_port()
+    accept_incoming(chain, ssh_port, 'tcp')
+
+
 def allow_base_ports(chain: iptc.Chain) -> None:
-    logger.debug('Allowing base ports...')
+    logger.info('Configuring ssh port...')
+    allow_ssh(chain)
+    logger.info('Configuring incoming tcp port...')
     for port in ALLOWED_INCOMING_TCP_PORTS:
         accept_incoming(chain, port, 'tcp')
+    logger.info('Configuring incoming udp port...')
     for port in ALLOWED_INCOMING_UDP_PORTS:
         accept_incoming(chain, port, 'udp')
 
 
 def accept_incoming(chain, port, protocol) -> None:
+    logger.debug('Going to allow %s traffic from %d port', protocol, port)
     rule = iptc.Rule()
     rule.protocol = protocol
     match = iptc.Match(rule, protocol)
