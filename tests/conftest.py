@@ -194,5 +194,7 @@ def ssl_folder():
         shutil.rmtree(SSL_FOLDER_PATH)
     path = pathlib.Path(SSL_FOLDER_PATH)
     path.mkdir(parents=True, exist_ok=True)
-    yield
-    shutil.rmtree(SSL_FOLDER_PATH)
+    try:
+      yield
+    finally:
+      shutil.rmtree(SSL_FOLDER_PATH)

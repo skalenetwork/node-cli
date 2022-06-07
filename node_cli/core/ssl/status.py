@@ -36,7 +36,7 @@ def cert_status():
     cert = cert_from_file(SSL_CERT_FILEPATH)
     status, info = get_cert_info(cert)
     if status == 'error':
-        return status, CERTS_INVALID_FORMAT
+        return err_result(CERTS_INVALID_FORMAT)
     else:
         return ok_result(payload={
             'issued_to': info['issued_to'],

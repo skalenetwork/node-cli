@@ -23,6 +23,7 @@ import logging
 from contextlib import contextmanager
 
 from node_cli.core.ssl.utils import detached_subprocess
+from node_cli.utils.helper import err_result
 from node_cli.configs.ssl import (
     DEFAULT_SSL_CHECK_PORT,
     SKALED_SSL_TEST_SCRIPT,
@@ -50,7 +51,7 @@ def check_cert(
             )
         except Exception as err:
             logger.exception('Cerificate/key pair is incorrect')
-            return 'error', f'Certificate check failed. {err}'
+            return err_result(f'Certificate check failed. {err}')
 
     if check_type in ('all', 'skaled'):
         try:
