@@ -29,8 +29,8 @@ import pytest
 import yaml
 
 from node_cli.configs import (
-  ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
-  REMOVED_CONTAINERS_FOLDER_PATH
+    ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
+    REMOVED_CONTAINERS_FOLDER_PATH
 )
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
@@ -195,6 +195,6 @@ def ssl_folder():
     path = pathlib.Path(SSL_FOLDER_PATH)
     path.mkdir(parents=True, exist_ok=True)
     try:
-      yield
+        yield
     finally:
-      shutil.rmtree(SSL_FOLDER_PATH)
+        shutil.rmtree(SSL_FOLDER_PATH)
