@@ -22,7 +22,12 @@ import socket
 import sys
 from pathlib import Path
 
-from node_cli.configs import IPTABLES_DIR, IPTABLES_RULES_STATE_FILEPATH, ENV
+from node_cli.configs import (
+    IPTABLES_DIR,
+    IPTABLES_RULES_STATE_FILEPATH,
+    ENV,
+    DEFAULT_SSH_PORT
+)
 from node_cli.utils.helper import run_cmd
 
 
@@ -133,12 +138,16 @@ def drop_all_udp(chain: iptc.Chain) -> None:
 
 
 def get_ssh_port(ssh_service_name='ssh'):
-    return socket.getservbyname('ssh')
+    try:
+        return socket.getservbyname(ssh_service_name)
+    except OSError:
+        logger.exception('Cannot get ssh service port')
+        return DEFAULT_SSH_PORT
 
 
 def allow_ssh(chain: iptc.Chain) -> None:
     ssh_port = get_ssh_port()
-    accept_incoming(chain, ssh_port, 'tcp')
+    accept_incoming(chain, str(ssh_port), 'tcp')
 
 
 def allow_base_ports(chain: iptc.Chain) -> None:
