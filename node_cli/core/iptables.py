@@ -151,18 +151,18 @@ def allow_ssh(chain: iptc.Chain) -> None:
 
 
 def allow_base_ports(chain: iptc.Chain) -> None:
-    logger.info('Configuring ssh port...')
+    logger.info('Configuring ssh port')
     allow_ssh(chain)
-    logger.info('Configuring incoming tcp port...')
+    logger.info('Configuring incoming tcp ports')
     for port in ALLOWED_INCOMING_TCP_PORTS:
         accept_incoming(chain, port, 'tcp')
-    logger.info('Configuring incoming udp port...')
+    logger.info('Configuring incoming udp ports')
     for port in ALLOWED_INCOMING_UDP_PORTS:
         accept_incoming(chain, port, 'udp')
 
 
-def accept_incoming(chain, port, protocol) -> None:
-    logger.debug('Going to allow %s traffic from %d port', protocol, port)
+def accept_incoming(chain: iptc.Chain, port: str, protocol: str) -> None:
+    logger.debug('Going to allow %s traffic from %s port', protocol, port)
     rule = iptc.Rule()
     rule.protocol = protocol
     match = iptc.Match(rule, protocol)

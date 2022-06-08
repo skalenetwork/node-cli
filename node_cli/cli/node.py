@@ -40,6 +40,7 @@ from node_cli.core.node import (
 )
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.configs.env import ALLOWED_ENV_TYPES
+from node_cli.utils.decorators import check_inited
 from node_cli.utils.helper import (
     abort_if_false,
     safe_load_texts,
@@ -252,6 +253,7 @@ def configure_firewall():
 
 
 @node.command(help='Show node version information')
+@check_inited
 @click.option(
     '--json',
     'raw',
