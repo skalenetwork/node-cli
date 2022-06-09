@@ -41,6 +41,7 @@ def test_init_sync(mocked_g_config):
             mock.patch('node_cli.core.node.init_sync_op'), \
             mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), \
             mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
+            mock.patch('node_cli.core.node.configure_firewall_rules'), \
             mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         result = run_command(
             _init_sync,
@@ -55,6 +56,7 @@ def test_update_sync(mocked_g_config):
             mock.patch('node_cli.core.node.update_sync_op'), \
             mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), \
             mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
+            mock.patch('node_cli.core.node.configure_firewall_rules'), \
             mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command(
             _update_sync,
