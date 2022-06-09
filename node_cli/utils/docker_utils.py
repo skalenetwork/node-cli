@@ -233,3 +233,11 @@ def compose_up(env):
     if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
         logger.info('Running containers for Telegram notifications')
         run_cmd(cmd=get_up_compose_cmd(NOTIFICATION_COMPOSE_SERVICES), env=env)
+
+
+def docker_prune(all_artifacts=False):
+    logger.info('Removing unused docker artifacts')
+    cmd = ['docker', 'system', 'prune']
+    if all_artifacts:
+        cmd.append('-af')
+    run_cmd(cmd=cmd)

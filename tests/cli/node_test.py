@@ -24,16 +24,26 @@ import requests
 import logging
 
 from node_cli.configs import SKALE_DIR, G_CONF_HOME
-from node_cli.cli.node import (node_info, register_node, signature,
-                               backup_node, restore_node,
-                               set_node_in_maintenance,
-                               remove_node_from_maintenance,
-                               _turn_off, _turn_on, _set_domain_name)
+from node_cli.cli.node import (
+    node_info,
+    register_node,
+    signature,
+    backup_node,
+    restore_node,
+    set_node_in_maintenance,
+    remove_node_from_maintenance,
+    version,
+    _turn_off,
+    _turn_on,
+    _set_domain_name
+)
 from node_cli.utils.helper import init_default_logger
 
 from tests.helper import (
-    response_mock, run_command_mock,
-    run_command, subprocess_run_mock
+    response_mock,
+    run_command,
+    run_command_mock,
+    subprocess_run_mock
 )
 from tests.resources_test import BIG_DISK_SIZE
 
@@ -389,3 +399,14 @@ def test_set_domain_name():
             _set_domain_name, ['-d', 'skale.test', '--yes'])
     assert result.exit_code == 0
     assert result.output == 'Setting new domain name: skale.test\nDomain name successfully changed\n'  # noqa
+
+
+def test_node_version(meta_file_v2):
+    result = run_command(version)
+    assert result.exit_code == 0
+    assert result.output == '--------------------------------------------------\nVersion: 0.1.1\nConfig Stream: develop\nLvmpy stream: 1.1.2\n--------------------------------------------------\n'  # noqa
+
+    result = run_command(version, ['--json'])
+    print(repr(result.output))
+    assert result.exit_code == 0
+    assert result.output == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_stream': '1.1.2'}\n"  # noqa
