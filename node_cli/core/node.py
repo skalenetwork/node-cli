@@ -141,6 +141,7 @@ def init(env_filepath):
 
 @check_not_inited
 def init_sync(env_filepath: str) -> None:
+    configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
     if env is None:
         return
@@ -164,6 +165,7 @@ def init_sync(env_filepath: str) -> None:
 @check_user
 def update_sync(env_filepath):
     logger.info('Node update started')
+    configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
     update_ok = update_sync_op(env_filepath, env)
     if update_ok:
