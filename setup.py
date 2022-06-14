@@ -62,7 +62,7 @@ setup(
         "requests==2.28.0",
         "GitPython==3.1.14",
         "PyYAML==5.4.1",
-        "packaging==20.9",
+        "packaging==21.3",
         "python-debian==0.1.39",
         "python-iptables==1.0.0",
         "MarkupSafe==2.0.1",
