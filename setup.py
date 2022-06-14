@@ -25,7 +25,7 @@ extras_require = {
     ],
     'dev': [
         "bumpversion==0.6.0",
-        "pytest==6.2.3",
+        "pytest==7.1.2",
         "pytest-cov==3.0.0",
         "twine==2.0.0",
         "mock==4.0.3",
