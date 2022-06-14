@@ -25,10 +25,10 @@ extras_require = {
     ],
     'dev': [
         "bumpversion==0.6.0",
-        "pytest==6.2.3",
+        "pytest==7.1.2",
         "pytest-cov==3.0.0",
         "twine==2.0.0",
-        "mock==4.0.2",
+        "mock==4.0.3",
         "freezegun==0.3.15"
     ]
 }
@@ -53,7 +53,7 @@ setup(
         "click==8.1.3",
         "docker==4.2.2",
         "PyInstaller==3.6",
-        "texttable==1.6.2",
+        "texttable==1.6.4",
         "python-dateutil==2.8.1",
         "Jinja2==2.11.2",
         "psutil==5.7.0",
