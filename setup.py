@@ -60,7 +60,7 @@ setup(
         "python-dotenv==0.20.0",
         "terminaltables==3.1.0",
         "requests==2.28.0",
-        "GitPython==3.1.14",
+        "GitPython==3.1.27",
         "PyYAML==5.4.1",
         "packaging==21.3",
         "python-debian==0.1.39",
