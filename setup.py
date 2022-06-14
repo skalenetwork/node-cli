@@ -26,7 +26,7 @@ extras_require = {
     'dev': [
         "bumpversion==0.6.0",
         "pytest==6.2.3",
-        "pytest-cov==2.9.0",
+        "pytest-cov==3.0.0",
         "twine==2.0.0",
         "mock==4.0.2",
         "freezegun==0.3.15"
@@ -50,7 +50,7 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
-        "click==7.1.2",
+        "click==8.1.3",
         "docker==4.2.2",
         "PyInstaller==3.6",
         "texttable==1.6.2",
