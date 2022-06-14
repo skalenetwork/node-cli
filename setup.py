@@ -21,7 +21,7 @@ def find_version(*file_paths):
 extras_require = {
     'linter': [
         "flake8==4.0.1",
-        "isort>=4.2.15,<5.8.1",
+        "isort>=4.2.15,<5.10.2",
     ],
     'dev': [
         "bumpversion==0.6.0",
@@ -50,7 +50,7 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
-        "click==7.1.2",
+        "click==8.1.3",
         "docker==4.2.2",
         "PyInstaller==3.6",
         "texttable==1.6.2",
