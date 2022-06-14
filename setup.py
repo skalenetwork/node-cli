@@ -28,7 +28,7 @@ extras_require = {
         "pytest==6.2.3",
         "pytest-cov==3.0.0",
         "twine==2.0.0",
-        "mock==4.0.2",
+        "mock==4.0.3",
         "freezegun==0.3.15"
     ]
 }
@@ -50,16 +50,16 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
-        "click==7.1.2",
+        "click==8.1.3",
         "docker==4.2.2",
         "PyInstaller==3.6",
-        "texttable==1.6.2",
+        "texttable==1.6.4",
         "python-dateutil==2.8.1",
         "Jinja2==3.1.2",
-        "psutil==5.7.0",
+        "psutil==5.9.1",
         "python-dotenv==0.20.0",
         "terminaltables==3.1.0",
-        "requests==2.23.0",
+        "requests==2.28.0",
         "GitPython==3.1.14",
         "PyYAML==5.4.1",
         "packaging==20.9",
