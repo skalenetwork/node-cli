@@ -29,7 +29,7 @@ extras_require = {
         "pytest-cov==3.0.0",
         "twine==2.0.0",
         "mock==4.0.3",
-        "freezegun==0.3.15"
+        "freezegun==1.2.1"
     ]
 }
 
@@ -55,14 +55,14 @@ setup(
         "PyInstaller==3.6",
         "texttable==1.6.4",
         "python-dateutil==2.8.1",
-        "Jinja2==2.11.2",
-        "psutil==5.7.0",
+        "Jinja2==3.1.2",
+        "psutil==5.9.1",
         "python-dotenv==0.20.0",
         "terminaltables==3.1.0",
-        "requests==2.23.0",
+        "requests==2.28.0",
         "GitPython==3.1.14",
         "PyYAML==5.4.1",
-        "packaging==20.9",
+        "packaging==21.3",
         "python-debian==0.1.39",
         "python-iptables==1.0.0",
         "MarkupSafe==2.0.1",
