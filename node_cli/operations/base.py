@@ -118,7 +118,7 @@ def update(env_filepath: str, env: Dict) -> None:
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
-    docker_prune(all_artifacts=True)
+    docker_prune()
     return True
 
 
