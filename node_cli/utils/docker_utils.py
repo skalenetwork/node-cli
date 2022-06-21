@@ -32,7 +32,8 @@ from node_cli.configs import (
     SYNC_COMPOSE_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    SKALE_DIR
+    SKALE_DIR,
+    NGINX_CONTAINER_NAME
 )
 
 
@@ -74,7 +75,6 @@ def get_sanitized_container_name(container_info: dict) -> str:
 
 def get_containers(container_name_filter=None, _all=True) -> list:
     return docker_client().containers.list(all=_all)
-    return docker_client().containers.list(all=_all, filters={'name': container_name_filter})
 
 
 def get_all_schain_containers(_all=True) -> list:
@@ -250,3 +250,9 @@ def compose_up(env, sync_node=False):
 def compose_up_sync(env) -> None:
     logger.info('Running containers for sync node')
     run_cmd(cmd=get_up_compose_sync_cmd(), env=env)
+
+
+def restart_nginx_container(dutils=None):
+    dutils = dutils or docker_client()
+    nginx_container = dutils.containers.get(NGINX_CONTAINER_NAME)
+    nginx_container.restart()

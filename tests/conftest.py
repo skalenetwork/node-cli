@@ -30,11 +30,12 @@ import yaml
 
 from node_cli.configs import (
     ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
-    REMOVED_CONTAINERS_FOLDER_PATH
+    REMOVED_CONTAINERS_FOLDER_PATH, NGINX_CONTAINER_NAME
 )
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
+from node_cli.utils.docker_utils import docker_client
 
 
 TEST_ENV_PARAMS = """
@@ -198,3 +199,33 @@ def ssl_folder():
         yield
     finally:
         shutil.rmtree(SSL_FOLDER_PATH)
+
+
+@pytest.fixture
+def dutils():
+    return docker_client()
+
+
+@pytest.fixture
+def nginx_container(dutils, ssl_folder):
+    c = None
+    try:
+        c = dutils.containers.run(
+            'nginx:1.20.2',
+            name=NGINX_CONTAINER_NAME,
+            detach=True,
+            volumes={
+                ssl_folder: {
+                    'bind': '/ssl',
+                    'mode': 'ro',
+                    'propagation': 'slave'
+                }
+            }
+        )
+        yield c
+    finally:
+        if c is not None:
+            try:
+                c.remove(force=True)
+            except Exception:
+                pass

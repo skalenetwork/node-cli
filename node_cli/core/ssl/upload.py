@@ -23,6 +23,8 @@ from node_cli.configs.ssl import CERTS_UPLOADED_ERR_MSG
 from node_cli.core.ssl.check import check_cert_openssl
 from node_cli.core.ssl.utils import is_ssl_folder_empty, copy_cert_key_pair
 from node_cli.utils.helper import ok_result, err_result
+from node_cli.core.nginx import reload_nginx
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,4 +38,5 @@ def upload_cert(cert_path, key_path, force, no_client=False):
     if not is_ssl_folder_empty() and not force:
         return err_result(CERTS_UPLOADED_ERR_MSG)
     copy_cert_key_pair(cert_path, key_path)
+    reload_nginx()
     return ok_result()
