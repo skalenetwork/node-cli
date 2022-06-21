@@ -56,6 +56,7 @@ ENVIRONMENT_PARAMS_FILEPATH = os.path.join(
     CONTAINER_CONFIG_PATH, 'environment_params.yaml')
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
 NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
+NGINX_CONTAINER_NAME = 'skale_nginx'
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
