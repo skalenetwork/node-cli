@@ -237,7 +237,7 @@ def compose_up(env):
 
 def docker_prune(all_artifacts=False):
     logger.info('Removing unused docker artifacts')
-    cmd = ['docker', 'system', 'prune']
+    cmd = ['docker', 'system', 'prune', '-f']
     if all_artifacts:
-        cmd.append('-af')
+        cmd.append('-a')
     run_cmd(cmd=cmd)
