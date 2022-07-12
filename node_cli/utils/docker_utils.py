@@ -235,9 +235,9 @@ def compose_up(env):
         run_cmd(cmd=get_up_compose_cmd(NOTIFICATION_COMPOSE_SERVICES), env=env)
 
 
-def docker_prune(all_artifacts=False):
+def docker_prune(dangling_only=False):
     logger.info('Removing unused docker artifacts')
     cmd = ['docker', 'system', 'prune', '-f']
-    if all_artifacts:
+    if not dangling_only:
         cmd.append('-a')
     run_cmd(cmd=cmd)
