@@ -23,8 +23,13 @@ import shutil
 
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.git_utils import sync_repo
-from node_cli.configs import (DOCKER_LVMPY_PATH, DOCKER_LVMPY_REPO_URL,
-                              FILESTORAGE_MAPPING, SCHAINS_MNT_DIR)
+from node_cli.configs import (
+    DOCKER_LVMPY_PATH,
+    DOCKER_LVMPY_REPO_URL,
+    FILESTORAGE_MAPPING,
+    SCHAINS_MNT_DIR,
+    SKALE_STATE_DIR
+)
 
 logger = logging.getLogger(__name__)
 
@@ -74,3 +79,10 @@ def docker_lvmpy_install(env):
         env=env
     )
     logger.info('docker-lvmpy installed')
+
+
+def prepare_device(block_device):
+    run_cmd(['mkfs.btrfs', block_device])
+    mountpoint = os.path.join(SKALE_STATE_DIR, 'schains')
+    os.makedirs(mountpoint)
+    run_cmd(['mount', block_device, mountpoint])
