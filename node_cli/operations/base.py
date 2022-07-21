@@ -33,10 +33,10 @@ from node_cli.operations.common import (
     backup_old_contracts, download_contracts, configure_filebeat,
     configure_flask, unpack_backup_archive
 )
-from node_cli.operations.docker_lvmpy import (
+from node_cli.operations.volume import (
     docker_lvmpy_update,
     docker_lvmpy_install,
-    prepare_device
+    prepare_block_device
 )
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
@@ -154,7 +154,7 @@ def init(env_filepath: str, env: str) -> bool:
 
 def init_sync(env_filepath: str, env: str) -> bool:
     download_skale_node(
-        env['CONTAINER_CONFIGS_STREAM'],
+        env.get('CONTAINER_CONFIGS_STREAM'),
         env.get('CONTAINER_CONFIGS_DIR')
     )
     sync_skale_node()
@@ -170,7 +170,7 @@ def init_sync(env_filepath: str, env: str) -> bool:
     download_contracts(env)
 
     generate_nginx_config()
-    prepare_device(env['DISK_MOUNTPOINT'])
+    prepare_block_device(env['DISK_MOUNTPOINT'])
 
     update_meta(
         VERSION,
@@ -199,7 +199,7 @@ def update_sync(env_filepath: str, env: Dict) -> None:
     backup_old_contracts()
     download_contracts(env)
 
-    docker_lvmpy_update(env)
+    prepare_block_device(env['DISK_MOUNTPOINT'])
     generate_nginx_config()
 
     prepare_host(
