@@ -126,7 +126,7 @@ def format_as_btrfs(block_device):
 
 def mount_device(block_device, mountpoint):
     os.makedirs(mountpoint, exist_ok=True)
-    logger.info('Mounting %s as btrfs', block_device)
+    logger.info('Mounting %s device', block_device)
     run_cmd(['mount', block_device, mountpoint])
 
 
