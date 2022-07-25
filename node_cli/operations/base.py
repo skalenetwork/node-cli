@@ -34,6 +34,7 @@ from node_cli.operations.common import (
     configure_flask, unpack_backup_archive
 )
 from node_cli.operations.volume import (
+    cleanup_volume_artifacts,
     docker_lvmpy_update,
     docker_lvmpy_install,
     prepare_block_device
@@ -153,6 +154,7 @@ def init(env_filepath: str, env: str) -> bool:
 
 
 def init_sync(env_filepath: str, env: str) -> bool:
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
         env.get('CONTAINER_CONFIGS_STREAM'),
         env.get('CONTAINER_CONFIGS_DIR')
@@ -186,7 +188,7 @@ def init_sync(env_filepath: str, env: str) -> bool:
 def update_sync(env_filepath: str, env: Dict) -> None:
     compose_rm(env, sync_node=True)
     remove_dynamic_containers()
-
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
         env['CONTAINER_CONFIGS_STREAM'],
         env.get('CONTAINER_CONFIGS_DIR')

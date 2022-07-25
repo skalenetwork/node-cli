@@ -50,8 +50,15 @@ from node_cli.core.host import (
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
-    update_op, init_op, turn_off_op, turn_on_op, restore_op, init_sync_op, update_sync_op
+    update_op,
+    init_op,
+    turn_off_op,
+    turn_on_op,
+    restore_op,
+    init_sync_op,
+    update_sync_op
 )
+from node_cli.operations.volume import ensure_btrfs_for_all_space
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks, print_node_cmd_error, print_node_info
 )
@@ -450,4 +457,10 @@ def run_checks(
 def configure_firewall_rules() -> None:
     print('Configuring firewall ...')
     configure_iptables()
+    print('Done')
+
+
+def resize_filesystem(block_device: str) -> None:
+    print('Resizing fs')
+    ensure_btrfs_for_all_space(block_device)
     print('Done')

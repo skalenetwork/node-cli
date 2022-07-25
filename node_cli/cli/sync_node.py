@@ -19,7 +19,7 @@
 
 import click
 
-from node_cli.core.node import init_sync, update_sync
+from node_cli.core.node import init_sync, resize_filesystem, update_sync
 from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
 
 
@@ -51,3 +51,9 @@ def _init_sync(env_file):
 @streamed_cmd
 def _update_sync(env_file):
     update_sync(env_file)
+
+
+@sync_node.command(help='Update sync node from .env file')
+@click.argument('block_device')
+def extend_fs(block_device):
+    resize_filesystem(block_device)

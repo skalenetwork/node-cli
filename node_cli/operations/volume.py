@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import glob
 import logging
 import os
 import shutil
@@ -86,34 +87,70 @@ def docker_lvmpy_install(env):
     logger.info('docker-lvmpy installed')
 
 
+def block_device_mounted(block_device):
+    with open('/proc/mounts') as mounts:
+        return any(block_device in mount for mount in mounts.readlines())
+
+
+def ensure_not_mounted(block_device):
+    logger.info('Making sure %s is not mounted', block_device)
+    if block_device_mounted(block_device):
+        run_cmd(['umount', block_device])
+
+
+def cleanup_static_path(filestorage_mapping=FILESTORAGE_MAPPING):
+    logger.info('Removing all links from filestorage mapping')
+    for dir_link in glob.glob(os.path.join(filestorage_mapping, '*')):
+        logger.debug('Unlinking %s', dir_link)
+        if os.path.islink(dir_link):
+            os.unlink(dir_link)
+
+
+def cleanup_volume_artifacts(block_device):
+    ensure_not_mounted(block_device)
+    cleanup_static_path()
+
+
 def get_block_device_filesystem(block_device):
-    with tempfile.TemporaryDirectory(dir=SKALE_STATE_DIR) as tempdir:
-        try:
-            run_cmd(['mount', block_device, tempdir.path])
-            r = run_cmd(['stat', '-f', '-c', '%T'])
-            return r.stdout.decode('utf-8')
-        finally:
-            run_cmd(['umount', block_device])
+    r = run_cmd(['blkid', '-o', 'udev', block_device])
+    output = r.stdout.decode('utf-8')
+    logger.debug('blkid output %s', output)
+    fs_line = next(filter(lambda s: s.startswith('ID_FS_TYPE'), output.split('\n')))
+    return fs_line.split('=')[1]
 
 
 def format_as_btrfs(block_device):
-    filesystem = get_block_device_filesystem(block_device)
-    logger.info('Found filesystem on the %s: %s', block_device, filesystem)
-    if filesystem == 'btrfs':
-        logger.info('Formatting %s as btrfs', block_device)
-        run_cmd(['mkfs.btrfs', block_device])
-    else:
-        raise FilesystemExistsError(f'{block_device} contains {filesystem}')
+    logger.info('Formating %s as btrfs', block_device)
+    run_cmd(['mkfs.btrfs', block_device, '-f'])
 
 
 def mount_device(block_device, mountpoint):
-    os.makedirs(mountpoint, exists_ok=True)
+    os.makedirs(mountpoint, exist_ok=True)
     logger.info('Mounting %s as btrfs', block_device)
     run_cmd(['mount', block_device, mountpoint])
 
 
 def prepare_block_device(block_device):
-    mountpoint = os.path.join(SKALE_STATE_DIR, 'schains')
-    if not os.path.ismount(mountpoint):
+    filesystem = get_block_device_filesystem(block_device)
+    if filesystem == 'btrfs':
+        logger.info('%s already formatted as btrfs', block_device)
+        ensure_btrfs_for_all_space(block_device)
+    else:
+        logger.info('%s contains %s filesystem', block_device, filesystem)
         format_as_btrfs(block_device)
-        mount_device(block_device, mountpoint)
+    mountpoint = os.path.join(SKALE_STATE_DIR, 'schains')
+    mount_device(block_device, mountpoint)
+
+
+def max_resize_btrfs(path):
+    run_cmd(['btrfs', 'filesystem', 'resize', 'max', path])
+
+
+def ensure_btrfs_for_all_space(block_device):
+    with tempfile.TemporaryDirectory(dir=SKALE_STATE_DIR) as mountpoint:
+        try:
+            mount_device(block_device, mountpoint)
+            logger.info('Resizing btrfs filesystem for %s', block_device)
+            max_resize_btrfs(mountpoint)
+        finally:
+            ensure_not_mounted(block_device)
