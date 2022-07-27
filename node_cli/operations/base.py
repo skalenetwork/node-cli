@@ -40,7 +40,7 @@ from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
-    docker_prune,
+    docker_cleanup,
     remove_dynamic_containers
 )
 from node_cli.utils.meta import update_meta
@@ -118,7 +118,7 @@ def update(env_filepath: str, env: Dict) -> None:
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
-    docker_prune()
+    docker_cleanup()
     return True
 
 
