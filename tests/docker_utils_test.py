@@ -2,6 +2,7 @@ import os
 import time
 from time import sleep
 
+import mock
 import pytest
 
 from node_cli.utils.docker_utils import (
@@ -98,3 +99,6 @@ def test_docker_cleanup(dclient, simple_container):
     c.remove()
     docker_cleanup(dclient=dclient)
     assert image not in dclient.images.list()
+
+    with mock.patch('node_cli.utils.docker_utils.run_cmd', side_effect=ValueError):
+        docker_cleanup(dclient=dclient)
