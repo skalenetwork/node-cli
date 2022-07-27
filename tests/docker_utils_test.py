@@ -5,7 +5,11 @@ from time import sleep
 import docker
 import pytest
 
-from node_cli.utils.docker_utils import save_container_logs, safe_rm
+from node_cli.utils.docker_utils import (
+    docker_cleanup,
+    save_container_logs,
+    safe_rm
+)
 from node_cli.configs import REMOVED_CONTAINERS_FOLDER_PATH
 
 
@@ -83,3 +87,18 @@ def test_safe_rm(simple_container, removed_containers_folder):
     with open(log_path) as log_file:
         log_lines = log_file.readlines()
     assert log_lines[-1] == 'signal_handler completed, exiting...\n'
+
+
+def test_docker_cleanup(simple_container):
+    c = simple_container
+    image = c.image
+    docker_cleanup(dclient=client)
+    assert image in client.images.list()
+
+    c.stop()
+    docker_cleanup(dclient=client)
+    assert image in client.images.list()
+
+    c.remove()
+    docker_cleanup(dclient=client)
+    assert image not in client.images.list()

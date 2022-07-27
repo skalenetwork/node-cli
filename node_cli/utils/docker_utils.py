@@ -262,6 +262,10 @@ def system_prune():
 
 
 def docker_cleanup(dclient=None):
-    dc = dclient or docker_client()
-    cleanup_unused_images(dclient=dc)
-    system_prune()
+    try:
+        dc = dclient or docker_client()
+        cleanup_unused_images(dclient=dc)
+        system_prune()
+    except Exception as e:
+        logger.warning('Image cleanuping errored with %s', e)
+        logger.debug('Image cleanuping errored', exc_info=True)

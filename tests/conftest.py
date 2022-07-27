@@ -158,6 +158,10 @@ def simple_image():
         )
         yield name
     finally:
+        try:
+            client.images.get(name)
+        except docker.errors.ImageNotFound:
+            return
         client.images.remove(name, force=True)
 
 
