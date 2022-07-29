@@ -235,9 +235,37 @@ def compose_up(env):
         run_cmd(cmd=get_up_compose_cmd(NOTIFICATION_COMPOSE_SERVICES), env=env)
 
 
-def docker_prune(dangling_only=False):
-    logger.info('Removing unused docker artifacts')
+def remove_images(images, dclient=None):
+    dc = dclient or docker_client()
+    for image in images:
+        dc.images.remove(image.id)
+
+
+def get_used_images(dclient=None):
+    dc = dclient or docker_client()
+    return [c.image for c in dc.containers.list()]
+
+
+def cleanup_unused_images(dclient=None):
+    dc = dclient or docker_client()
+    used = get_used_images(dclient=dc)
+    remove_images(
+        filter(lambda i: i not in used, dc.images.list()),
+        dclient=dc
+    )
+
+
+def system_prune():
+    logger.info('Removing dangling docker artifacts')
     cmd = ['docker', 'system', 'prune', '-f']
-    if not dangling_only:
-        cmd.append('-a')
     run_cmd(cmd=cmd)
+
+
+def docker_cleanup(dclient=None):
+    try:
+        dc = dclient or docker_client()
+        cleanup_unused_images(dclient=dc)
+        system_prune()
+    except Exception as e:
+        logger.warning('Image cleanuping errored with %s', e)
+        logger.debug('Image cleanuping errored', exc_info=True)
