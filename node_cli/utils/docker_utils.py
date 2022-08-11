@@ -246,11 +246,13 @@ def get_used_images(dclient=None):
     return [c.image for c in dc.containers.list()]
 
 
-def cleanup_unused_images(dclient=None):
+def cleanup_unused_images(dclient=None, ignore=None):
+    logger.info('Removing unused docker images')
+    ignore = ignore or []
     dc = dclient or docker_client()
     used = get_used_images(dclient=dc)
     remove_images(
-        filter(lambda i: i not in used, dc.images.list()),
+        filter(lambda i: i not in used and i not in ignore, dc.images.list()),
         dclient=dc
     )
 
@@ -261,10 +263,11 @@ def system_prune():
     run_cmd(cmd=cmd)
 
 
-def docker_cleanup(dclient=None):
+def docker_cleanup(dclient=None, ignore=None):
+    ignore = ignore or []
     try:
         dc = dclient or docker_client()
-        cleanup_unused_images(dclient=dc)
+        cleanup_unused_images(dclient=dc, ignore=ignore)
         system_prune()
     except Exception as e:
         logger.warning('Image cleanuping errored with %s', e)
