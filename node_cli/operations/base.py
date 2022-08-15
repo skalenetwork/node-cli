@@ -112,7 +112,8 @@ def update(env_filepath: str, env: Dict) -> None:
     init_shared_space_volume(env['ENV_TYPE'])
 
     current_stream = get_meta_info().config_stream
-    if current_stream != env['CONTAINER_CONFIGS_STREAM']:
+    skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
+    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
