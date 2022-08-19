@@ -158,6 +158,7 @@ def test_init_node(no_resource_file):  # todo: write new init node test
                        return_value=BIG_DISK_SIZE), \
             mock.patch('node_cli.core.host.prepare_host'), \
             mock.patch('node_cli.core.host.init_data_dir'), \
+            mock.patch('node_cli.core.node.configure_firewall_rules'), \
             mock.patch('node_cli.core.node.init_op'), \
             mock.patch('node_cli.core.node.is_base_containers_alive',
                        return_value=True), \

@@ -146,11 +146,15 @@ def removed_containers_folder():
 
 
 @pytest.fixture()
-def simple_image():
-    client = docker.from_env()
+def dclient():
+    return docker.from_env()
+
+
+@pytest.fixture()
+def simple_image(dclient):
     name = 'simple-image'
     try:
-        client.images.build(
+        dclient.images.build(
             tag=name,
             rm=True,
             nocache=True,
@@ -158,13 +162,17 @@ def simple_image():
         )
         yield name
     finally:
-        client.images.remove(name, force=True)
+        try:
+            dclient.images.get(name)
+        except docker.errors.ImageNotFound:
+            return
+        dclient.images.remove(name, force=True)
 
 
 @pytest.fixture()
-def docker_hc():
-    client = docker.from_env()
-    return client.api.create_host_config(
+def docker_hc(dclient):
+    dclient = docker.from_env()
+    return dclient.api.create_host_config(
         log_config=docker.types.LogConfig(
             type=docker.types.LogConfig.types.JSON
         )
