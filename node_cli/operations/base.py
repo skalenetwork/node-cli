@@ -40,10 +40,10 @@ from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
-    docker_prune,
+    docker_cleanup,
     remove_dynamic_containers
 )
-from node_cli.utils.meta import update_meta
+from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 
@@ -111,6 +111,16 @@ def update(env_filepath: str, env: Dict) -> None:
     )
     init_shared_space_volume(env['ENV_TYPE'])
 
+    current_stream = get_meta_info().config_stream
+    skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
+    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+        logger.info(
+            'Stream version was changed from %s to %s',
+            current_stream,
+            env['CONTAINER_CONFIGS_STREAM']
+        )
+        docker_cleanup()
+
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
@@ -118,7 +128,6 @@ def update(env_filepath: str, env: Dict) -> None:
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
-    docker_prune()
     return True
 
 
