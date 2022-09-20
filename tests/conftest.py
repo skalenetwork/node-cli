@@ -29,11 +29,16 @@ import pytest
 import yaml
 
 from node_cli.configs import (
-  ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
+  ENVIRONMENT_PARAMS_FILEPATH,
+  GLOBAL_SKALE_DIR,
+  GLOBAL_SKALE_CONF_FILEPATH,
   REMOVED_CONTAINERS_FOLDER_PATH
 )
-from node_cli.utils.global_config import generate_g_config_file
+from node_cli.configs import META_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.utils.global_config import generate_g_config_file
+
+from tests.helper import TEST_META_V1, TEST_META_V2
 
 
 TEST_ENV_PARAMS = """
@@ -193,3 +198,32 @@ def resource_alloc():
         json.dump({}, alloc_file)
     yield RESOURCE_ALLOCATION_FILEPATH
     os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+@pytest.fixture
+def meta_file_v1():
+    with open(META_FILEPATH, 'w') as f:
+        json.dump(TEST_META_V1, f)
+    try:
+        yield META_FILEPATH
+    finally:
+        os.remove(META_FILEPATH)
+
+
+@pytest.fixture
+def meta_file_v2():
+    with open(META_FILEPATH, 'w') as f:
+        json.dump(TEST_META_V2, f)
+    try:
+        yield META_FILEPATH
+    finally:
+        os.remove(META_FILEPATH)
+
+
+@pytest.fixture
+def ensure_meta_removed():
+    try:
+        yield
+    finally:
+        if os.path.isfile(META_FILEPATH):
+            os.remove(META_FILEPATH)

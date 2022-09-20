@@ -27,6 +27,7 @@ import inspect
 
 from node_cli.configs import LONG_LINE
 from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
+from node_cli.utils.meta import CliMeta
 from node_cli.utils.texts import Texts
 
 TEXTS = Texts()
@@ -270,7 +271,7 @@ def print_node_cmd_error():
 
 
 def print_node_info(node, node_status):
-    print(inspect.cleandoc(f'''
+    print(inspect.cleandoc(f"""
         {LONG_LINE}
         Node info
         Name: {node['name']}
@@ -281,7 +282,7 @@ def print_node_info(node, node_status):
         Domain name: {node['domain_name']}
         Status: {node_status}
         {LONG_LINE}
-    '''))
+    """))
 
 
 def print_err_response(error_payload):
@@ -307,3 +308,13 @@ def print_failed_requirements_checks(failed_checks: list) -> None:
     block_len = (len(drawing.split()[0]) - len(main_header)) // 2
     print('=' * block_len + main_header + '=' * block_len)
     print(drawing)
+
+
+def print_meta_info(meta_info: CliMeta) -> None:
+    print(inspect.cleandoc(f"""
+        {LONG_LINE}
+        Version: {meta_info.version}
+        Config Stream: {meta_info.config_stream}
+        Lvmpy stream: {meta_info.docker_lvmpy_stream}
+        {LONG_LINE}
+    """))
