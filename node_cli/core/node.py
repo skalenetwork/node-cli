@@ -121,6 +121,7 @@ def init(env_filepath):
     env = get_node_env(env_filepath)
     if env is None:
         return
+    configure_firewall_rules()
     inited_ok = init_op(env_filepath, env)
     if not inited_ok:
         error_exit(

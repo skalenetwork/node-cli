@@ -5,7 +5,6 @@ import shutil
 from contextlib import contextmanager
 from timeit import default_timer as timer
 
-import docker
 import pytest
 
 from node_cli.core.docker_config import (
@@ -127,11 +126,12 @@ def test_ensure_run_dir(tmp_dir):
 
 
 @pytest.fixture
-def container():
-    client = docker.from_env()
-    c = client.containers.run('hello-world', detach=True)
-    yield c
-    c.remove(force=True)
+def container(dclient):
+    c = dclient.containers.run('hello-world', detach=True)
+    try:
+        yield c
+    finally:
+        c.remove(force=True)
 
 
 def test_assert_no_contaners():
