@@ -2,28 +2,29 @@ import os
 import time
 from time import sleep
 
-import docker
+import mock
 import pytest
 
-from node_cli.utils.docker_utils import save_container_logs, safe_rm
+from node_cli.utils.docker_utils import (
+    docker_cleanup,
+    save_container_logs,
+    safe_rm
+)
 from node_cli.configs import REMOVED_CONTAINERS_FOLDER_PATH
 
 
-client = docker.from_env()
-
-
 @pytest.fixture
-def simple_container(simple_image, docker_hc):
+def simple_container(dclient, simple_image, docker_hc):
     name = 'simple-container'
     c = None
     try:
-        info = client.api.create_container(
+        info = dclient.api.create_container(
             simple_image,
             detach=True,
             name=name,
             host_config=docker_hc
         )
-        c = client.containers.get(info['Id'])
+        c = dclient.containers.get(info['Id'])
         c.restart()
         yield c
     finally:
@@ -83,3 +84,21 @@ def test_safe_rm(simple_container, removed_containers_folder):
     with open(log_path) as log_file:
         log_lines = log_file.readlines()
     assert log_lines[-1] == 'signal_handler completed, exiting...\n'
+
+
+def test_docker_cleanup(dclient, simple_container):
+    c = simple_container
+    image = c.image
+    docker_cleanup(dclient=dclient)
+    assert image in dclient.images.list()
+
+    c.stop()
+    docker_cleanup(dclient=dclient)
+    assert image in dclient.images.list()
+
+    c.remove()
+    docker_cleanup(dclient=dclient)
+    assert image not in dclient.images.list()
+
+    with mock.patch('node_cli.utils.docker_utils.run_cmd', side_effect=ValueError):
+        docker_cleanup(dclient=dclient)
