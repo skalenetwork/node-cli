@@ -71,6 +71,10 @@ DEFAULT_ERROR_DATA = {
 }
 
 
+class InvalidEnvFileError(Exception):
+    pass
+
+
 def read_json(path):
     with open(path, encoding='utf-8') as data_file:
         return json.loads(data_file.read())
@@ -141,7 +145,7 @@ def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
-def extract_env_params(env_filepath, sync_node=False):
+def extract_env_params(env_filepath, sync_node=False, raise_for_status=True):
     env_params = get_env_config(env_filepath, sync_node=sync_node)
     absent_params = ', '.join(absent_env_params(env_params))
     if absent_params:
@@ -150,6 +154,8 @@ def extract_env_params(env_filepath, sync_node=False):
                    f"You should specify them to make sure that "
                    f"all services are working",
                    err=True)
+        if raise_for_status:
+            raise InvalidEnvFileError(f'Missing params: {absent_params}')
         return None
     return env_params
 

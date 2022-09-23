@@ -33,7 +33,12 @@ from node_cli.operations.common import (
     backup_old_contracts, download_contracts, configure_filebeat,
     configure_flask, unpack_backup_archive
 )
-from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
+from node_cli.operations.volume import (
+    cleanup_volume_artifacts,
+    docker_lvmpy_update,
+    docker_lvmpy_install,
+    prepare_block_device
+)
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
@@ -163,8 +168,9 @@ def init(env_filepath: str, env: str) -> bool:
 
 
 def init_sync(env_filepath: str, env: str) -> bool:
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
-        env['CONTAINER_CONFIGS_STREAM'],
+        env.get('CONTAINER_CONFIGS_STREAM'),
         env.get('CONTAINER_CONFIGS_DIR')
     )
     sync_skale_node()
@@ -180,7 +186,10 @@ def init_sync(env_filepath: str, env: str) -> bool:
     download_contracts(env)
 
     generate_nginx_config()
-    docker_lvmpy_install(env)
+    prepare_block_device(
+        env['DISK_MOUNTPOINT'],
+        force=env['ENFORCE_BTRFS'] == 'True'
+    )
 
     update_meta(
         VERSION,
@@ -196,7 +205,7 @@ def init_sync(env_filepath: str, env: str) -> bool:
 def update_sync(env_filepath: str, env: Dict) -> None:
     compose_rm(env, sync_node=True)
     remove_dynamic_containers()
-
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
         env['CONTAINER_CONFIGS_STREAM'],
         env.get('CONTAINER_CONFIGS_DIR')
@@ -209,7 +218,10 @@ def update_sync(env_filepath: str, env: Dict) -> None:
     backup_old_contracts()
     download_contracts(env)
 
-    docker_lvmpy_update(env)
+    prepare_block_device(
+        env['DISK_MOUNTPOINT'],
+        force=env['ENFORCE_BTRFS'] == 'True'
+    )
     generate_nginx_config()
 
     prepare_host(

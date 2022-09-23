@@ -50,7 +50,13 @@ from node_cli.core.host import (
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
-    update_op, init_op, turn_off_op, turn_on_op, restore_op, init_sync_op, update_sync_op
+    update_op,
+    init_op,
+    turn_off_op,
+    turn_on_op,
+    restore_op,
+    init_sync_op,
+    update_sync_op
 )
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks, print_node_cmd_error, print_node_info
@@ -202,9 +208,11 @@ def restore(backup_path, env_filepath):
 
 def get_node_env(env_filepath, inited_node=False, sync_schains=None, sync_node=False):
     if env_filepath is not None:
-        env_params = extract_env_params(env_filepath, sync_node=sync_node)
-        if env_params is None:
-            return
+        env_params = extract_env_params(
+            env_filepath,
+            sync_node=sync_node,
+            raise_for_status=True
+        )
         save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
