@@ -37,6 +37,7 @@ from node_cli.operations.volume import (
     cleanup_volume_artifacts,
     docker_lvmpy_update,
     docker_lvmpy_install,
+    ensure_filestorage_mapping,
     prepare_block_device
 )
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
@@ -182,6 +183,7 @@ def init_sync(env_filepath: str, env: str) -> bool:
         env_filepath,
         env_type=env['ENV_TYPE'],
     )
+    ensure_filestorage_mapping()
     link_env_file()
     download_contracts(env)
 
@@ -215,6 +217,7 @@ def update_sync(env_filepath: str, env: Dict) -> None:
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
+    ensure_filestorage_mapping()
     backup_old_contracts()
     download_contracts(env)
 
