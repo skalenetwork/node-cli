@@ -30,15 +30,16 @@ from typing import Optional, Tuple
 import docker
 
 from node_cli.configs import (
+    BACKUP_ARCHIVE_NAME,
     CONTAINER_CONFIG_PATH,
     FILESTORAGE_MAPPING,
-    SKALE_DIR,
     INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME,
+    LOG_PATH,
     RESTORE_SLEEP_TIMEOUT,
     SCHAINS_MNT_DIR,
-    TM_INIT_TIMEOUT,
-    LOG_PATH
+    SKALE_DIR,
+    SKALE_STATE_DIR,
+    TM_INIT_TIMEOUT
 )
 from node_cli.configs.env import get_env_config
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
@@ -220,6 +221,7 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None, sync_node=F
         'SKALE_DIR': SKALE_DIR,
         'SCHAINS_MNT_DIR': SCHAINS_MNT_DIR,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
+        'SKALE_LIB_PATH': SKALE_STATE_DIR,
         **env_params
     }
     if inited_node and not sync_node:

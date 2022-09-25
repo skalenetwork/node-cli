@@ -73,7 +73,7 @@ def prepare_host(
     env_type: str,
     allocation: bool = False
 ):
-    logger.info(f'Preparing host started')
+    logger.info('Preparing host started')
     make_dirs()
     save_env_params(env_filepath)
 
