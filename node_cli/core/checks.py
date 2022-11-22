@@ -208,9 +208,14 @@ class BaseChecker:
 
 
 class MachineChecker(BaseChecker):
-    def __init__(self, requirements: Dict, disk_device: str) -> None:
+    def __init__(
+            self,
+            requirements: Dict,
+            disk_device: str,
+            network_timeout: Optional[int] = None) -> None:
         self.requirements = requirements
         self.disk_device = disk_device
+        self.network_timeout = network_timeout or NETWORK_CHECK_TIMEOUT
 
     @preinstall
     def cpu_total(self) -> CheckResult:
@@ -281,7 +286,7 @@ class MachineChecker(BaseChecker):
     def network(self) -> CheckResult:
         name = 'network'
         try:
-            socket.setdefaulttimeout(NETWORK_CHECK_TIMEOUT)
+            socket.setdefaulttimeout(self.network_timeout)
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
                 (CLOUDFLARE_DNS_HOST, CLOUDFLARE_DNS_HOST_PORT))
             return self._ok(name=name)
