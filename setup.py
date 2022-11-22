@@ -20,7 +20,7 @@ def find_version(*file_paths):
 
 extras_require = {
     'linter': [
-        "flake8==4.0.1",
+        "flake8==5.0.4",
         "isort>=4.2.15,<5.10.2",
     ],
     'dev': [
