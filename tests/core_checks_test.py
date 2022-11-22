@@ -110,7 +110,7 @@ def test_checks_swap(server_req):
 def test_checks_network(server_req):
     checker = MachineChecker(server_req, 'test-disk')
     r = checker.network()
-    assert r.status == 'ok'
+    assert r.status == 'ok', r.info
     assert r.name == 'network'
 
 
