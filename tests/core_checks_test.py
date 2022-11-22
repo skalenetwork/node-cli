@@ -108,7 +108,7 @@ def test_checks_swap(server_req):
 
 
 def test_checks_network(server_req):
-    checker = MachineChecker(server_req, 'test-disk')
+    checker = MachineChecker(server_req, 'test-disk', network_timeout=10)
     r = checker.network()
     assert r.status == 'ok', r.info
     assert r.name == 'network'
@@ -135,7 +135,7 @@ def test_checks_disk(server_req):
 
 
 def test_checks_machine_check(server_req):
-    checker = MachineChecker(server_req, 'test-disk')
+    checker = MachineChecker(server_req, 'test-disk', network_timeout=10)
     result = checker.check()
     assert not all([r.status == 'ok' for r in result])
 
