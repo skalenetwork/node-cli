@@ -23,7 +23,7 @@ from typing import Dict
 
 from node_cli.cli.info import VERSION
 from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
-from node_cli.core.host import link_env_file, prepare_host
+from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
 
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
@@ -92,6 +92,8 @@ def update(env_filepath: str, env: Dict) -> None:
 
     sync_skale_node()
 
+    ensure_btrfs_kernel_module_autoloaded()
+
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
@@ -135,6 +137,7 @@ def update(env_filepath: str, env: Dict) -> None:
 def init(env_filepath: str, env: str) -> bool:
     sync_skale_node()
 
+    ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
@@ -194,6 +197,7 @@ def restore(env, backup_path):
         print_failed_requirements_checks(failed_checks)
         return False
 
+    ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 

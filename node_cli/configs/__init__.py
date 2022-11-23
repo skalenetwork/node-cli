@@ -153,3 +153,6 @@ DOCKER_SERVICE_CONFIG_PATH = '/etc/systemd/system/docker.service.d/no-host.conf'
 DOCKER_SOCKET_PATH = '/var/run/skale/docker.sock'
 
 CHECK_REPORT_PATH = os.path.join(REPORTS_PATH, 'checks.json')
+
+AUTOLOAD_KERNEL_MODULES_PATH = '/etc/modules'
+BTRFS_KERNEL_MODULE = 'btrfs'
