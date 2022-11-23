@@ -57,7 +57,7 @@ setup(
         "python-dateutil==2.8.2",
         "Jinja2==3.1.2",
         "psutil==5.9.1",
-        "python-dotenv==0.20.0",
+        "python-dotenv==0.21.0",
         "terminaltables==3.1.0",
         "requests==2.28.0",
         "GitPython==3.1.14",
