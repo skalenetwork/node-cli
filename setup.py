@@ -53,7 +53,7 @@ setup(
         "click==8.1.3",
         "PyInstaller==5.6.2",
         "docker==6.0.1",
-        "texttable==1.6.4",
+        "texttable==1.6.7",
         "python-dateutil==2.8.2",
         "Jinja2==3.1.2",
         "psutil==5.9.1",
