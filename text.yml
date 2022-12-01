@@ -30,8 +30,8 @@ node:
     You should run < skale node init >
   already_inited: Node was already inited before.
   cmd_failed: |-
-      Command failed. Please, check out < skale logs cli >
-      and logs from docker containers for more information
+    Command failed. Please, check out < skale logs cli >
+    and logs from docker containers for more information
   domain_name_changed: Domain name successfully changed
 wallet:
   successful_transfer: "Funds were successfully transferred"
@@ -60,3 +60,12 @@ exit:
     in_progress: "Node exiting is in progress"
     wait_for_rotations: "Node is waiting to finish rotations"
     completed: "Node exiting is completed"
+
+sync_node:
+  init:
+    help: Initialize sync SKALE node
+    archive: Run sync node in an archive node (disable block rotation)
+    historic_state: Enable historic state (works only in pair with --archive flag)
+    catchup: Add a flag to start sync node in catchup mode
+  update:
+    catchup: Add a flag to start sync node in catchup mode

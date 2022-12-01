@@ -85,6 +85,11 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
+def init_file(path, content=None):
+    if not os.path.exists(path):
+        write_json(path, content)
+
+
 def run_cmd(
     cmd,
     env={},
@@ -357,9 +362,9 @@ def rsync_dirs(src: str, dest: str) -> None:
     run_cmd(['rsync', '-r', f'{src}/.git', dest])
 
 
-def ok_result(payload: dict = None):
+def ok_result(payload: dict | None = None):
     return 'ok', payload
 
 
-def err_result(msg: str = None):
+def err_result(msg: str | None = None):
     return 'error', msg

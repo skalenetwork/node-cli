@@ -32,6 +32,7 @@ from node_cli.configs import (
     ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
     REMOVED_CONTAINERS_FOLDER_PATH, NGINX_CONTAINER_NAME
 )
+from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH, NODE_OPTIONS_LOCK_PATH
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -187,6 +188,19 @@ def mocked_g_config():
         generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
         yield
         generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+
+
+@pytest.fixture()
+def clean_node_options():
+    pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+    pathlib.Path(NODE_OPTIONS_LOCK_PATH).unlink(missing_ok=True)
+    yield
+    pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+    pathlib.Path(NODE_OPTIONS_LOCK_PATH).unlink(missing_ok=True)
+
+
+def clean_node_data():
+    pass
 
 
 @pytest.fixture

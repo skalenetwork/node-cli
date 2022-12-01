@@ -20,12 +20,12 @@ def find_version(*file_paths):
 
 extras_require = {
     'linter': [
-        "flake8==3.7.9",
+        "flake8==6.0.0",
         "isort>=4.2.15,<5.8.1",
     ],
     'dev': [
         "bumpversion==0.6.0",
-        "pytest==6.2.3",
+        "pytest==7.2.0",
         "pytest-cov==2.9.0",
         "twine==2.0.0",
         "mock==4.0.2",
@@ -67,7 +67,8 @@ setup(
         "python-iptables==1.0.0",
         "MarkupSafe==2.0.1",
         "pyOpenSSL==22.0.0",
-        "cryptography==37.0.2"
+        "cryptography==37.0.2",
+        "filelock==3.0.12"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
