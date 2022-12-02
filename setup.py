@@ -70,7 +70,7 @@ setup(
         "cryptography==37.0.2",
         "filelock==3.0.12"
     ],
-    python_requires='>=3.7,<4',
+    python_requires='>=3.8,<4',
     extras_require=extras_require,
 
     keywords=['skale', 'cli'],
@@ -80,6 +80,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
 )
