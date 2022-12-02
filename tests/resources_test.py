@@ -14,7 +14,7 @@ from node_cli.core.resources import (
 
 from node_cli.utils.helper import write_json, safe_load_yml
 
-SCHAIN_VOLUME_PARTS = {'large': {'max_consensus_storage_bytes': 21311992627, 'max_file_storage_bytes': 21311992627, 'max_reserved_storage_bytes': 7103997542, 'max_skaled_leveldb_storage_bytes': 21311992627}, 'medium': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}, 'small': {'max_consensus_storage_bytes': 166499942, 'max_file_storage_bytes': 166499942, 'max_reserved_storage_bytes': 55499980, 'max_skaled_leveldb_storage_bytes': 166499942}, 'test': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}, 'test4': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}, 'sync_node': {'max_consensus_storage_bytes': 21311992627, 'max_file_storage_bytes': 21311992627, 'max_reserved_storage_bytes': 7103997542, 'max_skaled_leveldb_storage_bytes': 21311992627}}  # noqa
+SCHAIN_VOLUME_PARTS = {'large': {'max_consensus_storage_bytes': 21311992627, 'max_file_storage_bytes': 21311992627, 'max_reserved_storage_bytes': 7103997542, 'max_skaled_leveldb_storage_bytes': 21311992627}, 'medium': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}, 'small': {'max_consensus_storage_bytes': 166499942, 'max_file_storage_bytes': 166499942, 'max_reserved_storage_bytes': 55499980, 'max_skaled_leveldb_storage_bytes': 166499942}, 'test': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}, 'test4': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}}  # noqa
 
 DEFAULT_ENV_TYPE = 'devnet'
 
@@ -67,7 +67,7 @@ def test_generate_resource_allocation_config():
         assert resource_allocation_config['schain']['disk']['large'] == 71039975424
 
         assert resource_allocation_config['ima']['cpu_shares'] == {
-            'large': 204, 'medium': 25, 'small': 1, 'sync_node': 204, 'test': 25, 'test4': 25}
+            'large': 204, 'medium': 25, 'small': 1, 'test': 25, 'test4': 25}
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
         assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
@@ -100,7 +100,6 @@ def test_get_static_disk_alloc_devnet(
         'large': 71039975424,
         'medium': 8879996928,
         'small': 554999808,
-        'sync_node': 71039975424,
         'test': 8879996928,
         'test4': 8879996928
     }
@@ -165,6 +164,5 @@ def test_leveldb_limits():
         'medium': {'contract_storage': 1598399446, 'db_storage': 532799815},
         'small': {'contract_storage': 99899965, 'db_storage': 33299988},
         'test': {'contract_storage': 1598399446, 'db_storage': 532799815},
-        'test4': {'contract_storage': 1598399446, 'db_storage': 532799815},
-        'sync_node': {'contract_storage': 12787195576, 'db_storage': -1},
+        'test4': {'contract_storage': 1598399446, 'db_storage': 532799815}
     }
