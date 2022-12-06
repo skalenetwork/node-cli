@@ -18,7 +18,6 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-from filelock import FileLock
 
 from node_cli.utils.helper import read_json, write_json, init_file
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
@@ -32,7 +31,6 @@ class NodeOptions:
         filepath: str = NODE_OPTIONS_FILEPATH
     ):
         self.filepath = filepath
-        self.lock_filepath = filepath + '.lock'
         init_file(filepath, {})
 
     def _get(self, field_name: str):
@@ -40,11 +38,9 @@ class NodeOptions:
         return config.get(field_name)
 
     def _set(self, field_name: str, field_value) -> None:
-        lock = FileLock(self.lock_filepath)
-        with lock:
-            config = read_json(self.filepath)
-            config[field_name] = field_value
-            write_json(self.filepath, config)
+        config = read_json(self.filepath)
+        config[field_name] = field_value
+        write_json(self.filepath, config)
 
     @property
     def archive(self) -> bool:

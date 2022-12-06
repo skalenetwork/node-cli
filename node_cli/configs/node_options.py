@@ -21,4 +21,3 @@ import os
 from node_cli.configs import NODE_DATA_PATH
 
 NODE_OPTIONS_FILEPATH = os.path.join(NODE_DATA_PATH, 'node_options.json')
-NODE_OPTIONS_LOCK_PATH = os.path.join(NODE_DATA_PATH, 'node_options.json.lock')
