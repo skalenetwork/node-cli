@@ -194,9 +194,11 @@ def mocked_g_config():
 def clean_node_options():
     pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
     pathlib.Path(NODE_OPTIONS_LOCK_PATH).unlink(missing_ok=True)
-    yield
-    pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
-    pathlib.Path(NODE_OPTIONS_LOCK_PATH).unlink(missing_ok=True)
+    try:
+        yield
+    finally:
+        pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+        pathlib.Path(NODE_OPTIONS_LOCK_PATH).unlink(missing_ok=True)
 
 
 def clean_node_data():

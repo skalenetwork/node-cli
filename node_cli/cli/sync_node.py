@@ -57,7 +57,7 @@ def sync_node():
 )
 @streamed_cmd
 def _init_sync(env_file, archive, catchup, historic_state):
-    if (historic_state and not archive):
+    if historic_state and not archive:
         error_exit(
             '--historic-state can be used only is combination with --archive',
             exit_code=CLIExitCodes.FAILURE

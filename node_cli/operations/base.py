@@ -94,7 +94,7 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict) -> bool:
+def update(env_filepath: str, env: dict) -> bool:
     compose_rm(env)
     remove_dynamic_containers()
 
