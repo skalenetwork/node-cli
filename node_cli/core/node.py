@@ -148,12 +148,24 @@ def init(env_filepath):
 
 
 @check_not_inited
-def init_sync(env_filepath: str) -> None:
+def init_sync(
+    env_filepath: str,
+    archive: bool,
+    catchup: bool,
+    historic_state: bool
+) -> None:
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
     if env is None:
         return
-    inited_ok = init_sync_op(env_filepath, env)
+    inited_ok = init_sync_op(
+        env_filepath,
+        env,
+        archive,
+        catchup,
+        historic_state
+
+    )
     if not inited_ok:
         error_exit(
             'Init operation failed',

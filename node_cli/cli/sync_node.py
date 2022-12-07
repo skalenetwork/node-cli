@@ -20,10 +20,12 @@
 import click
 
 from node_cli.core.node import init_sync, update_sync
-from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
+from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd, error_exit
+from node_cli.utils.exit_codes import CLIExitCodes
 
 
-TEXTS = safe_load_texts()
+G_TEXTS = safe_load_texts()
+TEXTS = G_TEXTS['sync_node']
 
 
 @click.group()
@@ -36,11 +38,31 @@ def sync_node():
     pass
 
 
-@sync_node.command('init', help="Initialize sync SKALE node")
+@sync_node.command('init', help=TEXTS['init']['help'])
 @click.argument('env_file')
+@click.option(
+    '--archive',
+    help=TEXTS['init']['archive'],
+    is_flag=True
+)
+@click.option(
+    '--catchup',
+    help=TEXTS['init']['catchup'],
+    is_flag=True
+)
+@click.option(
+    '--historic-state',
+    help=TEXTS['init']['historic_state'],
+    is_flag=True
+)
 @streamed_cmd
-def _init_sync(env_file):
-    init_sync(env_file)
+def _init_sync(env_file, archive, catchup, historic_state):
+    if historic_state and not archive:
+        error_exit(
+            '--historic-state can be used only is combination with --archive',
+            exit_code=CLIExitCodes.FAILURE
+        )
+    init_sync(env_file, archive, catchup, historic_state)
 
 
 @sync_node.command('update', help='Update sync node from .env file')

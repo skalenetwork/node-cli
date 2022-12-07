@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2021 SKALE Labs
+#   Copyright (C) 2021-Present SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ from node_cli.core.host import link_env_file, prepare_host
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
+from node_cli.core.node_options import NodeOptions
 
 from node_cli.operations.common import (
     backup_old_contracts, download_contracts, configure_filebeat,
@@ -93,7 +94,7 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict) -> None:
+def update(env_filepath: str, env: dict) -> bool:
     compose_rm(env)
     remove_dynamic_containers()
 
@@ -136,7 +137,7 @@ def update(env_filepath: str, env: Dict) -> None:
 
 
 @checked_host
-def init(env_filepath: str, env: str) -> bool:
+def init(env_filepath: str, env: dict) -> bool:
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -168,7 +169,13 @@ def init(env_filepath: str, env: str) -> bool:
     return True
 
 
-def init_sync(env_filepath: str, env: str) -> bool:
+def init_sync(
+    env_filepath: str,
+    env: dict,
+    archive: bool,
+    catchup: bool,
+    historic_state: bool
+) -> bool:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
         env.get('CONTAINER_CONFIGS_STREAM'),
@@ -183,6 +190,12 @@ def init_sync(env_filepath: str, env: str) -> bool:
         env_filepath,
         env_type=env['ENV_TYPE'],
     )
+
+    node_options = NodeOptions()
+    node_options.archive = archive
+    node_options.catchup = catchup
+    node_options.historic_state = historic_state
+
     ensure_filestorage_mapping()
     link_env_file()
     download_contracts(env)
@@ -204,7 +217,7 @@ def init_sync(env_filepath: str, env: str) -> bool:
     return True
 
 
-def update_sync(env_filepath: str, env: Dict) -> None:
+def update_sync(env_filepath: str, env: Dict) -> bool:
     compose_rm(env, sync_node=True)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
