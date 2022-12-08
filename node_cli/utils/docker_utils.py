@@ -103,7 +103,7 @@ def rm_all_ima_containers():
 
 def remove_containers(containers, timeout):
     for container in containers:
-        safe_rm(container, stop_timeout=timeout)
+        safe_rm(container, timeout=timeout)
 
 
 def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs):
@@ -113,7 +113,7 @@ def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs)
     """
     container_name = container.name
     logger.info(
-        f'Stopping container: {container_name}, timeout: {stop_timeout}')
+        f'Stopping container: {container_name}, timeout: {timeout}')
     container.stop(timeout=timeout)
     backup_container_logs(container)
     logger.info(f'Removing container: {container_name}, kwargs: {kwargs}')
