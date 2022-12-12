@@ -37,7 +37,7 @@ from node_cli.configs import (
 
 logger = logging.getLogger(__name__)
 
-SCHAIN_REMOVE_TIMEOUT = 60
+SCHAIN_REMOVE_TIMEOUT = 300
 IMA_REMOVE_TIMEOUT = 20
 
 MAIN_COMPOSE_CONTAINERS = ('skale-api', 'bounty', 'skale-admin')
@@ -93,28 +93,28 @@ def remove_dynamic_containers():
 
 def rm_all_schain_containers():
     schain_containers = get_all_schain_containers()
-    remove_containers(schain_containers, stop_timeout=SCHAIN_REMOVE_TIMEOUT)
+    remove_containers(schain_containers, timeout=SCHAIN_REMOVE_TIMEOUT)
 
 
 def rm_all_ima_containers():
     ima_containers = get_all_ima_containers()
-    remove_containers(ima_containers, stop_timeout=IMA_REMOVE_TIMEOUT)
+    remove_containers(ima_containers, timeout=IMA_REMOVE_TIMEOUT)
 
 
-def remove_containers(containers, stop_timeout):
+def remove_containers(containers, timeout):
     for container in containers:
-        safe_rm(container, stop_timeout=stop_timeout)
+        safe_rm(container, timeout=timeout)
 
 
-def safe_rm(container: Container, stop_timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs):
+def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs):
     """
     Saves docker container logs (last N lines) in the .skale/node_data/log/.removed_containers
     folder. Then stops and removes container with specified params.
     """
     container_name = container.name
     logger.info(
-        f'Stopping container: {container_name}, timeout: {stop_timeout}')
-    container.stop(timeout=stop_timeout)
+        f'Stopping container: {container_name}, timeout: {timeout}')
+    container.stop(timeout=timeout)
     backup_container_logs(container)
     logger.info(f'Removing container: {container_name}, kwargs: {kwargs}')
     container.remove(**kwargs)
