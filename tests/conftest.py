@@ -29,7 +29,7 @@ import pytest
 import yaml
 
 from node_cli.configs import (
-  ENVIRONMENT_PARAMS_FILEPATH,
+  STATIC_PARAMS_FILEPATH,
   GLOBAL_SKALE_DIR,
   GLOBAL_SKALE_CONF_FILEPATH,
   REMOVED_CONTAINERS_FOLDER_PATH
@@ -119,14 +119,14 @@ devnet:
 
 @pytest.fixture
 def net_params_file():
-    with open(ENVIRONMENT_PARAMS_FILEPATH, 'w') as f:
+    with open(STATIC_PARAMS_FILEPATH, 'w') as f:
         yaml.dump(
             yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader),
             stream=f,
             Dumper=yaml.Dumper
         )
-    yield ENVIRONMENT_PARAMS_FILEPATH
-    os.remove(ENVIRONMENT_PARAMS_FILEPATH)
+    yield STATIC_PARAMS_FILEPATH
+    os.remove(STATIC_PARAMS_FILEPATH)
 
 
 @pytest.fixture()
