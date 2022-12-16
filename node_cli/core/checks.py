@@ -71,7 +71,9 @@ def get_static_params(
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH
 ) -> Dict:
-    with open(STATIC_PARAMS_FILEPATH) as requirements_file:
+    status_params_filename = os.path.basename(STATIC_PARAMS_FILEPATH)
+    static_params_filepath = os.path.join(config_path, status_params_filename)
+    with open(static_params_filepath) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata['envs'][env_type]
 

@@ -29,10 +29,11 @@ import pytest
 import yaml
 
 from node_cli.configs import (
-  STATIC_PARAMS_FILEPATH,
-  GLOBAL_SKALE_DIR,
+  CONTAINER_CONFIG_TMP_PATH,
   GLOBAL_SKALE_CONF_FILEPATH,
-  REMOVED_CONTAINERS_FOLDER_PATH
+  GLOBAL_SKALE_DIR,
+  REMOVED_CONTAINERS_FOLDER_PATH,
+  STATIC_PARAMS_FILEPATH
 )
 from node_cli.configs import META_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
@@ -227,3 +228,12 @@ def ensure_meta_removed():
     finally:
         if os.path.isfile(META_FILEPATH):
             os.remove(META_FILEPATH)
+
+
+@pytest.fixture
+def tmp_config_dir():
+    os.mkdir(CONTAINER_CONFIG_TMP_PATH)
+    try:
+        yield CONTAINER_CONFIG_TMP_PATH
+    finally:
+        shutil.rmtree(CONTAINER_CONFIG_TMP_PATH)
