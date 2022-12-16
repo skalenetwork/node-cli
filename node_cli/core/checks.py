@@ -46,8 +46,7 @@ from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     DOCKER_CONFIG_FILEPATH,
     DOCKER_DAEMON_HOSTS,
-    REPORTS_PATH,
-    STATIC_PARAMS_FILEPATH
+    REPORTS_PATH
 )
 from node_cli.core.resources import get_disk_size
 from node_cli.utils.helper import run_cmd, safe_mkdir
@@ -71,7 +70,8 @@ def get_static_params(
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH
 ) -> Dict:
-    with open(STATIC_PARAMS_FILEPATH) as requirements_file:
+    static_params_filepath = os.path.join(config_path, 'static_params.json')
+    with open(static_params_filepath) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata['envs'][env_type]
 
