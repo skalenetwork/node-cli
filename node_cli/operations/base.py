@@ -30,7 +30,9 @@ from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
 from node_cli.operations.common import (
-    backup_old_contracts, download_contracts, download_filestorage_artifacts, configure_filebeat,
+    backup_old_contracts,
+    download_contracts,
+    configure_filebeat,
     configure_flask, unpack_backup_archive
 )
 from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
@@ -100,7 +102,6 @@ def update(env_filepath: str, env: Dict) -> None:
     backup_old_contracts()
     download_contracts(env)
 
-    download_filestorage_artifacts()
     docker_lvmpy_update(env)
     generate_nginx_config()
 
@@ -149,7 +150,6 @@ def init(env_filepath: str, env: str) -> bool:
     )
     link_env_file()
     download_contracts(env)
-    download_filestorage_artifacts()
 
     configure_filebeat()
     configure_flask()

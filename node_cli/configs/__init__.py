@@ -51,8 +51,6 @@ SKALE_RUN_DIR = '/var/run/skale'
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
-FILESTORAGE_INFO_FILE = os.path.join(CONTAINER_CONFIG_PATH, 'filestorage_info.json')
-FILESTORAGE_ARTIFACTS_FILE = os.path.join(NODE_DATA_PATH, 'filestorage_artifacts.json')
 STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
 NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
