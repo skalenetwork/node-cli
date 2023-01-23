@@ -555,6 +555,13 @@ You should specify the following environment variables:
 -   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
 -   `SCHAIN_NAME` - name of the SKALE chain to sync
 -   `ENV_TYPE` - environement type (mainnet, testnet, etc)
+  
+
+Options:
+
+-   `--archive` - Run sync node in an archive node (disable block rotation)
+-   `--historic-state` - Enable historic state (works only in pair with --archive flag)
+-   `--catchup` - Add a flag to start sync node in catchup mode
 
 #### Sync node update
 

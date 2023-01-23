@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2022 SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -20,23 +20,4 @@
 import os
 from node_cli.configs import NODE_DATA_PATH
 
-
-LARGE_DIVIDER = 1
-MEDIUM_DIVIDER = 8
-TEST_DIVIDER = 8
-SMALL_DIVIDER = 128
-
-TIMES = 1
-TIMEOUT = 1
-MEMORY_FACTOR = 0.8
-DISK_FACTOR = 0.95
-
-MAX_CPU_SHARES = 1024
-
-VOLUME_CHUNK = 512 * SMALL_DIVIDER
-
-RESOURCE_ALLOCATION_FILENAME = 'resource_allocation.json'
-RESOURCE_ALLOCATION_FILEPATH = os.path.join(NODE_DATA_PATH, RESOURCE_ALLOCATION_FILENAME)
-
-SGX_SERVER_URL_FILENAME = 'sgx_server_url.txt'
-SGX_SERVER_URL_FILEPATH = os.path.join(NODE_DATA_PATH, SGX_SERVER_URL_FILENAME)
+NODE_OPTIONS_FILEPATH = os.path.join(NODE_DATA_PATH, 'node_options.json')

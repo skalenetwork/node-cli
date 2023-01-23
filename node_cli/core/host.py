@@ -33,7 +33,7 @@ from node_cli.configs import (
     SCHAINS_DATA_PATH, LOG_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH,
-    SKALE_RUN_DIR, SKALE_TMP_DIR
+    SKALE_RUN_DIR, SKALE_STATE_DIR, SKALE_TMP_DIR
 )
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH
@@ -73,7 +73,7 @@ def prepare_host(
     env_type: str,
     allocation: bool = False
 ):
-    logger.info(f'Preparing host started')
+    logger.info('Preparing host started')
     make_dirs()
     save_env_params(env_filepath)
 
@@ -92,7 +92,7 @@ def make_dirs():
             REMOVED_CONTAINERS_FOLDER_PATH,
             SGX_CERTS_PATH, SCHAINS_DATA_PATH, LOG_PATH,
             REPORTS_PATH, REDIS_DATA_PATH,
-            SKALE_RUN_DIR, SKALE_TMP_DIR
+            SKALE_RUN_DIR, SKALE_STATE_DIR, SKALE_TMP_DIR
     ):
         safe_mkdir(dir_path)
 

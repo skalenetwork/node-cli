@@ -30,15 +30,16 @@ from typing import Optional, Tuple
 import docker
 
 from node_cli.configs import (
+    BACKUP_ARCHIVE_NAME,
     CONTAINER_CONFIG_PATH,
     FILESTORAGE_MAPPING,
-    SKALE_DIR,
     INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME,
+    LOG_PATH,
     RESTORE_SLEEP_TIMEOUT,
     SCHAINS_MNT_DIR,
-    TM_INIT_TIMEOUT,
-    LOG_PATH
+    SKALE_DIR,
+    SKALE_STATE_DIR,
+    TM_INIT_TIMEOUT
 )
 from node_cli.configs.env import get_env_config
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
@@ -50,7 +51,13 @@ from node_cli.core.host import (
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
-    update_op, init_op, turn_off_op, turn_on_op, restore_op, init_sync_op, update_sync_op
+    update_op,
+    init_op,
+    turn_off_op,
+    turn_on_op,
+    restore_op,
+    init_sync_op,
+    update_sync_op
 )
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks, print_node_cmd_error, print_node_info
@@ -121,6 +128,7 @@ def init(env_filepath):
     env = get_node_env(env_filepath)
     if env is None:
         return
+    configure_firewall_rules()
     inited_ok = init_op(env_filepath, env)
     if not inited_ok:
         error_exit(
@@ -140,12 +148,24 @@ def init(env_filepath):
 
 
 @check_not_inited
-def init_sync(env_filepath: str) -> None:
+def init_sync(
+    env_filepath: str,
+    archive: bool,
+    catchup: bool,
+    historic_state: bool
+) -> None:
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
     if env is None:
         return
-    inited_ok = init_sync_op(env_filepath, env)
+    inited_ok = init_sync_op(
+        env_filepath,
+        env,
+        archive,
+        catchup,
+        historic_state
+
+    )
     if not inited_ok:
         error_exit(
             'Init operation failed',
@@ -201,9 +221,11 @@ def restore(backup_path, env_filepath):
 
 def get_node_env(env_filepath, inited_node=False, sync_schains=None, sync_node=False):
     if env_filepath is not None:
-        env_params = extract_env_params(env_filepath, sync_node=sync_node)
-        if env_params is None:
-            return
+        env_params = extract_env_params(
+            env_filepath,
+            sync_node=sync_node,
+            raise_for_status=True
+        )
         save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
@@ -211,6 +233,7 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None, sync_node=F
         'SKALE_DIR': SKALE_DIR,
         'SCHAINS_MNT_DIR': SCHAINS_MNT_DIR,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
+        'SKALE_LIB_PATH': SKALE_STATE_DIR,
         **env_params
     }
     if inited_node and not sync_node:

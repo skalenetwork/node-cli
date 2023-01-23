@@ -32,6 +32,7 @@ from node_cli.configs import (
     ENVIRONMENT_PARAMS_FILEPATH, GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH,
     REMOVED_CONTAINERS_FOLDER_PATH, NGINX_CONTAINER_NAME
 )
+from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -148,11 +149,15 @@ def removed_containers_folder():
 
 
 @pytest.fixture()
-def simple_image():
-    client = docker.from_env()
+def dclient():
+    return docker.from_env()
+
+
+@pytest.fixture()
+def simple_image(dclient):
     name = 'simple-image'
     try:
-        client.images.build(
+        dclient.images.build(
             tag=name,
             rm=True,
             nocache=True,
@@ -160,13 +165,17 @@ def simple_image():
         )
         yield name
     finally:
-        client.images.remove(name, force=True)
+        try:
+            dclient.images.get(name)
+        except docker.errors.ImageNotFound:
+            return
+        dclient.images.remove(name, force=True)
 
 
 @pytest.fixture()
-def docker_hc():
-    client = docker.from_env()
-    return client.api.create_host_config(
+def docker_hc(dclient):
+    dclient = docker.from_env()
+    return dclient.api.create_host_config(
         log_config=docker.types.LogConfig(
             type=docker.types.LogConfig.types.JSON
         )
@@ -179,6 +188,19 @@ def mocked_g_config():
         generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
         yield
         generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+
+
+@pytest.fixture()
+def clean_node_options():
+    pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+    try:
+        yield
+    finally:
+        pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+
+
+def clean_node_data():
+    pass
 
 
 @pytest.fixture

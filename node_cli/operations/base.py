@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2021 SKALE Labs
+#   Copyright (C) 2021-Present SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -28,19 +28,30 @@ from node_cli.core.host import link_env_file, prepare_host
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
+from node_cli.core.node_options import NodeOptions
 
 from node_cli.operations.common import (
     backup_old_contracts, download_contracts, configure_filebeat,
     configure_flask, unpack_backup_archive
 )
-from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
+from node_cli.operations.volume import (
+    cleanup_volume_artifacts,
+    docker_lvmpy_update,
+    docker_lvmpy_install,
+    ensure_filestorage_mapping,
+    prepare_block_device
+)
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import (
-    compose_rm, compose_up, remove_dynamic_containers, compose_up_sync
+    compose_rm,
+    compose_up,
+    compose_up_sync,
+    docker_cleanup,
+    remove_dynamic_containers
 )
-from node_cli.utils.meta import update_meta
+from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 
@@ -83,7 +94,7 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict) -> None:
+def update(env_filepath: str, env: dict) -> bool:
     compose_rm(env)
     remove_dynamic_containers()
 
@@ -105,6 +116,16 @@ def update(env_filepath: str, env: Dict) -> None:
     )
     init_shared_space_volume(env['ENV_TYPE'])
 
+    current_stream = get_meta_info().config_stream
+    skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
+    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+        logger.info(
+            'Stream version was changed from %s to %s',
+            current_stream,
+            env['CONTAINER_CONFIGS_STREAM']
+        )
+        docker_cleanup()
+
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
@@ -116,7 +137,7 @@ def update(env_filepath: str, env: Dict) -> None:
 
 
 @checked_host
-def init(env_filepath: str, env: str) -> bool:
+def init(env_filepath: str, env: dict) -> bool:
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -148,9 +169,16 @@ def init(env_filepath: str, env: str) -> bool:
     return True
 
 
-def init_sync(env_filepath: str, env: str) -> bool:
+def init_sync(
+    env_filepath: str,
+    env: dict,
+    archive: bool,
+    catchup: bool,
+    historic_state: bool
+) -> bool:
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
-        env['CONTAINER_CONFIGS_STREAM'],
+        env.get('CONTAINER_CONFIGS_STREAM'),
         env.get('CONTAINER_CONFIGS_DIR')
     )
     sync_skale_node()
@@ -162,11 +190,21 @@ def init_sync(env_filepath: str, env: str) -> bool:
         env_filepath,
         env_type=env['ENV_TYPE'],
     )
+
+    node_options = NodeOptions()
+    node_options.archive = archive
+    node_options.catchup = catchup
+    node_options.historic_state = historic_state
+
+    ensure_filestorage_mapping()
     link_env_file()
     download_contracts(env)
 
     generate_nginx_config()
-    docker_lvmpy_install(env)
+    prepare_block_device(
+        env['DISK_MOUNTPOINT'],
+        force=env['ENFORCE_BTRFS'] == 'True'
+    )
 
     update_meta(
         VERSION,
@@ -179,10 +217,10 @@ def init_sync(env_filepath: str, env: str) -> bool:
     return True
 
 
-def update_sync(env_filepath: str, env: Dict) -> None:
+def update_sync(env_filepath: str, env: Dict) -> bool:
     compose_rm(env, sync_node=True)
     remove_dynamic_containers()
-
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
         env['CONTAINER_CONFIGS_STREAM'],
         env.get('CONTAINER_CONFIGS_DIR')
@@ -192,10 +230,14 @@ def update_sync(env_filepath: str, env: Dict) -> None:
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
+    ensure_filestorage_mapping()
     backup_old_contracts()
     download_contracts(env)
 
-    docker_lvmpy_update(env)
+    prepare_block_device(
+        env['DISK_MOUNTPOINT'],
+        force=env['ENFORCE_BTRFS'] == 'True'
+    )
     generate_nginx_config()
 
     prepare_host(

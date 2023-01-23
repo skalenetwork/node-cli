@@ -8,6 +8,7 @@ on:
       - beta
       - stable
       - sync-node
+      - beta-sync-node
 
 jobs:
   create_release:
@@ -66,10 +67,10 @@ jobs:
             asset_name: skale-${{ needs.create_release.outputs.version }}-Linux-x86_64
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
     - name: Install ubuntu dependencies
       if: matrix.os == 'ubuntu-18.04'
       run: |
@@ -108,10 +109,10 @@ jobs:
             asset_name: skale-${{ needs.create_release.outputs.version }}-Linux-x86_64
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
     - name: Install ubuntu dependencies
       if: matrix.os == 'ubuntu-18.04'
       run: |

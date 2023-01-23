@@ -18,12 +18,20 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import mock
+import os
+
 from click.testing import CliRunner
 from mock import Mock, MagicMock
 
+BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
 
-def response_mock(status_code=0, json_data=None,
-                  headers=None, raw=None):
+
+def response_mock(
+    status_code=0,
+    json_data=None,
+    headers=None,
+    raw=None
+):
     result = MagicMock()
     result.status_code = status_code
 
