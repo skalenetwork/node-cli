@@ -136,6 +136,7 @@ def register_node(name, ip, port, domain):
     '--snapshot-from',
     type=IP_TYPE,
     default=None,
+    hidden=True,
     help='Ip of the node from to download snapshot from'
 )
 @streamed_cmd
@@ -152,6 +153,7 @@ def init_node(env_file, snapshot_from: Optional[str] = None):
     '--snapshot-from',
     type=IP_TYPE,
     default=None,
+    hidden=True,
     help='Ip of the node from to download snapshot from'
 )
 @streamed_cmd
