@@ -81,6 +81,11 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
+def init_file(path, content=None):
+    if not os.path.exists(path):
+        write_json(path, content)
+
+
 def run_cmd(
     cmd,
     env={},
