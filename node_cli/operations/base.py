@@ -19,14 +19,15 @@
 
 import functools
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 from node_cli.cli.info import VERSION
 from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
-from node_cli.core.host import link_env_file, prepare_host
+from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
 
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
+from node_cli.core.node_options import NodeOptions
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
 from node_cli.operations.common import (
@@ -88,11 +89,13 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict) -> None:
+def update(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> None:
     compose_rm(env)
     remove_dynamic_containers()
 
     sync_skale_node()
+
+    ensure_btrfs_kernel_module_autoloaded()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
@@ -102,6 +105,9 @@ def update(env_filepath: str, env: Dict) -> None:
 
     docker_lvmpy_update(env)
     generate_nginx_config()
+
+    node_options = NodeOptions()
+    node_options.snapshot_from = snapshot_from
 
     prepare_host(
         env_filepath,
@@ -133,9 +139,10 @@ def update(env_filepath: str, env: Dict) -> None:
 
 
 @checked_host
-def init(env_filepath: str, env: str) -> bool:
+def init(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> bool:
     sync_skale_node()
 
+    ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
@@ -155,6 +162,9 @@ def init(env_filepath: str, env: str) -> bool:
 
     docker_lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
+
+    node_options = NodeOptions()
+    node_options.snapshot_from = snapshot_from
 
     update_meta(
         VERSION,
@@ -194,6 +204,7 @@ def restore(env, backup_path):
         print_failed_requirements_checks(failed_checks)
         return False
 
+    ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
