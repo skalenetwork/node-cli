@@ -47,7 +47,7 @@ def containers(all):
 @click.option(
     '--json',
     'json_format',
-    help=G_TEXTS['common']['json']['help'],
+    help=G_TEXTS['common']['json'],
     is_flag=True
 )
 def schains(json_format: bool) -> None:

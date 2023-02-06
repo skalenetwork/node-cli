@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+from typing import Optional
 
 from node_cli.utils.helper import read_json, write_json, init_file
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
@@ -65,6 +66,13 @@ class NodeOptions:
     @historic_state.setter
     def historic_state(self, historic_state: bool) -> None:
         return self._set('historic_state', historic_state)
+
+    def snapshot_from(self) -> Optional[str]:
+        return self._get('snapshot_from')
+
+    @snapshot_from.setter
+    def snapshot_from(self, ip: Optional[str]) -> None:
+        return self._set('snapshot_from', ip)
 
     def all(self) -> dict:
         return read_json(self.filepath)

@@ -18,22 +18,37 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import ipaddress
+from typing import Optional
 from urllib.parse import urlparse
 
 import click
 
 from node_cli.core.node import (
     configure_firewall_rules,
-    get_node_signature, init, restore,
+    get_node_signature,
+    init,
+    restore,
     register_node as register,
-    update, backup,
-    set_maintenance_mode_on, set_maintenance_mode_off,
-    turn_off, turn_on, get_node_info,
-    set_domain_name, run_checks
+    update,
+    backup,
+    set_maintenance_mode_on,
+    set_maintenance_mode_off,
+    turn_off,
+    turn_on,
+    get_node_info,
+    set_domain_name,
+    run_checks
 )
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.configs.env import ALLOWED_ENV_TYPES
-from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
+from node_cli.utils.decorators import check_inited
+from node_cli.utils.helper import (
+    abort_if_false,
+    safe_load_texts,
+    streamed_cmd
+)
+from node_cli.utils.meta import get_meta_info
+from node_cli.utils.print_formatters import print_meta_info
 
 
 TEXTS = safe_load_texts()
@@ -117,9 +132,16 @@ def register_node(name, ip, port, domain):
 
 @node.command('init', help="Initialize SKALE node")
 @click.argument('env_file')
+@click.option(
+    '--snapshot-from',
+    type=IP_TYPE,
+    default=None,
+    hidden=True,
+    help='Ip of the node from to download snapshot from'
+)
 @streamed_cmd
-def init_node(env_file):
-    init(env_file)
+def init_node(env_file, snapshot_from: Optional[str] = None):
+    init(env_file, snapshot_from)
 
 
 @node.command('update', help='Update node from .env file')
@@ -127,9 +149,16 @@ def init_node(env_file):
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.argument('env_file')
+@click.option(
+    '--snapshot-from',
+    type=IP_TYPE,
+    default=None,
+    hidden=True,
+    help='Ip of the node from to download snapshot from'
+)
 @streamed_cmd
-def update_node(env_file):
-    update(env_file)
+def update_node(env_file, snapshot_from: Optional[str] = None):
+    update(env_file, snapshot_from)
 
 
 @node.command('signature', help='Get node signature for given validator id')
@@ -236,3 +265,19 @@ def check(network):
               prompt='Are you sure you want to reconfigure firewall rules?')
 def configure_firewall():
     configure_firewall_rules()
+
+
+@node.command(help='Show node version information')
+@check_inited
+@click.option(
+    '--json',
+    'raw',
+    is_flag=True,
+    help=TEXTS['common']['json']
+)
+def version(raw: bool) -> None:
+    meta_info = get_meta_info(raw=raw)
+    if raw:
+        print(meta_info)
+    else:
+        print_meta_info(meta_info)

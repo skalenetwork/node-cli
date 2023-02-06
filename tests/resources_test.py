@@ -4,7 +4,7 @@ import os
 import mock
 import pytest
 
-from node_cli.configs import ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH
+from node_cli.configs import ALLOCATION_FILEPATH, STATIC_PARAMS_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.resources import (
     compose_resource_allocation_config,
@@ -29,7 +29,7 @@ INITIAL_CONFIG = {'test': 1}
 
 @pytest.fixture
 def params_by_env_type():
-    return safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
+    return safe_load_yml(STATIC_PARAMS_FILEPATH)
 
 
 @pytest.fixture
