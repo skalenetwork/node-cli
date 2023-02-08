@@ -17,9 +17,11 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Optional
+
 import click
 
-from node_cli.utils.helper import abort_if_false
+from node_cli.utils.helper import abort_if_false, IP_TYPE
 from node_cli.core.schains import (
     describe,
     get_schain_firewall_rules,
@@ -72,8 +74,15 @@ def show_rules(schain_name: str) -> None:
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure? Repair mode may corrupt working SKALE chain data.')
-def repair(schain_name: str) -> None:
-    toggle_schain_repair_mode(schain_name)
+@click.option(
+    '--snapshot-from',
+    type=IP_TYPE,
+    default=None,
+    hidden=True,
+    help='Ip of the node from to download snapshot from'
+)
+def repair(schain_name: str, snapshot_from: Optional[str] = None) -> None:
+    toggle_schain_repair_mode(schain_name, snapshot_from=snapshot_from)
 
 
 @schains.command('info', help='Show info about schain')
