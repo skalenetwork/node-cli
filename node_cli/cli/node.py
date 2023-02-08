@@ -17,9 +17,6 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import ipaddress
-from urllib.parse import urlparse
-
 import click
 
 from node_cli.core.node import (
@@ -44,43 +41,14 @@ from node_cli.utils.decorators import check_inited
 from node_cli.utils.helper import (
     abort_if_false,
     safe_load_texts,
-    streamed_cmd
+    streamed_cmd,
+    IP_TYPE
 )
 from node_cli.utils.meta import get_meta_info
 from node_cli.utils.print_formatters import print_meta_info
 
 
 TEXTS = safe_load_texts()
-
-
-class UrlType(click.ParamType):
-    name = 'url'
-
-    def convert(self, value, param, ctx):
-        try:
-            result = urlparse(value)
-        except ValueError:
-            self.fail(f'Some characters are not allowed in {value}',
-                      param, ctx)
-        if not all([result.scheme, result.netloc]):
-            self.fail(f'Expected valid url. Got {value}', param, ctx)
-        return value
-
-
-class IpType(click.ParamType):
-    name = 'ip'
-
-    def convert(self, value, param, ctx):
-        try:
-            ipaddress.ip_address(value)
-        except ValueError:
-            self.fail(f'expected valid ipv4/ipv6 address. Got {value}',
-                      param, ctx)
-        return value
-
-
-URL_TYPE = UrlType()
-IP_TYPE = IpType()
 
 
 @click.group()

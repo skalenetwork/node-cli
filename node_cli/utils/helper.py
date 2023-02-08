@@ -17,10 +17,12 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import ipaddress
 import json
 import os
 import re
 import sys
+from urllib.parse import urlparse
 
 import yaml
 import shutil
@@ -355,3 +357,33 @@ def rsync_dirs(src: str, dest: str) -> None:
     logger.info(f'Syncing {dest} with {src}')
     run_cmd(['rsync', '-r', f'{src}/', dest])
     run_cmd(['rsync', '-r', f'{src}/.git', dest])
+
+
+class UrlType(click.ParamType):
+    name = 'url'
+
+    def convert(self, value, param, ctx):
+        try:
+            result = urlparse(value)
+        except ValueError:
+            self.fail(f'Some characters are not allowed in {value}',
+                      param, ctx)
+        if not all([result.scheme, result.netloc]):
+            self.fail(f'Expected valid url. Got {value}', param, ctx)
+        return value
+
+
+class IpType(click.ParamType):
+    name = 'ip'
+
+    def convert(self, value, param, ctx):
+        try:
+            ipaddress.ip_address(value)
+        except ValueError:
+            self.fail(f'expected valid ipv4/ipv6 address. Got {value}',
+                      param, ctx)
+        return value
+
+
+URL_TYPE = UrlType()
+IP_TYPE = IpType()
