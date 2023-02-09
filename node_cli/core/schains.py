@@ -1,6 +1,8 @@
 import logging
 import pprint
 
+from typing import Optional
+
 from node_cli.utils.helper import get_request, post_request, error_exit
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.print_formatters import (
@@ -68,11 +70,17 @@ def show_config(name: str) -> None:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def toggle_schain_repair_mode(schain: str) -> None:
+def toggle_schain_repair_mode(
+    schain: str,
+    snapshot_from: Optional[str] = None
+) -> None:
+    json_params = {'schain_name': schain}
+    if snapshot_from:
+        json_params.update({'snapshot_from': snapshot_from})
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME,
         method='repair',
-        json={'schain_name': schain}
+        json=json_params
     )
     if status == 'ok':
         print('Schain has been set for repair')

@@ -89,7 +89,7 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> None:
+def update(env_filepath: str, env: Dict) -> None:
     compose_rm(env)
     remove_dynamic_containers()
 
@@ -105,9 +105,6 @@ def update(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) ->
 
     docker_lvmpy_update(env)
     generate_nginx_config()
-
-    node_options = NodeOptions()
-    node_options.snapshot_from = snapshot_from
 
     prepare_host(
         env_filepath,

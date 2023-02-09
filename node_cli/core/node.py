@@ -117,12 +117,12 @@ def register_node(name, p2p_ip,
 
 
 @check_not_inited
-def init(env_filepath, snapshot_from: Optional[str] = None):
+def init(env_filepath):
     env = get_node_env(env_filepath)
     if env is None:
         return
     configure_firewall_rules()
-    inited_ok = init_op(env_filepath, env, snapshot_from=snapshot_from)
+    inited_ok = init_op(env_filepath, env)
     if not inited_ok:
         error_exit(
             'Init operation failed',
@@ -187,11 +187,11 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
 
 @check_inited
 @check_user
-def update(env_filepath, snapshot_from: Optional[str] = None):
+def update(env_filepath):
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
-    update_ok = update_op(env_filepath, env, snapshot_from=snapshot_from)
+    update_ok = update_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
