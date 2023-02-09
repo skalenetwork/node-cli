@@ -65,7 +65,10 @@ setup(
         "python-debian==0.1.48",
         "python-iptables==1.0.0",
         "PyYAML==6.0",
-        "MarkupSafe==2.1.1"
+        "pyOpenSSL==22.0.0",
+        "MarkupSafe==2.1.1",
+        "cryptography==37.0.2",
+        "filelock==3.0.12"
     ],
     python_requires='>=3.8,<4',
     extras_require=extras_require,

@@ -152,7 +152,8 @@ def init_sync(
     env_filepath: str,
     archive: bool,
     catchup: bool,
-    historic_state: bool
+    historic_state: bool,
+    snapshot_from: Optional[str] = None
 ) -> None:
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
@@ -163,8 +164,8 @@ def init_sync(
         env,
         archive,
         catchup,
-        historic_state
-
+        historic_state,
+        snapshot_from=snapshot_from
     )
     if not inited_ok:
         error_exit(
@@ -183,11 +184,11 @@ def init_sync(
 
 @check_inited
 @check_user
-def update_sync(env_filepath):
+def update_sync(env_filepath, snapshot_from: Optional[str] = None):
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
-    update_ok = update_sync_op(env_filepath, env)
+    update_ok = update_sync_op(env_filepath, env, snapshot_from=snapshot_from)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)

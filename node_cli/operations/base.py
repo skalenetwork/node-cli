@@ -186,7 +186,8 @@ def init_sync(
     env: dict,
     archive: bool,
     catchup: bool,
-    historic_state: bool
+    historic_state: bool,
+    snapshot_from: Optional[str] = None
 ) -> bool:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
@@ -207,6 +208,7 @@ def init_sync(
     node_options.archive = archive
     node_options.catchup = catchup
     node_options.historic_state = historic_state
+    node_options.snapshot_from = snapshot_from
 
     ensure_filestorage_mapping()
     link_env_file()
@@ -229,7 +231,11 @@ def init_sync(
     return True
 
 
-def update_sync(env_filepath: str, env: Dict) -> bool:
+def update_sync(
+    env_filepath: str,
+    env: Dict,
+    snapshot_from: Optional[str] = None
+) -> bool:
     compose_rm(env, sync_node=True)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
@@ -241,6 +247,9 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
+
+    node_options = NodeOptions()
+    node_options.snapshot_from = snapshot_from
 
     ensure_filestorage_mapping()
     backup_old_contracts()

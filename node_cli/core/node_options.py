@@ -67,6 +67,7 @@ class NodeOptions:
     def historic_state(self, historic_state: bool) -> None:
         return self._set('historic_state', historic_state)
 
+    @property
     def snapshot_from(self) -> Optional[str]:
         return self._get('snapshot_from')
 

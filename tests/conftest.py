@@ -218,6 +218,7 @@ def resource_alloc():
     os.remove(RESOURCE_ALLOCATION_FILEPATH)
 
 
+@pytest.fixture
 def ssl_folder():
     if os.path.isdir(SSL_FOLDER_PATH):
         shutil.rmtree(SSL_FOLDER_PATH)
@@ -259,6 +260,7 @@ def nginx_container(dutils, ssl_folder):
                 pass
 
 
+@pytest.fixture
 def meta_file_v1():
     with open(META_FILEPATH, 'w') as f:
         json.dump(TEST_META_V1, f)
