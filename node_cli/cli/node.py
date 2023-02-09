@@ -17,8 +17,6 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional
-
 import click
 
 from node_cli.core.node import (
@@ -101,16 +99,9 @@ def register_node(name, ip, port, domain):
 
 @node.command('init', help="Initialize SKALE node")
 @click.argument('env_file')
-@click.option(
-    '--snapshot-from',
-    type=IP_TYPE,
-    default=None,
-    hidden=True,
-    help='Ip of the node from to download snapshot from'
-)
 @streamed_cmd
-def init_node(env_file, snapshot_from: Optional[str] = None):
-    init(env_file, snapshot_from)
+def init_node(env_file):
+    init(env_file)
 
 
 @node.command('update', help='Update node from .env file')
@@ -118,16 +109,9 @@ def init_node(env_file, snapshot_from: Optional[str] = None):
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.argument('env_file')
-@click.option(
-    '--snapshot-from',
-    type=IP_TYPE,
-    default=None,
-    hidden=True,
-    help='Ip of the node from to download snapshot from'
-)
 @streamed_cmd
-def update_node(env_file, snapshot_from: Optional[str] = None):
-    update(env_file, snapshot_from)
+def update_node(env_file):
+    update(env_file)
 
 
 @node.command('signature', help='Get node signature for given validator id')
