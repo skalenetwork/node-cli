@@ -17,8 +17,6 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional
-
 import click
 
 from node_cli.core.node import init_sync, update_sync
@@ -26,8 +24,7 @@ from node_cli.utils.helper import (
     abort_if_false,
     safe_load_texts,
     streamed_cmd,
-    error_exit,
-    IP_TYPE
+    error_exit
 )
 from node_cli.utils.exit_codes import CLIExitCodes
 
@@ -63,21 +60,14 @@ def sync_node():
     help=TEXTS['init']['historic_state'],
     is_flag=True
 )
-@click.option(
-    '--snapshot-from',
-    type=IP_TYPE,
-    default=None,
-    hidden=True,
-    help='Ip of the node from to download snapshot from'
-)
 @streamed_cmd
-def _init_sync(env_file, archive, catchup, historic_state, snapshot_from: Optional[str] = None):
+def _init_sync(env_file, archive, catchup, historic_state):
     if historic_state and not archive:
         error_exit(
             '--historic-state can be used only is combination with --archive',
             exit_code=CLIExitCodes.FAILURE
         )
-    init_sync(env_file, archive, catchup, historic_state, snapshot_from=snapshot_from)
+    init_sync(env_file, archive, catchup, historic_state)
 
 
 @sync_node.command('update', help='Update sync node from .env file')
@@ -85,13 +75,6 @@ def _init_sync(env_file, archive, catchup, historic_state, snapshot_from: Option
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.argument('env_file')
-@click.option(
-    '--snapshot-from',
-    type=IP_TYPE,
-    default=None,
-    hidden=True,
-    help='Ip of the node from to download snapshot from'
-)
 @streamed_cmd
-def _update_sync(env_file, snapshot_from: Optional[str] = None):
-    update_sync(env_file, snapshot_from=snapshot_from)
+def _update_sync(env_file):
+    update_sync(env_file)

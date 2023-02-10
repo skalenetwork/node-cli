@@ -19,7 +19,7 @@
 
 import functools
 import logging
-from typing import Dict, Optional
+from typing import Dict
 
 from node_cli.cli.info import VERSION
 from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
@@ -142,7 +142,7 @@ def update(env_filepath: str, env: Dict) -> None:
 
 
 @checked_host
-def init(env_filepath: str, env: dict, snapshot_from: Optional[str] = None) -> bool:
+def init(env_filepath: str, env: dict) -> bool:
     sync_skale_node()
 
     ensure_btrfs_kernel_module_autoloaded()
@@ -164,9 +164,6 @@ def init(env_filepath: str, env: dict, snapshot_from: Optional[str] = None) -> b
     docker_lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
 
-    node_options = NodeOptions()
-    node_options.snapshot_from = snapshot_from
-
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
@@ -183,8 +180,7 @@ def init_sync(
     env: dict,
     archive: bool,
     catchup: bool,
-    historic_state: bool,
-    snapshot_from: Optional[str] = None
+    historic_state: bool
 ) -> bool:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
@@ -205,7 +201,6 @@ def init_sync(
     node_options.archive = archive
     node_options.catchup = catchup
     node_options.historic_state = historic_state
-    node_options.snapshot_from = snapshot_from
 
     ensure_filestorage_mapping()
     link_env_file()
@@ -228,11 +223,7 @@ def init_sync(
     return True
 
 
-def update_sync(
-    env_filepath: str,
-    env: Dict,
-    snapshot_from: Optional[str] = None
-) -> bool:
+def update_sync(env_filepath: str, env: Dict) -> bool:
     compose_rm(env, sync_node=True)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
@@ -244,9 +235,6 @@ def update_sync(
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
-
-    node_options = NodeOptions()
-    node_options.snapshot_from = snapshot_from
 
     ensure_filestorage_mapping()
     backup_old_contracts()
