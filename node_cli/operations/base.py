@@ -19,18 +19,21 @@
 
 import functools
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 from node_cli.cli.info import VERSION
 from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
-from node_cli.core.host import link_env_file, prepare_host
+from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
 
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
+from node_cli.core.node_options import NodeOptions
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
 from node_cli.operations.common import (
-    backup_old_contracts, download_contracts, download_filestorage_artifacts, configure_filebeat,
+    backup_old_contracts,
+    download_contracts,
+    configure_filebeat,
     configure_flask, unpack_backup_archive
 )
 from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
@@ -92,13 +95,14 @@ def update(env_filepath: str, env: Dict) -> None:
 
     sync_skale_node()
 
+    ensure_btrfs_kernel_module_autoloaded()
+
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
     backup_old_contracts()
     download_contracts(env)
 
-    download_filestorage_artifacts()
     docker_lvmpy_update(env)
     generate_nginx_config()
 
@@ -132,9 +136,10 @@ def update(env_filepath: str, env: Dict) -> None:
 
 
 @checked_host
-def init(env_filepath: str, env: str) -> bool:
+def init(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> bool:
     sync_skale_node()
 
+    ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
@@ -146,7 +151,6 @@ def init(env_filepath: str, env: str) -> bool:
     )
     link_env_file()
     download_contracts(env)
-    download_filestorage_artifacts()
 
     configure_filebeat()
     configure_flask()
@@ -155,6 +159,9 @@ def init(env_filepath: str, env: str) -> bool:
 
     docker_lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
+
+    node_options = NodeOptions()
+    node_options.snapshot_from = snapshot_from
 
     update_meta(
         VERSION,
@@ -194,6 +201,7 @@ def restore(env, backup_path):
         print_failed_requirements_checks(failed_checks)
         return False
 
+    ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 

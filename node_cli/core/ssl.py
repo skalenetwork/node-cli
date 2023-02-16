@@ -90,8 +90,8 @@ def check_ssl_connection(host, port, silent=False):
     with detached_subprocess(ssl_check_cmd, expose_output=expose_output) as dp:
         time.sleep(1)
         code = dp.poll()
-        if code is not None:
-            logger.error('Healthcheck connection failed')
+        if code != 0 and code is not None:
+            logger.error('Healthcheck connection failed with code %d', code)
             raise SSLHealthcheckError('OpenSSL connection verification failed')
 
 

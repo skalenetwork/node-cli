@@ -29,10 +29,7 @@ from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import (
     write_json, read_json, run_cmd, extract_env_params, safe_load_yml
 )
-from node_cli.configs import (
-    ALLOCATION_FILEPATH, ENVIRONMENT_PARAMS_FILEPATH,
-    SNAPSHOTS_SHARED_VOLUME
-)
+from node_cli.configs import ALLOCATION_FILEPATH, STATIC_PARAMS_FILEPATH, SNAPSHOTS_SHARED_VOLUME
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
     TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
@@ -75,8 +72,7 @@ def compose_resource_allocation_config(
     env_type: str,
     params_by_env_type: Dict = None
 ) -> Dict:
-    params_by_env_type = params_by_env_type or \
-        safe_load_yml(ENVIRONMENT_PARAMS_FILEPATH)
+    params_by_env_type = params_by_env_type or safe_load_yml(STATIC_PARAMS_FILEPATH)
     common_config = params_by_env_type['common']
     schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(common_config)
     schain_mem_alloc, ima_mem_alloc = get_memory_alloc(common_config)

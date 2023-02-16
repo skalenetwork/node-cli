@@ -1,9 +1,12 @@
 import os
-from pip._internal import main as pipmain
+import shutil
 import time
+from pip._internal import main as pipmain
 
 import mock
 import pytest
+
+from node_cli.configs import STATIC_PARAMS_FILEPATH
 
 from node_cli.core.checks import (
     CheckType,
@@ -12,6 +15,7 @@ from node_cli.core.checks import (
     get_all_checkers,
     get_checks,
     get_report,
+    get_static_params,
     MachineChecker,
     merge_reports,
     PackageChecker,
@@ -108,9 +112,9 @@ def test_checks_swap(server_req):
 
 
 def test_checks_network(server_req):
-    checker = MachineChecker(server_req, 'test-disk')
+    checker = MachineChecker(server_req, 'test-disk', network_timeout=10)
     r = checker.network()
-    assert r.status == 'ok'
+    assert r.status == 'ok', r.info
     assert r.name == 'network'
 
 
@@ -135,7 +139,7 @@ def test_checks_disk(server_req):
 
 
 def test_checks_machine_check(server_req):
-    checker = MachineChecker(server_req, 'test-disk')
+    checker = MachineChecker(server_req, 'test-disk', network_timeout=10)
     result = checker.check()
     assert not all([r.status == 'ok' for r in result])
 
@@ -375,3 +379,11 @@ def test_merge_report():
         {'name': 'test2', 'status': 'ok', 'info': 'Test1'},
         {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
     ]
+
+
+def test_get_static_params(tmp_config_dir):
+    params = get_static_params()
+    shutil.copy(STATIC_PARAMS_FILEPATH, tmp_config_dir)
+    tmp_params = get_static_params(config_path=tmp_config_dir)
+    assert params['server']['cpu_total'] == 8
+    assert params == tmp_params

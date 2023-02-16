@@ -20,16 +20,16 @@ def find_version(*file_paths):
 
 extras_require = {
     'linter': [
-        "flake8==3.7.9",
-        "isort>=4.2.15,<5.8.1",
+        "flake8==5.0.4",
+        "isort>=4.2.15,<5.10.2",
     ],
     'dev': [
         "bumpversion==0.6.0",
-        "pytest==6.2.3",
-        "pytest-cov==2.9.0",
-        "twine==2.0.0",
-        "mock==4.0.2",
-        "freezegun==0.3.15"
+        "pytest==7.1.2",
+        "pytest-cov==3.0.0",
+        "twine==4.0.1",
+        "mock==4.0.3",
+        "freezegun==1.2.2"
     ]
 }
 
@@ -50,22 +50,22 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
-        "click==7.1.2",
-        "docker==4.2.2",
-        "PyInstaller==3.6",
-        "texttable==1.6.2",
-        "python-dateutil==2.8.1",
-        "Jinja2==2.11.2",
-        "psutil==5.7.0",
-        "python-dotenv==0.13.0",
-        "terminaltables==3.1.0",
-        "requests==2.23.0",
-        "GitPython==3.1.14",
-        "PyYAML==5.4.1",
-        "packaging==20.9",
-        "python-debian==0.1.39",
+        "click==8.1.3",
+        "PyInstaller==5.6.2",
+        "docker==6.0.1",
+        "texttable==1.6.4",
+        "python-dateutil==2.8.2",
+        "Jinja2==3.1.2",
+        "psutil==5.9.1",
+        "python-dotenv==0.21.0",
+        "terminaltables==3.1.10",
+        "requests==2.28.1",
+        "GitPython==3.1.27",
+        "packaging==21.3",
+        "python-debian==0.1.48",
         "python-iptables==1.0.0",
-        "MarkupSafe==2.0.1",
+        "PyYAML==6.0",
+        "MarkupSafe==2.1.1",
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,

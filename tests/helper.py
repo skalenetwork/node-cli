@@ -22,6 +22,19 @@ from click.testing import CliRunner
 from mock import Mock, MagicMock
 
 
+TEST_META_V1 = {
+    'version': '0.1.1',
+    'config_stream': 'develop'
+}
+
+TEST_META_V2 = {
+    'version': '0.1.1',
+    'config_stream': 'develop',
+    'docker_lvmpy_stream': '1.1.2'
+
+}
+
+
 def response_mock(status_code=0, json_data=None,
                   headers=None, raw=None):
     result = MagicMock()
