@@ -53,7 +53,7 @@ else
     EXECUTABLE_NAME=skale-$VERSION-$OS
 fi
 
-pyinstaller --onefile main.spec
+pyinstaller main.spec
 
 mv $PARENT_DIR/dist/main $PARENT_DIR/dist/$EXECUTABLE_NAME
 

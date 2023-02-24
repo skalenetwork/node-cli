@@ -20,7 +20,12 @@
 import click
 
 from node_cli.core.node import init_sync, update_sync
-from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd, error_exit
+from node_cli.utils.helper import (
+    abort_if_false,
+    safe_load_texts,
+    streamed_cmd,
+    error_exit
+)
 from node_cli.utils.exit_codes import CLIExitCodes
 
 

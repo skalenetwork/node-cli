@@ -86,6 +86,7 @@ def get_sources_list():
             logs_cli,
             resources_allocation_cli,
             node_cli,
+            sync_node_cli,
             wallet_cli,
             ssl_cli,
             exit_cli,

@@ -53,8 +53,8 @@ SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
 SYNC_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-sync.yml')
-ENVIRONMENT_PARAMS_FILEPATH = os.path.join(
-    CONTAINER_CONFIG_PATH, 'environment_params.yaml')
+STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
+
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
 NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
 NGINX_CONTAINER_NAME = 'skale_nginx'
@@ -80,6 +80,7 @@ DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
 
 IPTABLES_DIR = '/etc/iptables/'
 IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')
+DEFAULT_SSH_PORT = 22
 
 FLASK_SECRET_KEY_FILENAME = 'flask_db_key.txt'
 FLASK_SECRET_KEY_FILE = os.path.join(NODE_DATA_PATH, FLASK_SECRET_KEY_FILENAME)
@@ -141,3 +142,6 @@ DOCKER_SERVICE_CONFIG_PATH = '/etc/systemd/system/docker.service.d/no-host.conf'
 DOCKER_SOCKET_PATH = '/var/run/skale/docker.sock'
 
 CHECK_REPORT_PATH = os.path.join(REPORTS_PATH, 'checks.json')
+
+AUTOLOAD_KERNEL_MODULES_PATH = '/etc/modules'
+BTRFS_KERNEL_MODULE = 'btrfs'

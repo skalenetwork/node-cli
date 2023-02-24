@@ -1,7 +1,4 @@
 import json
-import os
-
-import pytest
 
 from node_cli.configs import META_FILEPATH
 from node_cli.utils.meta import (
@@ -10,41 +7,7 @@ from node_cli.utils.meta import (
     ensure_meta, get_meta_info,
     save_meta, update_meta
 )
-
-
-TEST_META_V1 = {
-    'version': '0.1.1',
-    'config_stream': 'develop'
-}
-
-TEST_META_V2 = {
-    'version': '0.1.1',
-    'config_stream': 'develop',
-    'docker_lvmpy_stream': '1.1.2'
-}
-
-
-@pytest.fixture
-def meta_file_v1():
-    with open(META_FILEPATH, 'w') as f:
-        json.dump(TEST_META_V1, f)
-    yield META_FILEPATH
-    os.remove(META_FILEPATH)
-
-
-@pytest.fixture
-def meta_file_v2():
-    with open(META_FILEPATH, 'w') as f:
-        json.dump(TEST_META_V2, f)
-    yield META_FILEPATH
-    os.remove(META_FILEPATH)
-
-
-@pytest.fixture
-def ensure_meta_removed():
-    yield
-    if os.path.isfile(META_FILEPATH):
-        os.remove(META_FILEPATH)
+from tests.helper import TEST_META_V1, TEST_META_V2
 
 
 def test_get_meta_info_v1(meta_file_v1):
