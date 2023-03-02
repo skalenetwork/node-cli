@@ -117,3 +117,7 @@ disk_mountpoint.txt
 sgx_server_url.txt
 resource_allocation.json
 conf.json
+
+# Docs Automation
+node_modules
+package-lock.json
