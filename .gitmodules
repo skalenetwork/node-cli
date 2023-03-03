@@ -2,3 +2,6 @@
 	path = helper-scripts
 	url = https://github.com/skalenetwork/helper-scripts.git
 	branch = develop
+[submodule "doc-ui"]
+	path = doc-ui
+	url = https://github.com/skalenetwork/doc-ui.git
