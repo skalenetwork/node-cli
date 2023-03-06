@@ -164,7 +164,6 @@ def init_sync(
         archive,
         catchup,
         historic_state
-
     )
     if not inited_ok:
         error_exit(

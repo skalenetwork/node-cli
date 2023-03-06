@@ -23,11 +23,13 @@ class CliMeta(
         )
 
 
-def get_meta_info() -> CliMeta:
+def get_meta_info(raw: bool = False) -> CliMeta:
     if not os.path.isfile(META_FILEPATH):
         return None
     with open(META_FILEPATH) as meta_file:
         plain_meta = json.load(meta_file)
+    if raw:
+        return plain_meta
     return CliMeta(**plain_meta)
 
 

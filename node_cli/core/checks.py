@@ -46,7 +46,8 @@ from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     DOCKER_CONFIG_FILEPATH,
     DOCKER_DAEMON_HOSTS,
-    REPORTS_PATH
+    REPORTS_PATH,
+    STATIC_PARAMS_FILEPATH
 )
 from node_cli.core.resources import get_disk_size
 from node_cli.utils.helper import run_cmd, safe_mkdir
@@ -66,15 +67,13 @@ Func = TypeVar('Func', bound=Callable[..., Any])
 FuncList = List[Func]
 
 
-def get_env_params(
+def get_static_params(
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH
 ) -> Dict:
-    environment_params_path = os.path.join(
-        config_path,
-        'environment_params.yaml'
-    )
-    with open(environment_params_path) as requirements_file:
+    status_params_filename = os.path.basename(STATIC_PARAMS_FILEPATH)
+    static_params_filepath = os.path.join(config_path, status_params_filename)
+    with open(static_params_filepath) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata['envs'][env_type]
 
@@ -208,9 +207,14 @@ class BaseChecker:
 
 
 class MachineChecker(BaseChecker):
-    def __init__(self, requirements: Dict, disk_device: str) -> None:
+    def __init__(
+            self,
+            requirements: Dict,
+            disk_device: str,
+            network_timeout: Optional[int] = None) -> None:
         self.requirements = requirements
         self.disk_device = disk_device
+        self.network_timeout = network_timeout or NETWORK_CHECK_TIMEOUT
 
     @preinstall
     def cpu_total(self) -> CheckResult:
@@ -281,7 +285,7 @@ class MachineChecker(BaseChecker):
     def network(self) -> CheckResult:
         name = 'network'
         try:
-            socket.setdefaulttimeout(NETWORK_CHECK_TIMEOUT)
+            socket.setdefaulttimeout(self.network_timeout)
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
                 (CLOUDFLARE_DNS_HOST, CLOUDFLARE_DNS_HOST_PORT))
             return self._ok(name=name)
@@ -521,7 +525,7 @@ def run_checks(
     check_type: CheckType = CheckType.ALL
 ) -> ResultList:
     logger.info('Executing checks. Type: %s', check_type)
-    requirements = get_env_params(env_type, config_path)
+    requirements = get_static_params(env_type, config_path)
     checkers = get_all_checkers(disk, requirements)
     checks = get_checks(checkers, check_type)
     results = [check() for check in checks]

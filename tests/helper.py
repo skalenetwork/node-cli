@@ -25,6 +25,18 @@ from mock import Mock, MagicMock
 
 BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
 
+TEST_META_V1 = {
+    'version': '0.1.1',
+    'config_stream': 'develop'
+}
+
+TEST_META_V2 = {
+    'version': '0.1.1',
+    'config_stream': 'develop',
+    'docker_lvmpy_stream': '1.1.2'
+
+}
+
 
 def response_mock(
     status_code=0,
