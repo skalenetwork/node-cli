@@ -17,15 +17,20 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import ipaddress
+import json
 import os
 import re
 import sys
-import json
+from urllib.parse import urlparse
+
 import yaml
 import shutil
 import requests
 import subprocess
 import urllib.request
+
+import urllib.parse
 from functools import wraps
 
 import logging
@@ -43,18 +48,18 @@ from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.configs.env import (
     absent_params as absent_env_params,
-    get_params as get_env_params
+    get_env_config
 )
 from node_cli.configs import (
     TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG, GLOBAL_SKALE_DIR,
     GLOBAL_SKALE_CONF_FILEPATH
 )
-from node_cli.configs.cli_logger import (
-    LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES, STREAM_LOG_FORMAT,
-    LOG_FILEPATH, DEBUG_LOG_FILEPATH, FILE_LOG_FORMAT
-)
 from node_cli.configs.routes import get_route
 from node_cli.utils.global_config import read_g_config, get_system_user
+
+from node_cli.configs.cli_logger import (
+    FILE_LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
+    LOG_FILEPATH, STREAM_LOG_FORMAT, DEBUG_LOG_FILEPATH)
 
 
 logger = logging.getLogger(__name__)
@@ -78,17 +83,38 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
-def run_cmd(cmd, env={}, shell=False, secure=False, check_code=True):
+def init_file(path, content=None):
+    if not os.path.exists(path):
+        write_json(path, content)
+
+
+def run_cmd(
+    cmd,
+    env={},
+    shell=False,
+    secure=False,
+    check_code=True,
+    separate_stderr=False
+):
     if not secure:
         logger.debug(f'Running: {cmd}')
     else:
         logger.debug('Running some secure command')
-    res = subprocess.run(cmd, shell=shell,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT, env={**env, **os.environ})
+    stdout, stderr = subprocess.PIPE, subprocess.PIPE
+    if not separate_stderr:
+        stderr = subprocess.STDOUT
+    res = subprocess.run(
+        cmd,
+        shell=shell,
+        stdout=stdout,
+        stderr=stderr,
+        env={**env, **os.environ}
+    )
     if check_code:
         output = res.stdout.decode('utf-8')
         if res.returncode:
+            if separate_stderr:
+                output = res.stderr.decode('utf-8')
             logger.error(f'Error during shell execution: {output}')
             res.check_returncode()
         else:
@@ -118,19 +144,12 @@ def process_template(source, destination, data):
         f.write(processed_template)
 
 
-def read_file(path):
-    file = open(path, 'r')
-    text = file.read()
-    file.close()
-    return text
-
-
 def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
 def extract_env_params(env_filepath):
-    env_params = get_env_params(env_filepath)
+    env_params = get_env_config(env_filepath)
 
     absent_params = ', '.join(absent_env_params(env_params))
     if absent_params:
@@ -262,32 +281,9 @@ def get_file_handler(log_filepath, log_level):
     return f_handler
 
 
-def load_ssl_files(key_path, cert_path):
-    return {
-        'ssl_key': (os.path.basename(key_path),
-                    read_file(key_path), 'application/octet-stream'),
-        'ssl_cert': (os.path.basename(cert_path),
-                     read_file(cert_path), 'application/octet-stream')
-    }
-
-
-def upload_certs(key_path, cert_path, force):
-    with open(key_path, 'rb') as key_file, open(cert_path, 'rb') as cert_file:
-        files_data = {
-            'ssl_key': (os.path.basename(key_path), key_file,
-                        'application/octet-stream'),
-            'ssl_cert': (os.path.basename(cert_path), cert_file,
-                         'application/octet-stream')
-        }
-        files_data['json'] = (
-            None, json.dumps({'force': force}),
-            'application/json'
-        )
-        return post_request(
-            blueprint='ssl',
-            method='upload',
-            files=files_data
-        )
+def read_file(path):
+    with open(path, 'r') as file:
+        return file.read()
 
 
 def to_camel_case(snake_str):
@@ -337,3 +333,57 @@ def get_g_conf_user():
 
 def get_g_conf_home():
     return get_g_conf()['home_dir']
+
+
+def rm_dir(folder: str) -> None:
+    if os.path.exists(folder):
+        logger.info(f'{folder} exists, removing...')
+        shutil.rmtree(folder)
+    else:
+        logger.info(f'{folder} doesn\'t exist, skipping...')
+
+
+def safe_mkdir(path: str, print_res: bool = False):
+    if os.path.exists(path):
+        return
+    msg = f'Creating {path} directory...'
+    logger.info(msg)
+    if print_res:
+        print(msg)
+    os.makedirs(path, exist_ok=True)
+
+
+def rsync_dirs(src: str, dest: str) -> None:
+    logger.info(f'Syncing {dest} with {src}')
+    run_cmd(['rsync', '-r', f'{src}/', dest])
+    run_cmd(['rsync', '-r', f'{src}/.git', dest])
+
+
+class UrlType(click.ParamType):
+    name = 'url'
+
+    def convert(self, value, param, ctx):
+        try:
+            result = urlparse(value)
+        except ValueError:
+            self.fail(f'Some characters are not allowed in {value}',
+                      param, ctx)
+        if not all([result.scheme, result.netloc]):
+            self.fail(f'Expected valid url. Got {value}', param, ctx)
+        return value
+
+
+class IpType(click.ParamType):
+    name = 'ip'
+
+    def convert(self, value, param, ctx):
+        try:
+            ipaddress.ip_address(value)
+        except ValueError:
+            self.fail(f'expected valid ipv4/ipv6 address. Got {value}',
+                      param, ctx)
+        return value
+
+
+URL_TYPE = UrlType()
+IP_TYPE = IpType()

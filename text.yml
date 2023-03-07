@@ -8,8 +8,7 @@ health:
     help: Info about connected SGX server
 
 common:
-  json:
-    help: Show data in JSON format
+  json: Show data in JSON format
 
 node:
   base: "SKALE node commands"
@@ -46,6 +45,8 @@ ssl:
   uploaded: |-
     Certificates are successfully uploaded.
     You can check status by running < skale ssl status >
+  check_passed: |-
+    Check passed
 
 exit:
   start: |

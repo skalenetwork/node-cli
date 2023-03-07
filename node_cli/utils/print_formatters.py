@@ -27,6 +27,7 @@ import inspect
 
 from node_cli.configs import LONG_LINE
 from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
+from node_cli.utils.meta import CliMeta
 from node_cli.utils.texts import Texts
 
 TEXTS = Texts()
@@ -97,18 +98,22 @@ def print_schains(schains):
         'Size',
         'Lifetime',
         'Created At',
-        'Deposit'
+        'Deposit',
+        'Generation',
+        'Originator',
     ]
     rows = []
     for schain in schains:
         date = datetime.datetime.fromtimestamp(schain['startDate'])
         rows.append([
             schain['name'],
-            schain['owner'],
+            schain['mainnetOwner'],
             schain['partOfNode'],
             schain['lifetime'],
             format_date(date),
             schain['deposit'],
+            schain['generation'],
+            schain['originator'],
         ])
     print(Formatter().table(headers, rows))
 
@@ -137,7 +142,7 @@ def print_dkg_statuses(statuses):
 def print_schains_healthchecks(schains):
     headers = [
         'sChain Name',
-        'Data directory',
+        'Config directory',
         'DKG',
         'Config file',
         'Volume',
@@ -152,12 +157,12 @@ def print_schains_healthchecks(schains):
         healthchecks = schain['healthchecks']
         rows.append([
             schain['name'],
-            healthchecks['data_dir'],
+            healthchecks['config_dir'],
             healthchecks['dkg'],
             healthchecks['config'],
             healthchecks['volume'],
-            healthchecks['container'],
-            healthchecks['ima_container'],
+            healthchecks['skaled_container'],
+            healthchecks.get('ima_container', 'No IMA'),
             healthchecks['firewall_rules'],
             healthchecks['rpc'],
             healthchecks['blocks']
@@ -225,14 +230,17 @@ def print_firewall_rules(rules, raw=False):
     if raw:
         print(json.dumpes(rules))
     headers = [
-        'Port',
-        'Ip'
+        'IP range',
+        'Port'
     ]
     rows = []
     for rule in sorted(rules, key=lambda r: r['port']):
+        ip_range = 'All IPs'
+        if rule["first_ip"] and rule["last_ip"]:
+            ip_range = f'{rule["first_ip"]} - {rule["last_ip"]}'
         rows.append([
-            rule['port'],
-            rule['ip']
+            ip_range,
+            rule['port']
         ])
     print(Formatter().table(headers, rows))
 
@@ -263,7 +271,7 @@ def print_node_cmd_error():
 
 
 def print_node_info(node, node_status):
-    print(inspect.cleandoc(f'''
+    print(inspect.cleandoc(f"""
         {LONG_LINE}
         Node info
         Name: {node['name']}
@@ -274,7 +282,7 @@ def print_node_info(node, node_status):
         Domain name: {node['domain_name']}
         Status: {node_status}
         {LONG_LINE}
-    '''))
+    """))
 
 
 def print_err_response(error_payload):
@@ -300,3 +308,13 @@ def print_failed_requirements_checks(failed_checks: list) -> None:
     block_len = (len(drawing.split()[0]) - len(main_header)) // 2
     print('=' * block_len + main_header + '=' * block_len)
     print(drawing)
+
+
+def print_meta_info(meta_info: CliMeta) -> None:
+    print(inspect.cleandoc(f"""
+        {LONG_LINE}
+        Version: {meta_info.version}
+        Config Stream: {meta_info.config_stream}
+        Lvmpy stream: {meta_info.docker_lvmpy_stream}
+        {LONG_LINE}
+    """))

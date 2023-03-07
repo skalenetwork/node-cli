@@ -33,7 +33,9 @@ optional_params = {
     'DISABLE_DRY_RUN': '',
     'DEFAULT_GAS_LIMIT': '',
     'DEFAULT_GAS_PRICE_WEI': '',
-    'DISABLE_IMA': ''
+    'DISABLE_IMA': '',
+    'SKIP_DOCKER_CONFIG': '',
+    'SKIP_DOCKER_CLEANUP': ''
 }
 
 
@@ -44,7 +46,7 @@ def absent_params(params):
     )
 
 
-def get_params(env_filepath):
+def get_env_config(env_filepath: str = SKALE_DIR_ENV_FILEPATH):
     load_dotenv(dotenv_path=env_filepath)
     params = base_params.copy()
     params.update(optional_params)

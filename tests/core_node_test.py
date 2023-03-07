@@ -5,10 +5,20 @@ import time
 from pathlib import Path
 
 import docker
+import mock
 import pytest
+import requests
 
+from node_cli.configs import NODE_DATA_PATH
+from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.node import BASE_CONTAINERS_AMOUNT, is_base_containers_alive
-from node_cli.core.node import pack_dir
+from node_cli.core.node import init, pack_dir, update
+
+from tests.helper import (
+    response_mock,
+    subprocess_run_mock
+)
+from tests.resources_test import BIG_DISK_SIZE
 
 dclient = docker.from_env()
 
@@ -118,3 +128,61 @@ def test_is_base_containers_alive_exited(skale_base_containers_exited):
 
 def test_is_base_containers_alive_empty():
     assert not is_base_containers_alive()
+
+
+@pytest.fixture
+def no_resource_file():
+    try:
+        yield RESOURCE_ALLOCATION_FILEPATH
+    finally:
+        if os.path.exists(RESOURCE_ALLOCATION_FILEPATH):
+            os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+@pytest.fixture
+def resource_file():
+    Path(RESOURCE_ALLOCATION_FILEPATH).touch()
+    try:
+        yield RESOURCE_ALLOCATION_FILEPATH
+    finally:
+        if os.path.exists(RESOURCE_ALLOCATION_FILEPATH):
+            os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+def test_init_node(no_resource_file):  # todo: write new init node test
+    resp_mock = response_mock(requests.codes.created)
+    assert not os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
+    env_filepath = './tests/test-env'
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('node_cli.core.resources.get_disk_size',
+                       return_value=BIG_DISK_SIZE), \
+            mock.patch('node_cli.core.host.prepare_host'), \
+            mock.patch('node_cli.core.host.init_data_dir'), \
+            mock.patch('node_cli.core.node.configure_firewall_rules'), \
+            mock.patch('node_cli.core.node.init_op'), \
+            mock.patch('node_cli.core.node.is_base_containers_alive',
+                       return_value=True), \
+            mock.patch('node_cli.utils.helper.post_request',
+                       resp_mock):
+        init(env_filepath)
+        assert os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
+
+
+def test_update_node(mocked_g_config, resource_file):
+    env_filepath = './tests/test-env'
+    resp_mock = response_mock(requests.codes.created)
+    os.makedirs(NODE_DATA_PATH, exist_ok=True)
+    with mock.patch('subprocess.run', new=subprocess_run_mock), \
+            mock.patch('node_cli.core.node.update_op'), \
+            mock.patch('node_cli.core.node.get_flask_secret_key'), \
+            mock.patch('node_cli.core.node.save_env_params'), \
+            mock.patch('node_cli.core.node.configure_firewall_rules'), \
+            mock.patch('node_cli.core.host.prepare_host'), \
+            mock.patch('node_cli.core.node.is_base_containers_alive',
+                       return_value=True), \
+            mock.patch('node_cli.utils.helper.post_request',
+                       resp_mock), \
+            mock.patch('node_cli.core.resources.get_disk_size',
+                       return_value=BIG_DISK_SIZE), \
+            mock.patch('node_cli.core.host.init_data_dir'):
+        update(env_filepath)

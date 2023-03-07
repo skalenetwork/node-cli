@@ -18,9 +18,16 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import socket
 import sys
 from pathlib import Path
-from node_cli.configs import IPTABLES_DIR, IPTABLES_RULES_STATE_FILEPATH
+
+from node_cli.configs import (
+    IPTABLES_DIR,
+    IPTABLES_RULES_STATE_FILEPATH,
+    ENV,
+    DEFAULT_SSH_PORT
+)
 from node_cli.utils.helper import run_cmd
 
 
@@ -29,7 +36,7 @@ logger = logging.getLogger(__name__)
 try:
     import iptc
 except (FileNotFoundError, AttributeError) as err:
-    if "pytest" in sys.modules:
+    if "pytest" in sys.modules or ENV == 'dev':
         from collections import namedtuple  # hotfix for tests
         iptc = namedtuple('iptc', ['Chain', 'Rule'])
     else:
@@ -38,7 +45,6 @@ except (FileNotFoundError, AttributeError) as err:
 
 ALLOWED_INCOMING_TCP_PORTS = [
     '80',  # filestorage
-    '22',  # ssh
     '311',  # watchdog https
     '8080',  # http
     '443',  # https
@@ -131,15 +137,32 @@ def drop_all_udp(chain: iptc.Chain) -> None:
     ensure_rule(chain, r)
 
 
+def get_ssh_port(ssh_service_name='ssh'):
+    try:
+        return socket.getservbyname(ssh_service_name)
+    except OSError:
+        logger.exception('Cannot get ssh service port')
+        return DEFAULT_SSH_PORT
+
+
+def allow_ssh(chain: iptc.Chain) -> None:
+    ssh_port = get_ssh_port()
+    accept_incoming(chain, str(ssh_port), 'tcp')
+
+
 def allow_base_ports(chain: iptc.Chain) -> None:
-    logger.debug('Allowing base ports...')
+    logger.info('Configuring ssh port')
+    allow_ssh(chain)
+    logger.info('Configuring incoming tcp ports')
     for port in ALLOWED_INCOMING_TCP_PORTS:
         accept_incoming(chain, port, 'tcp')
+    logger.info('Configuring incoming udp ports')
     for port in ALLOWED_INCOMING_UDP_PORTS:
         accept_incoming(chain, port, 'udp')
 
 
-def accept_incoming(chain, port, protocol) -> None:
+def accept_incoming(chain: iptc.Chain, port: str, protocol: str) -> None:
+    logger.debug('Going to allow %s traffic from %s port', protocol, port)
     rule = iptc.Rule()
     rule.protocol = protocol
     match = iptc.Match(rule, protocol)

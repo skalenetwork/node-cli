@@ -17,9 +17,10 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import io
+import itertools
 import os
 import logging
-from time import sleep
 
 import docker
 from docker.client import DockerClient
@@ -36,7 +37,7 @@ from node_cli.configs import (
 
 logger = logging.getLogger(__name__)
 
-SCHAIN_REMOVE_TIMEOUT = 60
+SCHAIN_REMOVE_TIMEOUT = 300
 IMA_REMOVE_TIMEOUT = 20
 
 MAIN_COMPOSE_CONTAINERS = ('skale-api', 'bounty', 'skale-admin')
@@ -55,7 +56,11 @@ NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
 
 DOCKER_DEFAULT_STOP_TIMEOUT = 20
+
+DOCKER_DEFAULT_HEAD_LINES = 400
 DOCKER_DEFAULT_TAIL_LINES = 10000
+
+COMPOSE_SHUTDOWN_TIMEOUT = 40
 
 
 def docker_client() -> DockerClient:
@@ -67,6 +72,7 @@ def get_sanitized_container_name(container_info: dict) -> str:
 
 
 def get_containers(container_name_filter=None, _all=True) -> list:
+    return docker_client().containers.list(all=_all)
     return docker_client().containers.list(all=_all, filters={'name': container_name_filter})
 
 
@@ -87,49 +93,62 @@ def remove_dynamic_containers():
 
 def rm_all_schain_containers():
     schain_containers = get_all_schain_containers()
-    remove_containers(schain_containers, stop_timeout=SCHAIN_REMOVE_TIMEOUT)
+    remove_containers(schain_containers, timeout=SCHAIN_REMOVE_TIMEOUT)
 
 
 def rm_all_ima_containers():
     ima_containers = get_all_ima_containers()
-    remove_containers(ima_containers, stop_timeout=IMA_REMOVE_TIMEOUT)
+    remove_containers(ima_containers, timeout=IMA_REMOVE_TIMEOUT)
 
 
-def remove_containers(containers, stop_timeout):
+def remove_containers(containers, timeout):
     for container in containers:
-        logger.info(f'Removing container: {container.name}')
-        safe_rm(container, stop_timeout=stop_timeout)
+        safe_rm(container, timeout=timeout)
 
 
-def safe_rm(container: Container, stop_timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs):
+def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs):
     """
     Saves docker container logs (last N lines) in the .skale/node_data/log/.removed_containers
     folder. Then stops and removes container with specified params.
     """
     container_name = container.name
+    logger.info(
+        f'Stopping container: {container_name}, timeout: {timeout}')
+    container.stop(timeout=timeout)
     backup_container_logs(container)
-    logger.debug(f'Stopping container: {container_name}, timeout: {stop_timeout}')
-    container.stop(timeout=stop_timeout)
-    logger.debug(f'Removing container: {container_name}, kwargs: {kwargs}')
+    logger.info(f'Removing container: {container_name}, kwargs: {kwargs}')
     container.remove(**kwargs)
     logger.info(f'Container removed: {container_name}')
 
 
-def backup_container_logs(container: Container, tail=DOCKER_DEFAULT_TAIL_LINES) -> None:
+def backup_container_logs(
+    container: Container,
+    head: int = DOCKER_DEFAULT_HEAD_LINES,
+    tail: int = DOCKER_DEFAULT_TAIL_LINES
+) -> None:
     logger.info(f'Going to backup container logs: {container.name}')
     logs_backup_filepath = get_logs_backup_filepath(container)
     save_container_logs(container, logs_backup_filepath, tail)
-    logger.debug(f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
+    logger.info(
+        f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
 
 
 def save_container_logs(
-            container: Container,
-            log_filepath: str,
-            tail=DOCKER_DEFAULT_TAIL_LINES
-        ) -> None:
-    with open(log_filepath, "wb") as out:
-        out.write(container.logs(tail=tail))
-    logger.debug(f'Logs from {container.name} saved to {log_filepath}')
+    container: Container,
+    log_filepath: str,
+    head: int = DOCKER_DEFAULT_HEAD_LINES,
+    tail: int = DOCKER_DEFAULT_TAIL_LINES
+) -> None:
+    separator = b'=' * 80 + b'\n'
+    tail_lines = container.logs(tail=tail)
+    lines_number = len(io.BytesIO(tail_lines).readlines())
+    head = min(lines_number, head)
+    log_stream = container.logs(stream=True, follow=True)
+    head_lines = b''.join(itertools.islice(log_stream, head))
+    with open(log_filepath, 'wb') as out:
+        out.write(head_lines)
+        out.write(separator)
+        out.write(tail_lines)
 
 
 def get_logs_backup_filepath(container: Container) -> str:
@@ -164,20 +183,14 @@ def is_volume_exists(name: str, dutils=None):
 
 
 def compose_rm(env={}):
-    logger.info(f'Removing {MAIN_COMPOSE_CONTAINERS} containers')
+    logger.info('Removing compose containers')
     run_cmd(
         cmd=(
             'docker-compose',
             '-f', COMPOSE_PATH,
-            'rm', '-s', '-f', *MAIN_COMPOSE_CONTAINERS
+            'down',
+            '-t', str(COMPOSE_SHUTDOWN_TIMEOUT),
         ),
-        env=env
-    )
-    logger.info(f'Sleeping for {COMPOSE_TIMEOUT} seconds')
-    sleep(COMPOSE_TIMEOUT)
-    logger.info('Removing all compose containers')
-    run_cmd(
-        cmd=('docker-compose', '-f', COMPOSE_PATH, 'rm', '-s', '-f'),
         env=env
     )
     logger.info('Compose containers removed')
@@ -220,3 +233,42 @@ def compose_up(env):
     if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
         logger.info('Running containers for Telegram notifications')
         run_cmd(cmd=get_up_compose_cmd(NOTIFICATION_COMPOSE_SERVICES), env=env)
+
+
+def remove_images(images, dclient=None):
+    dc = dclient or docker_client()
+    for image in images:
+        dc.images.remove(image.id)
+
+
+def get_used_images(dclient=None):
+    dc = dclient or docker_client()
+    return [c.image for c in dc.containers.list()]
+
+
+def cleanup_unused_images(dclient=None, ignore=None):
+    logger.info('Removing unused docker images')
+    ignore = ignore or []
+    dc = dclient or docker_client()
+    used = get_used_images(dclient=dc)
+    remove_images(
+        filter(lambda i: i not in used and i not in ignore, dc.images.list()),
+        dclient=dc
+    )
+
+
+def system_prune():
+    logger.info('Removing dangling docker artifacts')
+    cmd = ['docker', 'system', 'prune', '-f']
+    run_cmd(cmd=cmd)
+
+
+def docker_cleanup(dclient=None, ignore=None):
+    ignore = ignore or []
+    try:
+        dc = dclient or docker_client()
+        cleanup_unused_images(dclient=dc, ignore=ignore)
+        system_prune()
+    except Exception as e:
+        logger.warning('Image cleanuping errored with %s', e)
+        logger.debug('Image cleanuping errored', exc_info=True)

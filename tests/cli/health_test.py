@@ -53,11 +53,11 @@ def test_checks():
         {
             "name": "test_schain",
             "healthchecks": {
-                "data_dir": True,
+                "config_dir": True,
                 "dkg": False,
                 "config": False,
                 "volume": False,
-                "container": False,
+                "skaled_container": False,
                 "ima_container": False,
                 "firewall_rules": False,
                 "rpc": False,
@@ -72,17 +72,14 @@ def test_checks():
     result = run_command_mock('node_cli.utils.helper.requests.get',
                               resp_mock, schains)
 
-    print(result)
-    print(result.output)
-
     assert result.exit_code == 0
-    assert result.output == 'sChain Name   Data directory    DKG    Config file   Volume   Container    IMA    Firewall    RPC    Blocks\n-----------------------------------------------------------------------------------------------------------\ntest_schain   True             False   False         False    False       False   False      False   False \n'  # noqa
+    assert result.output == 'sChain Name   Config directory    DKG    Config file   Volume   Container    IMA    Firewall    RPC    Blocks\n-------------------------------------------------------------------------------------------------------------\ntest_schain   True               False   False         False    False       False   False      False   False \n'  # noqa
 
     result = run_command_mock('node_cli.utils.helper.requests.get',
                               resp_mock, schains, ['--json'])
 
     assert result.exit_code == 0
-    assert result.output == '[{"name": "test_schain", "healthchecks": {"data_dir": true, "dkg": false, "config": false, "volume": false, "container": false, "ima_container": false, "firewall_rules": false, "rpc": false, "blocks": false}}]\n'  # noqa
+    assert result.output == '[{"name": "test_schain", "healthchecks": {"config_dir": true, "dkg": false, "config": false, "volume": false, "skaled_container": false, "ima_container": false, "firewall_rules": false, "rpc": false, "blocks": false}}]\n'  # noqa
 
 
 def test_sgx_status():

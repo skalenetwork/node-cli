@@ -17,8 +17,9 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import logging
+import os
+import shutil
 
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.git_utils import sync_repo
@@ -43,6 +44,8 @@ def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
 
 
 def sync_docker_lvmpy_repo(env):
+    if os.path.isdir(DOCKER_LVMPY_PATH):
+        shutil.rmtree(DOCKER_LVMPY_PATH)
     sync_repo(
         DOCKER_LVMPY_REPO_URL,
         DOCKER_LVMPY_PATH,

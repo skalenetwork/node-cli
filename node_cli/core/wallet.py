@@ -38,12 +38,10 @@ def get_wallet_info(_format):
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def send_eth(address: str, amount: float, gas_limit: int, gas_price: int):
+def send_eth(address: str, amount: float):
     json_data = {
         'address': address,
-        'amount': amount,
-        'gas_limit': gas_limit,
-        'gas_price': gas_price
+        'amount': amount
     }
     status, payload = post_request(BLUEPRINT_NAME, 'send-eth', json=json_data)
     if status == 'ok':

@@ -16,7 +16,8 @@ a = Analysis(
     pathex=['.'],
     binaries=[(libxtwrapper_path, '.')],
     datas=[
-       ("./text.yml", "data")
+       ("./text.yml", "data"),
+       ("./datafiles/skaled-ssl-test", "data/datafiles")
     ],
     hiddenimports=[],
     hookspath=[],

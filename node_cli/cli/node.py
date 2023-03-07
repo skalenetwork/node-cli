@@ -17,56 +17,38 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import ipaddress
-from urllib.parse import urlparse
-
 import click
 
 from node_cli.core.node import (
     configure_firewall_rules,
-    get_node_signature, init, restore,
+    get_node_signature,
+    init,
+    restore,
     register_node as register,
-    update, backup,
-    set_maintenance_mode_on, set_maintenance_mode_off,
-    turn_off, turn_on, get_node_info,
-    set_domain_name, run_checks
+    update,
+    backup,
+    set_maintenance_mode_on,
+    set_maintenance_mode_off,
+    turn_off,
+    turn_on,
+    get_node_info,
+    set_domain_name,
+    run_checks
 )
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.configs.env import ALLOWED_ENV_TYPES
-from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd
+from node_cli.utils.decorators import check_inited
+from node_cli.utils.helper import (
+    abort_if_false,
+    safe_load_texts,
+    streamed_cmd,
+    IP_TYPE
+)
+from node_cli.utils.meta import get_meta_info
+from node_cli.utils.print_formatters import print_meta_info
 
 
 TEXTS = safe_load_texts()
-
-
-class UrlType(click.ParamType):
-    name = 'url'
-
-    def convert(self, value, param, ctx):
-        try:
-            result = urlparse(value)
-        except ValueError:
-            self.fail(f'Some characters are not allowed in {value}',
-                      param, ctx)
-        if not all([result.scheme, result.netloc]):
-            self.fail(f'Expected valid url. Got {value}', param, ctx)
-        return value
-
-
-class IpType(click.ParamType):
-    name = 'ip'
-
-    def convert(self, value, param, ctx):
-        try:
-            ipaddress.ip_address(value)
-        except ValueError:
-            self.fail(f'expected valid ipv4/ipv6 address. Got {value}',
-                      param, ctx)
-        return value
-
-
-URL_TYPE = UrlType()
-IP_TYPE = IpType()
 
 
 @click.group()
@@ -110,27 +92,9 @@ def node_info(format):
     type=str,
     help='Node domain name'
 )
-@click.option(
-    '--gas-limit',
-    default=None,
-    type=int,
-    help='Gas limit for registration transaction'
-)
-@click.option(
-    '--gas-price',
-    default=None,
-    type=int,
-    help='Gas price for registration transaction in Gwei'
-)
-@click.option(
-    '--skip-dry-run',
-    is_flag=True,
-    default=False,
-    help='Skip dry run for registration transaction'
-)
 @streamed_cmd
-def register_node(name, ip, port, domain, gas_limit, gas_price, skip_dry_run):
-    register(name, ip, ip, port, domain, gas_limit, gas_price, skip_dry_run)
+def register_node(name, ip, port, domain):
+    register(name, ip, ip, port, domain)
 
 
 @node.command('init', help="Initialize SKALE node")
@@ -244,7 +208,7 @@ def _set_domain_name(domain):
     default='mainnet',
     help='Network to check'
 )
-def check_requirements(network):
+def check(network):
     run_checks(network)
 
 
@@ -254,3 +218,19 @@ def check_requirements(network):
               prompt='Are you sure you want to reconfigure firewall rules?')
 def configure_firewall():
     configure_firewall_rules()
+
+
+@node.command(help='Show node version information')
+@check_inited
+@click.option(
+    '--json',
+    'raw',
+    is_flag=True,
+    help=TEXTS['common']['json']
+)
+def version(raw: bool) -> None:
+    meta_info = get_meta_info(raw=raw)
+    if raw:
+        print(meta_info)
+    else:
+        print_meta_info(meta_info)

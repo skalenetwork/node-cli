@@ -24,7 +24,8 @@ from node_cli.utils.global_config import read_g_config
 
 GLOBAL_SKALE_DIR = os.getenv('GLOBAL_SKALE_DIR') or '/etc/skale'
 GLOBAL_SKALE_CONF_FILENAME = 'conf.json'
-GLOBAL_SKALE_CONF_FILEPATH = os.path.join(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILENAME)
+GLOBAL_SKALE_CONF_FILEPATH = os.path.join(
+    GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILENAME)
 GLOBAL_CONFIG = read_g_config(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
 
 G_CONF_USER = GLOBAL_CONFIG['user']
@@ -36,26 +37,28 @@ SNAPSHOTS_SHARED_VOLUME = 'shared-space'
 SCHAINS_MNT_DIR = '/mnt'
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
+SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
+CONTAINER_CONFIG_TMP_PATH = os.path.join(SKALE_TMP_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
+REPORTS_PATH = os.path.join(SKALE_DIR, 'reports')
 BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
 INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
-SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
+SKALE_RUN_DIR = '/var/run/skale'
 
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
-FILESTORAGE_INFO_FILE = os.path.join(CONTAINER_CONFIG_PATH, 'filestorage_info.json')
-FILESTORAGE_ARTIFACTS_FILE = os.path.join(NODE_DATA_PATH, 'filestorage_artifacts.json')
-ENVIRONMENT_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'environment_params.yaml')
+STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
-NGINX_CONFIG_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf')
+NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
-REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
+REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(
+    LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
 
 ETH_STATE_PATH = os.path.join(NODE_DATA_PATH, 'eth-state')
 NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
@@ -73,6 +76,7 @@ DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
 
 IPTABLES_DIR = '/etc/iptables/'
 IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')
+DEFAULT_SSH_PORT = 22
 
 FLASK_SECRET_KEY_FILENAME = 'flask_db_key.txt'
 FLASK_SECRET_KEY_FILE = os.path.join(NODE_DATA_PATH, FLASK_SECRET_KEY_FILENAME)
@@ -100,10 +104,14 @@ else:
     PROJECT_DIR = PARDIR
 
 TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
-REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
+DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
+
+SKALED_SSL_TEST_SCRIPT = os.path.join(DATAFILES_FOLDER, 'skaled-ssl-test')
 
 ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH,
                                    'schain_allocation.yml')
+
+REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
 LONG_LINE = '-' * 50
 
@@ -115,6 +123,11 @@ DEFAULT_NODE_BASE_PORT = 10000
 
 BACKUP_ARCHIVE_NAME = 'skale-node-backup'
 
+SSL_FOLDER_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
+SSL_CERT_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_cert')
+SSL_KEY_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_key')
+
+
 TM_INIT_TIMEOUT = 20
 RESTORE_SLEEP_TIMEOUT = 20
 
@@ -123,5 +136,18 @@ IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
 
+DEFAULT_SSL_CHECK_PORT = 4536
+
 SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'
+
+DOCKER_DEAMON_CONFIG_PATH = '/etc/docker/daemon.json'
+DOCKER_DAEMON_HOSTS = ('fd://', 'unix:///var/run/skale/docker.sock')
+DOCKER_SERVICE_CONFIG_DIR = '/etc/systemd/system/docker.service.d'
+DOCKER_SERVICE_CONFIG_PATH = '/etc/systemd/system/docker.service.d/no-host.conf'
+DOCKER_SOCKET_PATH = '/var/run/skale/docker.sock'
+
+CHECK_REPORT_PATH = os.path.join(REPORTS_PATH, 'checks.json')
+
+AUTOLOAD_KERNEL_MODULES_PATH = '/etc/modules'
+BTRFS_KERNEL_MODULE = 'btrfs'
