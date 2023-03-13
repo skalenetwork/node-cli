@@ -29,6 +29,7 @@ jobs:
     - name: Build binary
       run: |
         docker build . -t node-cli-builder
+        mkdir ./dist
         docker run  -v ./dist:/app/dist node-cli-builder scripts/build.sh test test
     - name: Check build
       run: ./dist/skale-test-Linux-x86_64
