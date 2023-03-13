@@ -30,10 +30,8 @@ jobs:
       run: |
         docker build . -t node-cli-builder
         mkdir ./dist
-        ls -latr
-        ls -latr ./dist
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test
     - name: Check build
-      run: ./dist/skale-test-Linux-x86_64
+      run: /home/ubuntu/dist/skale-test-Linux-x86_64
     - name: Run tests
       run: bash ./scripts/run_tests.sh
