@@ -4,17 +4,21 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get install -y  \
-                       git \ 
+                       git \
                        python3.11 \
                        libpython3.11-dev \
-                       python3.11-venv \ 
-                       python3.11-distutils \ 
+                       python3.11-venv \
+                       python3.11-distutils \
                        python3.11-dev \
-                       build-essential \ 
-                       zlib1g-dev \ 
-                       libssl-dev \ 
-                       libffi-dev \ 
-                       swig
+                       build-essential \
+                       zlib1g-dev \
+                       libssl-dev \
+                       libffi-dev \
+                       swig \
+                       iptables
+
+RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && \
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy 
 
 RUN mkdir /app
 WORKDIR /app
