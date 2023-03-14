@@ -1,18 +1,19 @@
 name: Build and publish
 on:
   pull_request:
-    types: [closed]
+    types: [push, closed]
     branches:
       - master
       - develop
       - beta
       - stable
+      - python3.11-build
 
 jobs:
   create_release:
     if: github.event.pull_request.merged
     name: Create release
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
       version: ${{ steps.export_outputs.outputs.version }}
@@ -61,16 +62,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-22.04
             asset_name: skale-${{ needs.create_release.outputs.version }}-Linux-x86_64
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Install ubuntu dependencies
-      if: matrix.os == 'ubuntu-18.04'
+      if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt-get update
     - name: Install python dependencies
@@ -84,7 +85,10 @@ jobs:
       run: git submodule update --init
     - name: Build library
       run: |
-        bash ./scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }}
+        mkdir ./dist
+        docker build . -t node-cli-builder
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }}
+        docker rm -f $(docker ps -aq)
     - name: Upload Release Asset
       id: upload-release-asset
       uses: actions/upload-release-asset@v1

@@ -36,6 +36,7 @@ jobs:
         mkdir ./dist
         docker build . -t node-cli-builder
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test
+        docker rm -f $(docker ps -aq)
 
     - name: Check build
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
@@ -46,9 +47,6 @@ jobs:
 
     - name: Check build
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
-
-    - name: Cleanup containers
-      run: docker rm -f $(docker ps -aq)
 
     - name: Run tests
       run: bash ./scripts/run_tests.sh
