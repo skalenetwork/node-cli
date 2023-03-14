@@ -89,7 +89,7 @@ jobs:
 
     - name: Save sha512sum
       run: |
-        sha512sum /home/ubuntu/dist/${{ matrix.asset_name }} | tee > /dev/null /home/ubuntu/dist/sha512sum
+        sha512sum /home/ubuntu/dist/${{ matrix.asset_name }} > /home/ubuntu/dist/sha512sum
 
     - name: Upload release binary
       id: upload-release-asset
