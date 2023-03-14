@@ -47,5 +47,8 @@ jobs:
     - name: Check build
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
 
+    - name: Cleanup containers
+      run: docker rm -f $(docker ps -aq)
+
     - name: Run tests
       run: bash ./scripts/run_tests.sh
