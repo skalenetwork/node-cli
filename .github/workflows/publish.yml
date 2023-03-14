@@ -70,27 +70,28 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.11
+
     - name: Install ubuntu dependencies
       if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt-get update
-    - name: Install python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .
-        pip install -e .[dev]
-        pip install wheel
-        pip install --upgrade 'setuptools<45.0.0'
+
     - name: Checkout submodules
       run: git submodule update --init
-    - name: Build library
+
+    - name: Build binary
       run: |
         mkdir ./dist
         docker build . -t node-cli-builder
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }}
         ls -altr /home/ubuntu/dist/
         docker rm -f $(docker ps -aq)
-    - name: Upload Release Asset
+
+    - name: Save sha512sum
+      run: |
+        sha512sum /home/ubuntu/dist/${{ matrix.asset_name }} | tee > /dev/null /home/ubuntu/dist/sha512sum
+
+    - name: Upload release binary
       id: upload-release-asset
       uses: actions/upload-release-asset@v1
       env:
@@ -100,3 +101,14 @@ jobs:
         asset_path: /home/ubuntu/dist/${{ matrix.asset_name }}
         asset_name: ${{ matrix.asset_name }}
         asset_content_type: application/octet-stream
+
+    - name: Upload release checksum
+      id: upload-release-checksum
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: /home/ubuntu/dist/sha512sum
+        asset_name: ${{ matrix.asset_name }}.sha512
+        asset_content_type: text/plain
