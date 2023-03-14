@@ -1,7 +1,6 @@
 tests
 helper-scripts
 dist
-node_cli/cli
 build
 .github
 .gitmodules
