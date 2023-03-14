@@ -55,7 +55,7 @@ jobs:
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=branch::$BRANCH"
   build_and_publish:
-    if: github.event.pull_request.merged
+    # if: github.event.pull_request.merged
     needs: create_release
     name: Build and publish for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
