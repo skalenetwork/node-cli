@@ -30,7 +30,7 @@ jobs:
       run: |
         docker build . -t node-cli-builder
         mkdir ./dist
-        docker run  -v /home/ubuntu/dist:/app/dist -v /home/ubuntu/node_cli/cli/info.py:/app/node_cli/cli/info.py node-cli-builder scripts/build.sh test test
+        docker run  -v /home/ubuntu/dist:/app/dist -v /home/ubuntu/node_cli/cli/:/app/node_cli/cli/ node-cli-builder scripts/build.sh test test
     - name: Check build
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
     - name: Run tests
