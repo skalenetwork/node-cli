@@ -11,7 +11,7 @@ on:
 
 jobs:
   create_release:
-    if: github.event.pull_request.merged
+    # if: github.event.pull_request.merged
     name: Create release
     runs-on: ubuntu-22.04
     outputs:
