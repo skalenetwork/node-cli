@@ -2,12 +2,12 @@ name: Build and publish
 on:
   pull_request:
     types: [push, closed]
-    branches:
-      - master
-      - develop
-      - beta
-      - stable
-      - python3.11-build
+    #     branches:
+    #       - master
+    #       - develop
+    #       - beta
+    #       - stable
+    #       - python3.11-build
 
 jobs:
   create_release:
