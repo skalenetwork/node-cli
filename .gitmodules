@@ -5,5 +5,5 @@
 
 [submodule "docker-lvmpy"]
 	path = node_cli/docker-lvmpy
-	url = https://github.com/skalenetwork/docker-lvmpy
+	url = https://github.com/skalenetwork/docker-lvmpy.git
 	branch = develop
