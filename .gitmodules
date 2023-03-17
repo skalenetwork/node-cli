@@ -7,3 +7,6 @@
 	path = node_cli/docker-lvmpy
 	url = https://github.com/skalenetwork/docker-lvmpy.git
 	branch = develop
+[submodule "node_cli/lvmpy"]
+	path = node_cli/lvmpy
+	url = https://github.com/skalenetwork/docker-lvmpy

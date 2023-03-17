@@ -59,3 +59,9 @@ exit:
     in_progress: "Node exiting is in progress"
     wait_for_rotations: "Node is waiting to finish rotations"
     completed: "Node exiting is completed"
+
+lvmpy:
+  help: Lvmpy commands
+  run:
+    help: Run lvmpy http server
+    prompt: Are you sure you want to run lvmpy server
