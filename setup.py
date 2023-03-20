@@ -60,12 +60,12 @@ setup(
         "python-dotenv==0.21.0",
         "terminaltables==3.1.10",
         "requests==2.28.1",
-        "GitPython==3.1.27",
+        "GitPython==3.1.30",
         "packaging==21.3",
         "python-debian==0.1.48",
-        "python-iptables==1.0.0",
+        "python-iptables==1.0.1",
         "PyYAML==6.0",
-        "MarkupSafe==2.1.1",
+        "MarkupSafe==2.1.1"
     ],
     python_requires='>=3.6,<4',
     extras_require=extras_require,
@@ -77,6 +77,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.11',
     ],
 )
