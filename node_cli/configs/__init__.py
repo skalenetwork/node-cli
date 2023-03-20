@@ -35,6 +35,7 @@ SKALE_STATE_DIR = '/var/lib/skale'
 FILESTORAGE_MAPPING = os.path.join(SKALE_STATE_DIR, 'filestorage')
 SNAPSHOTS_SHARED_VOLUME = 'shared-space'
 SCHAINS_MNT_DIR = '/mnt'
+VOLUME_GROUP = 'schains'
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
 SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
@@ -73,6 +74,7 @@ SRC_FILEBEAT_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'filebeat.yml')
 FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 
 DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
+DOCKER_LVMPY_BIN_LINK = '/usr/local/bin/lvmpy'
 
 IPTABLES_DIR = '/etc/iptables/'
 IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')

@@ -20,11 +20,19 @@
 import logging
 import os
 import shutil
+import sys
 
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.git_utils import sync_repo
-from node_cli.configs import (DOCKER_LVMPY_PATH, DOCKER_LVMPY_REPO_URL,
-                              FILESTORAGE_MAPPING, SCHAINS_MNT_DIR)
+from node_cli.configs import (
+    DOCKER_LVMPY_BIN_LINK,
+    DOCKER_LVMPY_PATH,
+    DOCKER_LVMPY_REPO_URL,
+    FILESTORAGE_MAPPING,
+    SCHAINS_MNT_DIR,
+    VOLUME_GROUP
+)
+from node_cli.lvmpy.scripts.install import main as lvmpy_install
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +41,7 @@ def update_docker_lvmpy_env(env):
     env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
-    env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR
+    env['MNT_DIR'] = SCHAINS_MNT_DIR
     env['PATH'] = os.environ.get('PATH', None)
     return env
 
@@ -41,6 +49,11 @@ def update_docker_lvmpy_env(env):
 def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
     if not os.path.isdir(FILESTORAGE_MAPPING):
         os.makedirs(FILESTORAGE_MAPPING)
+
+
+def ensure_link_to_binary():
+    exec_path = os.path.realpath(sys.executable)
+    os.symlink(exec_path, DOCKER_LVMPY_BIN_LINK)
 
 
 def sync_docker_lvmpy_repo(env):
@@ -74,3 +87,15 @@ def docker_lvmpy_install(env):
         env=env
     )
     logger.info('docker-lvmpy installed')
+
+
+def setup_lvmpy(env):
+    ensure_filestorage_mapping()
+    ensure_link_to_binary()
+    lvmpy_install(
+        block_device=env['DISK_MOUNTPOINT'],
+        volume_group=VOLUME_GROUP
+    )
+    logging.info('Configuring and starting lvmpy')
+    lvmpy_install()
+    logger.info('docker-lvmpy is configured and started')
