@@ -20,19 +20,18 @@
 import logging
 import os
 import shutil
-import sys
 
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.git_utils import sync_repo
 from node_cli.configs import (
-    DOCKER_LVMPY_BIN_LINK,
     DOCKER_LVMPY_PATH,
     DOCKER_LVMPY_REPO_URL,
     FILESTORAGE_MAPPING,
+    LVMPY_EXEC_START,
     SCHAINS_MNT_DIR,
     VOLUME_GROUP
 )
-from node_cli.lvmpy.scripts.install import main as lvmpy_install
+from lvmpy.src.install import setup as setup_lvmpy
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +48,6 @@ def update_docker_lvmpy_env(env):
 def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
     if not os.path.isdir(FILESTORAGE_MAPPING):
         os.makedirs(FILESTORAGE_MAPPING)
-
-
-def ensure_link_to_binary():
-    exec_path = os.path.realpath(sys.executable)
-    os.symlink(exec_path, DOCKER_LVMPY_BIN_LINK)
 
 
 def sync_docker_lvmpy_repo(env):
@@ -89,13 +83,12 @@ def docker_lvmpy_install(env):
     logger.info('docker-lvmpy installed')
 
 
-def setup_lvmpy(env):
+def lvmpy_install(env):
     ensure_filestorage_mapping()
-    ensure_link_to_binary()
-    lvmpy_install(
-        block_device=env['DISK_MOUNTPOINT'],
-        volume_group=VOLUME_GROUP
-    )
     logging.info('Configuring and starting lvmpy')
-    lvmpy_install()
+    setup_lvmpy(
+        block_device=env['DISK_MOUNTPOINT'],
+        volume_group=VOLUME_GROUP,
+        exec_start=LVMPY_EXEC_START
+    )
     logger.info('docker-lvmpy is configured and started')

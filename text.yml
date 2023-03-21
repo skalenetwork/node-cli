@@ -64,4 +64,4 @@ lvmpy:
   help: Lvmpy commands
   run:
     help: Run lvmpy http server
-    prompt: Are you sure you want to run lvmpy server
+    prompt: Are you sure you want to run lvmpy server?

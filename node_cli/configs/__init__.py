@@ -74,7 +74,9 @@ SRC_FILEBEAT_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'filebeat.yml')
 FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 
 DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
-DOCKER_LVMPY_BIN_LINK = '/usr/local/bin/lvmpy'
+DOCKER_LVMPY_BIN_PATH = '/usr/local/bin/skale'
+
+LVMPY_EXEC_START = f'{DOCKER_LVMPY_BIN_PATH} lvmpy run --yes'
 
 IPTABLES_DIR = '/etc/iptables/'
 IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')

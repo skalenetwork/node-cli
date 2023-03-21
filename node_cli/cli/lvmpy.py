@@ -20,7 +20,7 @@
 import click
 from node_cli.utils.texts import Texts
 
-from node_cli.lvmpy.app import main as run_lvmpy
+from lvmpy.src.app import main as run_lvmpy
 from node_cli.utils.helper import abort_if_false
 
 G_TEXTS = Texts()
@@ -37,13 +37,13 @@ def health():
     pass
 
 
-@health.command(help=TEXTS['lvmpy']['help'])
+@health.command(help=TEXTS['run']['help'])
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt=TEXTS['lvmpy']['prompt']
+    prompt=TEXTS['run']['prompt']
 )
-def run(all):
+def run():
     run_lvmpy()
