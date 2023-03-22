@@ -21,13 +21,18 @@ import logging
 import os
 import shutil
 
+import crontab
+
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.git_utils import sync_repo
 from node_cli.configs import (
     DOCKER_LVMPY_PATH,
     DOCKER_LVMPY_REPO_URL,
     FILESTORAGE_MAPPING,
-    LVMPY_EXEC_START,
+    LVMPY_RUN_CMD,
+    LVMPY_HEAL_CMD,
+    LVMPY_CRON_LOG_PATH,
+    LVMPY_CRON_SCHEDULE_MINUTES,
     SCHAINS_MNT_DIR,
     VOLUME_GROUP
 )
@@ -89,6 +94,23 @@ def lvmpy_install(env):
     setup_lvmpy(
         block_device=env['DISK_MOUNTPOINT'],
         volume_group=VOLUME_GROUP,
-        exec_start=LVMPY_EXEC_START
+        exec_start=LVMPY_RUN_CMD
     )
+    init_healing_cron()
     logger.info('docker-lvmpy is configured and started')
+
+
+def init_healing_cron():
+    logger.info('Configuring cron job for healing lvmpy')
+    cron_line = f'{LVMPY_HEAL_CMD} >> {LVMPY_CRON_LOG_PATH} 2>&1'
+    legacy_line = f'cd /opt/docker-lvmpy && venv/bin/python -c "import health; health.heal_service()" >> {LVMPY_CRON_LOG_PATH} 2>&1'  # noqa
+
+    with crontab.CronTab(user='root') as c:
+        jobs = [c.command for c in c]
+        if legacy_line in jobs:
+            c.remove_all(command=legacy_line)
+        if cron_line not in jobs:
+            job = c.new(
+                command=cron_line
+            )
+            job.minute.every(LVMPY_CRON_SCHEDULE_MINUTES)

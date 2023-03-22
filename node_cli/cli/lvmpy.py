@@ -21,6 +21,7 @@ import click
 from node_cli.utils.texts import Texts
 
 from lvmpy.src.app import main as run_lvmpy
+from lvmpy.src.health import heal_service
 from node_cli.utils.helper import abort_if_false
 
 G_TEXTS = Texts()
@@ -47,3 +48,15 @@ def health():
 )
 def run():
     run_lvmpy()
+
+
+@health.command(help=TEXTS['heal']['help'])
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt=TEXTS['heal']['prompt']
+)
+def heal():
+    heal_service()
