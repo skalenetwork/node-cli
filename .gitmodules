@@ -3,11 +3,6 @@
 	url = https://github.com/skalenetwork/helper-scripts.git
     branch = develop
 
-# [submodule "docker-lvmpy"]
-# 	path = node_cli/docker-lvmpy
-# 	url = https://github.com/skalenetwork/docker-lvmpy.git
-# 	branch = move-install-scripts-to-python
-
 [submodule "lvmpy"]
 	path = lvmpy
 	url = https://github.com/skalenetwork/docker-lvmpy
