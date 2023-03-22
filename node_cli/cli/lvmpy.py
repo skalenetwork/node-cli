@@ -20,7 +20,7 @@
 import click
 from node_cli.utils.texts import Texts
 
-from lvmpy.src.app import main as run_lvmpy
+from lvmpy.src.app import run as run_lvmpy
 from lvmpy.src.health import heal_service
 from node_cli.utils.helper import abort_if_false
 
