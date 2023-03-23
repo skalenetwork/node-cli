@@ -6,4 +6,4 @@
 [submodule "lvmpy"]
 	path = lvmpy
 	url = https://github.com/skalenetwork/docker-lvmpy
-	branch = move-install-scripts-to-python
+	branch = develop
