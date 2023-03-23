@@ -83,6 +83,8 @@ LVMPY_HEAL_CMD = f'{LVMPY_CMD} heal --yes'
 LVMPY_CRON_LOG_PATH = '/var/log/docker-lvmpy/cron.log'
 LVMPY_CRON_SCHEDULE_MINUTES = 3
 
+LVMPY_LOG_DIR = '/var/log/docker-lvmpy'
+
 IPTABLES_DIR = '/etc/iptables/'
 IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')
 DEFAULT_SSH_PORT = 22
