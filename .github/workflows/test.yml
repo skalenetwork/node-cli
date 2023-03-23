@@ -12,6 +12,9 @@ jobs:
       with:
         submodules: true
 
+    - name: Checkout submodules
+      run: git submodule update --init
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
