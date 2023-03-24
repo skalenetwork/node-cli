@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        wtih:
+          submodules: true
       - name: Checkout submodules
         run: git submodule update --init
       - name: Install ubuntu dependencies

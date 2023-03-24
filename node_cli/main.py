@@ -29,6 +29,7 @@ from node_cli.cli import __version__
 from node_cli.cli.health import health_cli
 from node_cli.cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
 from node_cli.cli.logs import logs_cli
+from node_cli.cli.lvmpy import lvmpy_cli
 from node_cli.cli.node import node_cli
 from node_cli.cli.schains import schains_cli
 from node_cli.cli.wallet import wallet_cli
@@ -97,6 +98,7 @@ if __name__ == '__main__':
             health_cli,
             schains_cli,
             logs_cli,
+            lvmpy_cli,
             resources_allocation_cli,
             node_cli,
             wallet_cli,

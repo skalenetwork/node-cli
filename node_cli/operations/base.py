@@ -36,7 +36,7 @@ from node_cli.operations.common import (
     configure_filebeat,
     configure_flask, unpack_backup_archive
 )
-from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install
+from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install, lvmpy_install  # noqa
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
@@ -103,7 +103,7 @@ def update(env_filepath: str, env: Dict) -> None:
     backup_old_contracts()
     download_contracts(env)
 
-    docker_lvmpy_update(env)
+    lvmpy_install(env)
     generate_nginx_config()
 
     prepare_host(

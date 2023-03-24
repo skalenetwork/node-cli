@@ -65,9 +65,13 @@ setup(
         "python-debian==0.1.48",
         "python-iptables==1.0.1",
         "PyYAML==6.0",
-        "MarkupSafe==2.1.1"
+        "MarkupSafe==2.1.1",
+        'Flask==2.2.2',
+        'itsdangerous==2.0.1',
+        'sh==1.14.2',
+        'python-crontab==2.6.0'
     ],
-    python_requires='>=3.6,<4',
+    python_requires='>=3.8,<4',
     extras_require=extras_require,
 
     keywords=['skale', 'cli'],
