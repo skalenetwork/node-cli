@@ -36,7 +36,7 @@ from node_cli.operations.common import (
     configure_filebeat,
     configure_flask, unpack_backup_archive
 )
-from node_cli.operations.docker_lvmpy import docker_lvmpy_update, docker_lvmpy_install, lvmpy_install  # noqa
+from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
@@ -157,7 +157,7 @@ def init(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> b
     configure_iptables()
     generate_nginx_config()
 
-    docker_lvmpy_install(env)
+    lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
 
     node_options = NodeOptions()
@@ -207,7 +207,7 @@ def restore(env, backup_path):
 
     link_env_file()
     configure_iptables()
-    docker_lvmpy_install(env)
+    lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
 
     update_meta(
