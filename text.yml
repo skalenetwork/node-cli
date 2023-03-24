@@ -67,4 +67,4 @@ lvmpy:
     prompt: Are you sure you want to run lvmpy server?
   heal:
     help: Run healing procedure for lvmpy server
-    prompt: Are you sure you want run healing procedure
+    prompt: Are you sure you want run healing procedure?
