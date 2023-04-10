@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import distro
 import functools
 import logging
 from typing import Dict, Optional
@@ -128,7 +129,9 @@ def update(env_filepath: str, env: Dict) -> None:
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
@@ -166,7 +169,9 @@ def init(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> b
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_resource_allocation(
         disk_device=env['DISK_MOUNTPOINT'],
@@ -213,7 +218,9 @@ def restore(env, backup_path):
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_resource_allocation(
         disk_device=env['DISK_MOUNTPOINT'],
