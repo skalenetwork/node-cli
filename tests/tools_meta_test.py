@@ -61,7 +61,7 @@ def test_save_meta(meta_file_v2):
     }
 
 
-def test_update_meta(meta_file_v2):
+def test_update_meta_from_v2_to_v3(meta_file_v2):
     old_meta = get_meta_info()
     update_meta(version='3.3.3', config_stream='1.1.1',
                 docker_lvmpy_stream='1.2.2', os_id='debian', os_version='11')
