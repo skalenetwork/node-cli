@@ -315,7 +315,7 @@ def test_restore(mocked_g_config):
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
 
-    assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') is 'True'
+    assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') == 'True'
 
 
 def test_restore_no_snapshot(mocked_g_config):
