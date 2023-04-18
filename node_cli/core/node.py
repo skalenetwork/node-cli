@@ -143,13 +143,17 @@ def init(env_filepath):
 
 
 @check_not_inited
-def restore(backup_path, env_filepath):
+def restore(backup_path, env_filepath, no_snapshot=False):
     env = get_node_env(env_filepath)
     if env is None:
         return
     save_env_params(env_filepath)
     env['SKALE_DIR'] = SKALE_DIR
-    env['BACKUP_RUN'] = 'True'  # should be str
+
+    if not no_snapshot:
+        logger.info('Adding BACKUP_RUN to env ...')
+        env['BACKUP_RUN'] = 'True'  # should be str
+
     restored_ok = restore_op(env, backup_path)
     if not restored_ok:
         error_exit(
