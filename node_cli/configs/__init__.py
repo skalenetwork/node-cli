@@ -77,6 +77,16 @@ SRC_FILEBEAT_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'filebeat.yml')
 FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 
 DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
+DOCKER_LVMPY_BIN_PATH = '/usr/local/bin/skale'
+
+LVMPY_CMD = f'{DOCKER_LVMPY_BIN_PATH} lvmpy'
+LVMPY_RUN_CMD = f'{LVMPY_CMD} run --yes'
+LVMPY_HEAL_CMD = f'{LVMPY_CMD} heal --yes'
+
+LVMPY_CRON_LOG_PATH = '/var/log/docker-lvmpy/cron.log'
+LVMPY_CRON_SCHEDULE_MINUTES = 3
+
+LVMPY_LOG_DIR = '/var/log/docker-lvmpy'
 
 IPTABLES_DIR = '/etc/iptables/'
 IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')

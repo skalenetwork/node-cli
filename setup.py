@@ -52,6 +52,7 @@ setup(
     install_requires=[
         "click==8.1.3",
         "PyInstaller==5.6.2",
+        "distro==1.4.0",
         "docker==6.0.1",
         "texttable==1.6.4",
         "python-dateutil==2.8.2",
@@ -60,15 +61,19 @@ setup(
         "python-dotenv==0.21.0",
         "terminaltables==3.1.10",
         "requests==2.28.1",
-        "GitPython==3.1.27",
+        "GitPython==3.1.30",
         "packaging==21.3",
         "python-debian==0.1.48",
-        "python-iptables==1.0.0",
+        "python-iptables==1.0.1",
         "PyYAML==6.0",
         "pyOpenSSL==22.0.0",
         "MarkupSafe==2.1.1",
         "cryptography==37.0.2",
         "filelock==3.0.12"
+        'Flask==2.2.2',
+        'itsdangerous==2.0.1',
+        'sh==1.14.2',
+        'python-crontab==2.6.0'
     ],
     python_requires='>=3.8,<4',
     extras_require=extras_require,
@@ -80,6 +85,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.11'
     ],
 )
