@@ -36,6 +36,7 @@ SCHAIN_STATE_DIR = os.path.join('/var/lib/skale', 'schains')
 FILESTORAGE_MAPPING = os.path.join(SKALE_STATE_DIR, 'filestorage')
 SNAPSHOTS_SHARED_VOLUME = 'shared-space'
 SCHAINS_MNT_DIR = '/var/lib/skale/schains'
+VOLUME_GROUP = 'schains'
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
 SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
