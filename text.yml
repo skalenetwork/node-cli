@@ -66,3 +66,12 @@ sync_node:
     archive: Run sync node in an archive node (disable block rotation)
     historic_state: Enable historic state (works only in pair with --archive flag)
     catchup: Add a flag to start sync node in catchup mode
+
+lvmpy:
+  help: Lvmpy commands
+  run:
+    help: Run lvmpy http server
+    prompt: Are you sure you want to run lvmpy server?
+  heal:
+    help: Run healing procedure for lvmpy server
+    prompt: Are you sure you want run healing procedure?

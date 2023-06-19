@@ -20,6 +20,7 @@
 import pathlib
 
 import mock
+from unittest.mock import MagicMock, patch
 import requests
 import logging
 
@@ -302,16 +303,42 @@ def test_restore(mocked_g_config):
     )
     backup_path = result.output.replace(
         'Backup archive successfully created: ', '').replace('\n', '')
-    with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('node_cli.core.node.restore_op'), \
-            mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
-            mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
+
+    with patch('node_cli.core.node.restore_op', MagicMock()) as mock_restore_op, \
+            patch('subprocess.run', new=subprocess_run_mock), \
+            patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
+            patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         result = run_command(
             restore_node,
             [backup_path, './tests/test-env']
         )
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
+
+    assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') == 'True'
+
+
+def test_restore_no_snapshot(mocked_g_config):
+    pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
+    result = run_command(
+        backup_node,
+        ['/tmp']
+    )
+    backup_path = result.output.replace(
+        'Backup archive successfully created: ', '').replace('\n', '')
+
+    with patch('node_cli.core.node.restore_op', MagicMock()) as mock_restore_op, \
+            patch('subprocess.run', new=subprocess_run_mock), \
+            patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
+            patch('node_cli.utils.decorators.is_node_inited', return_value=False):
+        result = run_command(
+            restore_node,
+            [backup_path, './tests/test-env', '--no-snapshot']
+        )
+        assert result.exit_code == 0
+        assert 'Node is restored from backup\n' in result.output  # noqa
+
+    assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') is None
 
 
 def test_maintenance_on():

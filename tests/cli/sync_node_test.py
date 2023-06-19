@@ -53,8 +53,8 @@ def test_init_sync(mocked_g_config):
 
 def test_init_sync_archive_catchup(mocked_g_config, clean_node_options):
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
-    with mock.patch('subprocess.run', new=subprocess_run_mock), \
-            mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), \
+#     with mock.patch('subprocess.run', new=subprocess_run_mock), \
+    with mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), \
             mock.patch('node_cli.operations.base.cleanup_volume_artifacts'), \
             mock.patch('node_cli.operations.base.download_skale_node'), \
             mock.patch('node_cli.operations.base.sync_skale_node'), \
@@ -74,13 +74,13 @@ def test_init_sync_archive_catchup(mocked_g_config, clean_node_options):
             mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         result = run_command(
             _init_sync,
-            ['./tests/test-env', '--archive', '--catchup']
+            ['./tests/test-env', '--archive', '--catchup', '--historic-state']
         )
         node_options = NodeOptions()
 
         assert node_options.archive
         assert node_options.catchup
-        assert not node_options.historic_state
+        assert node_options.historic_state
 
         assert result.exit_code == 0
 
