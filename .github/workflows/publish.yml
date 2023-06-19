@@ -58,6 +58,7 @@ jobs:
         run: |
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=branch::$BRANCH"
+
   build_and_publish_normal:
     if: github.event.pull_request.merged
     needs: create_release
@@ -126,7 +127,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
-            asset_name: skale-${{ needs.create_release.outputs.version }}-Linux-x86_64
+            asset_name: skale-${{ needs.create_release.outputs.version }}-Linux-x86_64-sync
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.11

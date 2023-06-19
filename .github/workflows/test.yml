@@ -44,14 +44,14 @@ jobs:
         docker rm -f $(docker ps -aq)
 
     - name: Check build
-      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
+      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-sync
 
     - name: Build sync binary in Ubuntu 20.04 environment
       run: |
         scripts/build.sh test test sync
 
     - name: Check build
-      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
+      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-sync
 
     - name: Run tests
       run: bash ./scripts/run_tests.sh
