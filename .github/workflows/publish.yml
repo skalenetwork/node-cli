@@ -142,11 +142,11 @@ jobs:
     - name: Checkout submodules
       run: git submodule update --init
 
-    - name: Build normal binary
+    - name: Build sync release binary
       run: |
         mkdir ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }}
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} sync
         ls -altr /home/ubuntu/dist/
         docker rm -f $(docker ps -aq)
 

@@ -40,7 +40,7 @@ jobs:
       run: |
         mkdir ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test sync
         docker rm -f $(docker ps -aq)
 
     - name: Check build
@@ -48,7 +48,7 @@ jobs:
 
     - name: Build sync binary in Ubuntu 20.04 environment
       run: |
-        scripts/build.sh test test
+        scripts/build.sh test test sync
 
     - name: Check build
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
