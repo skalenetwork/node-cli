@@ -78,8 +78,7 @@ def run_command_mock(mock_call_path, response_mock,
         return run_command(command, params, input=input)
 
 
-def subprocess_run_mock(cmd=None, shell=None, stdout=None,
-                        stderr=None, env=None, returncode=0):
+def subprocess_run_mock(*args, returncode=0, **kwargs):
     result = MagicMock()
     result.returncode = returncode
     result.stdout = MagicMock()

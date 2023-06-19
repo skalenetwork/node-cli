@@ -55,7 +55,7 @@ def ensure_meta(meta: CliMeta = None) -> None:
 
 
 def update_meta(version: str, config_stream: str,
-                docker_lvmpy_stream: str, os_id: str,  os_version: str) -> None:
+                docker_lvmpy_stream: str, os_id: str, os_version: str) -> None:
     ensure_meta()
     meta = CliMeta(version, config_stream, docker_lvmpy_stream, os_id, os_version)
     save_meta(meta)
