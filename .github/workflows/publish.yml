@@ -88,7 +88,7 @@ jobs:
       run: |
         mkdir ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }}
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} normal
         ls -altr /home/ubuntu/dist/
         docker rm -f $(docker ps -aq)
 
@@ -162,7 +162,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: ./dist/${{ matrix.asset_name }}
+        asset_path: /home/ubuntu/dist/${{ matrix.asset_name }}
         asset_name: ${{ matrix.asset_name }}
         asset_content_type: application/octet-stream
 
