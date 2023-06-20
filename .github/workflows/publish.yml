@@ -162,8 +162,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: ./dist/${{ matrix.asset_name }}-sync
-        asset_name: ${{ matrix.asset_name }}-sync
+        asset_path: ./dist/${{ matrix.asset_name }}
+        asset_name: ${{ matrix.asset_name }}
         asset_content_type: application/octet-stream
 
     - name: Upload release sync CLI checksum
@@ -174,5 +174,5 @@ jobs:
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
         asset_path: /home/ubuntu/dist/sha512sum
-        asset_name: ${{ matrix.asset_name }}-sync.sha512
+        asset_name: ${{ matrix.asset_name }}.sha512
         asset_content_type: text/plain
