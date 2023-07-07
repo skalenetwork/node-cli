@@ -31,12 +31,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install python-setuptools
+
       - name: Set Versions
         run: |
           bash ./scripts/set_versions_ga.sh
+
       - name: Set release
         run: |
-          if [[ "$BRANCH" == "stable" ]]; then
+          if [[ "$BRANCH" == "stable" || "$BRANCH" == "sync-node" ]]; then
             export PRERELEASE=false
           else
             export PRERELEASE=true
