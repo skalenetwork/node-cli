@@ -169,7 +169,9 @@ def init(env_filepath: str, env: dict) -> bool:
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
@@ -259,7 +261,9 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
     compose_up_sync(env)
