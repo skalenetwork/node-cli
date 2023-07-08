@@ -12,8 +12,8 @@ RUN apt-get install -y  \
                        python3.8-dev \
                        build-essential \
                        zlib1g-dev \
-                       libssl-dev \
                        libffi-dev \
+                       libssl-dev \
                        swig \
                        iptables
 
