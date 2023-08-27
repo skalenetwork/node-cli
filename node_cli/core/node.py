@@ -167,7 +167,12 @@ def restore(backup_path, env_filepath, no_snapshot=False):
     print('Node is restored from backup')
 
 
-def get_node_env(env_filepath, inited_node=False, sync_schains=None):
+def get_node_env(
+    env_filepath,
+    inited_node=False,
+    sync_schains=None,
+    pull_config_for_schain=None
+):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath)
         if env_params is None:
@@ -186,15 +191,22 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
         env['FLASK_SECRET_KEY'] = flask_secret_key
     if sync_schains:
         env['BACKUP_RUN'] = 'True'
+    if pull_config_for_schain:
+        env['PULL_CONFIG_FOR_SCHAIN'] = pull_config_for_schain
     return {k: v for k, v in env.items() if v != ''}
 
 
 @check_inited
 @check_user
-def update(env_filepath):
+def update(env_filepath, pull_config_for_schain):
     logger.info('Node update started')
     configure_firewall_rules()
-    env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
+    env = get_node_env(
+        env_filepath,
+        inited_node=True,
+        sync_schains=False,
+        pull_config_for_schain=pull_config_for_schain
+    )
     update_ok = update_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
