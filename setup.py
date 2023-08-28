@@ -68,7 +68,7 @@ setup(
         "PyYAML==6.0",
         "MarkupSafe==2.1.1",
         'Flask==2.3.3',
-        'itsdangerous==2.0.1',
+        'itsdangerous==2.1.2',
         'sh==1.14.2',
         'python-crontab==2.6.0'
     ],
