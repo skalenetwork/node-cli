@@ -357,24 +357,28 @@ def is_base_containers_alive():
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
 
 
-def get_node_info(format):
+def get_node_info_plain():
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME,
         method='info'
     )
     if status == 'ok':
-        node_info = payload['node_info']
-        if format == 'json':
-            print(node_info)
-        elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
-            print(TEXTS['service']['node_not_registered'])
-        else:
-            print_node_info(
-                node_info,
-                get_node_status(int(node_info['status']))
-            )
+        return payload['node_info']
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def get_node_info(format):
+    node_info = get_node_info_plain()
+    if format == 'json':
+        print(node_info)
+    elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
+        print(TEXTS['service']['node_not_registered'])
+    else:
+        print_node_info(
+            node_info,
+            get_node_status(int(node_info['status']))
+        )
 
 
 def get_node_status(status):

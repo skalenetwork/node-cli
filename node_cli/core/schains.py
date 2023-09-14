@@ -1,8 +1,12 @@
 import logging
+import os
 import pprint
+import shutil
+from pathlib import Path
 
 from typing import Optional
 
+from node_cli.core.node import get_node_info_plain
 from node_cli.utils.helper import get_request, post_request, error_exit
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.print_formatters import (
@@ -11,6 +15,8 @@ from node_cli.utils.print_formatters import (
     print_schain_info,
     print_schains
 )
+from node_cli.utils.helper import run_cmd
+from lvmpy.src.core import mount, volume_mountpoint
 
 
 logger = logging.getLogger(__name__)
@@ -98,3 +104,58 @@ def describe(schain: str, raw=False) -> None:
         print_schain_info(payload, raw=raw)
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def btrfs_set_readonly_false(subvolume_path: str) -> None:
+    run_cmd(['btrfs', 'property', 'set', '-ts', subvolume_path, 'ro', 'false'])
+
+
+def btrfs_receive_binary(src_path: str, binary_path: str) -> None:
+    run_cmd(['btrfs', 'receive', '-f', binary_path, src_path])
+
+
+def get_block_number_from_path(snapshot_path: str) -> int:
+    stem = Path(snapshot_path).stem
+    try:
+        int(stem.split('-')[-1])
+    except ValueError:
+        return -1
+
+
+def get_node_id() -> int:
+    info = get_node_info_plain()
+    return info['node_id']
+
+
+def migrate_prices_and_blocks(src_path: str, node_id: int) -> None:
+    prices_path = os.path.join(f'prices_{node_id}.db')
+    shutil.move(Path(src_path).glob('prices_*.db'), prices_path)
+    blocks_path = os.path.join(f'blocks_{node_id}.db')
+    shutil.move(Path(src_path).glob('blocks_*.db'), blocks_path)
+
+
+def fillin_snapshot_folder(src_path: str, block_number: int) -> None:
+    snapshot_folder_path = os.path.join(
+        src_path, 'snapshots', str(block_number))
+    os.makedirs(snapshot_folder_path, exist_ok=True)
+    for subvolume_path in os.listdir(src_path):
+        # TODO: Finalise
+        snapshot_path_for_subvolume = snapshot_folder_path(subvolume_path)
+        btrfs_set_readonly_false(subvolume_path)
+
+
+def restore_schain_from_snapshot(schain: str, snapshot_path: str) -> None:
+    block_number = get_block_number_from_path(snapshot_path)
+    if block_number == -1:
+        logger.error('Invalid snapshot path format')
+        return
+    node_id = get_node_id()
+
+    mount(schain)
+    src_path = volume_mountpoint(schain)
+    btrfs_receive_binary(src_path, snapshot_path)
+
+    for subvolume_path in os.listdir(src_path):
+        btrfs_set_readonly_false(subvolume_path)
+
+    migrate_prices_and_blocks(src_path, node_id)

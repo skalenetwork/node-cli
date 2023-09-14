@@ -25,6 +25,7 @@ from node_cli.utils.helper import abort_if_false, IP_TYPE
 from node_cli.core.schains import (
     describe,
     get_schain_firewall_rules,
+    restore_schain_from_snapshot,
     show_config,
     show_dkg_info,
     show_schains,
@@ -95,3 +96,10 @@ def repair(schain_name: str, snapshot_from: Optional[str] = None) -> None:
 )
 def info_(schain_name: str, json_format: bool) -> None:
     describe(schain_name, raw=json_format)
+
+
+@schains.command('restore', help='Restore schain from local snapshot')
+@click.argument('schain_name')
+@click.argument('snapshot_path')
+def restore(schain_name: str, snapshot_path: str) -> None:
+    restore_schain_from_snapshot(schain_name, snapshot_path)
