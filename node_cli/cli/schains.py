@@ -44,8 +44,13 @@ def schains() -> None:
 
 
 @schains.command(help="List of sChains served by connected node")
-def ls() -> None:
-    show_schains()
+@click.option(
+    '--names',
+    help='Shows only chain names',
+    is_flag=True
+)
+def ls(names) -> None:
+    show_schains(only_names=names)
 
 
 @schains.command(help="DKG statuses for each sChain on the node")
