@@ -4,8 +4,9 @@ import pprint
 import shutil
 from pathlib import Path
 
-from typing import Optional
+from typing import Dict, Optional
 
+from node_cli.configs import NODE_CONFIG_PATH
 from node_cli.core.node import get_node_info_plain
 from node_cli.utils.helper import get_request, post_request, error_exit
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -15,7 +16,7 @@ from node_cli.utils.print_formatters import (
     print_schain_info,
     print_schains
 )
-from node_cli.utils.helper import run_cmd
+from node_cli.utils.helper import read_json, run_cmd
 from lvmpy.src.core import mount, volume_mountpoint
 
 
@@ -36,7 +37,7 @@ def get_schain_firewall_rules(schain: str) -> None:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def show_schains() -> None:
+def show_schains(only_names=False) -> None:
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME,
         method='list'
@@ -46,7 +47,11 @@ def show_schains() -> None:
         if not schains:
             print('No sChains found')
             return
-        print_schains(schains)
+        if only_names:
+            names = [schain['name'] for schain in schains]
+            print('\n'.join(names))
+        else:
+            print_schains(schains)
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
@@ -116,32 +121,53 @@ def btrfs_receive_binary(src_path: str, binary_path: str) -> None:
 
 def get_block_number_from_path(snapshot_path: str) -> int:
     stem = Path(snapshot_path).stem
+    bn = -1
     try:
-        int(stem.split('-')[-1])
+        bn = int(stem.split('-')[-1])
     except ValueError:
         return -1
+    return bn
+
+
+def get_node_config() -> Dict:
+    return read_json(NODE_CONFIG_PATH)
 
 
 def get_node_id() -> int:
-    info = get_node_info_plain()
+    info = get_node_config()
     return info['node_id']
 
 
-def migrate_prices_and_blocks(src_path: str, node_id: int) -> None:
-    prices_path = os.path.join(f'prices_{node_id}.db')
-    shutil.move(Path(src_path).glob('prices_*.db'), prices_path)
-    blocks_path = os.path.join(f'blocks_{node_id}.db')
-    shutil.move(Path(src_path).glob('blocks_*.db'), blocks_path)
+def migrate_prices_and_blocks(path: str, node_id: int) -> None:
+    db_suffix = '.db'
+    for sname in os.listdir(path):
+        subvolume_path = os.path.join(path, sname)
+        logger.debug('Processing %s', sname)
+        btrfs_set_readonly_false(subvolume_path)
+        if sname.endswith(db_suffix):
+            subvolume_path = os.path.join(path, sname)
+            dbname = sname.split('_')[0]
+            new_path = os.path.join(path, f'{dbname}_{node_id}{db_suffix}')
+            logger.debug('New path for %s %s', sname, new_path)
+            shutil.move(subvolume_path, new_path)
+
+
+def make_btrfs_snapshot(src: str, dst: str) -> None:
+    run_cmd(['btrfs', 'subvolume', 'snapshot', src, dst])
 
 
 def fillin_snapshot_folder(src_path: str, block_number: int) -> None:
+    snapshots_dirname = 'snapshots'
     snapshot_folder_path = os.path.join(
-        src_path, 'snapshots', str(block_number))
+        src_path, snapshots_dirname, str(block_number))
     os.makedirs(snapshot_folder_path, exist_ok=True)
-    for subvolume_path in os.listdir(src_path):
-        # TODO: Finalise
-        snapshot_path_for_subvolume = snapshot_folder_path(subvolume_path)
-        btrfs_set_readonly_false(subvolume_path)
+    for subvolume in os.listdir(src_path):
+        if subvolume != snapshots_dirname:
+            logger.debug('Copying %s to %s', subvolume, snapshot_folder_path)
+            subvolume_path = os.path.join(src_path, subvolume)
+            subvolume_snapshot_path = os.path.join(
+                snapshot_folder_path, subvolume)
+            make_btrfs_snapshot(subvolume_path, subvolume_snapshot_path)
 
 
 def restore_schain_from_snapshot(schain: str, snapshot_path: str) -> None:
@@ -153,9 +179,10 @@ def restore_schain_from_snapshot(schain: str, snapshot_path: str) -> None:
 
     mount(schain)
     src_path = volume_mountpoint(schain)
+    logger.info('Unpacking binary')
     btrfs_receive_binary(src_path, snapshot_path)
-
-    for subvolume_path in os.listdir(src_path):
-        btrfs_set_readonly_false(subvolume_path)
-
+    logger.info('Migrating suvolumes')
     migrate_prices_and_blocks(src_path, node_id)
+    migrate_prices_and_blocks(src_path, node_id)
+    logger.info('Recreating snapshot folder')
+    fillin_snapshot_folder(src_path, block_number)
