@@ -61,7 +61,7 @@ setup(
         "python-dotenv==0.21.0",
         "terminaltables==3.1.10",
         "requests==2.28.1",
-        "GitPython==3.1.30",
+        "GitPython==3.1.36",
         "packaging==21.3",
         "python-debian==0.1.48",
         "python-iptables==1.0.1",
