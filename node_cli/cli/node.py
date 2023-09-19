@@ -131,9 +131,15 @@ def backup_node(backup_folder_path):
 @node.command('restore', help="Restore SKALE node on another machine")
 @click.argument('backup_path')
 @click.argument('env_file')
+@click.option(
+    '--no-snapshot',
+    help='Do not restore sChains from snapshot',
+    is_flag=True,
+    hidden=True
+)
 @streamed_cmd
-def restore_node(backup_path, env_file):
-    restore(backup_path, env_file)
+def restore_node(backup_path, env_file, no_snapshot):
+    restore(backup_path, env_file, no_snapshot)
 
 
 @node.command('maintenance-on', help="Set SKALE node into maintenance mode")

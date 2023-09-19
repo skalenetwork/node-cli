@@ -36,6 +36,7 @@ SCHAIN_STATE_DIR = os.path.join('/var/lib/skale', 'schains')
 FILESTORAGE_MAPPING = os.path.join(SKALE_STATE_DIR, 'filestorage')
 SNAPSHOTS_SHARED_VOLUME = 'shared-space'
 SCHAINS_MNT_DIR = '/var/lib/skale/schains'
+VOLUME_GROUP = 'schains'
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
 SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
@@ -77,6 +78,16 @@ SRC_FILEBEAT_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'filebeat.yml')
 FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 
 DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
+DOCKER_LVMPY_BIN_PATH = '/usr/local/bin/skale'
+
+LVMPY_CMD = f'{DOCKER_LVMPY_BIN_PATH} lvmpy'
+LVMPY_RUN_CMD = f'{LVMPY_CMD} run --yes'
+LVMPY_HEAL_CMD = f'{LVMPY_CMD} heal --yes'
+
+LVMPY_CRON_LOG_PATH = '/var/log/docker-lvmpy/cron.log'
+LVMPY_CRON_SCHEDULE_MINUTES = 3
+
+LVMPY_LOG_DIR = '/var/log/docker-lvmpy'
 
 IPTABLES_DIR = '/etc/iptables/'
 IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')

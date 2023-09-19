@@ -29,6 +29,7 @@ from node_cli.cli import __version__
 from node_cli.cli.health import health_cli
 from node_cli.cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION, TYPE
 from node_cli.cli.logs import logs_cli
+from node_cli.cli.lvmpy import lvmpy_cli
 from node_cli.cli.node import node_cli
 from node_cli.cli.schains import schains_cli
 from node_cli.cli.wallet import wallet_cli
@@ -90,7 +91,8 @@ def get_sources_list():
             wallet_cli,
             ssl_cli,
             exit_cli,
-            validate_cli
+            validate_cli,
+            lvmpy_cli
         ]
 
 
@@ -113,6 +115,7 @@ if __name__ == '__main__':
     logger.debug(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
     sources = get_sources_list()
     cmd_collection = click.CommandCollection(sources=sources)
+
     try:
         cmd_collection()
     except Exception as err:

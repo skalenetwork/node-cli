@@ -37,6 +37,14 @@ TEST_META_V2 = {
 
 }
 
+TEST_META_V3 = {
+    'version': '0.1.1',
+    'config_stream': 'develop',
+    'docker_lvmpy_stream': '1.1.2',
+    'os_id': 'ubuntu',
+    'os_version': '18.04'
+}
+
 
 def response_mock(
     status_code=0,
@@ -70,8 +78,7 @@ def run_command_mock(mock_call_path, response_mock,
         return run_command(command, params, input=input)
 
 
-def subprocess_run_mock(cmd=None, shell=None, stdout=None,
-                        stderr=None, env=None, returncode=0):
+def subprocess_run_mock(*args, returncode=0, **kwargs):
     result = MagicMock()
     result.returncode = returncode
     result.stdout = MagicMock()

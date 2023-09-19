@@ -43,7 +43,7 @@ from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 
-from tests.helper import TEST_META_V1, TEST_META_V2
+from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3
 
 
 TEST_ENV_PARAMS = """
@@ -274,6 +274,16 @@ def meta_file_v1():
 def meta_file_v2():
     with open(META_FILEPATH, 'w') as f:
         json.dump(TEST_META_V2, f)
+    try:
+        yield META_FILEPATH
+    finally:
+        os.remove(META_FILEPATH)
+
+
+@pytest.fixture
+def meta_file_v3():
+    with open(META_FILEPATH, 'w') as f:
+        json.dump(TEST_META_V3, f)
     try:
         yield META_FILEPATH
     finally:

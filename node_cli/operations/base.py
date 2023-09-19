@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import distro
 import functools
 import logging
 from typing import Dict
@@ -39,11 +40,10 @@ from node_cli.operations.common import (
 )
 from node_cli.operations.volume import (
     cleanup_volume_artifacts,
-    docker_lvmpy_update,
-    docker_lvmpy_install,
     ensure_filestorage_mapping,
     prepare_block_device
 )
+from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
@@ -111,7 +111,7 @@ def update(env_filepath: str, env: Dict) -> None:
     backup_old_contracts()
     download_contracts(env)
 
-    docker_lvmpy_update(env)
+    lvmpy_install(env)
     generate_nginx_config()
 
     prepare_host(
@@ -134,7 +134,9 @@ def update(env_filepath: str, env: Dict) -> None:
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
     compose_up(env)
@@ -161,13 +163,15 @@ def init(env_filepath: str, env: dict) -> bool:
     configure_iptables()
     generate_nginx_config()
 
-    docker_lvmpy_install(env)
+    lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
 
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
@@ -215,7 +219,9 @@ def init_sync(
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
@@ -255,7 +261,9 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
     compose_up_sync(env)
@@ -292,13 +300,15 @@ def restore(env, backup_path):
 
     link_env_file()
     configure_iptables()
-    docker_lvmpy_install(env)
+    lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
 
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM']
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     compose_up(env)
