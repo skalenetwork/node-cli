@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from node_cli.configs import NODE_CONFIG_PATH
-from node_cli.core.node import get_node_info_plain
 from node_cli.utils.helper import get_request, post_request, error_exit
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.print_formatters import (

@@ -222,6 +222,7 @@ def get_up_compose_cmd(services):
 
 def compose_up(env):
     logger.info('Running base set of containers')
+    logger.debug('ENV for docker-compose.yml %s', env)
 
     if 'SGX_CERTIFICATES_DIR_NAME' not in env:
         env['SGX_CERTIFICATES_DIR_NAME'] = SGX_CERTIFICATES_DIR_NAME
