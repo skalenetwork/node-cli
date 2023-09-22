@@ -194,7 +194,7 @@ def turn_on(env):
     compose_up(env)
 
 
-def restore(env, backup_path):
+def restore(env, backup_path, config_only=False):
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -226,7 +226,8 @@ def restore(env, backup_path):
         disk_device=env['DISK_MOUNTPOINT'],
         env_type=env['ENV_TYPE']
     )
-    compose_up(env)
+    if not config_only:
+        compose_up(env)
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],

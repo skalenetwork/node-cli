@@ -138,9 +138,15 @@ def backup_node(backup_folder_path):
     is_flag=True,
     hidden=True
 )
+@click.option(
+    '--config-only',
+    help='Only restore configuration files in .skale and artifacts',
+    is_flag=True,
+    hidden=True
+)
 @streamed_cmd
-def restore_node(backup_path, env_file, no_snapshot):
-    restore(backup_path, env_file, no_snapshot)
+def restore_node(backup_path, env_file, no_snapshot, config_only):
+    restore(backup_path, env_file, no_snapshot, config_only)
 
 
 @node.command('maintenance-on', help="Set SKALE node into maintenance mode")

@@ -143,7 +143,7 @@ def init(env_filepath):
 
 
 @check_not_inited
-def restore(backup_path, env_filepath, no_snapshot=False):
+def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
     env = get_node_env(env_filepath)
     if env is None:
         return
@@ -154,7 +154,7 @@ def restore(backup_path, env_filepath, no_snapshot=False):
         logger.info('Adding BACKUP_RUN to env ...')
         env['BACKUP_RUN'] = 'True'  # should be str
 
-    restored_ok = restore_op(env, backup_path)
+    restored_ok = restore_op(env, backup_path, config_only=config_only)
     if not restored_ok:
         error_exit(
             'Restore operation failed',
