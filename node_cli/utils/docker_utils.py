@@ -21,6 +21,7 @@ import io
 import itertools
 import os
 import logging
+from typing import Optional
 
 import docker
 from docker.client import DockerClient
@@ -158,16 +159,16 @@ def get_logs_backup_filepath(container: Container) -> str:
     return os.path.join(REMOVED_CONTAINERS_FOLDER_PATH, log_file_name)
 
 
-def ensure_volume(name: str, size: int, dutils=None):
+def ensure_volume(name: str, size: int, driver='lvmpy', dutils=None):
     dutils = dutils or docker_client()
     if is_volume_exists(name, dutils=dutils):
-        logger.info(f'Volume with name {name} already exits')
+        logger.info('Volume %s already exits', name)
         return
-    logger.info(f'Creating volume - size: {size}, name: {name}')
-    driver_opts = {'size': str(size)}
+    logger.info('Creating volume %s, size: %d', name, size)
+    driver_opts = {'size': str(size)} if driver == 'lvmpy' else None
     volume = dutils.volumes.create(
         name=name,
-        driver='lvmpy',
+        driver=driver,
         driver_opts=driver_opts
     )
     return volume
@@ -271,5 +272,4 @@ def docker_cleanup(dclient=None, ignore=None):
         cleanup_unused_images(dclient=dc, ignore=ignore)
         system_prune()
     except Exception as e:
-        logger.warning('Image cleanuping errored with %s', e)
-        logger.debug('Image cleanuping errored', exc_info=True)
+        logger.warning('Image cleanup errored with %s', e)
