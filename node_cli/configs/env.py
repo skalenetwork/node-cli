@@ -35,8 +35,7 @@ optional_params = {
     'DEFAULT_GAS_PRICE_WEI': '',
     'DISABLE_IMA': '',
     'SKIP_DOCKER_CONFIG': '',
-    'SKIP_DOCKER_CLEANUP': '',
-    'NO_CONTAINERS': ''
+    'SKIP_DOCKER_CLEANUP': ''
 }
 
 
