@@ -21,7 +21,6 @@ import io
 import itertools
 import os
 import logging
-from typing import Optional
 
 import docker
 from docker.client import DockerClient
