@@ -40,6 +40,7 @@ from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.utils.helper import safe_load_texts, init_default_logger
 from node_cli.configs import LONG_LINE
 from node_cli.core.host import init_logs_dir
+from node_cli.utils.helper import error_exit
 
 TEXTS = safe_load_texts()
 
@@ -109,8 +110,7 @@ if __name__ == '__main__':
     try:
         cmd_collection()
     except Exception as err:
-        print(f'Command execution failed with {err}. Recheck your inputs')
         traceback.print_exc()
-        logger.exception(f'Command failed with {err}')
-    finally:
-        logger.debug(f'execution time: {time.time() - start_time} seconds')
+        logger.debug('Execution time: %d seconds', time.time() - start_time)
+        error_exit(err)
+    logger.debug('Execution time: %d seconds', time.time() - start_time)

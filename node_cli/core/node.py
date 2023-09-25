@@ -143,7 +143,7 @@ def init(env_filepath):
 
 
 @check_not_inited
-def restore(backup_path, env_filepath, no_snapshot=False):
+def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
     env = get_node_env(env_filepath)
     if env is None:
         return
@@ -154,7 +154,7 @@ def restore(backup_path, env_filepath, no_snapshot=False):
         logger.info('Adding BACKUP_RUN to env ...')
         env['BACKUP_RUN'] = 'True'  # should be str
 
-    restored_ok = restore_op(env, backup_path)
+    restored_ok = restore_op(env, backup_path, config_only=config_only)
     if not restored_ok:
         error_exit(
             'Restore operation failed',
@@ -357,24 +357,28 @@ def is_base_containers_alive():
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
 
 
-def get_node_info(format):
+def get_node_info_plain():
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME,
         method='info'
     )
     if status == 'ok':
-        node_info = payload['node_info']
-        if format == 'json':
-            print(node_info)
-        elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
-            print(TEXTS['service']['node_not_registered'])
-        else:
-            print_node_info(
-                node_info,
-                get_node_status(int(node_info['status']))
-            )
+        return payload['node_info']
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def get_node_info(format):
+    node_info = get_node_info_plain()
+    if format == 'json':
+        print(node_info)
+    elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
+        print(TEXTS['service']['node_not_registered'])
+    else:
+        print_node_info(
+            node_info,
+            get_node_status(int(node_info['status']))
+        )
 
 
 def get_node_status(status):
