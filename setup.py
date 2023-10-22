@@ -20,14 +20,14 @@ def find_version(*file_paths):
 
 extras_require = {
     'linter': [
-        "flake8==5.0.4",
+        "flake8==6.0.0",
         "isort>=4.2.15,<5.10.2",
     ],
     'dev': [
         "bumpversion==0.6.0",
-        "pytest==7.1.2",
-        "pytest-cov==3.0.0",
-        "twine==4.0.1",
+        "pytest==7.2.2",
+        "pytest-cov==4.0.0",
+        "twine==4.0.2",
         "mock==4.0.3",
         "freezegun==1.2.2"
     ]
@@ -51,24 +51,24 @@ setup(
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
         "click==8.1.3",
-        "PyInstaller==5.6.2",
+        "PyInstaller==5.12.0",
         "distro==1.4.0",
         "docker==6.0.1",
-        "texttable==1.6.4",
+        "texttable==1.6.7",
         "python-dateutil==2.8.2",
         "Jinja2==3.1.2",
-        "psutil==5.9.1",
+        "psutil==5.9.4",
         "python-dotenv==0.21.0",
         "terminaltables==3.1.10",
         "requests==2.28.1",
-        "GitPython==3.1.30",
-        "packaging==21.3",
-        "python-debian==0.1.48",
+        "GitPython==3.1.31",
+        "packaging==23.0",
+        "python-debian==0.1.49",
         "python-iptables==1.0.1",
         "PyYAML==6.0",
         "MarkupSafe==2.1.1",
-        'Flask==2.2.2',
-        'itsdangerous==2.0.1',
+        'Flask==2.3.3',
+        'itsdangerous==2.1.2',
         'sh==1.14.2',
         'python-crontab==2.6.0'
     ],

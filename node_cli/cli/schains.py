@@ -25,6 +25,8 @@ from node_cli.utils.helper import abort_if_false, IP_TYPE
 from node_cli.core.schains import (
     describe,
     get_schain_firewall_rules,
+    get_schains_by_artifacts,
+    restore_schain_from_snapshot,
     show_config,
     show_dkg_info,
     show_schains,
@@ -43,8 +45,17 @@ def schains() -> None:
 
 
 @schains.command(help="List of sChains served by connected node")
-def ls() -> None:
-    show_schains()
+@click.option(
+    '-n', '--names',
+    help='Shows only chain names',
+    is_flag=True
+)
+def ls(names: bool) -> None:
+    if names:
+        schains: str = get_schains_by_artifacts()
+        print(schains)
+    else:
+        show_schains()
 
 
 @schains.command(help="DKG statuses for each sChain on the node")
@@ -95,3 +106,17 @@ def repair(schain_name: str, snapshot_from: Optional[str] = None) -> None:
 )
 def info_(schain_name: str, json_format: bool) -> None:
     describe(schain_name, raw=json_format)
+
+
+@schains.command('restore', help='Restore schain from local snapshot')
+@click.argument('schain_name')
+@click.argument('snapshot_path')
+@click.option('--schain-type', default='medium')
+@click.option('--env-type', default=None)
+def restore(
+    schain_name: str,
+    snapshot_path: str,
+    schain_type: str,
+    env_type: Optional[str]
+) -> None:
+    restore_schain_from_snapshot(schain_name, snapshot_path)
