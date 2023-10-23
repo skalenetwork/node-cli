@@ -185,4 +185,4 @@ def test_update_node(mocked_g_config, resource_file):
             mock.patch('node_cli.core.resources.get_disk_size',
                        return_value=BIG_DISK_SIZE), \
             mock.patch('node_cli.core.host.init_data_dir'):
-        update(env_filepath)
+        update(env_filepath, pull_config_for_schain=None)

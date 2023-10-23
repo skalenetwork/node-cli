@@ -108,10 +108,11 @@ def init_node(env_file):
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
+@click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
 @click.argument('env_file')
 @streamed_cmd
-def update_node(env_file):
-    update(env_file)
+def update_node(env_file, pull_config_for_schain):
+    update(env_file, pull_config_for_schain)
 
 
 @node.command('signature', help='Get node signature for given validator id')
@@ -137,9 +138,15 @@ def backup_node(backup_folder_path):
     is_flag=True,
     hidden=True
 )
+@click.option(
+    '--config-only',
+    help='Only restore configuration files in .skale and artifacts',
+    is_flag=True,
+    hidden=True
+)
 @streamed_cmd
-def restore_node(backup_path, env_file, no_snapshot):
-    restore(backup_path, env_file, no_snapshot)
+def restore_node(backup_path, env_file, no_snapshot, config_only):
+    restore(backup_path, env_file, no_snapshot, config_only)
 
 
 @node.command('maintenance-on', help="Set SKALE node into maintenance mode")
