@@ -41,6 +41,8 @@ SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
 SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
+SCHAIN_NODE_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
+NODE_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'node_config.json')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTAINER_CONFIG_TMP_PATH = os.path.join(SKALE_TMP_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
@@ -52,7 +54,8 @@ SKALE_RUN_DIR = '/var/run/skale'
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
-STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
+STATIC_PARAMS_FILEPATH = os.path.join(
+    CONTAINER_CONFIG_PATH, 'static_params.yaml')
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
 NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
 
