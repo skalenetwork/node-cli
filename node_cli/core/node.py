@@ -143,7 +143,7 @@ def init(env_filepath):
 
 
 @check_not_inited
-def restore(backup_path, env_filepath, no_snapshot=False):
+def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
     env = get_node_env(env_filepath)
     if env is None:
         return
@@ -154,7 +154,7 @@ def restore(backup_path, env_filepath, no_snapshot=False):
         logger.info('Adding BACKUP_RUN to env ...')
         env['BACKUP_RUN'] = 'True'  # should be str
 
-    restored_ok = restore_op(env, backup_path)
+    restored_ok = restore_op(env, backup_path, config_only=config_only)
     if not restored_ok:
         error_exit(
             'Restore operation failed',
@@ -167,7 +167,12 @@ def restore(backup_path, env_filepath, no_snapshot=False):
     print('Node is restored from backup')
 
 
-def get_node_env(env_filepath, inited_node=False, sync_schains=None):
+def get_node_env(
+    env_filepath,
+    inited_node=False,
+    sync_schains=None,
+    pull_config_for_schain=None
+):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath)
         if env_params is None:
@@ -186,15 +191,22 @@ def get_node_env(env_filepath, inited_node=False, sync_schains=None):
         env['FLASK_SECRET_KEY'] = flask_secret_key
     if sync_schains:
         env['BACKUP_RUN'] = 'True'
+    if pull_config_for_schain:
+        env['PULL_CONFIG_FOR_SCHAIN'] = pull_config_for_schain
     return {k: v for k, v in env.items() if v != ''}
 
 
 @check_inited
 @check_user
-def update(env_filepath):
+def update(env_filepath, pull_config_for_schain):
     logger.info('Node update started')
     configure_firewall_rules()
-    env = get_node_env(env_filepath, inited_node=True, sync_schains=False)
+    env = get_node_env(
+        env_filepath,
+        inited_node=True,
+        sync_schains=False,
+        pull_config_for_schain=pull_config_for_schain
+    )
     update_ok = update_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
@@ -345,24 +357,28 @@ def is_base_containers_alive():
     return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
 
 
-def get_node_info(format):
+def get_node_info_plain():
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME,
         method='info'
     )
     if status == 'ok':
-        node_info = payload['node_info']
-        if format == 'json':
-            print(node_info)
-        elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
-            print(TEXTS['service']['node_not_registered'])
-        else:
-            print_node_info(
-                node_info,
-                get_node_status(int(node_info['status']))
-            )
+        return payload['node_info']
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def get_node_info(format):
+    node_info = get_node_info_plain()
+    if format == 'json':
+        print(node_info)
+    elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
+        print(TEXTS['service']['node_not_registered'])
+    else:
+        print_node_info(
+            node_info,
+            get_node_status(int(node_info['status']))
+        )
 
 
 def get_node_status(status):
