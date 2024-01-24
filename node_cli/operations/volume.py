@@ -29,7 +29,7 @@ from node_cli.configs import (
     DOCKER_LVMPY_PATH,
     DOCKER_LVMPY_REPO_URL,
     FILESTORAGE_MAPPING,
-    SCHAINS_MNT_DIR,
+    SCHAINS_MNT_DIR_REGULAR,
     SCHAIN_STATE_DIR,
     SKALE_STATE_DIR
 )
@@ -45,7 +45,7 @@ def update_docker_lvmpy_env(env):
     env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
-    env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR
+    env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
     env['PATH'] = os.environ.get('PATH', None)
     return env
 
