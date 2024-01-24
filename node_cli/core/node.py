@@ -238,7 +238,7 @@ def get_node_env(
         save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
-    
+
     mnt_dir = SCHAINS_MNT_DIR_SYNC if sync_node else SCHAINS_MNT_DIR_REGULAR
     env = {
         'SKALE_DIR': SKALE_DIR,
