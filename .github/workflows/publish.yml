@@ -7,8 +7,6 @@ on:
       - develop
       - beta
       - stable
-      - sync-node
-      - beta-sync-node
 
 jobs:
   create_release:
@@ -38,7 +36,7 @@ jobs:
 
       - name: Set release
         run: |
-          if [[ "$BRANCH" == "stable" || "$BRANCH" == "sync-node" ]]; then
+          if [[ "$BRANCH" == "stable" ]]; then
             export PRERELEASE=false
           else
             export PRERELEASE=true
