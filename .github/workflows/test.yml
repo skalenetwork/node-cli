@@ -40,17 +40,17 @@ jobs:
       run: |
         mkdir ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test normal
         docker rm -f $(docker ps -aq)
 
-    - name: Check build
+    - name: Check build - normal
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
 
     - name: Build binary in Ubuntu 20.04 environment
       run: |
         scripts/build.sh test test
 
-    - name: Check build
+    - name: Check build - normal
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
     - name: Build sync binary in Ubuntu 18.04 environment
       run: |
@@ -59,14 +59,14 @@ jobs:
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test sync
         docker rm -f $(docker ps -aq)
 
-    - name: Check build
+    - name: Check build - sync
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-sync
 
     - name: Build sync binary in Ubuntu 20.04 environment
       run: |
         scripts/build.sh test test sync
 
-    - name: Check build
+    - name: Check build - sync
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-sync
 
     - name: Run tests
