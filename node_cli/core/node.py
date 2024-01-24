@@ -30,15 +30,17 @@ from typing import Optional, Tuple
 import docker
 
 from node_cli.configs import (
+    BACKUP_ARCHIVE_NAME,
     CONTAINER_CONFIG_PATH,
     FILESTORAGE_MAPPING,
-    SKALE_DIR,
     INIT_ENV_FILEPATH,
-    BACKUP_ARCHIVE_NAME,
+    LOG_PATH,
     RESTORE_SLEEP_TIMEOUT,
-    SCHAINS_MNT_DIR,
-    TM_INIT_TIMEOUT,
-    LOG_PATH
+    SCHAINS_MNT_DIR_REGULAR,
+    SCHAINS_MNT_DIR_SYNC,
+    SKALE_DIR,
+    SKALE_STATE_DIR,
+    TM_INIT_TIMEOUT
 )
 from node_cli.configs.env import get_env_config
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
@@ -51,7 +53,12 @@ from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
     update_op,
-    init_op, turn_off_op, turn_on_op, restore_op
+    init_op,
+    turn_off_op,
+    turn_on_op,
+    restore_op,
+    init_sync_op,
+    update_sync_op
 )
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks, print_node_cmd_error, print_node_info
@@ -70,6 +77,7 @@ from node_cli.utils.decorators import (
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
 
+SYNC_BASE_CONTAINERS_AMOUNT = 2
 BASE_CONTAINERS_AMOUNT = 5
 BLUEPRINT_NAME = 'node'
 
@@ -128,7 +136,6 @@ def init(env_filepath):
             'Init operation failed',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
-        return
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
@@ -136,9 +143,8 @@ def init(env_filepath):
             'Containers are not running',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
-        return
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
+    update_resource_allocation(env['ENV_TYPE'])
     logger.info('Init procedure finished')
 
 
@@ -160,36 +166,91 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
             'Restore operation failed',
             exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
         )
-        return
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['DISK_MOUNTPOINT'], env['ENV_TYPE'])
+    update_resource_allocation(env['ENV_TYPE'])
     print('Node is restored from backup')
+
+
+def init_sync(
+    env_filepath: str,
+    archive: bool,
+    catchup: bool,
+    historic_state: bool
+) -> None:
+    configure_firewall_rules()
+    env = get_node_env(env_filepath, sync_node=True)
+    if env is None:
+        return
+    inited_ok = init_sync_op(
+        env_filepath,
+        env,
+        archive,
+        catchup,
+        historic_state
+    )
+    if not inited_ok:
+        error_exit(
+            'Init operation failed',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+    logger.info('Waiting for containers initialization')
+    time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive(sync_node=True):
+        error_exit(
+            'Containers are not running',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
+    logger.info('Sync node initialized successfully')
+
+
+@check_inited
+@check_user
+def update_sync(env_filepath):
+    logger.info('Node update started')
+    configure_firewall_rules()
+    env = get_node_env(env_filepath, sync_node=True)
+    update_ok = update_sync_op(env_filepath, env)
+    if update_ok:
+        logger.info('Waiting for containers initialization')
+        time.sleep(TM_INIT_TIMEOUT)
+    alive = is_base_containers_alive(sync_node=True)
+    if not update_ok or not alive:
+        print_node_cmd_error()
+        return
+    else:
+        logger.info('Node update finished')
 
 
 def get_node_env(
     env_filepath,
     inited_node=False,
     sync_schains=None,
-    pull_config_for_schain=None
+    pull_config_for_schain=None,
+    sync_node=False
 ):
     if env_filepath is not None:
-        env_params = extract_env_params(env_filepath)
-        if env_params is None:
-            return
+        env_params = extract_env_params(
+            env_filepath,
+            sync_node=sync_node,
+            raise_for_status=True
+        )
         save_env_params(env_filepath)
     else:
-        env_params = extract_env_params(INIT_ENV_FILEPATH)
+        env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
+    
+    mnt_dir = SCHAINS_MNT_DIR_SYNC if sync_node else SCHAINS_MNT_DIR_REGULAR
     env = {
         'SKALE_DIR': SKALE_DIR,
-        'SCHAINS_MNT_DIR': SCHAINS_MNT_DIR,
+        'SCHAINS_MNT_DIR': mnt_dir,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
+        'SKALE_LIB_PATH': SKALE_STATE_DIR,
         **env_params
     }
-    if inited_node:
+    if inited_node and not sync_node:
         flask_secret_key = get_flask_secret_key()
         env['FLASK_SECRET_KEY'] = flask_secret_key
-    if sync_schains:
+    if sync_schains and not sync_node:
         env['BACKUP_RUN'] = 'True'
     if pull_config_for_schain:
         env['PULL_CONFIG_FOR_SCHAIN'] = pull_config_for_schain
@@ -348,13 +409,14 @@ def turn_on(maintenance_off, sync_schains, env_file):
         set_maintenance_mode_off()
 
 
-def is_base_containers_alive():
+def is_base_containers_alive(sync_node: bool = False):
     dclient = docker.from_env()
     containers = dclient.containers.list()
     skale_containers = list(filter(
         lambda c: c.name.startswith('skale_'), containers
     ))
-    return len(skale_containers) >= BASE_CONTAINERS_AMOUNT
+    containers_amount = SYNC_BASE_CONTAINERS_AMOUNT if sync_node else BASE_CONTAINERS_AMOUNT
+    return len(skale_containers) >= containers_amount
 
 
 def get_node_info_plain():

@@ -66,9 +66,12 @@ setup(
         "python-debian==0.1.49",
         "python-iptables==1.0.1",
         "PyYAML==6.0",
+        "pyOpenSSL==22.0.0",
         "MarkupSafe==2.1.1",
         'Flask==2.3.3',
         'itsdangerous==2.1.2',
+        "cryptography==37.0.2",
+        "filelock==3.0.12",
         'sh==1.14.2',
         'python-crontab==2.6.0'
     ],

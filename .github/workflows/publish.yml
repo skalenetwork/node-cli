@@ -7,6 +7,8 @@ on:
       - develop
       - beta
       - stable
+      - sync-node
+      - beta-sync-node
 
 jobs:
   create_release:
@@ -29,12 +31,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install python-setuptools
+
       - name: Set Versions
         run: |
           bash ./scripts/set_versions_ga.sh
+
       - name: Set release
         run: |
-          if [[ "$BRANCH" == "stable" ]]; then
+          if [[ "$BRANCH" == "stable" || "$BRANCH" == "sync-node" ]]; then
             export PRERELEASE=false
           else
             export PRERELEASE=true
@@ -56,7 +60,8 @@ jobs:
         run: |
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=branch::$BRANCH"
-  build_and_publish:
+
+  build_and_publish_normal:
     if: github.event.pull_request.merged
     needs: create_release
     name: Build and publish for ${{ matrix.os }}
@@ -81,11 +86,11 @@ jobs:
     - name: Checkout submodules
       run: git submodule update --init
 
-    - name: Build binary
+    - name: Build normal binary
       run: |
         mkdir ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }}
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} normal
         ls -altr /home/ubuntu/dist/
         docker rm -f $(docker ps -aq)
 
@@ -106,6 +111,65 @@ jobs:
 
     - name: Upload release checksum
       id: upload-release-checksum
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: /home/ubuntu/dist/sha512sum
+        asset_name: ${{ matrix.asset_name }}.sha512
+        asset_content_type: text/plain
+
+  build_and_publish_sync:
+    if: github.event.pull_request.merged
+    needs: create_release
+    name: Build and publish for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            asset_name: skale-${{ needs.create_release.outputs.version }}-Linux-x86_64-sync
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.11
+
+    - name: Install ubuntu dependencies
+      if: matrix.os == 'ubuntu-20.04'
+      run: |
+        sudo apt-get update
+
+    - name: Checkout submodules
+      run: git submodule update --init
+
+    - name: Build sync release binary
+      run: |
+        mkdir ./dist
+        docker build . -t node-cli-builder
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} sync
+        ls -altr /home/ubuntu/dist/
+        docker rm -f $(docker ps -aq)
+
+    - name: Save sha512sum
+      run: |
+        sudo sha512sum /home/ubuntu/dist/${{ matrix.asset_name }} | sudo tee > /dev/null /home/ubuntu/dist/sha512sum
+
+    - name: Upload release sync CLI
+      id: upload-sync-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: /home/ubuntu/dist/${{ matrix.asset_name }}
+        asset_name: ${{ matrix.asset_name }}
+        asset_content_type: application/octet-stream
+
+    - name: Upload release sync CLI checksum
+      id: upload-sync-release-checksum
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

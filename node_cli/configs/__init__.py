@@ -32,9 +32,11 @@ G_CONF_USER = GLOBAL_CONFIG['user']
 G_CONF_HOME = os.getenv('TEST_HOME_DIR') or GLOBAL_CONFIG['home_dir']
 
 SKALE_STATE_DIR = '/var/lib/skale'
+SCHAIN_STATE_DIR = os.path.join('/var/lib/skale', 'schains')
 FILESTORAGE_MAPPING = os.path.join(SKALE_STATE_DIR, 'filestorage')
 SNAPSHOTS_SHARED_VOLUME = 'shared-space'
-SCHAINS_MNT_DIR = '/mnt'
+SCHAINS_MNT_DIR_REGULAR = '/mnt'
+SCHAINS_MNT_DIR_SYNC = '/var/lib/skale/schains'
 VOLUME_GROUP = 'schains'
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
@@ -54,10 +56,12 @@ SKALE_RUN_DIR = '/var/run/skale'
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
-STATIC_PARAMS_FILEPATH = os.path.join(
-    CONTAINER_CONFIG_PATH, 'static_params.yaml')
+SYNC_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-sync.yml')
+STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
+
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
 NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
+NGINX_CONTAINER_NAME = 'skale_nginx'
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
@@ -120,10 +124,7 @@ else:
 TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
 DATAFILES_FOLDER = os.path.join(PARDIR, 'datafiles')
 
-SKALED_SSL_TEST_SCRIPT = os.path.join(DATAFILES_FOLDER, 'skaled-ssl-test')
-
-ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH,
-                                   'schain_allocation.yml')
+ALLOCATION_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'schain_allocation.yml')
 
 REDIS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'redis-data')
 
@@ -137,11 +138,6 @@ DEFAULT_NODE_BASE_PORT = 10000
 
 BACKUP_ARCHIVE_NAME = 'skale-node-backup'
 
-SSL_FOLDER_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
-SSL_CERT_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_cert')
-SSL_KEY_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_key')
-
-
 TM_INIT_TIMEOUT = 20
 RESTORE_SLEEP_TIMEOUT = 20
 
@@ -149,8 +145,6 @@ MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
 IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
-
-DEFAULT_SSL_CHECK_PORT = 4536
 
 SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'

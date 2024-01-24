@@ -32,11 +32,15 @@ from node_cli.configs import (
   CONTAINER_CONFIG_TMP_PATH,
   GLOBAL_SKALE_CONF_FILEPATH,
   GLOBAL_SKALE_DIR,
+  META_FILEPATH,
+  NGINX_CONTAINER_NAME,
   REMOVED_CONTAINERS_FOLDER_PATH,
   STATIC_PARAMS_FILEPATH
 )
-from node_cli.configs import META_FILEPATH
+from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
+from node_cli.configs.ssl import SSL_FOLDER_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 
 from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3
@@ -193,12 +197,67 @@ def mocked_g_config():
         generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
 
 
+@pytest.fixture()
+def clean_node_options():
+    pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+    try:
+        yield
+    finally:
+        pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+
+
+def clean_node_data():
+    pass
+
+
 @pytest.fixture
 def resource_alloc():
     with open(RESOURCE_ALLOCATION_FILEPATH, 'w') as alloc_file:
         json.dump({}, alloc_file)
     yield RESOURCE_ALLOCATION_FILEPATH
     os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+@pytest.fixture
+def ssl_folder():
+    if os.path.isdir(SSL_FOLDER_PATH):
+        shutil.rmtree(SSL_FOLDER_PATH)
+    path = pathlib.Path(SSL_FOLDER_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    try:
+        yield
+    finally:
+        shutil.rmtree(SSL_FOLDER_PATH)
+
+
+@pytest.fixture
+def dutils():
+    return docker_client()
+
+
+@pytest.fixture
+def nginx_container(dutils, ssl_folder):
+    c = None
+    try:
+        c = dutils.containers.run(
+            'nginx:1.20.2',
+            name=NGINX_CONTAINER_NAME,
+            detach=True,
+            volumes={
+                ssl_folder: {
+                    'bind': '/ssl',
+                    'mode': 'ro',
+                    'propagation': 'slave'
+                }
+            }
+        )
+        yield c
+    finally:
+        if c is not None:
+            try:
+                c.remove(force=True)
+            except Exception:
+                pass
 
 
 @pytest.fixture

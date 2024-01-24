@@ -29,9 +29,11 @@ from docker.models.containers import Container
 from node_cli.utils.helper import run_cmd, str_to_bool
 from node_cli.configs import (
     COMPOSE_PATH,
+    SYNC_COMPOSE_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    SKALE_DIR
+    SKALE_DIR,
+    NGINX_CONTAINER_NAME
 )
 
 
@@ -73,7 +75,6 @@ def get_sanitized_container_name(container_info: dict) -> str:
 
 def get_containers(container_name_filter=None, _all=True) -> list:
     return docker_client().containers.list(all=_all)
-    return docker_client().containers.list(all=_all, filters={'name': container_name_filter})
 
 
 def get_all_schain_containers(_all=True) -> list:
@@ -182,12 +183,13 @@ def is_volume_exists(name: str, dutils=None):
     return True
 
 
-def compose_rm(env={}):
+def compose_rm(env={}, sync_node: bool = False):
     logger.info('Removing compose containers')
+    compose_path = get_compose_path(sync_node)
     run_cmd(
         cmd=(
             'docker-compose',
-            '-f', COMPOSE_PATH,
+            '-f', compose_path,
             'down',
             '-t', str(COMPOSE_SHUTDOWN_TIMEOUT),
         ),
@@ -196,20 +198,22 @@ def compose_rm(env={}):
     logger.info('Compose containers removed')
 
 
-def compose_pull():
+def compose_pull(sync_node: bool = False):
     logger.info('Pulling compose containers')
+    compose_path = get_compose_path(sync_node)
     run_cmd(
-        cmd=('docker-compose', '-f', COMPOSE_PATH, 'pull'),
+        cmd=('docker-compose', '-f', compose_path, 'pull'),
         env={
             'SKALE_DIR': SKALE_DIR
         }
     )
 
 
-def compose_build():
+def compose_build(sync_node: bool = False):
     logger.info('Building compose containers')
+    compose_path = get_compose_path(sync_node)
     run_cmd(
-        cmd=('docker-compose', '-f', COMPOSE_PATH, 'build'),
+        cmd=('docker-compose', '-f', compose_path, 'build'),
         env={
             'SKALE_DIR': SKALE_DIR
         }
@@ -220,7 +224,15 @@ def get_up_compose_cmd(services):
     return ('docker-compose', '-f', COMPOSE_PATH, 'up', '-d', *services)
 
 
-def compose_up(env):
+def get_up_compose_sync_cmd():
+    return ('docker-compose', '-f', SYNC_COMPOSE_PATH, 'up', '-d')
+
+
+def get_compose_path(sync_node: bool) -> str:
+    return SYNC_COMPOSE_PATH if sync_node else COMPOSE_PATH
+
+
+def compose_up(env, sync_node=False):
     logger.info('Running base set of containers')
 
     if 'SGX_CERTIFICATES_DIR_NAME' not in env:
@@ -233,6 +245,17 @@ def compose_up(env):
     if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
         logger.info('Running containers for Telegram notifications')
         run_cmd(cmd=get_up_compose_cmd(NOTIFICATION_COMPOSE_SERVICES), env=env)
+
+
+def compose_up_sync(env) -> None:
+    logger.info('Running containers for sync node')
+    run_cmd(cmd=get_up_compose_sync_cmd(), env=env)
+
+
+def restart_nginx_container(dutils=None):
+    dutils = dutils or docker_client()
+    nginx_container = dutils.containers.get(NGINX_CONTAINER_NAME)
+    nginx_container.restart()
 
 
 def remove_images(images, dclient=None):
