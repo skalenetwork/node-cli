@@ -36,7 +36,7 @@ jobs:
       run: |
         flake8 .
 
-    - name: Build binary in Ubuntu 18.04 environment
+    - name: Build binary in Ubuntu 18.04 environment - normal
       run: |
         mkdir ./dist
         docker build . -t node-cli-builder
@@ -46,11 +46,11 @@ jobs:
     - name: Check build - normal
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
 
-    - name: Build binary in Ubuntu 20.04 environment
+    - name: Build binary in Ubuntu 20.04 environment - normal
       run: |
-        scripts/build.sh test test
+        scripts/build.sh test test normal
 
-    - name: Check build - normal
+    - name: Check build - sync
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
     - name: Build sync binary in Ubuntu 18.04 environment
       run: |
