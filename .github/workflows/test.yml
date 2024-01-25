@@ -38,7 +38,7 @@ jobs:
 
     - name: Build binary in Ubuntu 18.04 environment - normal
       run: |
-        mkdir ./dist
+        mkdir -p ./dist
         docker build . -t node-cli-builder
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test normal
         docker rm -f $(docker ps -aq)
@@ -54,7 +54,7 @@ jobs:
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
     - name: Build sync binary in Ubuntu 18.04 environment
       run: |
-        mkdir ./dist
+        mkdir -p ./dist
         docker build . -t node-cli-builder
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test sync
         docker rm -f $(docker ps -aq)

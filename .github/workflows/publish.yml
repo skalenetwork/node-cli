@@ -87,7 +87,7 @@ jobs:
 
     - name: Build normal binary
       run: |
-        mkdir ./dist
+        mkdir -p ./dist
         docker build . -t node-cli-builder
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} normal
         ls -altr /home/ubuntu/dist/
@@ -146,7 +146,7 @@ jobs:
 
     - name: Build sync release binary
       run: |
-        mkdir ./dist
+        mkdir -p ./dist
         docker build . -t node-cli-builder
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} sync
         ls -altr /home/ubuntu/dist/
