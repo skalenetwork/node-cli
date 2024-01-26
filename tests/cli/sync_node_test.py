@@ -68,7 +68,7 @@ def test_init_sync_archive_catchup(mocked_g_config, clean_node_options):
             mock.patch('node_cli.operations.base.update_meta'), \
             mock.patch('node_cli.operations.base.update_resource_allocation'), \
             mock.patch('node_cli.operations.base.update_images'), \
-            mock.patch('node_cli.operations.base.compose_up_sync'), \
+            mock.patch('node_cli.operations.base.compose_up'), \
             mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), \
             mock.patch('node_cli.core.node.configure_firewall_rules'), \
             mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):

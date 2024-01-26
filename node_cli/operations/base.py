@@ -50,7 +50,6 @@ from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
-    compose_up_sync,
     docker_cleanup,
     remove_dynamic_containers
 )
@@ -225,7 +224,7 @@ def init_sync(
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
-    compose_up_sync(env)
+    compose_up(env, sync_node=True)
     return True
 
 
@@ -266,7 +265,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
         distro.version()
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
-    compose_up_sync(env)
+    compose_up(env, sync_node=True)
     return True
 
 

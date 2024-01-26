@@ -115,7 +115,6 @@ You should specify the following environment variables:
 -   `DISK_MOUNTPOINT` - disk mount point for storing sChains data
 -   `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
 -   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
--   `IMA_ENDPOINT` - IMA endpoint to connect
 -   `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
 -   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
 -   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses

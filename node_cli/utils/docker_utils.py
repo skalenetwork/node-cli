@@ -233,6 +233,11 @@ def get_compose_path(sync_node: bool) -> str:
 
 
 def compose_up(env, sync_node=False):
+    if sync_node:
+        logger.info('Running containers for sync node')
+        run_cmd(cmd=get_up_compose_sync_cmd(), env=env)
+        return
+
     logger.info('Running base set of containers')
 
     if 'SGX_CERTIFICATES_DIR_NAME' not in env:
@@ -245,11 +250,6 @@ def compose_up(env, sync_node=False):
     if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
         logger.info('Running containers for Telegram notifications')
         run_cmd(cmd=get_up_compose_cmd(NOTIFICATION_COMPOSE_SERVICES), env=env)
-
-
-def compose_up_sync(env) -> None:
-    logger.info('Running containers for sync node')
-    run_cmd(cmd=get_up_compose_sync_cmd(), env=env)
 
 
 def restart_nginx_container(dutils=None):

@@ -32,7 +32,6 @@ G_CONF_USER = GLOBAL_CONFIG['user']
 G_CONF_HOME = os.getenv('TEST_HOME_DIR') or GLOBAL_CONFIG['home_dir']
 
 SKALE_STATE_DIR = '/var/lib/skale'
-SCHAIN_STATE_DIR = os.path.join('/var/lib/skale', 'schains')
 FILESTORAGE_MAPPING = os.path.join(SKALE_STATE_DIR, 'filestorage')
 SNAPSHOTS_SHARED_VOLUME = 'shared-space'
 SCHAINS_MNT_DIR_REGULAR = '/mnt'

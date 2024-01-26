@@ -30,7 +30,7 @@ from node_cli.configs import (
     DOCKER_LVMPY_REPO_URL,
     FILESTORAGE_MAPPING,
     SCHAINS_MNT_DIR_REGULAR,
-    SCHAIN_STATE_DIR,
+    SCHAINS_MNT_DIR_SYNC,
     SKALE_STATE_DIR
 )
 
@@ -147,7 +147,7 @@ def prepare_block_device(block_device, force=False):
     else:
         logger.info('%s contains %s filesystem', block_device, filesystem)
         format_as_btrfs(block_device)
-    mount_device(block_device, SCHAIN_STATE_DIR)
+    mount_device(block_device, SCHAINS_MNT_DIR_SYNC)
 
 
 def max_resize_btrfs(path):

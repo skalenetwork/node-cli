@@ -10,7 +10,6 @@ CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
 ALLOWED_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
 
 REQUIRED_PARAMS = {
-    'IMA_ENDPOINT': '',
     'CONTAINER_CONFIGS_STREAM': '',
     'ENDPOINT': '',
     'MANAGER_CONTRACTS_ABI_URL': '',

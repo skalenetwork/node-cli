@@ -19,13 +19,6 @@
 
 import json
 
-from node_cli.utils.print_formatters import print_wallet_info, TEXTS
-from node_cli.utils.helper import error_exit, get_request, post_request, logger
-from node_cli.utils.exit_codes import CLIExitCodes
-
-
-BLUEPRINT_NAME = 'wallet'
-
 
 def get_wallet_info(_format):
     status, payload = get_request(BLUEPRINT_NAME, 'info')

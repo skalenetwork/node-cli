@@ -206,10 +206,6 @@ def clean_node_options():
         pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
 
 
-def clean_node_data():
-    pass
-
-
 @pytest.fixture
 def resource_alloc():
     with open(RESOURCE_ALLOCATION_FILEPATH, 'w') as alloc_file:
