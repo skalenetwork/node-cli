@@ -41,7 +41,6 @@ OPTIONAL_PARAMS = {
     'DISABLE_DRY_RUN': '',
     'DEFAULT_GAS_LIMIT': '',
     'DEFAULT_GAS_PRICE_WEI': '',
-    'DISABLE_IMA': '',
     'SKIP_DOCKER_CONFIG': '',
     'ENFORCE_BTRFS': '',
     'SKIP_DOCKER_CLEANUP': ''
