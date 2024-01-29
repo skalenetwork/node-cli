@@ -254,6 +254,8 @@ def get_node_env(
         env['BACKUP_RUN'] = 'True'
     if pull_config_for_schain:
         env['PULL_CONFIG_FOR_SCHAIN'] = pull_config_for_schain
+    if sync_node:
+        env['DISABLE_IMA'] = 'True'
     return {k: v for k, v in env.items() if v != ''}
 
 
