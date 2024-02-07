@@ -17,7 +17,6 @@ REQUIRED_PARAMS = {
     'FILEBEAT_HOST': '',
     'DISK_MOUNTPOINT': '',
     'SGX_SERVER_URL': '',
-    'CONTAINER_CONFIGS_DIR': '',
     'DOCKER_LVMPY_STREAM': '',
     'ENV_TYPE': '',
 }
