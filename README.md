@@ -1,6 +1,7 @@
-# SKALE node CLI
+# Node CLI
 
-[![Build Status](https://travis-ci.com/skalenetwork/skale-node-cli.svg?token=tLesVRTSHvWZxoyqXdoA&branch=develop)](https://travis-ci.com/skalenetwork/skale-node-cli)
+![Build and publish](https://github.com/skalenetwork/node-cli/workflows/Build%20and%20publish/badge.svg)
+![Test](https://github.com/skalenetwork/node-cli/workflows/Test/badge.svg)
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
 SKALE Node CLI, part of the SKALE suite of validator tools, is the command line to setup, register and maintain your SKALE node.
@@ -10,39 +11,47 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 1.  [Installation](#installation)
 2.  [CLI usage](#cli-usage)  
     2.1 [Top level commands](#top-level-commands)  
-    2.2 [User](#user-commands)  
-    2.3 [Node](#node-commands)  
-    2.4 [Wallet](#wallet-commands)  
-    2.5 [sChains](#schain-commands)  
-    2.6 [Containers](#containers-commands)  
-    2.7 [SGX](#sgx-commands)  
-    2.8 [SSL](#ssl-commands)  
-    2.9 [Logs](#logs-commands)  
-3.  [Development](#development)
+    2.2 [Node](#node-commands)  
+    2.3 [Wallet](#wallet-commands)  
+    2.4 [sChains](#schain-commands)  
+    2.5 [Health](#health-commands)  
+    2.6 [SSL](#ssl-commands)  
+    2.7 [Logs](#logs-commands)  
+    2.8 [Resources allocation](#resources-allocation-commands)  
+    2.9 [Validate](#validate-commands)  
+3.  [Sync CLI usage](#sync-cli-usage)  
+    3.1 [Top level commands](#top-level-commands-sync)  
+    3.2 [Sync node commands](#sync-node-commands)  
+4.  [Exit codes](#exit-codes)
+5.  [Development](#development)
 
 ## Installation
 
--   Download executable
+-   Prerequisites
 
-```bash
-VERSION_NUM=0.0.0 && curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` > /usr/local/bin/skale
+Ensure that the following package is installed: **docker**, **docker-compose** (1.27.4+)
+
+-   Download the executable
+
+```shell
+VERSION_NUM={put the version number here} && sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
 ```
 
-With `sudo`:
+For Sync node version:
 
-```bash
-VERSION_NUM=0.0.0 && sudo -E bash -c "curl -L https://skale-cli.sfo2.cdn.digitaloceanspaces.com/skale-$VERSION_NUM-`uname -s`-`uname -m` >  /usr/local/bin/skale"
+```shell
+VERSION_NUM={put the version number here} && sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m`-sync >  /usr/local/bin/skale"
 ```
 
--   Apply executable permissions to the binary:
+-   Apply executable permissions to the downloaded binary:
 
-```bash
+```shell
 chmod +x /usr/local/bin/skale
 ```
 
 -   Test the installation
 
-```bash
+```shell
 skale --help
 ```
 
@@ -54,15 +63,15 @@ skale --help
 
 Print build info
 
-```bash
+```shell
 skale info
 ```
 
 #### Version
 
-Print version of the `skale-node-cli` tool
+Print version number
 
-```bash
+```shell
 skale version
 ```
 
@@ -70,63 +79,15 @@ Options:
 
 -   `--short` - prints version only, without additional text.
 
-
 ### Node commands
 
 > Prefix: `skale node`
 
-#### node init
-
-Init SKALE node on current machine
-
-```bash
-skale node init
-```
-
-Required arguments:
-
--   `--install-deps` - install docker and other dependencies
--   `--dry-run` - only creates needed files and directories and don't create and containers
--   `--env-file` - path to env file where required parameters listed above are defined
-
-You should also specify the following parameters through environment variables in env-file:
-
--   `SGX_SERVER_URL` - sgx server url
--   `DISK_MOUNTPOINT` - mount point of the disk to be used for storing sChains data
--   `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
--   `DB_PASSWORD` - MySQL password for local node database
--   `DISK_MOUNTPOINT` - Mount point of the disk to be used for storing sChains data
--   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
--   `IMA_ENDPOINT` - IMA endpoint to connect
--   `ENDPOINT` - RPC endpoint of the node in the network where SKALE manager is deployed
--   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses  
--   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses  
--   `FILEBEAT_URL` - URL to the Filebeat log server
--   `DB_USER`'  - MySQL user for local node database
--   `DB_PASSWORD` - Password for root user of node internal database
-      (equal to user password by default)
--   `DB_PORT` - Port for of node internal database (default is `3306`)
-
-#### Node Register
-
-```bash
-skale node register
-```
-
-Required arguments:
-
--   `--ip` - public IP for RPC connections & consensus
-
-Optional arguments:
-
--   `--name` - SKALE node name
--   `--port` - public port - beginning of the port range for node sChains (default: `10000`)
-
-#### Node info
+#### Node information
 
 Get base info about SKALE node
 
-```bash
+```shell
 skale node info
 ```
 
@@ -134,22 +95,163 @@ Options:
 
 `-f/--format json/text` - optional
 
+#### Node initialization
+
+Initialize a SKALE node on current machine
+
+> :warning: **Please avoid re-initialization**: First run `skale node info` to confirm current state of intialization.
+
+```shell
+skale node init [ENV_FILE]
+```
+
+Arguments:
+
+- `ENV_FILE` - path to .env file (required parameters are listed in the `skale node init` command)
+
+You should specify the following environment variables:
+
+-   `SGX_SERVER_URL` - SGX server URL
+-   `DISK_MOUNTPOINT` - disk mount point for storing sChains data
+-   `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
+-   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
+-   `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
+-   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
+-   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
+-   `FILEBEAT_URL` - URL to the Filebeat log server
+-   `ENV_TYPE` - environement type (mainnet, testnet, etc)
+
+
+Optional variables:
+
+-   `TG_API_KEY` - Telegram API key
+-   `TG_CHAT_ID` - Telegram chat ID
+-   `MONITORING_CONTAINERS` - will enable monitoring containers (`filebeat`, `cadvisor`, `prometheus`)
+
+#### Node initialization from backup
+
+Restore SKALE node on another machine
+
+```shell
+skale node restore [BACKUP_PATH] [ENV_FILE]
+```
+
+Arguments:
+
+- `BACKUP_PATH` - path to the archive with backup data generated by `skale node backup` command
+- `ENV_FILE` - path to .env file (required parameters are listed in the `skale node init` command)
+
+#### Node backup
+
+Generate backup file to restore SKALE node on another machine
+
+```shell
+skale node backup [BACKUP_FOLDER_PATH] [ENV_FILE]
+```
+
+Arguments:
+
+- `BACKUP_FOLDER_PATH` - path to the folder where the backup file will be saved
+
+
+#### Node Registration
+
+```shell
+skale node register
+```
+
+Required arguments:
+
+-   `--ip` - public IP for RPC connections and consensus
+-   `--domain`/`-d` - SKALE node domain name
+-   `--name` - SKALE node name
+
+Optional arguments:
+
+-   `--port` - public port - beginning of the port range for node SKALE Chains (default: `10000`)
+
 #### Node update
 
 Update SKALE node on current machine
 
-```bash
-skale node update
+```shell
+skale node update [ENV_FILEPATH]
 ```
 
 Options:
 
--   `--yes` - remove without additional confirmation
+-   `--yes` - update without additional confirmation
 
-You can also specify file with environment variables 
-which will update parameters in env file used during skale node init 
+Arguments:
 
--   `--env-file` - path to env file where parameters are defined
+- `ENV_FILEPATH` - path to env file where parameters are defined
+
+You can also specify a file with environment variables
+which will update parameters in env file used during skale node init.
+
+#### Node turn-off
+
+Turn-off SKALE node on current machine and optionally set it to the maintenance mode
+
+```shell
+skale node turn-off
+```
+
+Options:
+
+-   `--maintenance-on` - set SKALE node into maintenance mode before turning off
+-   `--yes` - turn off without additional confirmation
+
+#### Node turn-on
+
+Turn on SKALE node on current machine and optionally disable maintenance mode
+
+```shell
+skale node turn-on [ENV_FILEPATH]
+```
+
+Options:
+
+-   `--maintenance-off` - turn off maintenance mode after turning on the node
+-   `--yes` - turn on without additional confirmation
+
+Arguments:
+
+- `ENV_FILEPATH` - path to env file where parameters are defined
+
+You can also specify a file with environment variables
+which will update parameters in env file used during skale node init.
+
+#### Node maintenance
+
+Set SKALE node into maintenance mode
+
+```shell
+skale node maintenance-on
+```
+
+Options:
+
+-   `--yes` - set without additional confirmation
+
+Switch off maintenance mode
+
+```shell
+skale node maintenance-off
+```
+
+#### Domain name
+
+Set SKALE node domain name
+
+```shell
+skale node set-domain
+```
+
+Options:
+
+- `--domain`/`-d` - SKALE node domain name
+-   `--yes` - set without additional confirmation
 
 ### Wallet commands
 
@@ -157,9 +259,9 @@ which will update parameters in env file used during skale node init
 
 Commands related to Ethereum wallet associated with SKALE node
 
-#### Wallet info
+#### Wallet information
 
-```bash
+```shell
 skale wallet info
 ```
 
@@ -167,80 +269,111 @@ Options:
 
 `-f/--format json/text` - optional
 
-#### Wallet set
+#### Wallet setting
 
 Set local wallet for the SKALE node
 
-```bash
+```shell
 skale wallet set --private-key $ETH_PRIVATE_KEY
 ```
+
+#### Send ETH tokens
+
+Send ETH tokens from SKALE node wallet to specific address
+
+```shell
+skale wallet send [ADDRESS] [AMOUNT]
+```
+
+Arguments:
+
+-   `ADDRESS` - Ethereum receiver address
+-   `AMOUNT` - Amount of ETH tokens to send
+
+Optional arguments:
+
+`--yes` - Send without additional confirmation
 
 ### sChain commands
 
 > Prefix: `skale schains`
 
-#### sChains list
+#### SKALE Chain list
 
-List of sChains served by connected node
+List of SKALE Chains served by connected node
 
-```bash
+```shell
 skale schains ls
 ```
 
-#### schains config
+#### SKALE Chain configuration
 
-```bash
+```shell
 skale schains config SCHAIN_NAME
 ```
 
-#### sChains DKG statuses
+#### SKALE Chain DKG status
 
-DKG statuses for each sChain on the node
+List DKG status for each SKALE Chain on the node
 
-```bash
+```shell
 skale schains dkg
 ```
 
-### Container commands
+#### SKALE Chain info
 
-Node container commands
+Show information about SKALE Chain on node
 
-> Prefix: `skale containers`
+```shell
+skale schains info SCHAIN_NAME
+```
+
+Options:
+
+-   `--json` - Show info in JSON format
+
+#### SKALE Chain repair
+
+Turn on repair mode for SKALE Chain
+
+```shell
+skale schains repair SCHAIN_NAME
+```
+
+### Health commands
+
+> Prefix: `skale health`
 
 #### SKALE containers
 
-List of SKALE containers running on connected node
+List all SKALE containers running on the connected node
 
-```bash
-skale containers ls
+```shell
+skale health containers
 ```
 
 Options:
 
--   `-a/--all` - list all containers (by default - only running) 
+-   `-a/--all` - list all containers (by default - only running)
 
-#### sChain containers
+#### sChains healthchecks
 
-List of sChain containers running on connected node
+Show health check results for all SKALE Chains on the node
 
-```bash
-skale containers schains
+```shell
+skale health schains
 ```
 
 Options:
 
--   `-a/--all` - list all sChain containers (by default - only running)
+-   `--json` - Show data in JSON format
 
-### SGX commands
+#### SGX
 
-> Prefix: `skale sgx`
+Status of the SGX server. Returns the SGX server URL and connection status.
 
-#### Status
-
-Status of the SGX server. Returns SGX server URL and connection status.
-
-```bash
-$ skale sgx status
+```shell
+$ skale health sgx
 
 SGX server status:
 ┌────────────────┬────────────────────────────┐
@@ -250,8 +383,6 @@ SGX server status:
 └────────────────┴────────────────────────────┘
 ```
 
-Admin API URL: \[GET] `/api/ssl/sgx`
-
 ### SSL commands
 
 > Prefix: `skale ssl`
@@ -260,17 +391,17 @@ Admin API URL: \[GET] `/api/ssl/sgx`
 
 Status of the SSL certificates on the node
 
-```bash
+```shell
 skale ssl status
 ```
 
 Admin API URL: \[GET] `/api/ssl/status`
 
-#### Upload
+#### Upload certificates
 
 Upload new SSL certificates
 
-```bash
+```shell
 skale ssl upload
 ```
 
@@ -282,6 +413,23 @@ skale ssl upload
 
 Admin API URL: \[GET] `/api/ssl/upload`
 
+
+#### Check ssl certificate
+
+Check ssl certificate be connecting to healthcheck ssl server
+
+```shell
+skale ssl check
+```
+
+##### Options
+
+-   `-c/--cert-path` - Path to the certificate file (default: uploaded using `skale ssl upload` certificate)
+-   `-k/--key-path` - Path to the key file (default: uploaded using `skale ssl upload` key)
+-   `--type/-t` - Check type (`openssl` - openssl cli check, `skaled` - skaled-based check, `all` - both)
+-   `--port/-p` - Port to start healthcheck server (defualt: `4536`)
+-   `--no-client` - Skip client connection (only make sure server started without errors)
+
 ### Logs commands
 
 > Prefix: `skale logs`
@@ -290,7 +438,7 @@ Admin API URL: \[GET] `/api/ssl/upload`
 
 Fetch node CLI logs:
 
-```bash
+```shell
 skale logs cli
 ```
 
@@ -302,7 +450,7 @@ Options:
 
 Dump all logs from the connected node:
 
-```bash
+```shell
 skale logs dump [PATH]
 ```
 
@@ -310,13 +458,151 @@ Optional arguments:
 
 -   `--container`, `-c` - Dump logs only from specified container
 
+
+### Resources allocation commands
+
+> Prefix: `skale resources-allocation`
+
+#### Show allocation file
+
+Show resources allocation file:
+
+```shell
+skale resources-allocation show
+```
+#### Generate/update
+
+Generate/update allocation file:
+
+```shell
+skale resources-allocation generate [ENV_FILE]
+```
+
+Arguments:
+
+- `ENV_FILE` - path to .env file (required parameters are listed in the `skale node init` command)
+
+Options:
+
+-   `--yes` - generate without additional confirmation
+-   `-f/--force` - rewrite allocation file if it exists
+
+### Validate commands
+
+> Prefix: `skale validate`
+
+#### Validate abi
+
+Check whether ABI files contain valid JSON data
+
+```shell
+skale validate abi
+```
+
+Options:
+
+-   `--json` - show validation result in json format 
+
+
+## Sync CLI usage
+
+### Top level commands sync
+
+#### Info
+
+Print build info
+
+```shell
+skale info
+```
+
+#### Version
+
+Print version number
+
+```shell
+skale version
+```
+
+Options:
+
+-   `--short` - prints version only, without additional text.
+
+### Sync node commands
+
+> Prefix: `skale sync-node`
+
+#### Sync node initialization
+
+Initialize full sync SKALE node on current machine
+
+```shell
+skale sync-node init [ENV_FILE]
+```
+
+Arguments:
+
+- `ENV_FILE` - path to .env file (required parameters are listed in the `skale sync-node init` command)
+
+You should specify the following environment variables:
+
+-   `DISK_MOUNTPOINT` - disk mount point for storing sChains data
+-   `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
+-   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
+-   `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
+-   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
+-   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
+-   `SCHAIN_NAME` - name of the SKALE chain to sync
+-   `ENV_TYPE` - environement type (mainnet, testnet, etc)
+  
+
+Options:
+
+-   `--archive` - Run sync node in an archive node (disable block rotation)
+-   `--historic-state` - Enable historic state (works only in pair with --archive flag)
+-   `--catchup` - Add a flag to start sync node in catchup mode
+
+#### Sync node update
+
+Update full sync SKALE node on current machine
+
+```shell
+skale sync-node update [ENV_FILEPATH]
+```
+
+Options:
+
+- `--yes` - update without additional confirmation
+
+Arguments:
+
+- `ENV_FILEPATH` - path to env file where parameters are defined
+
+> NOTE: You can just update a file with environment variables used during `skale sync-node init`.
+
+## Exit codes
+
+Exit codes conventions for SKALE CLI tools
+
+- `0` - Everything is OK
+- `1` - General error exit code
+- `3` - Bad API response**
+- `4` - Script execution error**
+- `5` - Transaction error*
+- `6` - Revert error*
+- `7` - Bad user error**
+- `8` - Node state error**
+
+`*` - `validator-cli` only  
+`**` - `node-cli` only
+
 ## Development
 
 ### Setup repo
 
 #### Install development dependencies
 
-```bash
+```shell
 pip install -e .[dev]
 ```
 
@@ -324,7 +610,7 @@ pip install -e .[dev]
 
 In file `.git/hooks/pre-commit` add:
 
-```bash
+```shell
 #!/bin/sh
 flake8 .
 ```
@@ -333,7 +619,7 @@ flake8 .
 
 Run commands in dev mode:
 
-```bash
+```shell
 ENV=dev python main.py YOUR_COMMAND
 ```
 
@@ -354,6 +640,6 @@ Required environment variables:
 
 ## License
 
-[![License](https://img.shields.io/github/license/skalenetwork/skale-node-cli.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/skalenetwork/node-cli.svg)](LICENSE)
 
 Copyright (C) 2018-present SKALE Labs

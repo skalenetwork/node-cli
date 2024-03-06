@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -22,13 +22,15 @@ import requests
 
 from mock import MagicMock, Mock
 
-from cli.wallet import wallet_info
-from tests.helper import run_command_mock
+from node_cli.configs import G_CONF_HOME
+from node_cli.cli.wallet import wallet_info, send
+from tests.helper import run_command_mock, response_mock
 
 
-def test_wallet_info(config):
+def test_wallet_info():
     response_data = {
-        'data': {
+        'status': 'ok',
+        'payload': {
             'address': 'simple_address',
             'eth_balance': 13,
             'skale_balance': 123
@@ -37,7 +39,7 @@ def test_wallet_info(config):
     response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
     response_mock.json = Mock(return_value=response_data)
-    result = run_command_mock('core.wallet.get_request',
+    result = run_command_mock('node_cli.utils.helper.requests.get',
                               response_mock,
                               wallet_info)
     assert result.exit_code == 0
@@ -50,7 +52,7 @@ def test_wallet_info(config):
     )
     assert result.output == expected
 
-    result = run_command_mock('core.wallet.get_request',
+    result = run_command_mock('node_cli.utils.helper.requests.get',
                               response_mock,
                               wallet_info,
                               ['--format', 'json'])
@@ -60,3 +62,31 @@ def test_wallet_info(config):
         "\"eth_balance\": 13, \"skale_balance\": 123}\n"
     )
     assert result.output == expected
+
+
+def test_wallet_send():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'ok', 'payload': None}
+    )
+    result = run_command_mock(
+        'node_cli.utils.helper.requests.post',
+        resp_mock,
+        send,
+        ['0x00000000000000000000000000000000', '10', '--yes'])
+    assert result.exit_code == 0
+    assert result.output == 'Funds were successfully transferred\n'  # noqa
+
+
+def test_wallet_send_with_error():
+    resp_mock = response_mock(
+        requests.codes.ok,
+        {'status': 'error', 'payload': ['Strange error']},
+    )
+    result = run_command_mock(
+        'node_cli.utils.helper.requests.post',
+        resp_mock,
+        send,
+        ['0x00000000000000000000000000000000', '10', '--yes'])
+    assert result.exit_code == 3
+    assert result.output == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa

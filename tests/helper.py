@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -18,14 +18,43 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import mock
+import os
+
 from click.testing import CliRunner
 from mock import Mock, MagicMock
 
+BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
 
-def response_mock(status_code=0, json_data=None,
-                  headers=None, raw=None):
+TEST_META_V1 = {
+    'version': '0.1.1',
+    'config_stream': 'develop'
+}
+
+TEST_META_V2 = {
+    'version': '0.1.1',
+    'config_stream': 'develop',
+    'docker_lvmpy_stream': '1.1.2'
+
+}
+
+TEST_META_V3 = {
+    'version': '0.1.1',
+    'config_stream': 'develop',
+    'docker_lvmpy_stream': '1.1.2',
+    'os_id': 'ubuntu',
+    'os_version': '18.04'
+}
+
+
+def response_mock(
+    status_code=0,
+    json_data=None,
+    headers=None,
+    raw=None
+):
     result = MagicMock()
     result.status_code = status_code
+
     result.json = MagicMock(return_value=json_data)
     result.headers = headers
     result.raw = raw
@@ -47,3 +76,11 @@ def run_command_mock(mock_call_path, response_mock,
     with mock.patch(mock_call_path,
                     new=request_mock(response_mock)):
         return run_command(command, params, input=input)
+
+
+def subprocess_run_mock(*args, returncode=0, **kwargs):
+    result = MagicMock()
+    result.returncode = returncode
+    result.stdout = MagicMock()
+    result.stderr = MagicMock()
+    return result

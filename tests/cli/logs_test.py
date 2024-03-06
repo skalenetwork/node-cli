@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -17,31 +17,17 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import freezegun
 
-import os
+from node_cli.cli.logs import dump
+from node_cli.configs import G_CONF_HOME
 
-import mock
-import requests
-
-from io import BytesIO
-from tests.helper import response_mock, run_command
-from cli.logs import dump
+from tests.helper import run_command
+from tests.core.core_logs_test import backup_func, CURRENT_DATETIME, TEST_ARCHIVE_PATH # noqa
 
 
-def test_dump(config):
-    archive_filename = 'skale-logs-dump-2019-10-08-17:40:00.tar.gz'
-    resp_mock = response_mock(
-        requests.codes.ok,
-        headers={
-            'Content-Disposition': f'attachment; filename="{archive_filename}"'
-        },
-        raw=BytesIO()
-    )
-    with mock.patch('requests.get') as req_get_mock:
-        req_get_mock.return_value.__enter__.return_value = resp_mock
-        result = run_command(dump, ['.'])
-        assert result.exit_code == 0
-        assert result.output == f'File {archive_filename} downloaded\n'
-
-    if os.path.exists(archive_filename):
-        os.remove(archive_filename)
+@freezegun.freeze_time(CURRENT_DATETIME)
+def test_dump(backup_func, removed_containers_folder): # noqa
+    result = run_command(dump, [G_CONF_HOME])
+    assert result.exit_code == 0
+    assert result.output == f'Logs dump created: {TEST_ARCHIVE_PATH}\n'

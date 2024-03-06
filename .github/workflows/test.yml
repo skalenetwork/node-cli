@@ -1,0 +1,73 @@
+name: Test
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: [3.11]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Checkout submodules
+      run: git submodule update --init
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install ubuntu dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install python-setuptools iptables
+
+    - name: Install python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install -e .[dev]
+        pip install --upgrade 'setuptools<45.0.0'
+
+    - name: Lint with flake8
+      run: |
+        flake8 .
+
+    - name: Build binary in Ubuntu 18.04 environment - normal
+      run: |
+        mkdir -p ./dist
+        docker build . -t node-cli-builder
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test normal
+        docker rm -f $(docker ps -aq)
+
+    - name: Check build - normal
+      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
+
+    - name: Build binary in Ubuntu 20.04 environment - normal
+      run: |
+        scripts/build.sh test test normal
+
+    - name: Check build - sync
+      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
+    - name: Build sync binary in Ubuntu 18.04 environment
+      run: |
+        mkdir -p ./dist
+        docker build . -t node-cli-builder
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test sync
+        docker rm -f $(docker ps -aq)
+
+    - name: Check build - sync
+      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-sync
+
+    - name: Build sync binary in Ubuntu 20.04 environment
+      run: |
+        scripts/build.sh test test sync
+
+    - name: Check build - sync
+      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-sync
+
+    - name: Run tests
+      run: bash ./scripts/run_tests.sh

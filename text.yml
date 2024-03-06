@@ -1,18 +1,42 @@
-login: "Login user in a SKALE node"
+health:
+  help: Node health commands
+  containers:
+    help: List of SKALE containers running on connected node
+  schains_checks:
+    help: List of health checks for sChains served by the node
+  sgx:
+    help: Info about connected SGX server
+
+common:
+  json: Show data in JSON format
+
 node:
   base: "SKALE node commands"
   info: "Info about SKALE node"
   registered: |-
     Node registered in SKALE manager.
     For more info run < skale node info >
-setHost: "Set SKALE node endpoint"
+  status:
+    ACTIVE: Active
+    LEAVING: Leaving
+    FROZEN: Frozen
+    LEFT: Left
+    IN_MAINTENANCE: In Maintenance
+  maintenance_on: Node is successfully set in maintenance mode
+  maintenance_off: Node is successfully removed from maintenance mode
+  not_inited: |-
+    Node hasn't been inited before.
+    You should run < skale node init >
+  already_inited: Node was already inited before.
+  cmd_failed: |-
+    Command failed. Please, check out < skale logs cli >
+    and logs from docker containers for more information
+  domain_name_changed: Domain name successfully changed
+wallet:
+  successful_transfer: "Funds were successfully transferred"
 
 service:
-  unauthorized: 'You should login first: skale user login'
-  no_node_host: 'You should set host first: skale attach [HOST]'
-  node_host_not_valid: Provided SKALE node host is not valid
   node_not_registered: This SKALE node is not registered on SKALE Manager yet
-  empty_response: Your request returned nothing. Something went wrong.
 
 ssl:
   no_cert: |-
@@ -21,26 +45,33 @@ ssl:
   uploaded: |-
     Certificates are successfully uploaded.
     You can check status by running < skale ssl status >
+  check_passed: |-
+    Check passed
 
 exit:
-  start: "Node exit process is started"
+  start: |
+    Node exit process is started. Please, wait until exiting process will be completed
+    To check current state of exiting process try:
+
+      skale exit status
   status:
     active: "Exiting is not started. Node is active"
     in_progress: "Node exiting is in progress"
     wait_for_rotations: "Node is waiting to finish rotations"
     completed: "Node exiting is completed"
 
-metrics:
-  help: Show node bounties and metrics for a given period
-  limit:
-    help: Number of records to show
-  since:
-    help: Show requested data since timestamp (e.g. 2020-01-20), incl. given date
-  till:
-    help: Show requested data before timestamp (e.g. 2020-01-21), not incl. given date
-  fast:
-    help: Get metrics and bounty data from local database (faster but less reliable)
-  wei:
-    help: Show bounty in wei
-  warning_msg: --till value must be greater than --since
-  wait_msg: Please wait - collecting metrics data from blockchain...
+sync_node:
+  init:
+    help: Initialize sync SKALE node
+    archive: Run sync node in an archive node (disable block rotation)
+    historic_state: Enable historic state (works only in pair with --archive flag)
+    catchup: Add a flag to start sync node in catchup mode
+
+lvmpy:
+  help: Lvmpy commands
+  run:
+    help: Run lvmpy http server
+    prompt: Are you sure you want to run lvmpy server?
+  heal:
+    help: Run healing procedure for lvmpy server
+    prompt: Are you sure you want run healing procedure?

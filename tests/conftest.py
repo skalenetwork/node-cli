@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of SKALE.py
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -18,17 +18,287 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """ SKALE config test """
 
+import json
+import os
+import pathlib
+import shutil
 
+import docker
+import mock
 import pytest
+import yaml
 
-from readsettings import ReadSettings
-from configs import CONFIG_FILEPATH
+from node_cli.configs import (
+  CONTAINER_CONFIG_TMP_PATH,
+  GLOBAL_SKALE_CONF_FILEPATH,
+  GLOBAL_SKALE_DIR,
+  META_FILEPATH,
+  NGINX_CONTAINER_NAME,
+  REMOVED_CONTAINERS_FOLDER_PATH,
+  STATIC_PARAMS_FILEPATH
+)
+from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
+from node_cli.configs.ssl import SSL_FOLDER_PATH
+from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.utils.docker_utils import docker_client
+from node_cli.utils.global_config import generate_g_config_file
+
+from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3
+
+
+TEST_ENV_PARAMS = """
+mainnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 2000000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+testnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+testnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+qanet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 200000000000
+
+  packages:
+    docker: 1.1.3
+    docker-compose: 1.1.3
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+
+devnet:
+  server:
+    cpu_total: 4
+    cpu_physical: 4
+    memory: 32
+    swap: 16
+    disk: 80000000000
+
+  packages:
+    iptables-persistant: 1.1.3
+    lvm2: 1.1.1
+    docker-compose: 1.1.3
+
+  docker:
+    docker-api: 1.1.3
+    docker-engine: 1.1.3
+"""
 
 
 @pytest.fixture
-def config(monkeypatch):
-    cli_config = ReadSettings(CONFIG_FILEPATH)
-    cli_config['host'] = 'https://test.com'
-    cli_config.save()
-    yield
-    cli_config.clear()
+def net_params_file():
+    with open(STATIC_PARAMS_FILEPATH, 'w') as f:
+        yaml.dump(
+            yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader),
+            stream=f,
+            Dumper=yaml.Dumper
+        )
+    yield STATIC_PARAMS_FILEPATH
+    os.remove(STATIC_PARAMS_FILEPATH)
+
+
+@pytest.fixture()
+def tmp_dir_path():
+    plain_path = 'tests/tmp/'
+    path = pathlib.Path(plain_path)
+    path.mkdir(parents=True)
+    try:
+        yield plain_path
+    finally:
+        shutil.rmtree(path)
+
+
+@pytest.fixture()
+def removed_containers_folder():
+    path = pathlib.Path(REMOVED_CONTAINERS_FOLDER_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    try:
+        yield REMOVED_CONTAINERS_FOLDER_PATH
+    finally:
+        shutil.rmtree(path)
+
+
+@pytest.fixture()
+def dclient():
+    return docker.from_env()
+
+
+@pytest.fixture()
+def simple_image(dclient):
+    name = 'simple-image'
+    try:
+        dclient.images.build(
+            tag=name,
+            rm=True,
+            nocache=True,
+            path='tests/simple_container'
+        )
+        yield name
+    finally:
+        try:
+            dclient.images.get(name)
+        except docker.errors.ImageNotFound:
+            return
+        dclient.images.remove(name, force=True)
+
+
+@pytest.fixture()
+def docker_hc(dclient):
+    dclient = docker.from_env()
+    return dclient.api.create_host_config(
+        log_config=docker.types.LogConfig(
+            type=docker.types.LogConfig.types.JSON
+        )
+    )
+
+
+@pytest.fixture()
+def mocked_g_config():
+    with mock.patch('os.path.expanduser', return_value='tests/'):
+        generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+        yield
+        generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
+
+
+@pytest.fixture()
+def clean_node_options():
+    pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+    try:
+        yield
+    finally:
+        pathlib.Path(NODE_OPTIONS_FILEPATH).unlink(missing_ok=True)
+
+
+@pytest.fixture
+def resource_alloc():
+    with open(RESOURCE_ALLOCATION_FILEPATH, 'w') as alloc_file:
+        json.dump({}, alloc_file)
+    yield RESOURCE_ALLOCATION_FILEPATH
+    os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+@pytest.fixture
+def ssl_folder():
+    if os.path.isdir(SSL_FOLDER_PATH):
+        shutil.rmtree(SSL_FOLDER_PATH)
+    path = pathlib.Path(SSL_FOLDER_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    try:
+        yield
+    finally:
+        shutil.rmtree(SSL_FOLDER_PATH)
+
+
+@pytest.fixture
+def dutils():
+    return docker_client()
+
+
+@pytest.fixture
+def nginx_container(dutils, ssl_folder):
+    c = None
+    try:
+        c = dutils.containers.run(
+            'nginx:1.20.2',
+            name=NGINX_CONTAINER_NAME,
+            detach=True,
+            volumes={
+                ssl_folder: {
+                    'bind': '/ssl',
+                    'mode': 'ro',
+                    'propagation': 'slave'
+                }
+            }
+        )
+        yield c
+    finally:
+        if c is not None:
+            try:
+                c.remove(force=True)
+            except Exception:
+                pass
+
+
+@pytest.fixture
+def meta_file_v1():
+    with open(META_FILEPATH, 'w') as f:
+        json.dump(TEST_META_V1, f)
+    try:
+        yield META_FILEPATH
+    finally:
+        os.remove(META_FILEPATH)
+
+
+@pytest.fixture
+def meta_file_v2():
+    with open(META_FILEPATH, 'w') as f:
+        json.dump(TEST_META_V2, f)
+    try:
+        yield META_FILEPATH
+    finally:
+        os.remove(META_FILEPATH)
+
+
+@pytest.fixture
+def meta_file_v3():
+    with open(META_FILEPATH, 'w') as f:
+        json.dump(TEST_META_V3, f)
+    try:
+        yield META_FILEPATH
+    finally:
+        os.remove(META_FILEPATH)
+
+
+@pytest.fixture
+def ensure_meta_removed():
+    try:
+        yield
+    finally:
+        if os.path.isfile(META_FILEPATH):
+            os.remove(META_FILEPATH)
+
+
+@pytest.fixture
+def tmp_config_dir():
+    os.mkdir(CONTAINER_CONFIG_TMP_PATH)
+    try:
+        yield CONTAINER_CONFIG_TMP_PATH
+    finally:
+        shutil.rmtree(CONTAINER_CONFIG_TMP_PATH)
