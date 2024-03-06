@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of skale-node-cli
+#   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
 #
@@ -18,14 +18,13 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from cli import info
-from main import version
+from node_cli.main import version
 from tests.helper import run_command
 
 
-def test_version(config):
+def test_version():
     result = run_command(version, [])
-    expected = f'SKALE Node CLI version: {info.VERSION}\n'
+    expected = 'SKALE Node CLI version: test\n'
     assert result.output == expected
     result = run_command(version, ['--short'])
-    assert result.output == f'{info.VERSION}\n'
+    assert result.output == 'test\n'

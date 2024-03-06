@@ -109,4 +109,14 @@ venv.bak/
 .DS_Store
 
 # info.py file generated automatically during package build
-cli/info.py
+node_cli/cli/info.py
+
+meta.json
+
+disk_mountpoint.txt
+sgx_server_url.txt
+resource_allocation.json
+conf.json
+test-env
+
+nginx.conf
