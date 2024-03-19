@@ -42,5 +42,29 @@ class NodeOptions:
         config[field_name] = field_value
         write_json(self.filepath, config)
 
+    @property
+    def archive(self) -> bool:
+        return self._get('archive')
+
+    @archive.setter
+    def archive(self, archive: bool) -> None:
+        return self._set('archive', archive)
+
+    @property
+    def catchup(self) -> bool:
+        return self._get('catchup')
+
+    @catchup.setter
+    def catchup(self, catchup: bool) -> None:
+        return self._set('catchup', catchup)
+
+    @property
+    def historic_state(self) -> bool:
+        return self._get('historic_state')
+
+    @historic_state.setter
+    def historic_state(self, historic_state: bool) -> None:
+        return self._set('historic_state', historic_state)
+
     def all(self) -> dict:
         return read_json(self.filepath)

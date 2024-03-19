@@ -68,7 +68,6 @@ def get_resource_allocation_info():
 
 
 def compose_resource_allocation_config(
-    disk_device: str,
     env_type: str,
     params_by_env_type: Dict = None
 ) -> Dict:
@@ -105,7 +104,6 @@ def generate_resource_allocation_config(env_file, force=False) -> None:
     logger.info('Generating resource allocation file ...')
     try:
         update_resource_allocation(
-            env_params['DISK_MOUNTPOINT'],
             env_params['ENV_TYPE']
         )
     except Exception as e:
@@ -118,10 +116,8 @@ def generate_resource_allocation_config(env_file, force=False) -> None:
         )
 
 
-def update_resource_allocation(disk_device: str, env_type: str) -> None:
-    resource_allocation_config = compose_resource_allocation_config(
-        disk_device, env_type
-    )
+def update_resource_allocation(env_type: str) -> None:
+    resource_allocation_config = compose_resource_allocation_config(env_type)
     write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
 
 

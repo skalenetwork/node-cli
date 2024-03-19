@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2021 SKALE Labs
+#   Copyright (C) 2021-Present SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +20,7 @@
 import distro
 import functools
 import logging
-from typing import Dict, Optional
+from typing import Dict
 
 from node_cli.cli.info import VERSION
 from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
@@ -35,7 +35,13 @@ from node_cli.operations.common import (
     backup_old_contracts,
     download_contracts,
     configure_filebeat,
-    configure_flask, unpack_backup_archive
+    configure_flask,
+    unpack_backup_archive
+)
+from node_cli.operations.volume import (
+    cleanup_volume_artifacts,
+    ensure_filestorage_mapping,
+    prepare_block_device
 )
 from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
@@ -109,8 +115,6 @@ def update(env_filepath: str, env: Dict) -> None:
 
     prepare_host(
         env_filepath,
-        env['DISK_MOUNTPOINT'],
-        env['SGX_SERVER_URL'],
         env['ENV_TYPE'],
         allocation=True
     )
@@ -139,7 +143,7 @@ def update(env_filepath: str, env: Dict) -> None:
 
 
 @checked_host
-def init(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> bool:
+def init(env_filepath: str, env: dict) -> bool:
     sync_skale_node()
 
     ensure_btrfs_kernel_module_autoloaded()
@@ -148,9 +152,7 @@ def init(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> b
 
     prepare_host(
         env_filepath,
-        env['DISK_MOUNTPOINT'],
-        env['SGX_SERVER_URL'],
-        env_type=env['ENV_TYPE'],
+        env_type=env['ENV_TYPE']
     )
     link_env_file()
     download_contracts(env)
@@ -163,8 +165,55 @@ def init(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> b
     lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
 
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
+    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+    compose_up(env)
+    return True
+
+
+def init_sync(
+    env_filepath: str,
+    env: dict,
+    archive: bool,
+    catchup: bool,
+    historic_state: bool
+) -> bool:
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+    download_skale_node(
+        env.get('CONTAINER_CONFIGS_STREAM'),
+        env.get('CONTAINER_CONFIGS_DIR')
+    )
+    sync_skale_node()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    prepare_host(
+        env_filepath,
+        env_type=env['ENV_TYPE'],
+    )
+
     node_options = NodeOptions()
-    node_options.snapshot_from = snapshot_from
+    node_options.archive = archive
+    node_options.catchup = catchup
+    node_options.historic_state = historic_state
+
+    ensure_filestorage_mapping()
+    link_env_file()
+    download_contracts(env)
+
+    generate_nginx_config()
+    prepare_block_device(
+        env['DISK_MOUNTPOINT'],
+        force=env['ENFORCE_BTRFS'] == 'True'
+    )
 
     update_meta(
         VERSION,
@@ -173,12 +222,50 @@ def init(env_filepath: str, env: Dict, snapshot_from: Optional[str] = None) -> b
         distro.id(),
         distro.version()
     )
-    update_resource_allocation(
-        disk_device=env['DISK_MOUNTPOINT'],
-        env_type=env['ENV_TYPE']
+    update_resource_allocation(env_type=env['ENV_TYPE'])
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
+    compose_up(env, sync_node=True)
+    return True
+
+
+def update_sync(env_filepath: str, env: Dict) -> bool:
+    compose_rm(env, sync_node=True)
+    remove_dynamic_containers()
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+    download_skale_node(
+        env['CONTAINER_CONFIGS_STREAM'],
+        env.get('CONTAINER_CONFIGS_DIR')
     )
-    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
-    compose_up(env)
+    sync_skale_node()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    ensure_filestorage_mapping()
+    backup_old_contracts()
+    download_contracts(env)
+
+    prepare_block_device(
+        env['DISK_MOUNTPOINT'],
+        force=env['ENFORCE_BTRFS'] == 'True'
+    )
+    generate_nginx_config()
+
+    prepare_host(
+        env_filepath,
+        env['ENV_TYPE'],
+        allocation=True
+    )
+
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
+    )
+    update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
+    compose_up(env, sync_node=True)
     return True
 
 
@@ -222,10 +309,7 @@ def restore(env, backup_path, config_only=False):
         distro.id(),
         distro.version()
     )
-    update_resource_allocation(
-        disk_device=env['DISK_MOUNTPOINT'],
-        env_type=env['ENV_TYPE']
-    )
+    update_resource_allocation(env_type=env['ENV_TYPE'])
     if not config_only:
         compose_up(env)
 

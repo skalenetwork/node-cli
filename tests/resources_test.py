@@ -45,11 +45,8 @@ def resource_alloc_config():
 
 
 def test_generate_resource_allocation_config():
-    disk_device = '/dev/test'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
-        resource_allocation_config = compose_resource_allocation_config(
-            disk_device, DEFAULT_ENV_TYPE
-        )
+        resource_allocation_config = compose_resource_allocation_config(DEFAULT_ENV_TYPE)
 
         assert resource_allocation_config['schain']['cpu_shares']['test4'] == 102
         assert resource_allocation_config['schain']['cpu_shares']['test'] == 102
@@ -69,16 +66,16 @@ def test_generate_resource_allocation_config():
         assert resource_allocation_config['schain']['disk']['medium'] == 8879996928
         assert resource_allocation_config['schain']['disk']['large'] == 71039975424
 
-        assert resource_allocation_config['ima']['cpu_shares'] == {'large': 204, 'medium': 25, 'small': 1, 'test': 25, 'test4': 25}  # noqa
+        assert resource_allocation_config['ima']['cpu_shares'] == {
+            'large': 204, 'medium': 25, 'small': 1, 'test': 25, 'test4': 25}
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
         assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
 
 
 def test_update_allocation_config(resource_alloc_config):
-    block_device = '/dev/test'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
-        update_resource_allocation(block_device, DEFAULT_ENV_TYPE)
+        update_resource_allocation(DEFAULT_ENV_TYPE)
         with open(RESOURCE_ALLOCATION_FILEPATH) as jfile:
             assert json.load(jfile) != INITIAL_CONFIG
 
@@ -160,17 +157,12 @@ def test_get_memory_alloc(params_by_env_type):
 
 
 def test_leveldb_limits():
-    disk_device = '/dev/test'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
-        resource_allocation_config = compose_resource_allocation_config(
-            disk_device,
-            DEFAULT_ENV_TYPE
-        )
-
+        resource_allocation_config = compose_resource_allocation_config(DEFAULT_ENV_TYPE)
     assert resource_allocation_config['schain']['leveldb_limits'] == {
-        'large': {'contract_storage': 12787195576, 'db_storage': 8524797050},
-        'medium': {'contract_storage': 1598399446, 'db_storage': 1065599631},
-        'small': {'contract_storage': 99899965, 'db_storage': 66599976},
-        'test': {'contract_storage': 1598399446, 'db_storage': 1065599631},
-        'test4': {'contract_storage': 1598399446, 'db_storage': 1065599631}
+        'large': {'contract_storage': 12787195576, 'db_storage': 4262398525},
+        'medium': {'contract_storage': 1598399446, 'db_storage': 532799815},
+        'small': {'contract_storage': 99899965, 'db_storage': 33299988},
+        'test': {'contract_storage': 1598399446, 'db_storage': 532799815},
+        'test4': {'contract_storage': 1598399446, 'db_storage': 532799815}
     }

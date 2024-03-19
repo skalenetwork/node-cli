@@ -22,12 +22,13 @@ import time
 import logging
 import inspect
 import traceback
+from typing import List
 
 import click
 
 from node_cli.cli import __version__
 from node_cli.cli.health import health_cli
-from node_cli.cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION
+from node_cli.cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION, TYPE
 from node_cli.cli.logs import logs_cli
 from node_cli.cli.lvmpy import lvmpy_cli
 from node_cli.cli.node import node_cli
@@ -37,6 +38,8 @@ from node_cli.cli.ssl import ssl_cli
 from node_cli.cli.exit import exit_cli
 from node_cli.cli.validate import validate_cli
 from node_cli.cli.resources_allocation import resources_allocation_cli
+from node_cli.cli.sync_node import sync_node_cli
+
 from node_cli.utils.helper import safe_load_texts, init_default_logger
 from node_cli.configs import LONG_LINE
 from node_cli.core.host import init_logs_dir
@@ -75,6 +78,26 @@ def info():
         '''))
 
 
+def get_sources_list() -> List[click.MultiCommand]:
+    if TYPE == 'sync':
+        return [cli, sync_node_cli, ssl_cli]
+    else:
+        return [
+            cli,
+            health_cli,
+            schains_cli,
+            logs_cli,
+            resources_allocation_cli,
+            node_cli,
+            sync_node_cli,
+            wallet_cli,
+            ssl_cli,
+            exit_cli,
+            validate_cli,
+            lvmpy_cli
+        ]
+
+
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
@@ -92,21 +115,9 @@ if __name__ == '__main__':
     args = sys.argv
     # todo: hide secret variables (passwords, private keys)
     logger.debug(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
+    sources = get_sources_list()
+    cmd_collection = click.CommandCollection(sources=sources)
 
-    cmd_collection = click.CommandCollection(
-        sources=[
-            cli,
-            health_cli,
-            schains_cli,
-            logs_cli,
-            lvmpy_cli,
-            resources_allocation_cli,
-            node_cli,
-            wallet_cli,
-            ssl_cli,
-            exit_cli,
-            validate_cli
-        ])
     try:
         cmd_collection()
     except Exception as err:
