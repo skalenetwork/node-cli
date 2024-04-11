@@ -34,6 +34,10 @@ REQUIRED_PARAMS_SYNC = {
 
 OPTIONAL_PARAMS = {
     'MONITORING_CONTAINERS': '',
+    'TELEGRAF': '',
+    'INFLUX_TOKEN': '',
+    'INFLUX_ORG': '',
+    'INFLUX_BUCKET': '',
     'TG_API_KEY': '',
     'TG_CHAT_ID': '',
     'CONTAINER_CONFIGS_DIR': '',
