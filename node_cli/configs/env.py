@@ -37,6 +37,7 @@ OPTIONAL_PARAMS = {
     'TELEGRAF': '',
     'INFLUX_TOKEN': '',
     'INFLUX_ORG': '',
+    'INFLUX_URL': '',
     'INFLUX_BUCKET': '',
     'TG_API_KEY': '',
     'TG_CHAT_ID': '',
