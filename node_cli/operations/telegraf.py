@@ -33,8 +33,6 @@ class TelegrafNotConfiguredError(Exception):
 def get_telegraf_options(env) -> dict:
     options = {
         'token': env.get('INFLUX_TOKEN'),
-        'org': env.get('INFLUX_ORG'),
-        'bucket': env.get('INFLUX_BUCKET'),
         'url': env.get('INFLUX_URL')
     }
     missing = list(filter(lambda k: not options[k], options))
