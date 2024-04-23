@@ -45,7 +45,6 @@ from node_cli.operations.volume import (
 )
 from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
-from node_cli.operations.telegraf import generate_telegraf_config, get_telegraf_options
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
 from node_cli.utils.docker_utils import (
@@ -139,9 +138,6 @@ def update(env_filepath: str, env: Dict) -> None:
         distro.version()
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
-    if env.get('TELEGRAF'):
-        options = get_telegraf_options(env)
-        generate_telegraf_config(options)
     compose_up(env)
     return True
 
@@ -178,10 +174,6 @@ def init(env_filepath: str, env: dict) -> bool:
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
-
-    if env.get('TELEGRAF'):
-        options = get_telegraf_options(env)
-        generate_telegraf_config(options)
 
     compose_up(env)
     return True
@@ -234,10 +226,6 @@ def init_sync(
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
 
-    if env.get('TELEGRAF'):
-        options = get_telegraf_options(env)
-        generate_telegraf_config(options)
-
     compose_up(env, sync_node=True)
     return True
 
@@ -279,10 +267,6 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
         distro.version()
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
-
-    if env.get('TELEGRAF'):
-        options = get_telegraf_options(env)
-        generate_telegraf_config(options)
 
     compose_up(env, sync_node=True)
     return True
