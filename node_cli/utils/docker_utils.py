@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 
 SCHAIN_REMOVE_TIMEOUT = 300
 IMA_REMOVE_TIMEOUT = 20
+TELEGRAF_REMOVE_TIMEOUT = 20
 
 MAIN_COMPOSE_CONTAINERS = ('skale-api', 'bounty', 'skale-admin')
 BASE_COMPOSE_SERVICES = (
@@ -53,7 +54,8 @@ BASE_COMPOSE_SERVICES = (
     'watchdog',
     'filebeat'
 )
-MONITORING_COMPOSE_SERVICES = ('node-exporter', 'advisor')
+MONITORING_COMPOSE_SERVICES = ('node-exporter', 'advisor',)
+TELEGRAF_SERVICES = ('telegraf',)
 NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
 
@@ -85,11 +87,13 @@ def get_all_ima_containers(_all=True) -> list:
     return docker_client().containers.list(all=_all, filters={'name': 'skale_ima_*'})
 
 
-def remove_dynamic_containers():
+def remove_dynamic_containers() -> None:
     logger.info('Removing sChains containers')
     rm_all_schain_containers()
     logger.info('Removing IMA containers')
     rm_all_ima_containers()
+    logger.info('Removing telegraf (if exists)')
+    remove_telegraf()
 
 
 def rm_all_schain_containers():
@@ -100,6 +104,11 @@ def rm_all_schain_containers():
 def rm_all_ima_containers():
     ima_containers = get_all_ima_containers()
     remove_containers(ima_containers, timeout=IMA_REMOVE_TIMEOUT)
+
+
+def remove_telegraf() -> None:
+    telegraf = docker_client().containers.list(filters={'name': 'skale_telegraf'})
+    remove_containers(telegraf, timeout=TELEGRAF_REMOVE_TIMEOUT)
 
 
 def remove_containers(containers, timeout):
@@ -162,7 +171,7 @@ def get_logs_backup_filepath(container: Container) -> str:
 def ensure_volume(name: str, size: int, driver='lvmpy', dutils=None):
     dutils = dutils or docker_client()
     if is_volume_exists(name, dutils=dutils):
-        logger.info('Volume %s already exits', name)
+        logger.info('Volume %s already exist', name)
         return
     logger.info('Creating volume %s, size: %d', name, size)
     driver_opts = {'size': str(size)} if driver == 'lvmpy' else None
@@ -244,7 +253,7 @@ def compose_up(env, sync_node=False):
         env['SGX_CERTIFICATES_DIR_NAME'] = SGX_CERTIFICATES_DIR_NAME
 
     run_cmd(cmd=get_up_compose_cmd(BASE_COMPOSE_SERVICES), env=env)
-    if str_to_bool(env.get('MONITORING_CONTAINERS', '')):
+    if str_to_bool(env.get('MONITORING_CONTAINERS', 'False')):
         logger.info('Running monitoring containers')
         run_cmd(cmd=get_up_compose_cmd(MONITORING_COMPOSE_SERVICES), env=env)
     if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:

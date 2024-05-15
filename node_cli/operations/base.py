@@ -174,6 +174,7 @@ def init(env_filepath: str, env: dict) -> bool:
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+
     compose_up(env)
     return True
 
@@ -224,6 +225,7 @@ def init_sync(
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
+
     compose_up(env, sync_node=True)
     return True
 
@@ -265,6 +267,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
         distro.version()
     )
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
+
     compose_up(env, sync_node=True)
     return True
 
@@ -310,6 +313,7 @@ def restore(env, backup_path, config_only=False):
         distro.version()
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
+
     if not config_only:
         compose_up(env)
 

@@ -158,3 +158,6 @@ CHECK_REPORT_PATH = os.path.join(REPORTS_PATH, 'checks.json')
 
 AUTOLOAD_KERNEL_MODULES_PATH = '/etc/modules'
 BTRFS_KERNEL_MODULE = 'btrfs'
+
+TELEGRAF_TEMPLATE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'telegraf.conf.j2')
+TELEGRAF_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'telegraf.conf')
