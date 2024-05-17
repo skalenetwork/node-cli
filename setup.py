@@ -56,7 +56,7 @@ setup(
         "docker==6.0.1",
         "texttable==1.6.7",
         "python-dateutil==2.8.2",
-        "Jinja2==3.1.2",
+        "Jinja2==3.1.4",
         "psutil==5.9.4",
         "python-dotenv==0.21.0",
         "terminaltables==3.1.10",
