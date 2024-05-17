@@ -32,7 +32,7 @@ from node_cli.configs import (
     LVMPY_HEAL_CMD,
     LVMPY_CRON_LOG_PATH,
     LVMPY_CRON_SCHEDULE_MINUTES,
-    SCHAINS_MNT_DIR,
+    SCHAINS_MNT_DIR_REGULAR,
     VOLUME_GROUP
 )
 from lvmpy.src.install import setup as setup_lvmpy
@@ -44,7 +44,7 @@ def update_docker_lvmpy_env(env):
     env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
-    env['MNT_DIR'] = SCHAINS_MNT_DIR
+    env['MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
     env['PATH'] = os.environ.get('PATH', None)
     return env
 

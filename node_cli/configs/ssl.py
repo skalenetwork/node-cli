@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2021 SKALE Labs
+#   Copyright (C) 2022-Present SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -12,17 +12,22 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU Affero General Public License for more details.
+#   GNU General Public License for more details.
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from node_cli.operations.base import (  # noqa
-    update as update_op,
-    init as init_op,
-    init_sync as init_sync_op,
-    update_sync as update_sync_op,
-    turn_off as turn_off_op,
-    turn_on as turn_on_op,
-    restore as restore_op
-)
+import os
+
+from node_cli.configs import NODE_DATA_PATH, DATAFILES_FOLDER
+
+
+DEFAULT_SSL_CHECK_PORT = 4536
+SKALED_SSL_TEST_SCRIPT = os.path.join(DATAFILES_FOLDER, 'skaled-ssl-test')
+
+SSL_FOLDER_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
+SSL_CERT_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_cert')
+SSL_KEY_FILEPATH = os.path.join(SSL_FOLDER_PATH, 'ssl_key')
+
+CERTS_UPLOADED_ERR_MSG = 'SSL Certificates are already uploaded'
+CERTS_INVALID_FORMAT = 'Certificates have invalid format'

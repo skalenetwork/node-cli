@@ -1,15 +1,9 @@
-FROM ubuntu:20.04
+FROM python:3.11-buster
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common
-RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get install -y  \
                        git \
-                       python3.11 \
-                       libpython3.11-dev \
-                       python3.11-venv \
-                       python3.11-distutils \
-                       python3.11-dev \
                        build-essential \
                        zlib1g-dev \
                        libssl-dev \

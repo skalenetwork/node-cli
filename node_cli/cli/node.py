@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2019-Present SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by

@@ -117,3 +117,6 @@ disk_mountpoint.txt
 sgx_server_url.txt
 resource_allocation.json
 conf.json
+test-env
+
+nginx.conf
