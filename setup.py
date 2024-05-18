@@ -52,7 +52,7 @@ setup(
     install_requires=[
         "click==8.1.3",
         "PyInstaller==5.12.0",
-        "distro==1.4.0",
+        "distro==1.9.0",
         "docker==6.0.1",
         "texttable==1.6.7",
         "python-dateutil==2.8.2",
