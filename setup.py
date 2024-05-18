@@ -50,7 +50,7 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
-        "click==8.1.3",
+        "click==8.1.7",
         "PyInstaller==5.12.0",
         "distro==1.4.0",
         "docker==6.0.1",
