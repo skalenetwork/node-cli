@@ -1,6 +1,6 @@
 #   -*- coding: utf-8 -*-
 #
-#   This file is part of SKALE Admin
+#   This file is part of node-cli
 #
 #   Copyright (C) 2020 SKALE Labs
 #

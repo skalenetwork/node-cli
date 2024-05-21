@@ -4,8 +4,9 @@ set -e
 
 VERSION=$1
 BRANCH=$2
+TYPE=$3
 
-USAGE_MSG='Usage: build.sh [VERSION] [BRANCH]'
+USAGE_MSG='Usage: build.sh [VERSION] [BRANCH] [TYPE]'
 
 if [ -z "$1" ]
 then
@@ -17,6 +18,13 @@ fi
 if [ -z "$2" ]
 then
     (>&2 echo 'You should provide git branch')
+    echo $USAGE_MSG
+    exit 1
+fi
+
+if [ -z "$3" ]
+then
+    (>&2 echo 'You should provide type: normal or sync')
     echo $USAGE_MSG
     exit 1
 fi
@@ -37,8 +45,13 @@ echo "COMMIT = '$LATEST_COMMIT'" >> $DIST_INFO_FILEPATH
 echo "BRANCH = '$BRANCH'" >> $DIST_INFO_FILEPATH
 echo "OS = '$OS'" >> $DIST_INFO_FILEPATH
 echo "VERSION = '$VERSION'" >> $DIST_INFO_FILEPATH
+echo "TYPE = '$TYPE'" >> $DIST_INFO_FILEPATH
 
-EXECUTABLE_NAME=skale-$VERSION-$OS
+if [ "$TYPE" = "sync" ]; then
+    EXECUTABLE_NAME=skale-$VERSION-$OS-sync
+else
+    EXECUTABLE_NAME=skale-$VERSION-$OS
+fi
 
 pyinstaller main.spec
 
