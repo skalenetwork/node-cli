@@ -60,7 +60,7 @@ setup(
         "psutil==5.9.4",
         "python-dotenv==0.21.0",
         "terminaltables==3.1.10",
-        "requests==2.28.1",
+        "requests==2.32.3",
         "GitPython==3.1.41",
         "packaging==23.0",
         "python-debian==0.1.49",
