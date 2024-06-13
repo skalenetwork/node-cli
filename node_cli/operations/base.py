@@ -211,9 +211,13 @@ def init_sync(
     download_contracts(env)
 
     generate_nginx_config()
+    no_btrfs = env.get('NO_BTRFS') == 'True'
+    enforce_btrfs = env.get('ENFORCE_BTRFS') == 'True'
+
     prepare_block_device(
         env['DISK_MOUNTPOINT'],
-        force=env['ENFORCE_BTRFS'] == 'True'
+        force=enforce_btrfs,
+        btrfs_enabled=no_btrfs
     )
 
     update_meta(
@@ -247,9 +251,13 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     backup_old_contracts()
     download_contracts(env)
 
+    no_btrfs = env.get('NO_BTRFS') == 'True'
+    enforce_btrfs = env.get('ENFORCE_BTRFS') == 'True'
+
     prepare_block_device(
         env['DISK_MOUNTPOINT'],
-        force=env['ENFORCE_BTRFS'] == 'True'
+        force=enforce_btrfs,
+        btrfs_enabled=no_btrfs
     )
     generate_nginx_config()
 

@@ -131,22 +131,23 @@ def mount_device(block_device, mountpoint):
     run_cmd(['mount', block_device, mountpoint])
 
 
-def prepare_block_device(block_device, force=False):
-    filesystem = None
-    try:
-        filesystem = get_block_device_filesystem(block_device)
-    except Exception as e:
-        logger.info('Cannot get filesystem type %s', e)
-        logger.debug('Cannot get filesystem type', exc_info=True)
-        if not force:
-            raise
+def prepare_block_device(block_device, force=False, btrfs_enabled=True):
+    if btrfs_enabled:
+        filesystem = None
+        try:
+            filesystem = get_block_device_filesystem(block_device)
+        except Exception as e:
+            logger.info('Cannot get filesystem type %s', e)
+            logger.debug('Cannot get filesystem type', exc_info=True)
+            if not force:
+                raise
 
-    if filesystem == 'btrfs':
-        logger.info('%s already formatted as btrfs', block_device)
-        ensure_btrfs_for_all_space(block_device)
-    else:
-        logger.info('%s contains %s filesystem', block_device, filesystem)
-        format_as_btrfs(block_device)
+        if filesystem == 'btrfs':
+            logger.info('%s already formatted as btrfs', block_device)
+            ensure_btrfs_for_all_space(block_device)
+        else:
+            logger.info('%s contains %s filesystem', block_device, filesystem)
+            format_as_btrfs(block_device)
     mount_device(block_device, SCHAINS_MNT_DIR_SYNC)
 
 

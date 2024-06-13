@@ -45,7 +45,8 @@ OPTIONAL_PARAMS = {
     'DEFAULT_GAS_PRICE_WEI': '',
     'SKIP_DOCKER_CONFIG': '',
     'ENFORCE_BTRFS': '',
-    'SKIP_DOCKER_CLEANUP': ''
+    'SKIP_DOCKER_CLEANUP': '',
+    'NO_BTRFS': ''
 }
 
 
