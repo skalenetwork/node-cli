@@ -10,6 +10,7 @@ from typing import Dict, Optional
 from node_cli.configs import (
     ALLOCATION_FILEPATH,
     NODE_CONFIG_PATH,
+    NODE_CLI_STATUS_FILENAME,
     SCHAIN_NODE_DATA_PATH
 )
 from node_cli.configs.env import get_env_config
@@ -90,7 +91,7 @@ def show_config(name: str) -> None:
 
 
 def get_node_cli_schain_status_filepath(schain_name: str) -> str:
-    return os.path.join(SCHAIN_NODE_DATA_PATH, schain_name, 'node-cli.status')
+    return os.path.join(SCHAIN_NODE_DATA_PATH, schain_name, NODE_CLI_STATUS_FILENAME)
 
 
 def update_node_cli_schain_status(schain_name: str, status: dict) -> None:
@@ -104,8 +105,7 @@ def toggle_schain_repair_mode(
 ) -> None:
     ts = int(time.time())
     status = {'schain_name': schain, 'repair_ts': ts}
-    if snapshot_from:
-        status.update({'snapshot_from': snapshot_from})
+    status.update({'snapshot_from': snapshot_from})
     update_node_cli_schain_status(schain, status)
     print('Schain has been set for repair')
 
