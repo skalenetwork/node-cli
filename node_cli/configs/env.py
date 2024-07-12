@@ -9,9 +9,7 @@ CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
 
 ALLOWED_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
 
-
-base_params = {
-    'IMA_ENDPOINT': '',
+REQUIRED_PARAMS = {
     'CONTAINER_CONFIGS_STREAM': '',
     'ENDPOINT': '',
     'MANAGER_CONTRACTS_ABI_URL': '',
@@ -19,37 +17,49 @@ base_params = {
     'FILEBEAT_HOST': '',
     'DISK_MOUNTPOINT': '',
     'SGX_SERVER_URL': '',
-    'CONTAINER_CONFIGS_DIR': '',
     'DOCKER_LVMPY_STREAM': '',
     'ENV_TYPE': '',
 }
 
+REQUIRED_PARAMS_SYNC = {
+    'SCHAIN_NAME': '',
+    'CONTAINER_CONFIGS_STREAM': '',
+    'ENDPOINT': '',
+    'MANAGER_CONTRACTS_ABI_URL': '',
+    'IMA_CONTRACTS_ABI_URL': '',
+    'DISK_MOUNTPOINT': '',
+    'DOCKER_LVMPY_STREAM': '',
+    'ENV_TYPE': ''
+}
 
-optional_params = {
+OPTIONAL_PARAMS = {
     'MONITORING_CONTAINERS': '',
+    'TELEGRAF': '',
+    'INFLUX_TOKEN': '',
+    'INFLUX_URL': '',
     'TG_API_KEY': '',
     'TG_CHAT_ID': '',
     'CONTAINER_CONFIGS_DIR': '',
     'DISABLE_DRY_RUN': '',
     'DEFAULT_GAS_LIMIT': '',
     'DEFAULT_GAS_PRICE_WEI': '',
-    'DISABLE_IMA': '',
     'SKIP_DOCKER_CONFIG': '',
+    'ENFORCE_BTRFS': '',
     'SKIP_DOCKER_CLEANUP': ''
 }
 
 
 def absent_params(params):
     return list(filter(
-        lambda key: key not in optional_params and not params[key],
+        lambda key: key not in OPTIONAL_PARAMS and not params[key],
         params)
     )
 
 
-def get_env_config(env_filepath: str = SKALE_DIR_ENV_FILEPATH):
+def get_env_config(env_filepath: str = SKALE_DIR_ENV_FILEPATH, sync_node: bool = False):
     load_dotenv(dotenv_path=env_filepath)
-    params = base_params.copy()
-    params.update(optional_params)
+    params = REQUIRED_PARAMS_SYNC.copy() if sync_node else REQUIRED_PARAMS.copy()
+    params.update(OPTIONAL_PARAMS)
     for option_name in params:
         env_param = os.getenv(option_name)
         if env_param is not None:

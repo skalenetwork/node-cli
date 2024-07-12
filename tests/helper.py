@@ -18,9 +18,12 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import mock
+import os
+
 from click.testing import CliRunner
 from mock import Mock, MagicMock
 
+BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
 
 TEST_META_V1 = {
     'version': '0.1.1',
@@ -43,8 +46,12 @@ TEST_META_V3 = {
 }
 
 
-def response_mock(status_code=0, json_data=None,
-                  headers=None, raw=None):
+def response_mock(
+    status_code=0,
+    json_data=None,
+    headers=None,
+    raw=None
+):
     result = MagicMock()
     result.status_code = status_code
 
@@ -71,8 +78,7 @@ def run_command_mock(mock_call_path, response_mock,
         return run_command(command, params, input=input)
 
 
-def subprocess_run_mock(cmd=None, shell=None, stdout=None,
-                        stderr=None, env=None, returncode=0):
+def subprocess_run_mock(*args, returncode=0, **kwargs):
     result = MagicMock()
     result.returncode = returncode
     result.stdout = MagicMock()

@@ -21,9 +21,9 @@ import click
 from terminaltables import SingleTable
 
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.helper import get_request, safe_load_texts, error_exit
-from node_cli.configs import DEFAULT_SSL_CHECK_PORT, SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
-from node_cli.core.ssl import check_cert, upload_cert
+from node_cli.utils.helper import safe_load_texts, error_exit
+from node_cli.configs.ssl import DEFAULT_SSL_CHECK_PORT, SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
+from node_cli.core.ssl import check_cert, upload_cert, cert_status
 
 
 TEXTS = safe_load_texts()
@@ -42,10 +42,7 @@ def ssl():
 
 @ssl.command(help="Status of the SSL certificates on the node")
 def status():
-    status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='status'
-    )
+    status, payload = cert_status()
     if status == 'ok':
         if payload.get('is_empty'):
             print(TEXTS['ssl']['no_cert'])
@@ -79,7 +76,7 @@ def upload(key_path, cert_path, force):
     if status == 'ok':
         print(TEXTS['ssl']['uploaded'])
     else:
-        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+        error_exit(payload, exit_code=CLIExitCodes.FAILURE)
 
 
 @ssl.command(help="Check certificates")

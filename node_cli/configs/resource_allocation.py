@@ -20,6 +20,7 @@
 import os
 from node_cli.configs import NODE_DATA_PATH
 
+
 LARGE_DIVIDER = 1
 MEDIUM_DIVIDER = 8
 TEST_DIVIDER = 8
