@@ -157,11 +157,6 @@ def test_repair(tmp_schains_dir):
     os.mkdir(os.path.join(tmp_schains_dir, 'test-schain'))
     os.environ['TZ'] = 'Europe/London'
     time.tzset()
-    payload = []
-    resp_mock = response_mock(
-        requests.codes.ok,
-        json_data={'payload': payload, 'status': 'ok'}
-    )
     result = run_command(repair, ['test-schain', '--yes'])
     assert result.output == 'Schain has been set for repair\n'
     assert result.exit_code == 0
