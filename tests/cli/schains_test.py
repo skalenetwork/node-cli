@@ -23,7 +23,7 @@ import time
 import requests
 
 from node_cli.configs import G_CONF_HOME
-from tests.helper import response_mock, run_command_mock
+from tests.helper import response_mock, run_command, run_command_mock
 from node_cli.cli.schains import (get_schain_config, ls, dkg, show_rules,
                                   repair, info_)
 
@@ -153,7 +153,8 @@ def test_schain_rules():
     assert result.output == '      IP range          Port \n-----------------------------\n127.0.0.2 - 127.0.0.2   10000\n127.0.0.2 - 127.0.0.2   10001\nAll IPs                 10002\nAll IPs                 10003\n127.0.0.2 - 127.0.0.2   10004\n127.0.0.2 - 127.0.0.2   10005\nAll IPs                 10007\nAll IPs                 10008\nAll IPs                 10009\n'  # noqa
 
 
-def test_repair():
+def test_repair(tmp_schains_dir):
+    os.mkdir(os.path.join(tmp_schains_dir, 'test-schain'))
     os.environ['TZ'] = 'Europe/London'
     time.tzset()
     payload = []
@@ -161,21 +162,9 @@ def test_repair():
         requests.codes.ok,
         json_data={'payload': payload, 'status': 'ok'}
     )
-    result = run_command_mock('node_cli.utils.helper.requests.post', resp_mock, repair,
-                              ['test-schain', '--yes'])
+    result = run_command(repair, ['test-schain', '--yes'])
     assert result.output == 'Schain has been set for repair\n'
     assert result.exit_code == 0
-
-    payload = ['error']
-    resp_mock = response_mock(
-        requests.codes.ok,
-        json_data={'payload': payload, 'status': 'error'}
-    )
-    result = run_command_mock('node_cli.utils.helper.requests.post', resp_mock, repair,
-                              ['test-schain', '--yes'])
-    print(repr(result.output))
-    assert result.exit_code == 3
-    assert result.output == f'Command failed with following errors:\n--------------------------------------------------\nerror\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
 def test_info():
