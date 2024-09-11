@@ -161,4 +161,4 @@ BTRFS_KERNEL_MODULE = 'btrfs'
 
 TELEGRAF_TEMPLATE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'telegraf.conf.j2')
 TELEGRAF_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'telegraf.conf')
-NODE_DOCKER_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker.json')
+NODE_DOCKER_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'docker.json')
