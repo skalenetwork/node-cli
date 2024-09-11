@@ -4,6 +4,7 @@ import pathlib
 import shutil
 from contextlib import contextmanager
 from timeit import default_timer as timer
+from node_cli.core.docker_config import get_docker_group_id, save_docker_group_id
 
 import pytest
 
@@ -17,7 +18,8 @@ from node_cli.core.docker_config import (
     ensure_service_overriden_config,
     OverridenConfigExsitsError,
     SocketInitTimeoutError,
-    wait_for_socket_initialization
+    wait_for_socket_initialization,
+    NODE_DOCKER_CONFIG_PATH,
 )
 
 
@@ -151,3 +153,10 @@ def test_wait_for_socket_initialization(tmp_dir):
     pathlib.Path(socket_path).touch()
     with in_time(1):
         wait_for_socket_initialization(socket_path)
+
+
+def test_get_save_group_id():
+    gid = get_docker_group_id()
+    save_docker_group_id(gid)
+    with open(NODE_DOCKER_CONFIG_PATH) as config_path:
+        assert json.load(config_path)['docker_group_id'] == gid
