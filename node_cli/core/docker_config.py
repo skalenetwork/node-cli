@@ -1,3 +1,4 @@
+import grp
 import enum
 import json
 import logging
@@ -14,7 +15,8 @@ from node_cli.configs import (
     DOCKER_SERVICE_CONFIG_DIR,
     DOCKER_SERVICE_CONFIG_PATH,
     DOCKER_SOCKET_PATH,
-    SKALE_RUN_DIR
+    NODE_DOCKER_CONFIG_PATH,
+    SKALE_RUN_DIR,
 )
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.docker_utils import docker_client, get_containers
@@ -24,6 +26,15 @@ logger = logging.getLogger(__name__)
 
 
 Path = typing.Union[str, pathlib.Path]
+
+
+def get_docker_group_id() -> int:
+    return grp.getgrnam('docker').gr_gid
+
+
+def save_docker_group_id(group_id: int, path: Optional[Path] = NODE_DOCKER_CONFIG_PATH) -> None:
+    with open(path, 'w') as node_docker_config:
+        json.dump({'docker_group_id': group_id}, node_docker_config)
 
 
 def get_content(filename: Path) -> Optional[str]:
@@ -188,5 +199,9 @@ def configure_docker() -> None:
        any(r == DockerConfigResult.CHANGED for r in results):
         restart_docker_service()
         wait_for_socket_initialization()
+
+    logger.info('Saving docker group id')
+    group_id = get_docker_group_id()
+    save_docker_group_id(group_id)
 
     logger.info('Docker configuration finished')
