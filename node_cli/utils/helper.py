@@ -22,6 +22,7 @@ import json
 import os
 import re
 import sys
+import uuid
 from urllib.parse import urlparse
 
 import yaml
@@ -77,14 +78,20 @@ class InvalidEnvFileError(Exception):
     pass
 
 
-def read_json(path):
+def read_json(path: str) -> dict:
     with open(path, encoding='utf-8') as data_file:
         return json.loads(data_file.read())
 
 
-def write_json(path, content):
+def write_json(path: str, content: dict) -> None:
     with open(path, 'w') as outfile:
         json.dump(content, outfile, indent=4)
+
+
+def save_json(path: str, content: dict) -> None:
+    tmp_path = get_tmp_path(path)
+    write_json(tmp_path, content)
+    shutil.move(tmp_path, path)
 
 
 def init_file(path, content=None):
@@ -400,3 +407,9 @@ class IpType(click.ParamType):
 
 URL_TYPE = UrlType()
 IP_TYPE = IpType()
+
+
+def get_tmp_path(path: str) -> str:
+    base, ext = os.path.splitext(path)
+    salt = uuid.uuid4().hex[:5]
+    return base + salt + '.tmp' + ext

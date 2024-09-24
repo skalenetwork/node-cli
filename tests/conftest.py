@@ -29,13 +29,14 @@ import pytest
 import yaml
 
 from node_cli.configs import (
-  CONTAINER_CONFIG_TMP_PATH,
-  GLOBAL_SKALE_CONF_FILEPATH,
-  GLOBAL_SKALE_DIR,
-  META_FILEPATH,
-  NGINX_CONTAINER_NAME,
-  REMOVED_CONTAINERS_FOLDER_PATH,
-  STATIC_PARAMS_FILEPATH
+    CONTAINER_CONFIG_TMP_PATH,
+    GLOBAL_SKALE_CONF_FILEPATH,
+    GLOBAL_SKALE_DIR,
+    META_FILEPATH,
+    NGINX_CONTAINER_NAME,
+    REMOVED_CONTAINERS_FOLDER_PATH,
+    STATIC_PARAMS_FILEPATH,
+    SCHAIN_NODE_DATA_PATH
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -302,3 +303,12 @@ def tmp_config_dir():
         yield CONTAINER_CONFIG_TMP_PATH
     finally:
         shutil.rmtree(CONTAINER_CONFIG_TMP_PATH)
+
+
+@pytest.fixture
+def tmp_schains_dir():
+    os.makedirs(SCHAIN_NODE_DATA_PATH)
+    try:
+        yield SCHAIN_NODE_DATA_PATH
+    finally:
+        shutil.rmtree(SCHAIN_NODE_DATA_PATH)

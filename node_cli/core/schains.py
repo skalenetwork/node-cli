@@ -2,6 +2,7 @@ import logging
 import os
 import pprint
 import shutil
+import time
 from pathlib import Path
 
 from typing import Dict, Optional
@@ -9,6 +10,7 @@ from typing import Dict, Optional
 from node_cli.configs import (
     ALLOCATION_FILEPATH,
     NODE_CONFIG_PATH,
+    NODE_CLI_STATUS_FILENAME,
     SCHAIN_NODE_DATA_PATH
 )
 from node_cli.configs.env import get_env_config
@@ -16,8 +18,7 @@ from node_cli.configs.env import get_env_config
 from node_cli.utils.helper import (
     get_request,
     error_exit,
-    safe_load_yml,
-    post_request
+    safe_load_yml
 )
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.print_formatters import (
@@ -27,7 +28,7 @@ from node_cli.utils.print_formatters import (
     print_schains
 )
 from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
-from node_cli.utils.helper import read_json, run_cmd
+from node_cli.utils.helper import read_json, run_cmd, save_json
 from lvmpy.src.core import mount, volume_mountpoint
 
 
@@ -89,22 +90,24 @@ def show_config(name: str) -> None:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
+def get_node_cli_schain_status_filepath(schain_name: str) -> str:
+    return os.path.join(SCHAIN_NODE_DATA_PATH, schain_name, NODE_CLI_STATUS_FILENAME)
+
+
+def update_node_cli_schain_status(schain_name: str, status: dict) -> None:
+    path = get_node_cli_schain_status_filepath(schain_name)
+    save_json(path, status)
+
+
 def toggle_schain_repair_mode(
     schain: str,
     snapshot_from: Optional[str] = None
 ) -> None:
-    json_params = {'schain_name': schain}
-    if snapshot_from:
-        json_params.update({'snapshot_from': snapshot_from})
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME,
-        method='repair',
-        json=json_params
-    )
-    if status == 'ok':
-        print('Schain has been set for repair')
-    else:
-        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+    ts = int(time.time())
+    status = {'schain_name': schain, 'repair_ts': ts}
+    status.update({'snapshot_from': snapshot_from})
+    update_node_cli_schain_status(schain, status)
+    print('Schain has been set for repair')
 
 
 def describe(schain: str, raw=False) -> None:
