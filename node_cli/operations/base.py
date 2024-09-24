@@ -281,6 +281,9 @@ def turn_off():
 
 def turn_on(env):
     logger.info('Turning on the node...')
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+    logger.info('Launching containers on the node...')
     compose_up(env)
 
 
