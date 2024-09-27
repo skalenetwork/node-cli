@@ -281,6 +281,13 @@ def turn_off():
 
 def turn_on(env):
     logger.info('Turning on the node...')
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version()
+    )
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
     logger.info('Launching containers on the node...')
