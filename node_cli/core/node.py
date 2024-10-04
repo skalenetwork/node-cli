@@ -92,6 +92,15 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
+def is_update_safe() -> bool:
+    response = get_request(BLUEPRINT_NAME, 'update-safe')
+    payload = response['payload']
+    safe = payload['update_safe']
+    if not safe:
+        logger.info('Locked schains: %s', payload['locked_schains'])
+    return safe
+
+
 @check_inited
 @check_user
 def register_node(name, p2p_ip,
@@ -259,7 +268,11 @@ def get_node_env(
 
 @check_inited
 @check_user
-def update(env_filepath, pull_config_for_schain):
+def update(env_filepath, pull_config_for_schain, unsafe_ok: bool = False):
+    if not unsafe_ok and not is_update_safe():
+        error_msg = 'Cannot update safetly'
+        error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
+
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(

@@ -109,10 +109,11 @@ def init_node(env_file):
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
+@click.option('--unsafe', 'unsafe_ok', hidden=True, type=str)
 @click.argument('env_file')
 @streamed_cmd
-def update_node(env_file, pull_config_for_schain):
-    update(env_file, pull_config_for_schain)
+def update_node(env_file, pull_config_for_schain, unsafe_ok):
+    update(env_file, pull_config_for_schain, unsafe_ok)
 
 
 @node.command('signature', help='Get node signature for given validator id')
