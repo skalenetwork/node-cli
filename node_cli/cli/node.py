@@ -109,7 +109,13 @@ def init_node(env_file):
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
-@click.option('--unsafe', 'unsafe_ok', hidden=True, type=str)
+@click.option(
+    '--unsafe',
+    'unsafe_ok',
+    help='Allow unsafe turn-off',
+    hidden=True,
+    is_flag=True
+)
 @click.argument('env_file')
 @streamed_cmd
 def update_node(env_file, pull_config_for_schain, unsafe_ok):
@@ -174,9 +180,16 @@ def remove_node_from_maintenance():
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to turn off the node?')
+@click.option(
+    '--unsafe',
+    'unsafe_ok',
+    help='Allow unsafe turn-off',
+    hidden=True,
+    is_flag=True
+)
 @streamed_cmd
-def _turn_off(maintenance_on):
-    turn_off(maintenance_on)
+def _turn_off(maintenance_on, unsafe_ok):
+    turn_off(maintenance_on, unsafe_ok)
 
 
 @node.command('turn-on', help='Turn on the node')

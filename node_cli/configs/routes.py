@@ -25,12 +25,22 @@ API_PREFIX = '/api'
 
 ROUTES = {
     'v1': {
-        'node': ['info', 'register', 'maintenance-on', 'maintenance-off', 'signature',
-                 'send-tg-notification', 'exit/start', 'exit/status', 'set-domain-name'],
+        'node': [
+            'info',
+            'register',
+            'maintenance-on',
+            'maintenance-off',
+            'signature',
+            'send-tg-notification',
+            'exit/start',
+            'exit/status',
+            'set-domain-name',
+            'update-safe',
+        ],
         'health': ['containers', 'schains', 'sgx'],
         'schains': ['config', 'list', 'dkg-statuses', 'firewall-rules', 'repair', 'get'],
         'ssl': ['status', 'upload'],
-        'wallet': ['info', 'send-eth']
+        'wallet': ['info', 'send-eth'],
     }
 }
 
@@ -40,8 +50,11 @@ class RouteNotFoundException(Exception):
 
 
 def route_exists(blueprint, method, api_version):
-    return ROUTES.get(api_version) and ROUTES[api_version].get(blueprint) and \
-        method in ROUTES[api_version][blueprint]
+    return (
+        ROUTES.get(api_version)
+        and ROUTES[api_version].get(blueprint)
+        and method in ROUTES[api_version][blueprint]
+    )
 
 
 def get_route(blueprint, method, api_version=CURRENT_API_VERSION, check=True):
@@ -53,5 +66,8 @@ def get_route(blueprint, method, api_version=CURRENT_API_VERSION, check=True):
 
 def get_all_available_routes(api_version=CURRENT_API_VERSION):
     routes = ROUTES[api_version]
-    return [get_route(blueprint, method, api_version) for blueprint in routes
-            for method in routes[blueprint]]
+    return [
+        get_route(blueprint, method, api_version)
+        for blueprint in routes
+        for method in routes[blueprint]
+    ]

@@ -93,11 +93,12 @@ class NodeStatuses(Enum):
 
 
 def is_update_safe() -> bool:
-    response = get_request(BLUEPRINT_NAME, 'update-safe')
-    payload = response['payload']
+    status, payload = get_request(BLUEPRINT_NAME, 'update-safe')
+    if status == 'error':
+        return False
     safe = payload['update_safe']
     if not safe:
-        logger.info('Locked schains: %s', payload['locked_schains'])
+        logger.info('Locked schains: %s', payload['unsafe_chains'])
     return safe
 
 
@@ -215,7 +216,10 @@ def init_sync(
 
 @check_inited
 @check_user
-def update_sync(env_filepath):
+def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
+    if not unsafe_ok and not is_update_safe():
+        error_msg = 'Cannot update safetly'
+        error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
@@ -268,7 +272,7 @@ def get_node_env(
 
 @check_inited
 @check_user
-def update(env_filepath, pull_config_for_schain, unsafe_ok: bool = False):
+def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = False) -> None:
     if not unsafe_ok and not is_update_safe():
         error_msg = 'Cannot update safetly'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
@@ -401,7 +405,10 @@ def set_maintenance_mode_off():
 
 @check_inited
 @check_user
-def turn_off(maintenance_on):
+def turn_off(maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
+    if not unsafe_ok and not is_update_safe():
+        error_msg = 'Cannot turn off safetly'
+        error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()
     turn_off_op()
