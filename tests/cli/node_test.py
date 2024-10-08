@@ -38,12 +38,14 @@ from node_cli.cli.node import (
     _turn_on,
     _set_domain_name
 )
+from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import init_default_logger
 
 from tests.helper import (
     response_mock,
     run_command,
     run_command_mock,
+    safe_update_api_response,
     subprocess_run_mock
 )
 from tests.resources_test import BIG_DISK_SIZE
@@ -123,7 +125,6 @@ def test_register_with_no_alloc(mocked_g_config):
         register_node,
         ['--name', 'test-node', '-d', 'skale.test'], input='0.0.0.0\n')
     assert result.exit_code == 8
-    print(repr(result.output))
     assert result.output == f'Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn\'t been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
 
 
@@ -375,7 +376,18 @@ def test_turn_off_maintenance_on(mocked_g_config):
     )
     with mock.patch('subprocess.run', new=subprocess_run_mock), \
             mock.patch('node_cli.core.node.turn_off_op'), \
-            mock.patch('node_cli.core.node.is_node_inited', return_value=True):
+            mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+        with mock.patch('node_cli.utils.helper.requests.get', return_value=safe_update_api_response()):
+            result = run_command_mock(
+                'node_cli.utils.helper.requests.post',
+                resp_mock,
+                _turn_off,
+                [
+                    '--maintenance-on',
+                    '--yes'
+                ])
+            assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'  # noqa
+            assert result.exit_code == 0
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -384,8 +396,8 @@ def test_turn_off_maintenance_on(mocked_g_config):
                 '--maintenance-on',
                 '--yes'
             ])
-    assert result.exit_code == 0
-    assert result.output == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'  # noqa
+        assert 'Cannot turn off safetly' in result.output
+        assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
 def test_turn_on_maintenance_off(mocked_g_config):

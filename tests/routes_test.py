@@ -13,6 +13,7 @@ ALL_V1_ROUTES = [
     '/api/v1/node/exit/start',
     '/api/v1/node/exit/status',
     '/api/v1/node/set-domain-name',
+    '/api/v1/node/update-safe',
 
     '/api/v1/health/containers',
     '/api/v1/health/schains',

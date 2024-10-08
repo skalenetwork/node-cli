@@ -20,6 +20,8 @@
 import mock
 import os
 
+
+import requests
 from click.testing import CliRunner
 from mock import Mock, MagicMock
 
@@ -84,3 +86,16 @@ def subprocess_run_mock(*args, returncode=0, **kwargs):
     result.stdout = MagicMock()
     result.stderr = MagicMock()
     return result
+
+
+def safe_update_api_response(safe: bool = True) -> dict:
+    if safe:
+        return response_mock(
+            requests.codes.ok,
+            {'status': 'ok', 'payload': {'update_safe': True, 'unsafe_chains': []}},
+        )
+    else:
+        return response_mock(
+            requests.codes.ok,
+            {'status': 'ok', 'payload': {'update_safe': False, 'unsafe_chains': ['test_chain']}},
+        )
