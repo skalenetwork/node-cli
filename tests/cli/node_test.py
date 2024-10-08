@@ -150,7 +150,7 @@ def test_node_info_node_info():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n')  # noqa
+    assert result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'  # noqa
 
 
 def test_node_info_node_info_not_created():
