@@ -274,7 +274,7 @@ def get_node_env(
 @check_user
 def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = False) -> None:
     if not unsafe_ok and not is_update_safe():
-        error_msg = 'Cannot update safety'
+        error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
     logger.info('Node update started')
