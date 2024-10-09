@@ -112,7 +112,7 @@ def init_node(env_file):
 @click.option(
     '--unsafe',
     'unsafe_ok',
-    help='Allow unsafe turn-off',
+    help='Allow unsafe update',
     hidden=True,
     is_flag=True
 )

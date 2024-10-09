@@ -77,7 +77,7 @@ def _init_sync(env_file, archive, catchup, historic_state):
 @click.option(
     '--unsafe',
     'unsafe_ok',
-    help='Allow unsafe turn-off',
+    help='Allow unsafe update',
     hidden=True,
     is_flag=True
 )
