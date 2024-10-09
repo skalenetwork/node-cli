@@ -74,7 +74,14 @@ def _init_sync(env_file, archive, catchup, historic_state):
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
+@click.option(
+    '--unsafe',
+    'unsafe_ok',
+    help='Allow unsafe update',
+    hidden=True,
+    is_flag=True
+)
 @click.argument('env_file')
 @streamed_cmd
-def _update_sync(env_file):
+def _update_sync(env_file, unsafe_ok):
     update_sync(env_file)

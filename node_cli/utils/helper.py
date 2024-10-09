@@ -24,6 +24,7 @@ import re
 import sys
 import uuid
 from urllib.parse import urlparse
+from typing import Optional
 
 import yaml
 import shutil
@@ -230,7 +231,7 @@ def post_request(blueprint, method, json=None, files=None):
     return status, payload
 
 
-def get_request(blueprint, method, params=None):
+def get_request(blueprint: str, method: str, params: Optional[dict] = None) -> tuple[str, str]:
     route = get_route(blueprint, method)
     url = construct_url(route)
     try:
