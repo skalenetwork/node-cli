@@ -382,7 +382,7 @@ def test_turn_off_maintenance_on(mocked_g_config):
             _turn_off,
             ['--maintenance-on', '--yes'],
         )
-        assert 'Cannot turn off safetly' in result.output
+        assert 'Cannot turn off safely' in result.output
         assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 

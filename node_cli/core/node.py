@@ -218,7 +218,7 @@ def init_sync(
 @check_user
 def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     if not unsafe_ok and not is_update_safe():
-        error_msg = 'Cannot update safetly'
+        error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     logger.info('Node update started')
     configure_firewall_rules()
@@ -274,7 +274,7 @@ def get_node_env(
 @check_user
 def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = False) -> None:
     if not unsafe_ok and not is_update_safe():
-        error_msg = 'Cannot update safetly'
+        error_msg = 'Cannot update safety'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
     logger.info('Node update started')
@@ -407,7 +407,7 @@ def set_maintenance_mode_off():
 @check_user
 def turn_off(maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
     if not unsafe_ok and not is_update_safe():
-        error_msg = 'Cannot turn off safetly'
+        error_msg = 'Cannot turn off safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()

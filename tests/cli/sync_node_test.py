@@ -108,7 +108,7 @@ def test_update_sync(mocked_g_config):
     ):
         result = run_command(_update_sync, ['./tests/test-env', '--yes'])
         assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
-        assert 'Cannot update safetly' in result.output
+        assert 'Cannot update safely' in result.output
 
         with mock.patch(
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
@@ -121,4 +121,4 @@ def test_update_sync(mocked_g_config):
         ):
             result = run_command(_update_sync, ['./tests/test-env', '--yes'])
             assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
-            assert 'Cannot update safetly' in result.output
+            assert 'Cannot update safely' in result.output
