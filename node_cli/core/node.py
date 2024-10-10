@@ -186,7 +186,8 @@ def init_sync(
     env_filepath: str,
     archive: bool,
     catchup: bool,
-    historic_state: bool
+    historic_state: bool,
+    snapshot_from: str
 ) -> None:
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
@@ -197,7 +198,8 @@ def init_sync(
         env,
         archive,
         catchup,
-        historic_state
+        historic_state,
+        snapshot_from
     )
     if not inited_ok:
         error_exit(
