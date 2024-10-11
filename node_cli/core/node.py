@@ -219,9 +219,6 @@ def init_sync(
 @check_inited
 @check_user
 def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
-    if not unsafe_ok and not is_update_safe():
-        error_msg = 'Cannot update safely'
-        error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
