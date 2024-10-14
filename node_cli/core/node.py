@@ -58,6 +58,7 @@ from node_cli.operations import (
     turn_on_op,
     restore_op,
     init_sync_op,
+    repair_sync_op,
     update_sync_op
 )
 from node_cli.utils.print_formatters import (
@@ -232,6 +233,27 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
         return
     else:
         logger.info('Node update finished')
+
+
+@check_inited
+@check_user
+def repair_sync(
+    archive: bool,
+    catchup: bool,
+    historic_state: bool,
+    snapshot_from: str
+) -> None:
+
+    env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=True)
+    schain_name = env_params['SCHAIN_NAME']
+    repair_sync_op(
+        schain_name=schain_name,
+        archive=archive,
+        catchup=catchup,
+        historic_state=historic_state,
+        snapshot_from=snapshot_from
+    )
+    logger.info('Schain was started from scratch')
 
 
 def get_node_env(
