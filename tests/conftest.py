@@ -317,7 +317,7 @@ def tmp_schains_dir():
 @pytest.fixture
 def tmp_sync_datadir():
 
-    os.makedirs(TEST_SCHAINS_MNT_DIR_SYNC)
+    os.makedirs(TEST_SCHAINS_MNT_DIR_SYNC, exist_ok=True)
     try:
         yield TEST_SCHAINS_MNT_DIR_SYNC
     finally:
