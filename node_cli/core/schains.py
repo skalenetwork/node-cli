@@ -96,6 +96,7 @@ def get_node_cli_schain_status_filepath(schain_name: str) -> str:
 
 def update_node_cli_schain_status(schain_name: str, status: dict) -> None:
     path = get_node_cli_schain_status_filepath(schain_name)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     save_json(path, status)
 
 

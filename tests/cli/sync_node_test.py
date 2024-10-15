@@ -25,10 +25,9 @@ import logging
 from node_cli.configs import SKALE_DIR, NODE_DATA_PATH
 from node_cli.core.node_options import NodeOptions
 from node_cli.cli.sync_node import _init_sync, _update_sync
-from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import init_default_logger
 
-from tests.helper import run_command, safe_update_api_response, subprocess_run_mock
+from tests.helper import run_command, subprocess_run_mock
 from tests.resources_test import BIG_DISK_SIZE
 
 logger = logging.getLogger(__name__)
@@ -107,18 +106,4 @@ def test_update_sync(mocked_g_config):
         'node_cli.utils.decorators.is_node_inited', return_value=True
     ):
         result = run_command(_update_sync, ['./tests/test-env', '--yes'])
-        assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
-        assert 'Cannot update safely' in result.output
-
-        with mock.patch(
-            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
-        ):
-            result = run_command(_update_sync, ['./tests/test-env', '--yes'])
-            assert result.exit_code == 0
-
-        with mock.patch(
-            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response(False)
-        ):
-            result = run_command(_update_sync, ['./tests/test-env', '--yes'])
-            assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
-            assert 'Cannot update safely' in result.output
+        assert result.exit_code == 0

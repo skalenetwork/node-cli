@@ -17,14 +17,17 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Optional
+
 import click
 
 from node_cli.core.node import init_sync, update_sync
 from node_cli.utils.helper import (
     abort_if_false,
+    error_exit,
+    IP_TYPE,
     safe_load_texts,
     streamed_cmd,
-    error_exit
 )
 from node_cli.utils.exit_codes import CLIExitCodes
 
@@ -60,14 +63,21 @@ def sync_node():
     help=TEXTS['init']['historic_state'],
     is_flag=True
 )
+@click.option(
+    '--snapshot-from',
+    type=IP_TYPE,
+    default=None,
+    hidden=True,
+    help='Ip of the node from to download snapshot from'
+)
 @streamed_cmd
-def _init_sync(env_file, archive, catchup, historic_state):
+def _init_sync(env_file, archive, catchup, historic_state, snapshot_from: Optional[str]):
     if historic_state and not archive:
         error_exit(
             '--historic-state can be used only is combination with --archive',
             exit_code=CLIExitCodes.FAILURE
         )
-    init_sync(env_file, archive, catchup, historic_state)
+    init_sync(env_file, archive, catchup, historic_state, snapshot_from)
 
 
 @sync_node.command('update', help='Update sync node from .env file')

@@ -20,7 +20,7 @@
 import distro
 import functools
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 from node_cli.cli.info import VERSION
 from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
@@ -47,6 +47,7 @@ from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
+from node_cli.core.schains import update_node_cli_schain_status
 from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
@@ -184,7 +185,8 @@ def init_sync(
     env: dict,
     archive: bool,
     catchup: bool,
-    historic_state: bool
+    historic_state: bool,
+    snapshot_from: Optional[str]
 ) -> bool:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(
@@ -224,6 +226,11 @@ def init_sync(
         distro.version()
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
+
+    schain_name = env['SCHAIN_NAME']
+    if snapshot_from:
+        update_node_cli_schain_status(schain_name, {'snapshot_from': snapshot_from})
+
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
 
     compose_up(env, sync_node=True)
