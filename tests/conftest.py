@@ -307,7 +307,7 @@ def tmp_config_dir():
 
 @pytest.fixture
 def tmp_schains_dir():
-    os.makedirs(SCHAIN_NODE_DATA_PATH)
+    os.makedirs(SCHAIN_NODE_DATA_PATH, exist_ok=True)
     try:
         yield SCHAIN_NODE_DATA_PATH
     finally:
@@ -316,7 +316,6 @@ def tmp_schains_dir():
 
 @pytest.fixture
 def tmp_sync_datadir():
-
     os.makedirs(TEST_SCHAINS_MNT_DIR_SYNC, exist_ok=True)
     try:
         yield TEST_SCHAINS_MNT_DIR_SYNC
