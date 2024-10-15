@@ -251,7 +251,6 @@ def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
 
 def cleanup_sync_datadir(schain_name: str, base_path: str = SCHAINS_MNT_DIR_SYNC) -> None:
     base_path = os.path.join(base_path, schain_name)
-    print('HERE', base_path)
     regular_folders_pattern = f'{base_path}/[!snapshots]*'
     logger.info('Removing regular folders')
     for filepath in glob.glob(regular_folders_pattern):
