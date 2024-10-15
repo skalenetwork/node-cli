@@ -190,5 +190,5 @@ def test_is_update_safe():
 def test_repair_sync(tmp_sync_datadir, mocked_g_config, resource_file):
     with mock.patch('node_cli.core.schains.rm_btrfs_subvolume'), \
          mock.patch('node_cli.utils.docker_utils.stop_container'), \
-             mock.patch('node_cli.utils.docker_utils.start_container'):
+         mock.patch('node_cli.utils.docker_utils.start_container'):
         repair_sync(archive=True, catchup=True, historic_state=True, snapshot_from='127.0.0.1')
