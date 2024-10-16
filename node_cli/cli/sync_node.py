@@ -25,9 +25,9 @@ from node_cli.core.node import init_sync, update_sync, repair_sync
 from node_cli.utils.helper import (
     abort_if_false,
     error_exit,
-    IP_TYPE,
     safe_load_texts,
     streamed_cmd,
+    URL_TYPE
 )
 from node_cli.utils.exit_codes import CLIExitCodes
 
@@ -65,7 +65,7 @@ def sync_node():
 )
 @click.option(
     '--snapshot-from',
-    type=IP_TYPE,
+    type=URL_TYPE,
     default=None,
     hidden=True,
     help='Ip of the node from to download snapshot from'
@@ -118,7 +118,7 @@ def _update_sync(env_file, unsafe_ok):
 )
 @click.option(
     '--snapshot-from',
-    type=IP_TYPE,
+    type=URL_TYPE,
     default=None,
     hidden=True,
     help='Ip of the node from to download snapshot from'
