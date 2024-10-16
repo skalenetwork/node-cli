@@ -27,6 +27,8 @@ from mock import Mock, MagicMock
 
 BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
 
+TEST_SCHAINS_MNT_DIR_SYNC = 'tests/tmp'
+
 TEST_META_V1 = {
     'version': '0.1.1',
     'config_stream': 'develop'

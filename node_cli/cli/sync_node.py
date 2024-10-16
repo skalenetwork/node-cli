@@ -21,7 +21,7 @@ from typing import Optional
 
 import click
 
-from node_cli.core.node import init_sync, update_sync
+from node_cli.core.node import init_sync, update_sync, repair_sync
 from node_cli.utils.helper import (
     abort_if_false,
     error_exit,
@@ -95,3 +95,44 @@ def _init_sync(env_file, archive, catchup, historic_state, snapshot_from: Option
 @streamed_cmd
 def _update_sync(env_file, unsafe_ok):
     update_sync(env_file)
+
+
+@sync_node.command('repair', help='Start sync node from empty database')
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to start sync node from empty database?')
+@click.option(
+    '--archive',
+    help=TEXTS['init']['archive'],
+    is_flag=True
+)
+@click.option(
+    '--catchup',
+    help=TEXTS['init']['catchup'],
+    is_flag=True
+)
+@click.option(
+    '--historic-state',
+    help=TEXTS['init']['historic_state'],
+    is_flag=True
+)
+@click.option(
+    '--snapshot-from',
+    type=IP_TYPE,
+    default=None,
+    hidden=True,
+    help='Ip of the node from to download snapshot from'
+)
+@streamed_cmd
+def _repair_sync(
+    archive: str,
+    catchup: str,
+    historic_state: str,
+    snapshot_from: Optional[str] = None
+) -> None:
+    repair_sync(
+        archive=archive,
+        catchup=catchup,
+        historic_state=historic_state,
+        snapshot_from=snapshot_from
+    )

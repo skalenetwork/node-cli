@@ -47,12 +47,15 @@ from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.iptables import configure_iptables
-from node_cli.core.schains import update_node_cli_schain_status
+from node_cli.core.schains import update_node_cli_schain_status, cleanup_sync_datadir
 from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
     docker_cleanup,
-    remove_dynamic_containers
+    remove_dynamic_containers,
+    remove_schain_container,
+    start_admin,
+    stop_admin
 )
 from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
@@ -344,3 +347,27 @@ def restore(env, backup_path, config_only=False):
         print_failed_requirements_checks(failed_checks)
         return False
     return True
+
+
+def repair_sync(
+    schain_name: str,
+    archive: bool,
+    catchup: bool,
+    historic_state: bool,
+    snapshot_from: Optional[str]
+) -> None:
+    stop_admin(sync_node=True)
+    remove_schain_container(schain_name=schain_name)
+
+    logger.info('Updating node options')
+    cleanup_sync_datadir(schain_name=schain_name)
+
+    logger.info('Updating node options')
+    node_options = NodeOptions()
+    node_options.archive = archive
+    node_options.catchup = catchup
+    node_options.historic_state = historic_state
+
+    logger.info('Updating cli status')
+    update_node_cli_schain_status(schain_name, snapshot_from=snapshot_from)
+    start_admin(sync_node=True)

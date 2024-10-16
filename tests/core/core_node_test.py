@@ -12,7 +12,7 @@ import requests
 from node_cli.configs import NODE_DATA_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.node import BASE_CONTAINERS_AMOUNT, is_base_containers_alive
-from node_cli.core.node import init, pack_dir, update, is_update_safe
+from node_cli.core.node import init, pack_dir, update, is_update_safe, repair_sync
 
 from tests.helper import response_mock, safe_update_api_response, subprocess_run_mock
 from tests.resources_test import BIG_DISK_SIZE
@@ -169,7 +169,9 @@ def test_update_node(mocked_g_config, resource_file):
     ), mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), mock.patch(
         'node_cli.core.host.init_data_dir'
     ):
-        with mock.patch('node_cli.utils.helper.requests.get', return_value=safe_update_api_response()):  # noqa
+        with mock.patch(
+            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
+        ):  # noqa
             result = update(env_filepath, pull_config_for_schain=None)
             assert result is None
 
@@ -183,3 +185,10 @@ def test_is_update_safe():
         'node_cli.utils.helper.requests.get', return_value=safe_update_api_response(safe=False)
     ):
         assert not is_update_safe()
+
+
+def test_repair_sync(tmp_sync_datadir, mocked_g_config, resource_file):
+    with mock.patch('node_cli.core.schains.rm_btrfs_subvolume'), \
+         mock.patch('node_cli.utils.docker_utils.stop_container'), \
+         mock.patch('node_cli.utils.docker_utils.start_container'):
+        repair_sync(archive=True, catchup=True, historic_state=True, snapshot_from='127.0.0.1')
