@@ -232,7 +232,7 @@ def init_sync(
 
     schain_name = env['SCHAIN_NAME']
     if snapshot_from:
-        update_node_cli_schain_status(schain_name, {'snapshot_from': snapshot_from})
+        update_node_cli_schain_status(schain_name, snapshot_from=snapshot_from)
 
     update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
 
