@@ -21,7 +21,7 @@ from typing import Optional
 
 import click
 
-from node_cli.utils.helper import abort_if_false, IP_TYPE
+from node_cli.utils.helper import abort_if_false, URL_TYPE
 from node_cli.core.schains import (
     describe,
     get_schain_firewall_rules,
@@ -87,7 +87,7 @@ def show_rules(schain_name: str) -> None:
               prompt='Are you sure? Repair mode may corrupt working SKALE chain data.')
 @click.option(
     '--snapshot-from',
-    type=IP_TYPE,
+    type=URL_TYPE,
     default=None,
     hidden=True,
     help='Ip of the node from to download snapshot from'

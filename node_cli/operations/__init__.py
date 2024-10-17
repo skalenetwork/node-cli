@@ -24,5 +24,6 @@ from node_cli.operations.base import (  # noqa
     update_sync as update_sync_op,
     turn_off as turn_off_op,
     turn_on as turn_on_op,
-    restore as restore_op
+    restore as restore_op,
+    repair_sync as repair_sync_op
 )

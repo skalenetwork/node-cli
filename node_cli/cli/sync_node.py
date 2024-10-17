@@ -17,14 +17,17 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Optional
+
 import click
 
-from node_cli.core.node import init_sync, update_sync
+from node_cli.core.node import init_sync, update_sync, repair_sync
 from node_cli.utils.helper import (
     abort_if_false,
+    error_exit,
     safe_load_texts,
     streamed_cmd,
-    error_exit
+    URL_TYPE
 )
 from node_cli.utils.exit_codes import CLIExitCodes
 
@@ -60,21 +63,76 @@ def sync_node():
     help=TEXTS['init']['historic_state'],
     is_flag=True
 )
+@click.option(
+    '--snapshot-from',
+    type=URL_TYPE,
+    default=None,
+    hidden=True,
+    help='Ip of the node from to download snapshot from'
+)
 @streamed_cmd
-def _init_sync(env_file, archive, catchup, historic_state):
+def _init_sync(env_file, archive, catchup, historic_state, snapshot_from: Optional[str]):
     if historic_state and not archive:
         error_exit(
             '--historic-state can be used only is combination with --archive',
             exit_code=CLIExitCodes.FAILURE
         )
-    init_sync(env_file, archive, catchup, historic_state)
+    init_sync(env_file, archive, catchup, historic_state, snapshot_from)
 
 
 @sync_node.command('update', help='Update sync node from .env file')
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to update SKALE node software?')
+@click.option(
+    '--unsafe',
+    'unsafe_ok',
+    help='Allow unsafe update',
+    hidden=True,
+    is_flag=True
+)
 @click.argument('env_file')
 @streamed_cmd
-def _update_sync(env_file):
+def _update_sync(env_file, unsafe_ok):
     update_sync(env_file)
+
+
+@sync_node.command('repair', help='Start sync node from empty database')
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to start sync node from empty database?')
+@click.option(
+    '--archive',
+    help=TEXTS['init']['archive'],
+    is_flag=True
+)
+@click.option(
+    '--catchup',
+    help=TEXTS['init']['catchup'],
+    is_flag=True
+)
+@click.option(
+    '--historic-state',
+    help=TEXTS['init']['historic_state'],
+    is_flag=True
+)
+@click.option(
+    '--snapshot-from',
+    type=URL_TYPE,
+    default=None,
+    hidden=True,
+    help='Ip of the node from to download snapshot from'
+)
+@streamed_cmd
+def _repair_sync(
+    archive: str,
+    catchup: str,
+    historic_state: str,
+    snapshot_from: Optional[str] = None
+) -> None:
+    repair_sync(
+        archive=archive,
+        catchup=catchup,
+        historic_state=historic_state,
+        snapshot_from=snapshot_from
+    )

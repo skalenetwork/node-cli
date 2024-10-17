@@ -20,10 +20,14 @@
 import mock
 import os
 
+
+import requests
 from click.testing import CliRunner
 from mock import Mock, MagicMock
 
 BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
+
+TEST_SCHAINS_MNT_DIR_SYNC = 'tests/tmp'
 
 TEST_META_V1 = {
     'version': '0.1.1',
@@ -84,3 +88,16 @@ def subprocess_run_mock(*args, returncode=0, **kwargs):
     result.stdout = MagicMock()
     result.stderr = MagicMock()
     return result
+
+
+def safe_update_api_response(safe: bool = True) -> dict:
+    if safe:
+        return response_mock(
+            requests.codes.ok,
+            {'status': 'ok', 'payload': {'update_safe': True, 'unsafe_chains': []}},
+        )
+    else:
+        return response_mock(
+            requests.codes.ok,
+            {'status': 'ok', 'payload': {'update_safe': False, 'unsafe_chains': ['test_chain']}},
+        )
