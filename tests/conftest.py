@@ -29,13 +29,14 @@ import pytest
 import yaml
 
 from node_cli.configs import (
-  CONTAINER_CONFIG_TMP_PATH,
-  GLOBAL_SKALE_CONF_FILEPATH,
-  GLOBAL_SKALE_DIR,
-  META_FILEPATH,
-  NGINX_CONTAINER_NAME,
-  REMOVED_CONTAINERS_FOLDER_PATH,
-  STATIC_PARAMS_FILEPATH
+    CONTAINER_CONFIG_TMP_PATH,
+    GLOBAL_SKALE_CONF_FILEPATH,
+    GLOBAL_SKALE_DIR,
+    META_FILEPATH,
+    NGINX_CONTAINER_NAME,
+    REMOVED_CONTAINERS_FOLDER_PATH,
+    STATIC_PARAMS_FILEPATH,
+    SCHAIN_NODE_DATA_PATH
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -43,7 +44,7 @@ from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 
-from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3
+from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SYNC
 
 
 TEST_ENV_PARAMS = """
@@ -302,3 +303,21 @@ def tmp_config_dir():
         yield CONTAINER_CONFIG_TMP_PATH
     finally:
         shutil.rmtree(CONTAINER_CONFIG_TMP_PATH)
+
+
+@pytest.fixture
+def tmp_schains_dir():
+    os.makedirs(SCHAIN_NODE_DATA_PATH, exist_ok=True)
+    try:
+        yield SCHAIN_NODE_DATA_PATH
+    finally:
+        shutil.rmtree(SCHAIN_NODE_DATA_PATH)
+
+
+@pytest.fixture
+def tmp_sync_datadir():
+    os.makedirs(TEST_SCHAINS_MNT_DIR_SYNC, exist_ok=True)
+    try:
+        yield TEST_SCHAINS_MNT_DIR_SYNC
+    finally:
+        shutil.rmtree(TEST_SCHAINS_MNT_DIR_SYNC)

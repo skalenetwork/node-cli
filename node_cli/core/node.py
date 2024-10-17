@@ -58,6 +58,7 @@ from node_cli.operations import (
     turn_on_op,
     restore_op,
     init_sync_op,
+    repair_sync_op,
     update_sync_op
 )
 from node_cli.utils.print_formatters import (
@@ -90,6 +91,16 @@ class NodeStatuses(Enum):
     IN_MAINTENANCE = 3
     LEFT = 4
     NOT_CREATED = 5
+
+
+def is_update_safe() -> bool:
+    status, payload = get_request(BLUEPRINT_NAME, 'update-safe')
+    if status == 'error':
+        return False
+    safe = payload['update_safe']
+    if not safe:
+        logger.info('Locked schains: %s', payload['unsafe_chains'])
+    return safe
 
 
 @check_inited
@@ -176,7 +187,8 @@ def init_sync(
     env_filepath: str,
     archive: bool,
     catchup: bool,
-    historic_state: bool
+    historic_state: bool,
+    snapshot_from: str
 ) -> None:
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
@@ -187,7 +199,8 @@ def init_sync(
         env,
         archive,
         catchup,
-        historic_state
+        historic_state,
+        snapshot_from
     )
     if not inited_ok:
         error_exit(
@@ -206,7 +219,7 @@ def init_sync(
 
 @check_inited
 @check_user
-def update_sync(env_filepath):
+def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
@@ -220,6 +233,27 @@ def update_sync(env_filepath):
         return
     else:
         logger.info('Node update finished')
+
+
+@check_inited
+@check_user
+def repair_sync(
+    archive: bool,
+    catchup: bool,
+    historic_state: bool,
+    snapshot_from: str
+) -> None:
+
+    env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=True)
+    schain_name = env_params['SCHAIN_NAME']
+    repair_sync_op(
+        schain_name=schain_name,
+        archive=archive,
+        catchup=catchup,
+        historic_state=historic_state,
+        snapshot_from=snapshot_from
+    )
+    logger.info('Schain was started from scratch')
 
 
 def get_node_env(
@@ -259,7 +293,11 @@ def get_node_env(
 
 @check_inited
 @check_user
-def update(env_filepath, pull_config_for_schain):
+def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = False) -> None:
+    if not unsafe_ok and not is_update_safe():
+        error_msg = 'Cannot update safely'
+        error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
+
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(
@@ -388,7 +426,10 @@ def set_maintenance_mode_off():
 
 @check_inited
 @check_user
-def turn_off(maintenance_on):
+def turn_off(maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
+    if not unsafe_ok and not is_update_safe():
+        error_msg = 'Cannot turn off safely'
+        error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()
     turn_off_op()

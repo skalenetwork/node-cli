@@ -30,3 +30,4 @@ class CLIExitCodes(IntEnum):
     REVERT_ERROR = 6
     BAD_USER_ERROR = 7
     NODE_STATE_ERROR = 8
+    UNSAFE_UPDATE = 9
