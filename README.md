@@ -560,7 +560,6 @@ Options:
 
 -   `--archive` - Run sync node in an archive node (disable block rotation)
 -   `--historic-state` - Enable historic state (works only in pair with --archive flag)
--   `--catchup` - Add a flag to start sync node in catchup mode
 
 #### Sync node update
 

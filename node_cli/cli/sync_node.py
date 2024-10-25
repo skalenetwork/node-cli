@@ -54,11 +54,6 @@ def sync_node():
     is_flag=True
 )
 @click.option(
-    '--catchup',
-    help=TEXTS['init']['catchup'],
-    is_flag=True
-)
-@click.option(
     '--historic-state',
     help=TEXTS['init']['historic_state'],
     is_flag=True
@@ -71,13 +66,13 @@ def sync_node():
     help='Ip of the node from to download snapshot from'
 )
 @streamed_cmd
-def _init_sync(env_file, archive, catchup, historic_state, snapshot_from: Optional[str]):
+def _init_sync(env_file, archive, historic_state, snapshot_from: Optional[str]):
     if historic_state and not archive:
         error_exit(
             '--historic-state can be used only is combination with --archive',
             exit_code=CLIExitCodes.FAILURE
         )
-    init_sync(env_file, archive, catchup, historic_state, snapshot_from)
+    init_sync(env_file, archive, historic_state, snapshot_from)
 
 
 @sync_node.command('update', help='Update sync node from .env file')
@@ -107,11 +102,6 @@ def _update_sync(env_file, unsafe_ok):
     is_flag=True
 )
 @click.option(
-    '--catchup',
-    help=TEXTS['init']['catchup'],
-    is_flag=True
-)
-@click.option(
     '--historic-state',
     help=TEXTS['init']['historic_state'],
     is_flag=True
@@ -126,13 +116,11 @@ def _update_sync(env_file, unsafe_ok):
 @streamed_cmd
 def _repair_sync(
     archive: str,
-    catchup: str,
     historic_state: str,
     snapshot_from: Optional[str] = None
 ) -> None:
     repair_sync(
         archive=archive,
-        catchup=catchup,
         historic_state=historic_state,
         snapshot_from=snapshot_from
     )
