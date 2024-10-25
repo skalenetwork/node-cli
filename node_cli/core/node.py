@@ -186,7 +186,6 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
 def init_sync(
     env_filepath: str,
     archive: bool,
-    catchup: bool,
     historic_state: bool,
     snapshot_from: str
 ) -> None:
@@ -198,7 +197,6 @@ def init_sync(
         env_filepath,
         env,
         archive,
-        catchup,
         historic_state,
         snapshot_from
     )
@@ -239,7 +237,6 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
 @check_user
 def repair_sync(
     archive: bool,
-    catchup: bool,
     historic_state: bool,
     snapshot_from: str
 ) -> None:
@@ -249,7 +246,6 @@ def repair_sync(
     repair_sync_op(
         schain_name=schain_name,
         archive=archive,
-        catchup=catchup,
         historic_state=historic_state,
         snapshot_from=snapshot_from
     )

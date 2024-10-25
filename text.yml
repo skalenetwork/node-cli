@@ -65,7 +65,6 @@ sync_node:
     help: Initialize sync SKALE node
     archive: Run sync node in an archive node (disable block rotation)
     historic_state: Enable historic state (works only in pair with --archive flag)
-    catchup: Add a flag to start sync node in catchup mode
 
 lvmpy:
   help: Lvmpy commands
