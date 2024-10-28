@@ -187,7 +187,6 @@ def init_sync(
     env_filepath: str,
     env: dict,
     archive: bool,
-    catchup: bool,
     historic_state: bool,
     snapshot_from: Optional[str]
 ) -> bool:
@@ -208,7 +207,8 @@ def init_sync(
 
     node_options = NodeOptions()
     node_options.archive = archive
-    node_options.catchup = catchup
+    if archive:
+        node_options.catchup = True
     node_options.historic_state = historic_state
 
     ensure_filestorage_mapping()
@@ -352,7 +352,6 @@ def restore(env, backup_path, config_only=False):
 def repair_sync(
     schain_name: str,
     archive: bool,
-    catchup: bool,
     historic_state: bool,
     snapshot_from: Optional[str]
 ) -> None:
@@ -365,7 +364,8 @@ def repair_sync(
     logger.info('Updating node options')
     node_options = NodeOptions()
     node_options.archive = archive
-    node_options.catchup = catchup
+    if archive:
+        node_options.catchup = True
     node_options.historic_state = historic_state
 
     logger.info('Updating cli status')
