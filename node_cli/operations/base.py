@@ -207,8 +207,7 @@ def init_sync(
 
     node_options = NodeOptions()
     node_options.archive = archive
-    if archive:
-        node_options.catchup = True
+    node_options.catchup = archive
     node_options.historic_state = historic_state
 
     ensure_filestorage_mapping()
@@ -364,8 +363,7 @@ def repair_sync(
     logger.info('Updating node options')
     node_options = NodeOptions()
     node_options.archive = archive
-    if archive:
-        node_options.catchup = True
+    node_options.catchup = archive
     node_options.historic_state = historic_state
 
     logger.info('Updating cli status')
