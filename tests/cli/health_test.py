@@ -87,7 +87,8 @@ def test_sgx_status():
         'sgx_server_url': 'https://127.0.0.1:1026',
         'sgx_wallet_version': '1.50.1-stable.0',
         'sgx_keyname': 'test_keyname',
-        'status_name': 'CONNECTED'
+        'status_zmq': True,
+        'status_https': True
     }
     resp_mock = response_mock(
         requests.codes.ok,
@@ -97,4 +98,4 @@ def test_sgx_status():
         'node_cli.utils.helper.requests.get', resp_mock, sgx)
 
     assert result.exit_code == 0
-    assert result.output == '\x1b(0lqqqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqk\x1b(B\n\x1b(0x\x1b(B SGX info          \x1b(0x\x1b(B                        \x1b(0x\x1b(B\n\x1b(0tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqu\x1b(B\n\x1b(0x\x1b(B Server URL        \x1b(0x\x1b(B https://127.0.0.1:1026 \x1b(0x\x1b(B\n\x1b(0x\x1b(B SGXWallet Version \x1b(0x\x1b(B 1.50.1-stable.0        \x1b(0x\x1b(B\n\x1b(0x\x1b(B Node SGX keyname  \x1b(0x\x1b(B test_keyname           \x1b(0x\x1b(B\n\x1b(0x\x1b(B Status            \x1b(0x\x1b(B CONNECTED              \x1b(0x\x1b(B\n\x1b(0mqqqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqj\x1b(B\n'  # noqa
+    assert result.output == '\x1b(0lqqqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqk\x1b(B\n\x1b(0x\x1b(B SGX info          \x1b(0x\x1b(B                        \x1b(0x\x1b(B\n\x1b(0tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqu\x1b(B\n\x1b(0x\x1b(B Server URL        \x1b(0x\x1b(B https://127.0.0.1:1026 \x1b(0x\x1b(B\n\x1b(0x\x1b(B SGXWallet Version \x1b(0x\x1b(B 1.50.1-stable.0        \x1b(0x\x1b(B\n\x1b(0x\x1b(B Node SGX keyname  \x1b(0x\x1b(B test_keyname           \x1b(0x\x1b(B\n\x1b(0x\x1b(B Status HTTPS      \x1b(0x\x1b(B True                   \x1b(0x\x1b(B\n\x1b(0x\x1b(B Status ZMQ        \x1b(0x\x1b(B True                   \x1b(0x\x1b(B\n\x1b(0mqqqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqj\x1b(B\n'  # noqa

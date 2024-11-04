@@ -72,7 +72,8 @@ def get_sgx_info():
             ['Server URL', data['sgx_server_url']],
             ['SGXWallet Version', data['sgx_wallet_version']],
             ['Node SGX keyname', data['sgx_keyname']],
-            ['Status', data['status_name']]
+            ['Status HTTPS', data['status_https']],
+            ['Status ZMQ', data['status_zmq']]
         ]
         table = SingleTable(table_data)
         print(table.table)
