@@ -101,19 +101,21 @@ def print_schains(schains):
         'Deposit',
         'Generation',
         'Originator',
+        'Type',
     ]
     rows = []
     for schain in schains:
-        date = datetime.datetime.fromtimestamp(schain['startDate'])
+        date = datetime.datetime.fromtimestamp(schain['start_date'])
         rows.append([
             schain['name'],
-            schain['mainnetOwner'],
-            schain['partOfNode'],
+            schain['mainnet_owner'],
+            schain['part_of_node'],
             schain['lifetime'],
             format_date(date),
             schain['deposit'],
             schain['generation'],
             schain['originator'],
+            schain['options']['allocation_type']
         ])
     print(Formatter().table(headers, rows))
 
