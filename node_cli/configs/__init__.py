@@ -43,6 +43,7 @@ SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 SCHAIN_NODE_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
+NODE_CLI_STATUS_FILENAME = 'node_cli.status'
 NODE_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'node_config.json')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTAINER_CONFIG_TMP_PATH = os.path.join(SKALE_TMP_DIR, 'config')

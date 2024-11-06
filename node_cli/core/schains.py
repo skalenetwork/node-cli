@@ -1,7 +1,9 @@
+import glob
 import logging
 import os
 import pprint
 import shutil
+import time
 from pathlib import Path
 
 from typing import Dict, Optional
@@ -9,15 +11,16 @@ from typing import Dict, Optional
 from node_cli.configs import (
     ALLOCATION_FILEPATH,
     NODE_CONFIG_PATH,
-    SCHAIN_NODE_DATA_PATH
+    NODE_CLI_STATUS_FILENAME,
+    SCHAIN_NODE_DATA_PATH,
+    SCHAINS_MNT_DIR_SYNC
 )
 from node_cli.configs.env import get_env_config
 
 from node_cli.utils.helper import (
     get_request,
     error_exit,
-    safe_load_yml,
-    post_request
+    safe_load_yml
 )
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.print_formatters import (
@@ -27,7 +30,7 @@ from node_cli.utils.print_formatters import (
     print_schains
 )
 from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
-from node_cli.utils.helper import read_json, run_cmd
+from node_cli.utils.helper import read_json, run_cmd, save_json
 from lvmpy.src.core import mount, volume_mountpoint
 
 
@@ -89,22 +92,42 @@ def show_config(name: str) -> None:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
+def get_node_cli_schain_status_filepath(schain_name: str) -> str:
+    return os.path.join(SCHAIN_NODE_DATA_PATH, schain_name, NODE_CLI_STATUS_FILENAME)
+
+
+def update_node_cli_schain_status(
+    schain_name: str,
+    repair_ts: Optional[int] = None,
+    snapshot_from: Optional[str] = None
+) -> None:
+    path = get_node_cli_schain_status_filepath(schain_name)
+    if os.path.isdir(path):
+        orig_status = get_node_cli_schain_status(schain_name=schain_name)
+        orig_status.update({'repair_ts': repair_ts, 'snapshot_from': snapshot_from})
+        status = orig_status
+    else:
+        status = {
+            'schain_name': schain_name,
+            'repair_ts': repair_ts,
+            'snapshot_from': snapshot_from
+        }
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+    save_json(path, status)
+
+
+def get_node_cli_schain_status(schain_name: str) -> dict:
+    path = get_node_cli_schain_status_filepath(schain_name)
+    return read_json(path)
+
+
 def toggle_schain_repair_mode(
     schain: str,
     snapshot_from: Optional[str] = None
 ) -> None:
-    json_params = {'schain_name': schain}
-    if snapshot_from:
-        json_params.update({'snapshot_from': snapshot_from})
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME,
-        method='repair',
-        json=json_params
-    )
-    if status == 'ok':
-        print('Schain has been set for repair')
-    else:
-        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+    ts = int(time.time())
+    update_node_cli_schain_status(schain_name=schain, repair_ts=ts, snapshot_from=snapshot_from)
+    print('Schain has been set for repair')
 
 
 def describe(schain: str, raw=False) -> None:
@@ -164,6 +187,10 @@ def make_btrfs_snapshot(src: str, dst: str) -> None:
     run_cmd(['btrfs', 'subvolume', 'snapshot', src, dst])
 
 
+def rm_btrfs_subvolume(subvolume: str) -> None:
+    run_cmd(['btrfs', 'subvolume', 'delete', subvolume])
+
+
 def fillin_snapshot_folder(src_path: str, block_number: int) -> None:
     snapshots_dirname = 'snapshots'
     snapshot_folder_path = os.path.join(
@@ -220,3 +247,27 @@ def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
         ensure_volume(schain, size)
     else:
         logger.warning('Volume %s already exists', schain)
+
+
+def cleanup_sync_datadir(schain_name: str, base_path: str = SCHAINS_MNT_DIR_SYNC) -> None:
+    base_path = os.path.join(base_path, schain_name)
+    regular_folders_pattern = f'{base_path}/[!snapshots]*'
+    logger.info('Removing regular folders')
+    for filepath in glob.glob(regular_folders_pattern):
+        if os.path.isdir(filepath):
+            logger.debug('Removing recursively %s', filepath)
+            shutil.rmtree(filepath)
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+
+    logger.info('Removing subvolumes')
+    subvolumes_pattern = f'{base_path}/snapshots/*/*'
+    for filepath in glob.glob(subvolumes_pattern):
+        logger.debug('Deleting subvolume %s', filepath)
+        if os.path.isdir(filepath):
+            rm_btrfs_subvolume(filepath)
+        else:
+            os.remove(filepath)
+    logger.info('Cleaning up snapshots folder')
+    if os.path.isdir(base_path):
+        shutil.rmtree(base_path)

@@ -21,6 +21,7 @@ import io
 import itertools
 import os
 import logging
+from typing import Optional
 
 import docker
 from docker.client import DockerClient
@@ -39,6 +40,7 @@ from node_cli.configs import (
 
 logger = logging.getLogger(__name__)
 
+ADMIN_REMOVE_TIMEOUT = 60
 SCHAIN_REMOVE_TIMEOUT = 300
 IMA_REMOVE_TIMEOUT = 20
 TELEGRAF_REMOVE_TIMEOUT = 20
@@ -129,6 +131,54 @@ def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs)
     logger.info(f'Removing container: {container_name}, kwargs: {kwargs}')
     container.remove(**kwargs)
     logger.info(f'Container removed: {container_name}')
+
+
+def stop_container(
+    container_name: str,
+    timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
+    dclient: Optional[DockerClient] = None
+) -> None:
+    dc = dclient or docker_client()
+    container = dc.containers.get(container_name)
+    logger.info('Stopping container: %s, timeout: %s', container_name, timeout)
+    container.stop(timeout=timeout)
+
+
+def rm_container(
+    container_name: str,
+    timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
+    dclient: Optional[DockerClient] = None
+) -> None:
+    dc = dclient or docker_client()
+    container_names = [container.name for container in get_containers()]
+    if container_name in container_names:
+        container = dc.containers.get(container_name)
+        safe_rm(container)
+
+
+def start_container(
+    container_name: str,
+    dclient: Optional[DockerClient] = None
+) -> None:
+    dc = dclient or docker_client()
+    container = dc.containers.get(container_name)
+    logger.info('Starting container %s', container_name)
+    container.start()
+
+
+def start_admin(sync_node: bool = False, dclient: Optional[DockerClient] = None) -> None:
+    container_name = 'skale_sync_admin' if sync_node else 'skale_admin'
+    start_container(container_name=container_name, dclient=dclient)
+
+
+def stop_admin(sync_node: bool = False, dclient: Optional[DockerClient] = None) -> None:
+    container_name = 'skale_sync_admin' if sync_node else 'skale_admin'
+    stop_container(container_name=container_name, timeout=ADMIN_REMOVE_TIMEOUT, dclient=dclient)
+
+
+def remove_schain_container(schain_name: str, dclient: Optional[DockerClient] = None) -> None:
+    container_name = f'skale_schain_{schain_name}'
+    rm_container(container_name, timeout=SCHAIN_REMOVE_TIMEOUT, dclient=dclient)
 
 
 def backup_container_logs(

@@ -7,7 +7,7 @@ on:
       - develop
       - beta
       - stable
-      - v*.*.*
+      - 'v*.*.*'
 
 jobs:
   create_release:
