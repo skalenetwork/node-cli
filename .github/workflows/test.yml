@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: [3.11]
@@ -36,14 +36,14 @@ jobs:
       run: |
         flake8 .
 
-    - name: Build binary in Ubuntu 20.04 environment - normal
+    - name: Build binary in 22.04 environment - normal
       run: |
         scripts/build.sh test test normal
 
     - name: Check build - normal
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
 
-    - name: Build sync binary in Ubuntu 20.04 environment
+    - name: Build sync binary in Ubuntu 22.04 environment
       run: |
         scripts/build.sh test test sync
 
