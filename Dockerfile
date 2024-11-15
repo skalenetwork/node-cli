@@ -1,4 +1,4 @@
-FROM python:3.11-buster
+FROM python:3.11-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common
@@ -9,7 +9,12 @@ RUN apt-get install -y  \
                        libssl-dev \
                        libffi-dev \
                        swig \
-                       iptables
+                       iptables \
+                       nftables \ 
+                       python3-nftables \ 
+                       libxslt-dev \
+                       kmod
+
 
 RUN mkdir /app
 WORKDIR /app
@@ -17,6 +22,8 @@ WORKDIR /app
 COPY . .
 
 ENV PATH=/app/buildvenv/bin:$PATH
+ENV PYTHONPATH="{PYTHONPATH}:/usr/lib/python3/dist-packages"
+
 RUN python3.11 -m venv /app/buildvenv && \
     pip install --upgrade pip && \
     pip install wheel setuptools==63.2.0 && \

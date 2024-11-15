@@ -18,17 +18,12 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import socket
 import sys
 from pathlib import Path
 
-from node_cli.configs import (
-    IPTABLES_DIR,
-    IPTABLES_RULES_STATE_FILEPATH,
-    ENV,
-    DEFAULT_SSH_PORT
-)
-from node_cli.utils.helper import run_cmd
+from node_cli.configs import IPTABLES_DIR, IPTABLES_RULES_STATE_FILEPATH, ENV
+
+from node_cli.utils.helper import get_ssh_port, run_cmd
 
 
 logger = logging.getLogger(__name__)
@@ -135,14 +130,6 @@ def drop_all_udp(chain: iptc.Chain) -> None:
     r.target = t
     r.protocol = 'udp'
     ensure_rule(chain, r)
-
-
-def get_ssh_port(ssh_service_name='ssh'):
-    try:
-        return socket.getservbyname(ssh_service_name)
-    except OSError:
-        logger.exception('Cannot get ssh service port')
-        return DEFAULT_SSH_PORT
 
 
 def allow_ssh(chain: iptc.Chain) -> None:

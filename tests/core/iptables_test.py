@@ -2,7 +2,8 @@ import socket
 
 import mock
 
-from node_cli.core.iptables import allow_ssh, get_ssh_port
+from node_cli.core.iptables import allow_ssh
+from node_cli.utils.helper import get_ssh_port
 
 
 def test_get_ssh_port():
