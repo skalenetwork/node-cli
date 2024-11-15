@@ -1,10 +1,10 @@
 FROM python:3.11-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y software-properties-common
-RUN apt-get install -y  \
+RUN apt-get update && \
                        git \
                        build-essential \
+                       software-properties-common \
                        zlib1g-dev \
                        libssl-dev \
                        libffi-dev \
