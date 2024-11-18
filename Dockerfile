@@ -1,7 +1,7 @@
 FROM python:3.11-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && \
+RUN apt-get update && sudo apt install \
                        git \
                        build-essential \
                        software-properties-common \

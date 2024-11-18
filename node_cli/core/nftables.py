@@ -55,7 +55,7 @@ class NFTablesManager:
             return []
 
     def flush(self) -> None:
-        self.run_cmd('flush ruleset')
+        self.nft.cmd('flush ruleset')
 
     def chain_exists(self, chain_name: str) -> bool:
         return chain_name in self.get_chains()
