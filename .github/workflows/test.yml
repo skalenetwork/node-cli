@@ -1,9 +1,6 @@
 name: Test
 on: [push, pull_request]
 
-env:
-  PYTHONPATH: ${PYTHONPATH}:/usr/lib/python3/dist-packages/
-
 jobs:
   test:
     runs-on: ubuntu-22.04
@@ -62,6 +59,7 @@ jobs:
       run: |
         scripts/build.sh test test normal
 
-
     - name: Run tests
-      run: bash ./scripts/run_tests.sh
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:/usr/lib/python3/dist-packages/
+        bash ./scripts/run_tests.sh
