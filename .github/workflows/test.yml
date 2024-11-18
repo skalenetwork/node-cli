@@ -32,11 +32,15 @@ jobs:
         pip install -e .[dev]
         pip install --upgrade 'setuptools<45.0.0'
 
+    - name: Add nftables to PYTHONPATH
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:/usr/lib/python3/dist-packages/
+
     - name: Lint with flake8
       run: |
         flake8 .
 
-    - name: Build binary - sync
+    - name: Build binary - normal
       run: |
         mkdir -p ./dist
         docker build . -t node-cli-builder
