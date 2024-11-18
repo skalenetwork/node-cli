@@ -64,7 +64,6 @@ setup(
         "GitPython==3.1.41",
         "packaging==23.0",
         "python-debian==0.1.49",
-        "python-iptables==1.0.1",
         "PyYAML==6.0",
         "pyOpenSSL==22.0.0",
         "MarkupSafe==2.1.1",
