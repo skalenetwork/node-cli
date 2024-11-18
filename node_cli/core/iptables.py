@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 try:
     import iptc
-except (FileNotFoundError, AttributeError) as err:
+except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
     if "pytest" in sys.modules or ENV == 'dev':
         from collections import namedtuple  # hotfix for tests
         iptc = namedtuple('iptc', ['Chain', 'Rule'])
