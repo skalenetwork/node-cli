@@ -20,7 +20,7 @@ def find_version(*file_paths):
 
 extras_require = {
     'linter': [
-        "flake8==6.0.0",
+        "flake8==7.1.1",
         "isort>=4.2.15,<5.10.2",
     ],
     'dev': [
@@ -50,13 +50,13 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
-        "click==8.1.3",
+        "click==8.1.7",
         "PyInstaller==5.12.0",
-        "distro==1.4.0",
+        "distro==1.9.0",
         "docker==6.0.1",
         "texttable==1.6.7",
         "python-dateutil==2.8.2",
-        "Jinja2==3.1.2",
+        "Jinja2==3.1.4",
         "psutil==5.9.4",
         "python-dotenv==0.21.0",
         "terminaltables==3.1.10",
@@ -65,11 +65,11 @@ setup(
         "packaging==23.0",
         "python-debian==0.1.49",
         "PyYAML==6.0",
-        "pyOpenSSL==22.0.0",
+        "pyOpenSSL==24.2.1",
         "MarkupSafe==3.0.2",
         'Flask==2.3.3',
         'itsdangerous==2.1.2',
-        "cryptography==37.0.2",
+        "cryptography==42.0.4",
         "filelock==3.0.12",
         'sh==1.14.2',
         'python-crontab==2.6.0'
