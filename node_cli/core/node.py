@@ -7,7 +7,6 @@
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
 #
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -42,6 +41,7 @@ from node_cli.configs import (
     SKALE_STATE_DIR,
     TM_INIT_TIMEOUT
 )
+from node_cli.cli import __version__
 from node_cli.configs.env import get_env_config
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
@@ -67,6 +67,7 @@ from node_cli.utils.print_formatters import (
 )
 from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.helper import extract_env_params
+from node_cli.utils.meta import get_meta_info
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.decorators import (
@@ -74,6 +75,7 @@ from node_cli.utils.decorators import (
     check_inited,
     check_user
 )
+from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 
 
 logger = logging.getLogger(__name__)
@@ -303,6 +305,9 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
         sync_schains=False,
         pull_config_for_schain=pull_config_for_schain
     )
+    prev_version = get_meta_info()['version']
+    if __version__.startswith('2.6') and prev_version == '2.5.0':
+        migrate_2_6()
     update_ok = update_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
