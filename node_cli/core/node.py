@@ -222,6 +222,9 @@ def init_sync(
 @check_user
 def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
+    prev_version = get_meta_info()['version']
+    if __version__.startswith('2.6') and prev_version == '2.5.0':
+        migrate_2_6()
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
     update_ok = update_sync_op(env_filepath, env)
