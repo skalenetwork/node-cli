@@ -1,13 +1,23 @@
 import json
 import logging
+import sys
 from typing import Optional
 from dataclasses import dataclass
 
-import nftables
-
+from node_cli.configs import ENV
 from node_cli.utils.helper import get_ssh_port
 
 logger = logging.getLogger(__name__)
+
+
+try:
+    import nftables
+except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
+    if "pytest" in sys.modules or ENV == 'dev':
+        from collections import namedtuple  # hotfix for tests
+        iptc = namedtuple('nftables', ['Chain', 'Rule'])
+    else:
+        logger.error(f'Unable to import iptc due to an error {err}')
 
 
 @dataclass
@@ -24,11 +34,12 @@ class NFTablesError(Exception):
 
 
 class NFTablesManager:
-    def __init__(self, family: str = 'inet', table: str = 'filter', chain: str = 'INPUT') -> None:
+    def __init__(self, family: str = 'inet', table: str = 'filter', chain: str = 'input') -> None:
         self.nft = nftables.Nftables()
         self.nft.set_json_output(True)
         self.family = family
         self.table = table
+        self.chain = chain
 
     def execute_cmd(self, json_cmd: dict) -> None:
         try:
@@ -222,7 +233,7 @@ class NFTablesManager:
                             'rule': {
                                 'family': 'inet',
                                 'table': 'filter',
-                                'chain': 'INPUT',
+                                'chain': self.chain,
                                 'expr': expr,
                             }
                         }
@@ -239,18 +250,17 @@ class NFTablesManager:
             self.create_table_if_not_exists()
 
             base_chains_config = {
-                'INPUT': {'hook': 'input', 'policy': 'accept'},
-                'FORWARD': {'hook': 'forward', 'policy': 'drop'},
-                'OUTPUT': {'hook': 'output', 'policy': 'accept'},
+                self.chain: {'hook': 'input', 'policy': 'accept'},
+                'forward': {'hook': 'forward', 'policy': 'drop'},
+                'output': {'hook': 'output', 'policy': 'accept'},
             }
 
             for chain, config in base_chains_config.items():
                 self.create_chain_if_not_exists(
                     chain=chain, hook=config['hook'], policy=config['policy']
                 )
-            chain = 'INPUT'
 
-            self.add_connection_tracking_rule(chain)
+            self.add_connection_tracking_rule(self.chain)
 
             tcp_ports = [get_ssh_port(), 8080, 443, 53, 3009, 9100]
             for port in tcp_ports:
