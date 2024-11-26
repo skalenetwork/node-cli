@@ -34,7 +34,7 @@ class NFTablesError(Exception):
 
 
 class NFTablesManager:
-    def __init__(self, family: str = 'inet', table: str = 'filter', chain: str = 'input') -> None:
+    def __init__(self, family: str = 'ip', table: str = 'filter', chain: str = 'input') -> None:
         self.nft = nftables.Nftables()
         self.nft.set_json_output(True)
         self.family = family
@@ -83,7 +83,7 @@ class NFTablesManager:
                                 'family': self.family,
                                 'table': self.table,
                                 'name': chain,
-                                'type': 'filter',
+                                'type': self.table,
                                 'hook': hook,
                                 'priority': priority,
                                 'policy': policy,
@@ -231,8 +231,8 @@ class NFTablesManager:
                     {
                         'add': {
                             'rule': {
-                                'family': 'inet',
-                                'table': 'filter',
+                                'family': self.family,
+                                'table': self.table,
                                 'chain': self.chain,
                                 'expr': expr,
                             }
@@ -250,7 +250,7 @@ class NFTablesManager:
             self.create_table_if_not_exists()
 
             base_chains_config = {
-                self.chain: {'hook': 'input', 'policy': 'accept'},
+                'input': {'hook': 'input', 'policy': 'accept'},
                 'forward': {'hook': 'forward', 'policy': 'drop'},
                 'output': {'hook': 'output', 'policy': 'accept'},
             }
@@ -264,21 +264,21 @@ class NFTablesManager:
 
             tcp_ports = [get_ssh_port(), 8080, 443, 53, 3009, 9100]
             for port in tcp_ports:
-                self.add_rule_if_not_exists(Rule(chain=chain, protocol='tcp', port=port))
+                self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='tcp', port=port))
 
-            self.add_rule_if_not_exists(Rule(chain=chain, protocol='udp', port=53))
-            self.add_loopback_rule(chain=chain)
+            self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='udp', port=53))
+            self.add_loopback_rule(chain=self.chain)
 
             icmp_types = ['destination-unreachable', 'source-quench', 'time-exceeded']
             for icmp_type in icmp_types:
-                self.add_rule_if_not_exists(Rule(chain=chain, protocol='icmp', icmp_type=icmp_type))
+                self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
 
-            self.add_rule_if_not_exists(Rule(chain=chain, protocol='tcp', action='drop'))
-            self.add_rule_if_not_exists(Rule(chain=chain, protocol='udp', action='drop'))
+            self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='tcp', action='drop'))
+            self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='udp', action='drop'))
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
-            raise
+            raise NFTablesError(e)
 
 
 def configure_nftables() -> None:
