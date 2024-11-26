@@ -223,7 +223,7 @@ def init_sync(
 def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
     prev_version = get_meta_info()['version']
-    if __version__.startswith('2.6') and prev_version == '2.5.0':
+    if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     configure_firewall_rules()
     env = get_node_env(env_filepath, sync_node=True)
@@ -300,6 +300,9 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
         error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
+    prev_version = get_meta_info().version
+    if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
+        migrate_2_6()
     logger.info('Node update started')
     configure_firewall_rules()
     env = get_node_env(
@@ -308,9 +311,6 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
         sync_schains=False,
         pull_config_for_schain=pull_config_for_schain
     )
-    prev_version = get_meta_info()['version']
-    if __version__.startswith('2.6') and prev_version == '2.5.0':
-        migrate_2_6()
     update_ok = update_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
