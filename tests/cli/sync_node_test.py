@@ -22,6 +22,7 @@ import pathlib
 import mock
 import logging
 
+from node_cli.cli import __version__
 from node_cli.configs import SKALE_DIR, NODE_DATA_PATH
 from node_cli.core.node_options import NodeOptions
 from node_cli.cli.sync_node import _init_sync, _update_sync
@@ -46,6 +47,7 @@ def test_init_sync(mocked_g_config):
         result = run_command(_init_sync, ['./tests/test-env'])
 
         node_options = NodeOptions()
+        print(node_options)
         assert not node_options.archive
         assert not node_options.catchup
         assert not node_options.historic_state
@@ -110,6 +112,8 @@ def test_update_sync(mocked_g_config):
         'node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE
     ), mock.patch('node_cli.core.node.configure_firewall_rules'), mock.patch(
         'node_cli.utils.decorators.is_node_inited', return_value=True
+    ), mock.patch(
+        'node_cli.core.node.get_meta_info', return_value={'version': __version__}
     ):
         result = run_command(_update_sync, ['./tests/test-env', '--yes'])
         assert result.exit_code == 0
