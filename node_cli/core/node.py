@@ -174,6 +174,8 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
         logger.info('Adding BACKUP_RUN to env ...')
         env['BACKUP_RUN'] = 'True'  # should be str
 
+    configure_firewall_rules()
+
     restored_ok = restore_op(env, backup_path, config_only=config_only)
     if not restored_ok:
         error_exit(
