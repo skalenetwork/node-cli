@@ -34,7 +34,7 @@ class NFTablesError(Exception):
 
 
 class NFTablesManager:
-    def __init__(self, family: str = 'ip', table: str = 'filter', chain: str = 'input') -> None:
+    def __init__(self, family: str = 'inet', table: str = 'firewall', chain: str = 'input') -> None:
         self.nft = nftables.Nftables()
         self.nft.set_json_output(True)
         self.family = family
@@ -83,9 +83,9 @@ class NFTablesManager:
                                 'family': self.family,
                                 'table': self.table,
                                 'name': chain,
-                                'type': self.table,
+                                'type': 'filter',
                                 'hook': hook,
-                                'priority': priority,
+                                'prio': priority,
                                 'policy': policy,
                             }
                         }
@@ -93,7 +93,7 @@ class NFTablesManager:
                 ]
             }
             self.execute_cmd(cmd)
-            logger.info('Created new chain: %s', chain)
+            logger.info('Created new chain: %s %s', chain, cmd)
         else:
             logger.info('Chain already exists: %s', chain)
 
@@ -137,6 +137,44 @@ class NFTablesManager:
                 return True
         return False
 
+    def add_drop_rule_if_node_exists(self, protocol: str) -> None:
+        expr = [
+          {
+            "match": {
+              "op": "==",
+              "left": {
+                "payload": {
+                  "protocol": "ip",
+                  "field": "protocol"
+                }
+              },
+              "right": protocol
+            }
+          },
+          {'counter': None},
+          {"drop": None}
+        ]
+        if not self.rule_exists(self.chain, expr):
+            # cmd = {
+            #     'nftables': [
+            #         {
+            #             'add': {
+            #                 'rule': {
+            #                     'family': self.family,
+            #                     'table': self.table,
+            #                     'chain': self.chain,
+            #                     'expr': expr,
+            #                 }
+            #             }
+            #         }
+            #     ]
+            # }
+            # self.execute_cmd(cmd)
+            cmd = f'add rule {self.family} {self.table} {self.chain} ip protocol {protocol} counter drop'
+            logger.info('CMD %s', cmd)
+            self.nft.cmd(cmd)
+            logger.info('Added drop rule for %s', protocol)
+
     def add_rule_if_not_exists(self, rule: Rule) -> None:
         expr = []
 
@@ -162,6 +200,7 @@ class NFTablesManager:
                 }
             )
 
+        expr.append({'counter': None})
         expr.append({rule.action: None})
 
         if not self.rule_exists(rule.chain, expr):
@@ -197,6 +236,7 @@ class NFTablesManager:
                     'right': ['established', 'related'],
                 }
             },
+            {'counter': None},
             {'accept': None},
         ]
 
@@ -223,6 +263,7 @@ class NFTablesManager:
     def add_loopback_rule(self, chain) -> None:
         expr = [
             {'match': {'left': {'meta': {'key': 'iifname'}}, 'op': '==', 'right': 'lo'}},
+            {'counter': None},
             {'accept': None},
         ]
         if not self.rule_exists(chain, expr):
@@ -271,10 +312,16 @@ class NFTablesManager:
 
             icmp_types = ['destination-unreachable', 'source-quench', 'time-exceeded']
             for icmp_type in icmp_types:
-                self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
+                self.add_rule_if_not_exists(
+                    Rule(
+                        chain=self.chain,
+                        protocol='icmp',
+                        icmp_type=icmp_type
+                    )
+                )
 
-            self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='tcp', action='drop'))
-            self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='udp', action='drop'))
+            self.add_drop_rule_if_node_exists(protocol='tcp')
+            self.add_drop_rule_if_node_exists(protocol='udp')
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
