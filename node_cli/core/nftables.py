@@ -133,7 +133,12 @@ class NFTablesManager:
         existing_rules = self.get_rules(chain)
 
         for rule in existing_rules:
-            if rule.get('expr') == new_rule_expr:
+            expr = rule.get('expr')
+            for i, statement in enumerate(expr):
+                if 'counter' in statement:
+                    expr[i] = {'counter': None}
+            rule['counter'] = None
+            if expr == new_rule_expr:
                 return True
         return False
 
@@ -155,24 +160,21 @@ class NFTablesManager:
           {"drop": None}
         ]
         if not self.rule_exists(self.chain, expr):
-            # cmd = {
-            #     'nftables': [
-            #         {
-            #             'add': {
-            #                 'rule': {
-            #                     'family': self.family,
-            #                     'table': self.table,
-            #                     'chain': self.chain,
-            #                     'expr': expr,
-            #                 }
-            #             }
-            #         }
-            #     ]
-            # }
-            # self.execute_cmd(cmd)
-            cmd = f'add rule {self.family} {self.table} {self.chain} ip protocol {protocol} counter drop'
-            logger.info('CMD %s', cmd)
-            self.nft.cmd(cmd)
+            cmd = {
+                'nftables': [
+                    {
+                        'add': {
+                            'rule': {
+                                'family': self.family,
+                                'table': self.table,
+                                'chain': self.chain,
+                                'expr': expr,
+                            }
+                        }
+                    }
+                ]
+            }
+            self.execute_cmd(cmd)
             logger.info('Added drop rule for %s', protocol)
 
     def add_rule_if_not_exists(self, rule: Rule) -> None:
