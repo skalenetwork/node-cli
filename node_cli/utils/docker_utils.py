@@ -247,7 +247,7 @@ def compose_rm(env={}, sync_node: bool = False):
     compose_path = get_compose_path(sync_node)
     run_cmd(
         cmd=(
-            'docker-compose',
+            'docker compose',
             '-f', compose_path,
             'down',
             '-t', str(COMPOSE_SHUTDOWN_TIMEOUT),
@@ -261,7 +261,7 @@ def compose_pull(sync_node: bool = False):
     logger.info('Pulling compose containers')
     compose_path = get_compose_path(sync_node)
     run_cmd(
-        cmd=('docker-compose', '-f', compose_path, 'pull'),
+        cmd=('docker compose', '-f', compose_path, 'pull'),
         env={
             'SKALE_DIR': SKALE_DIR
         }
@@ -272,7 +272,7 @@ def compose_build(sync_node: bool = False):
     logger.info('Building compose containers')
     compose_path = get_compose_path(sync_node)
     run_cmd(
-        cmd=('docker-compose', '-f', compose_path, 'build'),
+        cmd=('docker compose', '-f', compose_path, 'build'),
         env={
             'SKALE_DIR': SKALE_DIR
         }
@@ -280,11 +280,11 @@ def compose_build(sync_node: bool = False):
 
 
 def get_up_compose_cmd(services):
-    return ('docker-compose', '-f', COMPOSE_PATH, 'up', '-d', *services)
+    return ('docker compose', '-f', COMPOSE_PATH, 'up', '-d', *services)
 
 
 def get_up_compose_sync_cmd():
-    return ('docker-compose', '-f', SYNC_COMPOSE_PATH, 'up', '-d')
+    return ('docker compose', '-f', SYNC_COMPOSE_PATH, 'up', '-d')
 
 
 def get_compose_path(sync_node: bool) -> str:

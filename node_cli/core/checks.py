@@ -415,26 +415,26 @@ class DockerChecker(BaseChecker):
 
     @preinstall
     def docker_compose(self) -> CheckResult:
-        name = 'docker-compose'
-        cmd = shutil.which('docker-compose')
+        name = 'docker'
+        cmd = shutil.which('docker')
         if cmd is None:
-            info = 'No such command: "docker-compose"'
+            info = 'No such command: "docker"'
             return self._failed(name=name, info=info)
 
         v_cmd_result = run_cmd(
-            ['docker-compose', '-v'],
+            ['docker compose', 'version'],
             check_code=False,
             separate_stderr=True
         )
         output = v_cmd_result.stdout.decode('utf-8').rstrip()
         if v_cmd_result.returncode != 0:
-            info = f'Checking docker-compose version failed with: {output}'
+            info = f'Checking docker compose version failed with: {output}'
             return self._failed(name=name, info=output)
 
         actual_version = output.split(',')[0].split()[-1].strip()
         expected_version = self.requirements['docker-compose']
 
-        info = f'Expected docker-compose version {expected_version}, actual {actual_version}'  # noqa
+        info = f'Expected docker compose version {expected_version}, actual {actual_version}'  # noqa
         if version_parse(actual_version) < version_parse(expected_version):
             return self._failed(name=name, info=info)
         else:
