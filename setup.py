@@ -66,7 +66,7 @@ setup(
         "python-debian==0.1.49",
         "python-iptables==1.0.1",
         "PyYAML==6.0",
-        "pyOpenSSL==22.0.0",
+        "pyOpenSSL==24.3.0",
         "MarkupSafe==2.1.1",
         'Flask==2.3.3',
         'itsdangerous==2.1.2',
