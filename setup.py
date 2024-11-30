@@ -57,7 +57,7 @@ setup(
         "texttable==1.6.7",
         "python-dateutil==2.8.2",
         "Jinja2==3.1.2",
-        "psutil==5.9.4",
+        "psutil==6.1.0",
         "python-dotenv==0.21.0",
         "terminaltables==3.1.10",
         "requests==2.28.1",
