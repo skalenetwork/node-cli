@@ -66,5 +66,4 @@ jobs:
 
     - name: Run nftables tests
       run: |
-        bash ./scripts/run_tests.sh
-        docker build . -t node-cli-tester && docker run --name tester --cap-add=NET_ADMIN --cap-add=NET_RAW --rm tester scripts/run_nftables_test.sh
+        scripts/run_nftables_test.sh
