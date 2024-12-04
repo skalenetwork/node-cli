@@ -422,7 +422,7 @@ class DockerChecker(BaseChecker):
             return self._failed(name=name, info=info)
 
         v_cmd_result = run_cmd(
-            ['docker compose', 'version'],
+            ['docker', 'compose', 'version'],
             check_code=False,
             separate_stderr=True
         )

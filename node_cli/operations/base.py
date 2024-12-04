@@ -140,7 +140,7 @@ def update(env_filepath: str, env: Dict) -> None:
         distro.id(),
         distro.version()
     )
-    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+    update_images(env=env)
     compose_up(env)
     return True
 
@@ -175,7 +175,7 @@ def init(env_filepath: str, env: dict) -> bool:
         distro.version()
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
-    update_images(env.get('CONTAINER_CONFIGS_DIR') != '')
+    update_images(env=env)
 
     compose_up(env)
     return True
@@ -231,7 +231,7 @@ def init_sync(
     if snapshot_from:
         update_node_cli_schain_status(schain_name, snapshot_from=snapshot_from)
 
-    update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
+    update_images(env=env, sync_node=True)
 
     compose_up(env, sync_node=True)
     return True
@@ -273,7 +273,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
         distro.id(),
         distro.version()
     )
-    update_images(env.get('CONTAINER_CONFIGS_DIR') != '', sync_node=True)
+    update_images(env=env, sync_node=True)
 
     compose_up(env, sync_node=True)
     return True

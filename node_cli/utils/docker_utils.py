@@ -33,7 +33,6 @@ from node_cli.configs import (
     SYNC_COMPOSE_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    SKALE_DIR,
     NGINX_CONTAINER_NAME
 )
 
@@ -247,7 +246,7 @@ def compose_rm(env={}, sync_node: bool = False):
     compose_path = get_compose_path(sync_node)
     run_cmd(
         cmd=(
-            'docker compose',
+            'docker', 'compose',
             '-f', compose_path,
             'down',
             '-t', str(COMPOSE_SHUTDOWN_TIMEOUT),
@@ -257,34 +256,30 @@ def compose_rm(env={}, sync_node: bool = False):
     logger.info('Compose containers removed')
 
 
-def compose_pull(sync_node: bool = False):
+def compose_pull(env: dict, sync_node: bool = False):
     logger.info('Pulling compose containers')
     compose_path = get_compose_path(sync_node)
     run_cmd(
-        cmd=('docker compose', '-f', compose_path, 'pull'),
-        env={
-            'SKALE_DIR': SKALE_DIR
-        }
+        cmd=('docker', 'compose', '-f', compose_path, 'pull'),
+        env=env
     )
 
 
-def compose_build(sync_node: bool = False):
+def compose_build(env: dict, sync_node: bool = False):
     logger.info('Building compose containers')
     compose_path = get_compose_path(sync_node)
     run_cmd(
-        cmd=('docker compose', '-f', compose_path, 'build'),
-        env={
-            'SKALE_DIR': SKALE_DIR
-        }
+        cmd=('docker', 'compose', '-f', compose_path, 'build'),
+        env=env
     )
 
 
 def get_up_compose_cmd(services):
-    return ('docker compose', '-f', COMPOSE_PATH, 'up', '-d', *services)
+    return ('docker', 'compose', '-f', COMPOSE_PATH, 'up', '-d', *services)
 
 
 def get_up_compose_sync_cmd():
-    return ('docker compose', '-f', SYNC_COMPOSE_PATH, 'up', '-d')
+    return ('docker', 'compose', '-f', SYNC_COMPOSE_PATH, 'up', '-d')
 
 
 def get_compose_path(sync_node: bool) -> str:
@@ -302,6 +297,7 @@ def compose_up(env, sync_node=False):
     if 'SGX_CERTIFICATES_DIR_NAME' not in env:
         env['SGX_CERTIFICATES_DIR_NAME'] = SGX_CERTIFICATES_DIR_NAME
 
+    logger.debug('Launching containers with env %s', env)
     run_cmd(cmd=get_up_compose_cmd(BASE_COMPOSE_SERVICES), env=env)
     if str_to_bool(env.get('MONITORING_CONTAINERS', 'False')):
         logger.info('Running monitoring containers')

@@ -287,7 +287,7 @@ class NFTablesManager:
         else:
             logger.info('Loopback rule already exists in chain %s', chain)
 
-    def setup_firewall(self) -> None:
+    def setup_firewall(self, enable_monitoring: bool = False) -> None:
         """Setup firewall rules"""
         try:
             self.create_table_if_not_exists()
@@ -306,6 +306,8 @@ class NFTablesManager:
             self.add_connection_tracking_rule(self.chain)
 
             tcp_ports = [get_ssh_port(), 8080, 443, 53, 3009, 9100]
+            if enable_monitoring:
+                tcp_ports.extend([8080, 9100])
             for port in tcp_ports:
                 self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='tcp', port=port))
 
@@ -330,7 +332,7 @@ class NFTablesManager:
             raise NFTablesError(e)
 
 
-def configure_nftables() -> None:
+def configure_nftables(enable_monitoring: bool = False) -> None:
     nft_mgr = NFTablesManager()
-    nft_mgr.setup_firewall()
+    nft_mgr.setup_firewall(enable_monitoring=enable_monitoring)
     logger.info('Firewall setup completed successfully')

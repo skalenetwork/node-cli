@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -ea
 
-# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-# PROJECT_DIR=$(dirname $DIR)
-# export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
 docker rm -f ncli-tester || true
 docker build . -t ncli-tester
 docker run \
