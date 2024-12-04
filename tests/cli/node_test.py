@@ -84,10 +84,7 @@ def test_register_node_with_error(resource_alloc, mocked_g_config):
             ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80', '-d', 'skale.test'],
         )
     assert result.exit_code == 3
-    assert (
-        result.output
-        == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'
-    )  # noqa
+    assert (result.output == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n')  # noqa
 
 
 def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
@@ -101,10 +98,7 @@ def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
             input='0.0.0.0\n',
         )
     assert result.exit_code == 0
-    assert (
-        result.output
-        == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'
-    )  # noqa
+    assert (result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n')  # noqa
 
 
 def test_register_node_with_default_port(resource_alloc, mocked_g_config):
@@ -118,10 +112,7 @@ def test_register_node_with_default_port(resource_alloc, mocked_g_config):
             input='0.0.0.0\n',
         )
     assert result.exit_code == 0
-    assert (
-        result.output
-        == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'
-    )  # noqa
+    assert (result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n')  # noqa
 
 
 def test_register_with_no_alloc(mocked_g_config):
@@ -134,10 +125,7 @@ def test_register_with_no_alloc(mocked_g_config):
         input='0.0.0.0\n',
     )
     assert result.exit_code == 8
-    assert (
-        result.output
-        == f"Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n"
-    )  # noqa
+    assert (result.output == f"Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n")  # noqa
 
 
 def test_node_info_node_info():
@@ -162,10 +150,7 @@ def test_node_info_node_info():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (
-        result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'
-    )  # noqa
+    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n')  # noqa
 
 
 def test_node_info_node_info_not_created():
@@ -215,10 +200,7 @@ def test_node_info_node_info_frozen():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (
-        result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'
-    )  # noqa
+    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n')  # noqa
 
 
 def test_node_info_node_info_left():
@@ -243,10 +225,7 @@ def test_node_info_node_info_left():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (
-        result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'
-    )  # noqa
+    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n')  # noqa
 
 
 def test_node_info_node_info_leaving():
@@ -271,10 +250,7 @@ def test_node_info_node_info_leaving():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (
-        result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'
-    )  # noqa
+    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n')  # noqa
 
 
 def test_node_info_node_info_in_maintenance():
@@ -299,10 +275,7 @@ def test_node_info_node_info_in_maintenance():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (
-        result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n'
-    )  # noqa
+    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n')  # noqa
 
 
 def test_node_signature():
@@ -460,10 +433,7 @@ def test_node_version(meta_file_v2):
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command(version)
         assert result.exit_code == 0
-        assert (
-            result.output
-            == '--------------------------------------------------\nVersion: 0.1.1\nConfig Stream: develop\nLvmpy stream: 1.1.2\n--------------------------------------------------\n'
-        )  # noqa
+        assert (result.output == '--------------------------------------------------\nVersion: 0.1.1\nConfig Stream: develop\nLvmpy stream: 1.1.2\n--------------------------------------------------\n')  # noqa
 
         result = run_command(version, ['--json'])
         assert result.exit_code == 0
