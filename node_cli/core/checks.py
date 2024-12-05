@@ -322,10 +322,6 @@ class PackageChecker(BaseChecker):
             return self._ok(name=package_name, info=info)
 
     @preinstall
-    def iptables_persistent(self) -> CheckResult:
-        return self._check_apt_package('iptables-persistent')
-
-    @preinstall
     def lvm2(self) -> CheckResult:
         return self._check_apt_package('lvm2')
 
