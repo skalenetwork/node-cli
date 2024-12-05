@@ -305,7 +305,7 @@ class NFTablesManager:
 
             self.add_connection_tracking_rule(self.chain)
 
-            tcp_ports = [get_ssh_port(), 8080, 443, 53, 3009, 9100]
+            tcp_ports = [get_ssh_port(), 53, 443, 3009]
             if enable_monitoring:
                 tcp_ports.extend([8080, 9100])
             for port in tcp_ports:
