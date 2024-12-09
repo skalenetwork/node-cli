@@ -146,7 +146,7 @@ def test_init_node(no_resource_file):  # todo: write new init node test
         'node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE
     ), mock.patch('node_cli.core.host.prepare_host'), mock.patch(
         'node_cli.core.host.init_data_dir'
-    ), mock.patch('node_cli.core.node.configure_firewall_rules'), mock.patch(
+    ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
         'node_cli.core.node.init_op'
     ), mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), mock.patch(
         'node_cli.utils.helper.post_request', resp_mock
@@ -163,7 +163,7 @@ def test_update_node(mocked_g_config, resource_file):
         'node_cli.core.node.update_op'
     ), mock.patch('node_cli.core.node.get_flask_secret_key'), mock.patch(
         'node_cli.core.node.save_env_params'
-    ), mock.patch('node_cli.core.node.configure_firewall_rules'), mock.patch(
+    ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
         'node_cli.core.host.prepare_host'
     ), mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), mock.patch(
         'node_cli.utils.helper.post_request', resp_mock

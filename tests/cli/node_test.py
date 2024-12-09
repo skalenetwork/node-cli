@@ -309,7 +309,7 @@ def test_restore(mocked_g_config):
     ), patch(
         'node_cli.core.node.get_meta_info',
         return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
-    ), patch('node_cli.core.node.configure_firewall_rules'):
+    ), patch('node_cli.operations.base.configure_nftables'):
         result = run_command(restore_node, [backup_path, './tests/test-env'])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
@@ -331,7 +331,7 @@ def test_restore_no_snapshot(mocked_g_config):
     ), patch(
         'node_cli.core.node.get_meta_info',
         return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
-    ), patch('node_cli.core.node.configure_firewall_rules'):
+    ), patch('node_cli.operations.base.configure_nftables'):
         result = run_command(restore_node, [backup_path, './tests/test-env', '--no-snapshot'])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa

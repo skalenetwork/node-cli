@@ -19,7 +19,7 @@
 
 import click
 
-from node_cli.core.nftables import configure_nftables
+from node_cli.core.node import configure_firewall_rules
 from node_cli.core.node import (
     get_node_signature,
     init,
@@ -245,7 +245,7 @@ def check(network):
               expose_value=False,
               prompt='Are you sure you want to reconfigure firewall rules?')
 def configure_firewall(monitoring):
-    configure_nftables(enable_monitoring=monitoring)
+    configure_firewall_rules(enable_monitoring=monitoring)
 
 
 @node.command(help='Show node version information')

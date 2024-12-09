@@ -28,6 +28,7 @@ from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_f
 
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
+from node_cli.core.nftables import configure_nftables
 from node_cli.core.node_options import NodeOptions
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
@@ -58,6 +59,7 @@ from node_cli.utils.docker_utils import (
 )
 from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
+from node_cli.utils.helper import str_to_bool
 
 
 logger = logging.getLogger(__name__)
@@ -104,11 +106,13 @@ def update(env_filepath: str, env: Dict) -> None:
     remove_dynamic_containers()
 
     sync_skale_node()
-
     ensure_btrfs_kernel_module_autoloaded()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
 
     backup_old_contracts()
     download_contracts(env)
@@ -152,6 +156,9 @@ def init(env_filepath: str, env: dict) -> bool:
     ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
 
     prepare_host(
         env_filepath,
@@ -197,6 +204,9 @@ def init_sync(
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
 
     prepare_host(
         env_filepath,
@@ -250,6 +260,9 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
+
     ensure_filestorage_mapping()
     backup_old_contracts()
     download_contracts(env)
@@ -297,6 +310,10 @@ def turn_on(env):
     )
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
+
     logger.info('Launching containers on the node...')
     compose_up(env)
 
@@ -314,8 +331,12 @@ def restore(env, backup_path, config_only=False):
         return False
 
     ensure_btrfs_kernel_module_autoloaded()
+
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
 
     link_env_file()
     lvmpy_install(env)

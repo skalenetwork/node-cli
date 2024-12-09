@@ -287,6 +287,16 @@ class NFTablesManager:
         else:
             logger.info('Loopback rule already exists in chain %s', chain)
 
+    def get_plain_ruleset(self) -> str:
+        self.nft.set_json_output(False)
+        try:
+            rc, output, error = self.nft.cmd('list ruleset')
+            if rc != 0:
+                raise NFTablesError(f'Failed to get ruleset: {error}')
+            return output
+        finally:
+            self.nft.set_json_output(True)
+
     def setup_firewall(self, enable_monitoring: bool = False) -> None:
         """Setup firewall rules"""
         try:
@@ -335,9 +345,12 @@ class NFTablesManager:
 def configure_nftables(enable_monitoring: bool = False) -> None:
     logger.info('Enabling nftables services')
     enable_nftables_service()
-    logger.info('Setting up firewall')
+    logger.info('Configuring firewall rules')
     nft_mgr = NFTablesManager()
     nft_mgr.setup_firewall(enable_monitoring=enable_monitoring)
+    logger.info('Firewall rules are configured')
+    ruleset = nft_mgr.get_plain_ruleset()
+    save_nftables_rules(ruleset)
     logger.info('Firewall setup completed successfully')
 
 
@@ -345,21 +358,8 @@ def enable_nftables_service() -> None:
     run_cmd(['systemctl', 'enable', 'nftables'])
 
 
-def get_plain_ruleset(nft: nftables.Nftables) -> str:
-    nft.set_json_output(False)
-    try:
-        rc, output, error = nft.cmd('list ruleset')
-        if rc != 0:
-            raise NFTablesError(f'Failed to get ruleset: {error}')
-        return output
-    finally:
-        nft.set_json_output(True)
-
-
-def save_nftables_rules(nft: Optional[nftables.Nftables] = None) -> None:
+def save_nftables_rules(ruleset: str) -> None:
     logger.info('Saving nftables rules')
-    nft = nft or nftables.Nftables()
-    ruleset = get_plain_ruleset(nft)
     content = '#!/usr/sbin/nft -f\n' + 'flush ruleset\n' + ruleset
     with open(NFTABLES_RULES_PATH, 'w') as f:
         f.write(content)

@@ -25,5 +25,6 @@ from node_cli.operations.base import (  # noqa
     turn_off as turn_off_op,
     turn_on as turn_on_op,
     restore as restore_op,
-    repair_sync as repair_sync_op
+    repair_sync as repair_sync_op,
+    configure_nftables as configure_firewall
 )

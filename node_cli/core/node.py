@@ -45,11 +45,11 @@ from node_cli.cli import __version__
 from node_cli.configs.env import get_env_config
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
-from node_cli.core.nftables import configure_nftables, save_nftables_rules
 from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
+    configure_firewall,
     update_op,
     init_op,
     turn_off_op,
@@ -69,7 +69,6 @@ from node_cli.utils.helper import (
     get_request,
     post_request,
     extract_env_params,
-    str_to_bool,
 )
 from node_cli.utils.meta import get_meta_info
 from node_cli.utils.texts import Texts
@@ -139,8 +138,6 @@ def init(env_filepath):
     if env is None:
         return
 
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
     inited_ok = init_op(env_filepath, env)
     if not inited_ok:
         error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
@@ -150,7 +147,6 @@ def init(env_filepath):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
-    save_nftables_rules()
     logger.info('Init procedure finished')
 
 
@@ -166,16 +162,12 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
         logger.info('Adding BACKUP_RUN to env ...')
         env['BACKUP_RUN'] = 'True'  # should be str
 
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
-
     restored_ok = restore_op(env, backup_path, config_only=config_only)
     if not restored_ok:
         error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
-    save_nftables_rules()
     print('Node is restored from backup')
 
 
@@ -183,12 +175,9 @@ def init_sync(env_filepath: str, archive: bool, historic_state: bool, snapshot_f
     env = get_node_env(env_filepath, sync_node=True)
     if env is None:
         return
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
     inited_ok = init_sync_op(env_filepath, env, archive, historic_state, snapshot_from)
     if not inited_ok:
         error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    save_nftables_rules()
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(sync_node=True):
@@ -204,11 +193,8 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     env = get_node_env(env_filepath, sync_node=True)
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
     update_ok = update_sync_op(env_filepath, env)
     if update_ok:
-        save_nftables_rules()
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
     alive = is_base_containers_alive(sync_node=True)
@@ -277,11 +263,8 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
         sync_schains=False,
         pull_config_for_schain=pull_config_for_schain,
     )
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
     update_ok = update_op(env_filepath, env)
     if update_ok:
-        save_nftables_rules()
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
     alive = is_base_containers_alive()
@@ -473,3 +456,7 @@ def run_checks(
     else:
         print('Node is not fully meet the requirements!')
         print_failed_requirements_checks(failed_checks)
+
+
+def configure_firewall_rules(enable_monitoring: bool = False) -> None:
+    configure_firewall(enable_monitoring=enable_monitoring)
