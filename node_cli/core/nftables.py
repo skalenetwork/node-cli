@@ -4,8 +4,8 @@ import sys
 from typing import Optional
 from dataclasses import dataclass
 
-from node_cli.configs import ENV
-from node_cli.utils.helper import get_ssh_port
+from node_cli.configs import ENV, NFTABLES_RULES_PATH
+from node_cli.utils.helper import get_ssh_port, run_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -333,6 +333,34 @@ class NFTablesManager:
 
 
 def configure_nftables(enable_monitoring: bool = False) -> None:
+    logger.info('Enabling nftables services')
+    enable_nftables_service()
+    logger.info('Setting up firewall')
     nft_mgr = NFTablesManager()
     nft_mgr.setup_firewall(enable_monitoring=enable_monitoring)
     logger.info('Firewall setup completed successfully')
+
+
+def enable_nftables_service() -> None:
+    run_cmd(['systemctl', 'enable', 'nftables'])
+
+
+def get_plain_ruleset(nft: nftables.Nftables) -> str:
+    nft.set_json_output(False)
+    try:
+        rc, output, error = nft.cmd('list ruleset')
+        if rc != 0:
+            raise NFTablesError(f'Failed to get ruleset: {error}')
+        return output
+    finally:
+        nft.set_json_output(True)
+
+
+def save_nftables_rules(nft: Optional[nftables.Nftables] = None) -> None:
+    logger.info('Saving nftables rules')
+    nft = nft or nftables.Nftables()
+    ruleset = get_plain_ruleset(nft)
+    content = '#!/usr/sbin/nft -f\n' + 'flush ruleset\n' + ruleset
+    with open(NFTABLES_RULES_PATH, 'w') as f:
+        f.write(content)
+    logger.info('Rules saved successfully to %s', NFTABLES_RULES_PATH)
