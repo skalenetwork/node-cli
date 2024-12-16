@@ -165,3 +165,4 @@ TELEGRAF_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'telegraf.conf')
 NODE_DOCKER_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'docker.json')
 
 NFTABLES_RULES_PATH = '/etc/nftables.conf'
+NFTABLES_CHAIN_FOLDER_PATH = '/etc/nft.conf.d/chains'

@@ -1,10 +1,11 @@
 import json
 import logging
+import os
 import sys
 from typing import Optional
 from dataclasses import dataclass
 
-from node_cli.configs import ENV, NFTABLES_RULES_PATH
+from node_cli.configs import ENV, NFTABLES_RULES_PATH, NFTABLES_CHAIN_FOLDER_PATH
 from node_cli.utils.helper import get_ssh_port, run_cmd
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class NFTablesError(Exception):
 
 
 class NFTablesManager:
-    def __init__(self, family: str = 'inet', table: str = 'firewall', chain: str = 'input') -> None:
+    def __init__(self, family: str = 'inet', table: str = 'firewall', chain: str = 'skale') -> None:
         self.nft = nftables.Nftables()
         self.nft.set_json_output(True)
         self.family = family
@@ -72,7 +73,7 @@ class NFTablesManager:
         return chain_name in self.get_chains()
 
     def create_chain_if_not_exists(
-        self, chain: str, hook: str, priority: int = 0, policy: str = 'accept'
+        self, chain: str, hook: str, priority: int = 1, policy: str = 'accept'
     ) -> None:
         if not self.chain_exists(chain):
             cmd = {
@@ -299,6 +300,8 @@ class NFTablesManager:
 
     def setup_firewall(self, enable_monitoring: bool = False) -> None:
         """Setup firewall rules"""
+
+        logger.info('Configuring firewall rules')
         try:
             self.create_table_if_not_exists()
 
@@ -306,6 +309,7 @@ class NFTablesManager:
                 'input': {'hook': 'input', 'policy': 'accept'},
                 'forward': {'hook': 'forward', 'policy': 'drop'},
                 'output': {'hook': 'output', 'policy': 'accept'},
+                'skale': {'hook': 'input', 'policy': 'accept'},
             }
 
             for chain, config in base_chains_config.items():
@@ -334,33 +338,37 @@ class NFTablesManager:
                     )
                 )
 
-            self.add_drop_rule_if_node_exists(protocol='tcp')
+            # self.add_drop_rule_if_node_exists(protocol='tcp')
             self.add_drop_rule_if_node_exists(protocol='udp')
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
             raise NFTablesError(e)
+        logger.info('Firewall rules are configured')
+
+
+def prepare_directories() -> None:
+    logger.info('Prepare directories for nftables')
+    os.makedirs(NFTABLES_CHAIN_FOLDER_PATH, exist_ok=True)
 
 
 def configure_nftables(enable_monitoring: bool = False) -> None:
-    logger.info('Enabling nftables services')
+    prepare_directories()
     enable_nftables_service()
-    logger.info('Configuring firewall rules')
     nft_mgr = NFTablesManager()
     nft_mgr.setup_firewall(enable_monitoring=enable_monitoring)
-    logger.info('Firewall rules are configured')
     ruleset = nft_mgr.get_plain_ruleset()
     save_nftables_rules(ruleset)
-    logger.info('Firewall setup completed successfully')
 
 
 def enable_nftables_service() -> None:
+    logger.info('Enabling nftables services')
     run_cmd(['systemctl', 'enable', 'nftables'])
 
 
 def save_nftables_rules(ruleset: str) -> None:
     logger.info('Saving nftables rules')
-    content = '#!/usr/sbin/nft -f\n' + 'flush ruleset\n' + ruleset
+    content = f'#!/usr/sbin/nft -f\nflush ruleset\n{ruleset}\ninclude "{NFTABLES_CHAIN_FOLDER_PATH}/*"'  # noqa
     with open(NFTABLES_RULES_PATH, 'w') as f:
         f.write(content)
     logger.info('Rules saved successfully to %s', NFTABLES_RULES_PATH)
