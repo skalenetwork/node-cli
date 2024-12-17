@@ -42,7 +42,7 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
 )
 from node_cli.cli import __version__
-from node_cli.configs.env import get_env_config
+from node_cli.configs.env import get_env_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
@@ -134,7 +134,7 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 
 @check_not_inited
 def init(env_filepath):
-    env = get_node_env(env_filepath)
+    env = compose_node_env(env_filepath)
     if env is None:
         return
 
@@ -152,7 +152,7 @@ def init(env_filepath):
 
 @check_not_inited
 def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
-    env = get_node_env(env_filepath)
+    env = compose_node_env(env_filepath)
     if env is None:
         return
     save_env_params(env_filepath)
@@ -172,7 +172,7 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
 
 
 def init_sync(env_filepath: str, archive: bool, historic_state: bool, snapshot_from: str) -> None:
-    env = get_node_env(env_filepath, sync_node=True)
+    env = compose_node_env(env_filepath, sync_node=True)
     if env is None:
         return
     inited_ok = init_sync_op(env_filepath, env, archive, historic_state, snapshot_from)
@@ -192,7 +192,7 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     prev_version = get_meta_info()['version']
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
-    env = get_node_env(env_filepath, sync_node=True)
+    env = compose_node_env(env_filepath, sync_node=True)
     update_ok = update_sync_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
@@ -219,12 +219,18 @@ def repair_sync(archive: bool, historic_state: bool, snapshot_from: str) -> None
     logger.info('Schain was started from scratch')
 
 
-def get_node_env(
-    env_filepath, inited_node=False, sync_schains=None, pull_config_for_schain=None, sync_node=False
+def compose_node_env(
+    env_filepath,
+    inited_node=False,
+    sync_schains=None,
+    pull_config_for_schain=None,
+    sync_node=False,
+    save: bool = True
 ):
     if env_filepath is not None:
         env_params = extract_env_params(env_filepath, sync_node=sync_node, raise_for_status=True)
-        save_env_params(env_filepath)
+        if save:
+            save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
 
@@ -257,7 +263,7 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     logger.info('Node update started')
-    env = get_node_env(
+    env = compose_node_env(
         env_filepath,
         inited_node=True,
         sync_schains=False,
@@ -375,13 +381,14 @@ def turn_off(maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()
-    turn_off_op()
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False)
+    turn_off_op(env=env)
 
 
 @check_inited
 @check_user
 def turn_on(maintenance_off, sync_schains, env_file):
-    env = get_node_env(env_file, inited_node=True, sync_schains=sync_schains)
+    env = compose_node_env(env_file, inited_node=True, sync_schains=sync_schains)
     turn_on_op(env)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)

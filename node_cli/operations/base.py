@@ -292,14 +292,14 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     return True
 
 
-def turn_off():
+def turn_off(env: dict) -> None:
     logger.info('Turning off the node...')
-    compose_rm()
+    compose_rm(env=env)
     remove_dynamic_containers()
     logger.info('Node was successfully turned off')
 
 
-def turn_on(env):
+def turn_on(env: dict) -> None:
     logger.info('Turning on the node...')
     update_meta(
         VERSION,

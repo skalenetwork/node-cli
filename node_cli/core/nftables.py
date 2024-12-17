@@ -6,7 +6,7 @@ from typing import Optional
 from dataclasses import dataclass
 
 from node_cli.configs import ENV, NFTABLES_RULES_PATH, NFTABLES_CHAIN_FOLDER_PATH
-from node_cli.utils.helper import get_ssh_port, run_cmd
+from node_cli.utils.helper import get_ssh_port, remove_between_brackets, run_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -288,15 +288,17 @@ class NFTablesManager:
         else:
             logger.info('Loopback rule already exists in chain %s', chain)
 
-    def get_plain_ruleset(self) -> str:
+    def get_base_ruleset(self) -> str:
         self.nft.set_json_output(False)
+        output = ''
         try:
             rc, output, error = self.nft.cmd('list ruleset')
             if rc != 0:
                 raise NFTablesError(f'Failed to get ruleset: {error}')
-            return output
         finally:
             self.nft.set_json_output(True)
+
+        return remove_between_brackets(text=output, pattern='skale-')
 
     def setup_firewall(self, enable_monitoring: bool = False) -> None:
         """Setup firewall rules"""
@@ -357,7 +359,7 @@ def configure_nftables(enable_monitoring: bool = False) -> None:
     enable_nftables_service()
     nft_mgr = NFTablesManager()
     nft_mgr.setup_firewall(enable_monitoring=enable_monitoring)
-    ruleset = nft_mgr.get_plain_ruleset()
+    ruleset = nft_mgr.get_base_ruleset()
     save_nftables_rules(ruleset)
 
 
