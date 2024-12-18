@@ -307,12 +307,7 @@ class NFTablesManager:
         try:
             self.create_table_if_not_exists()
 
-            base_chains_config = {
-                'input': {'hook': 'input', 'policy': 'accept'},
-                'forward': {'hook': 'forward', 'policy': 'drop'},
-                'output': {'hook': 'output', 'policy': 'accept'},
-                'skale': {'hook': 'input', 'policy': 'accept'},
-            }
+            base_chains_config = {'skale': {'hook': 'input', 'policy': 'accept'}}
 
             for chain, config in base_chains_config.items():
                 self.create_chain_if_not_exists(
@@ -347,6 +342,28 @@ class NFTablesManager:
             logger.error('Failed to setup firewall: %s', e)
             raise NFTablesError(e)
         logger.info('Firewall rules are configured')
+
+    def flush_chain(self, chain: str) -> None:
+        """Remove all rules from a specific chain"""
+        json_cmd = {
+            'nftables': [{
+                'flush': {
+                    'chain': {
+                        'family': self.family,
+                        'table': self.table,
+                        'name': chain
+                    }
+                }
+            }]
+        }
+
+        try:
+            rc, output, error = self.nft.json_cmd(json_cmd)
+            if rc != 0:
+                raise NFTablesError(f'Failed to flush chain: {error}')
+        except Exception as e:
+            logger.error(f'Failed to flush chain: {str(e)}')
+            raise NFTablesError('Flushing chain errored')
 
 
 def prepare_directories() -> None:

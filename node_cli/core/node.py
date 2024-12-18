@@ -260,6 +260,7 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
     prev_version = get_meta_info().version
+    logger.info('HERE %s %s', __version__, prev_version)
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     logger.info('Node update started')
