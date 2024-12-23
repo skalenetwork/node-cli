@@ -40,5 +40,4 @@ def test_migration(base_rules):
     migrate()
     res = run_cmd(['iptables', '-S'])
     output = res.stdout.decode('utf-8')
-    print(output)
     assert output == f'-P INPUT ACCEPT\n-P FORWARD ACCEPT\n-P OUTPUT ACCEPT\n-N {CUSTOM_CHAIN_NAME}\n-A {CUSTOM_CHAIN_NAME} -p tcp -m tcp --dport 2222 -j ACCEPT\n'  # noqa
