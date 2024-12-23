@@ -49,7 +49,7 @@ from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
-    configure_firewall,
+    configure_nftables,
     update_op,
     init_op,
     turn_off_op,
@@ -260,7 +260,6 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
     prev_version = get_meta_info().version
-    logger.info('HERE %s %s', __version__, prev_version)
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     logger.info('Node update started')
@@ -467,4 +466,4 @@ def run_checks(
 
 
 def configure_firewall_rules(enable_monitoring: bool = False) -> None:
-    configure_firewall(enable_monitoring=enable_monitoring)
+    configure_nftables(enable_monitoring=enable_monitoring)

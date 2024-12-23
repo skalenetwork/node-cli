@@ -425,6 +425,7 @@ def get_ssh_port(ssh_service_name='ssh'):
 
 
 def remove_between_brackets(text: str, pattern: str) -> str:
+    """ Remove all lines between brackets where the bracket line starts with the pattern """
     result = []
     skip = 0
     found_pattern = False

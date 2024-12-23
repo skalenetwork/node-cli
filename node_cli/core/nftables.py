@@ -18,7 +18,7 @@ except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
         from collections import namedtuple  # hotfix for tests
         iptc = namedtuple('nftables', ['Chain', 'Rule'])
     else:
-        logger.error(f'Unable to import iptc due to an error {err}')
+        logger.error(f'Unable to import nftables due to an error {err}')
 
 
 @dataclass
