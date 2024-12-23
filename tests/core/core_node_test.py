@@ -172,7 +172,7 @@ def test_update_node(mocked_g_config, resource_file):
     ), mock.patch(
         'node_cli.core.node.get_meta_info',
         return_value=CliMeta(
-            version='2.5.0', config_stream='3.0.2'
+            version='2.6.0', config_stream='3.0.2'
             )
     ):
         with mock.patch( 'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()):  # noqa
