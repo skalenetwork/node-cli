@@ -47,7 +47,6 @@ def test_init_sync(mocked_g_config):
         result = run_command(_init_sync, ['./tests/test-env'])
 
         node_options = NodeOptions()
-        print(node_options)
         assert not node_options.archive
         assert not node_options.catchup
         assert not node_options.historic_state
