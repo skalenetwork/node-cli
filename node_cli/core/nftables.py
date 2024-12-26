@@ -335,7 +335,6 @@ class NFTablesManager:
                     )
                 )
 
-            # self.add_drop_rule_if_node_exists(protocol='tcp')
             self.add_drop_rule_if_node_exists(protocol='udp')
 
         except Exception as e:
