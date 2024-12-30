@@ -346,9 +346,9 @@ def test_get_checks(requirements_data):
     disk = 'test-disk'
     checkers = get_all_checkers(disk, requirements_data)
     checks = get_checks(checkers)
-    assert len(checks) == 16
+    assert len(checks) == 15
     checks = get_checks(checkers, check_type=CheckType.PREINSTALL)
-    assert len(checks) == 14
+    assert len(checks) == 13
     checks = get_checks(checkers, check_type=CheckType.POSTINSTALL)
     assert len(checks) == 2
 
