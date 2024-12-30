@@ -335,6 +335,27 @@ def cleanup_unused_images(dclient=None, ignore=None):
     )
 
 
+def is_container_running(name: str, dclient: Optional[DockerClient] = None) -> bool:
+    dc = dclient or docker_client()
+    try:
+        container = dc.containers.get(name)
+        return container.status == 'running'
+    except docker.errors.NotFound:
+        return False
+
+
+def is_admin_running(dclient: Optional[DockerClient] = None) -> bool:
+    return is_container_running(name='skale_admin', dclient=dclient)
+
+
+def is_api_running(dclient: Optional[DockerClient] = None) -> bool:
+    return is_container_running(name='skale_api', dclient=dclient)
+
+
+def is_sync_admin_running(dclient: Optional[DockerClient] = None) -> bool:
+    return is_container_running(name='skale_sync_admin', dclient=dclient)
+
+
 def system_prune():
     logger.info('Removing dangling docker artifacts')
     cmd = ['docker', 'system', 'prune', '-f']

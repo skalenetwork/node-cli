@@ -74,6 +74,7 @@ from node_cli.utils.meta import get_meta_info
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.decorators import check_not_inited, check_inited, check_user
+from node_cli.utils.docker_utils import is_admin_running, is_api_running, is_sync_admin_running
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 
 
@@ -96,7 +97,11 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def is_update_safe() -> bool:
+def is_update_safe(sync_node: bool = False) -> bool:
+    if not sync_node and (not is_admin_running() or not is_api_running()):
+        return True
+    if sync_node and not is_sync_admin_running():
+        return True
     status, payload = get_request(BLUEPRINT_NAME, 'update-safe')
     if status == 'error':
         return False

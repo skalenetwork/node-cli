@@ -46,7 +46,6 @@ from tests.helper import (
     response_mock,
     run_command,
     run_command_mock,
-    safe_update_api_response,
     subprocess_run_mock,
 )
 from tests.resources_test import BIG_DISK_SIZE
@@ -368,8 +367,19 @@ def test_turn_off_maintenance_on(mocked_g_config):
     with mock.patch('subprocess.run', new=subprocess_run_mock), mock.patch(
         'node_cli.core.node.turn_off_op'
     ), mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+        result = run_command_mock(
+            'node_cli.utils.helper.requests.post',
+            resp_mock,
+            _turn_off,
+            ['--maintenance-on', '--yes'],
+        )
+        assert (
+            result.output
+            == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'
+        )  # noqa
+        assert result.exit_code == 0
         with mock.patch(
-            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
+            'node_cli.utils.docker_utils.is_container_running', return_value=True
         ):
             result = run_command_mock(
                 'node_cli.utils.helper.requests.post',
@@ -377,19 +387,8 @@ def test_turn_off_maintenance_on(mocked_g_config):
                 _turn_off,
                 ['--maintenance-on', '--yes'],
             )
-            assert (
-                result.output
-                == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'
-            )  # noqa
-            assert result.exit_code == 0
-        result = run_command_mock(
-            'node_cli.utils.helper.requests.post',
-            resp_mock,
-            _turn_off,
-            ['--maintenance-on', '--yes'],
-        )
-        assert 'Cannot turn off safely' in result.output
-        assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
+            assert 'Cannot turn off safely' in result.output
+            assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
 def test_turn_on_maintenance_off(mocked_g_config):

@@ -181,14 +181,32 @@ def test_update_node(mocked_g_config, resource_file):
 
 
 def test_is_update_safe():
-    assert not is_update_safe()
+    assert is_update_safe()
+    assert is_update_safe(sync_node=True)
+
+    with mock.patch('node_cli.core.node.is_admin_running', return_value=True):
+        with mock.patch('node_cli.core.node.is_api_running', return_value=True):
+            assert not is_update_safe()
+            assert is_update_safe(sync_node=True)
+
+    with mock.patch('node_cli.core.node.is_sync_admin_running', return_value=True):
+        assert is_update_safe()
+        assert not is_update_safe(sync_node=True)
+
+    with mock.patch('node_cli.utils.docker_utils.is_container_running', return_value=True):
+        with mock.patch(
+            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
+        ):
+            assert is_update_safe()
+
     with mock.patch('node_cli.utils.helper.requests.get', return_value=safe_update_api_response()):
         assert is_update_safe()
 
-    with mock.patch(
-        'node_cli.utils.helper.requests.get', return_value=safe_update_api_response(safe=False)
-    ):
-        assert not is_update_safe()
+    with mock.patch('node_cli.utils.docker_utils.is_container_running', return_value=True):
+        with mock.patch(
+            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response(safe=False)
+        ):
+            assert not is_update_safe()
 
 
 def test_repair_sync(tmp_sync_datadir, mocked_g_config, resource_file):
