@@ -98,7 +98,7 @@ class NodeStatuses(Enum):
 
 
 def is_update_safe(sync_node: bool = False) -> bool:
-    if not sync_node and (not is_admin_running() or not is_api_running()):
+    if not sync_node and (not is_admin_running() and not is_api_running()):
         return True
     if sync_node and not is_sync_admin_running():
         return True
