@@ -2,15 +2,12 @@
 
 import importlib.util
 
-libxtwrapper_path = importlib.util.find_spec('libxtwrapper').origin
-
 
 block_cipher = None
 
 a = Analysis(
     ['node_cli/main.py'],
     pathex=['.'],
-    binaries=[(libxtwrapper_path, '.')],
     datas=[
        ("./text.yml", "data"),
        ("./datafiles/skaled-ssl-test", "data/datafiles")
