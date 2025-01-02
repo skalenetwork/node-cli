@@ -19,8 +19,8 @@
 
 import click
 
+from node_cli.core.node import configure_firewall_rules
 from node_cli.core.node import (
-    configure_firewall_rules,
     get_node_signature,
     init,
     restore,
@@ -239,12 +239,13 @@ def check(network):
     run_checks(network)
 
 
-@node.command(help='Reconfigure iptables rules')
+@node.command(help='Reconfigure nftables rules')
+@click.option('--monitoring', is_flag=True)
 @click.option('--yes', is_flag=True, callback=abort_if_false,
               expose_value=False,
               prompt='Are you sure you want to reconfigure firewall rules?')
-def configure_firewall():
-    configure_firewall_rules()
+def configure_firewall(monitoring):
+    configure_firewall_rules(enable_monitoring=monitoring)
 
 
 @node.command(help='Show node version information')
