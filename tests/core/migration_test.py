@@ -1,6 +1,6 @@
 import pytest
 
-from node_cli.migrations.focal_to_jammy import migrate
+from node_cli.migrations.focal_to_jammy import migrate, NFTablesManager
 
 from node_cli.utils.helper import run_cmd
 
@@ -41,3 +41,5 @@ def test_migration(base_rules):
     res = run_cmd(['iptables', '-S'])
     output = res.stdout.decode('utf-8')
     assert output == f'-P INPUT ACCEPT\n-P FORWARD ACCEPT\n-P OUTPUT ACCEPT\n-N {CUSTOM_CHAIN_NAME}\n-A {CUSTOM_CHAIN_NAME} -p tcp -m tcp --dport 2222 -j ACCEPT\n'  # noqa
+    nft = NFTablesManager(family='ip', table='filter')
+    assert nft.get_rules(chain='INPUT') == []
