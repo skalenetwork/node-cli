@@ -112,12 +112,12 @@ def test_create_chain_if_not_exists(mock_exists, mock_execute, nft_manager):
 )
 @patch.object(NFTablesManager, 'execute_cmd')
 @patch.object(NFTablesManager, 'rule_exists')
-def test_add_rule_if_not_exists(mock_exists, mock_execute, nft_manager, rule_data):
+def test_add_rule(mock_exists, mock_execute, nft_manager, rule_data):
     """Test rule addition with different types"""
     mock_exists.return_value = False
 
     rule = Rule(**rule_data)
-    nft_manager.add_rule_if_not_exists(rule)
+    nft_manager.add_rule(rule)
     mock_execute.assert_called_once()
 
 
@@ -138,4 +138,4 @@ def test_invalid_protocol(nft_manager):
     """Test adding rule with invalid protocol"""
     rule = Rule(chain='INPUT', protocol='invalid', port=80)
     with pytest.raises(Exception):
-        nft_manager.add_rule_if_not_exists(rule)
+        nft_manager.add_rule(rule)
