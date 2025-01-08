@@ -124,7 +124,7 @@ def migrate() -> None:
     nft.cleanup_rules()
 
     # Logging rules after migration
-    res = run_cmd(['nftables', 'list', 'ruleset'])
+    res = run_cmd(['nft', 'list', 'ruleset'])
     plain_rules = res.stdout.decode('utf-8')
     logger.debug(plain_rules)
 
