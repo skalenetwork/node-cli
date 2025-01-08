@@ -288,7 +288,7 @@ class NFTablesManager:
                 'Rule already exists in chain %s: %s port %s', rule.chain, rule.protocol, rule.port
             )
 
-    def remove_rule_if_exists(self, rule: Rule) -> None:
+    def remove_rule(self, rule: Rule) -> None:
         expr = []
 
         if rule.protocol in ['tcp', 'udp']:
