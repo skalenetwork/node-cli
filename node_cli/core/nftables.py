@@ -30,6 +30,15 @@ from node_cli.utils.helper import get_ssh_port, remove_between_brackets, run_cmd
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class ServicePort:
+    DNS: int = 53
+    CADVISOR: int = 9100
+    EXPORTER: int = 8080
+    WATCHDOG: int = 3009
+    HTTPS: int = 443
+
+
 try:
     import nftables
 except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
@@ -424,13 +433,13 @@ class NFTablesManager:
 
             self.add_connection_tracking_rule(self.chain)
 
-            tcp_ports = [get_ssh_port(), 53, 443, 3009]
+            tcp_ports = [get_ssh_port(), ServicePort.DNS, ServicePort.HTTPS, ServicePort.WATCHDOG]
             if enable_monitoring:
-                tcp_ports.extend([8080, 9100])
+                tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
             for port in tcp_ports:
                 self.add_rule(Rule(chain=self.chain, protocol='tcp', port=port))
 
-            self.add_rule(Rule(chain=self.chain, protocol='udp', port=53))
+            self.add_rule(Rule(chain=self.chain, protocol='udp', port=ServicePort.DNS))
             self.add_loopback_rule(chain=self.chain)
 
             icmp_types = ['destination-unreachable', 'source-quench', 'time-exceeded']
@@ -450,14 +459,23 @@ class NFTablesManager:
             raise NFTablesError(e)
         logger.info('Firewall rules are configured')
 
-    def cleanup_rules(self):
+    def cleanup_rules(self, ssh: bool = False, dns: bool = False) -> None:
         """ Cleanups all node-cli generated rules """
         self.remove_drop_rule('tcp')
         self.remove_drop_rule('udp')
-        tcp_ports = [get_ssh_port(), 53, 443, 3009, 8080, 9100]
+        tcp_ports = [
+            ServicePort.HTTPS,
+            ServicePort.WATCHDOG,
+            ServicePort.EXPORTER,
+            ServicePort.CADVISOR,
+            ServicePort.DNS  # tcp is redundant, making sure it's removed
+        ]
+        if ssh:
+            tcp_ports.append(get_ssh_port())
         for port in tcp_ports:
             self.remove_rule(Rule(chain=self.chain, protocol='tcp', port=port))
-        self.remove_rule(Rule(chain=self.chain, protocol='udp', port=53))
+        if dns:
+            self.remove_rule(Rule(chain=self.chain, protocol='udp', port=ServicePort.DNS))
 
     def flush_chain(self, chain: str) -> None:
         """Remove all rules from a specific chain"""
