@@ -162,7 +162,7 @@ class NFTablesManager:
                 return True
         return False
 
-    def add_drop_rule_if_node_exists(self, protocol: str) -> None:
+    def add_drop_rule(self, protocol: str) -> None:
         expr = [
           {
             "match": {
@@ -197,7 +197,46 @@ class NFTablesManager:
             self.execute_cmd(cmd)
             logger.info('Added drop rule for %s', protocol)
 
-    def add_rule_if_not_exists(self, rule: Rule) -> None:
+    def remove_drop_rule(self, protocol: str) -> None:
+        expr = [
+            {
+                "match": {
+                    "op": "==",
+                    "left": {
+                        "payload": {
+                            "protocol": "ip",
+                            "field": "protocol"
+                        }
+                    },
+                    "right": protocol
+                }
+            },
+            {'counter': None},
+            {"drop": None}
+        ]
+
+        # Check if the drop rule exists before attempting to remove it
+        if self.rule_exists(self.chain, expr):
+            cmd = {
+                'nftables': [
+                    {
+                        'delete': {
+                            'rule': {
+                                'family': self.family,
+                                'table': self.table,
+                                'chain': self.chain,
+                                'expr': expr,
+                            }
+                        }
+                    }
+                ]
+            }
+            self.execute_cmd(cmd)
+            logger.info('Removed drop rule for %s', protocol)
+        else:
+            logger.info('Drop rule does not exist for %s', protocol)
+
+    def add_rule(self, rule: Rule) -> None:
         expr = []
 
         if rule.protocol in ['tcp', 'udp']:
@@ -247,6 +286,56 @@ class NFTablesManager:
         else:
             logger.info(
                 'Rule already exists in chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+            )
+
+    def remove_rule(self, rule: Rule) -> None:
+        expr = []
+
+        if rule.protocol in ['tcp', 'udp']:
+            if rule.port:
+                expr.append(
+                    {
+                        'match': {
+                            'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
+                            'op': '==',
+                            'right': rule.port,
+                        }
+                    }
+                )
+        elif rule.protocol == 'icmp' and rule.icmp_type:
+            expr.append(
+                {
+                    'match': {
+                        'left': {'payload': {'protocol': 'icmp', 'field': 'type'}},
+                        'op': '==',
+                        'right': rule.icmp_type,
+                    }
+                }
+            )
+
+        # Check if the rule exists before attempting to remove it
+        if self.rule_exists(rule.chain, expr):
+            cmd = {
+                'nftables': [
+                    {
+                        'delete': {
+                            'rule': {
+                                'family': self.family,
+                                'table': self.table,
+                                'chain': rule.chain,
+                                'expr': expr,
+                            }
+                        }
+                    }
+                ]
+            }
+            self.execute_cmd(cmd)
+            logger.info(
+                'Removed rule from chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+            )
+        else:
+            logger.info(
+                'Rule does not exist in chain %s: %s port %s', rule.chain, rule.protocol, rule.port
             )
 
     def add_connection_tracking_rule(self, chain: str) -> None:
@@ -339,14 +428,14 @@ class NFTablesManager:
             if enable_monitoring:
                 tcp_ports.extend([8080, 9100])
             for port in tcp_ports:
-                self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='tcp', port=port))
+                self.add_rule(Rule(chain=self.chain, protocol='tcp', port=port))
 
-            self.add_rule_if_not_exists(Rule(chain=self.chain, protocol='udp', port=53))
+            self.add_rule(Rule(chain=self.chain, protocol='udp', port=53))
             self.add_loopback_rule(chain=self.chain)
 
             icmp_types = ['destination-unreachable', 'source-quench', 'time-exceeded']
             for icmp_type in icmp_types:
-                self.add_rule_if_not_exists(
+                self.add_rule(
                     Rule(
                         chain=self.chain,
                         protocol='icmp',
@@ -354,12 +443,21 @@ class NFTablesManager:
                     )
                 )
 
-            self.add_drop_rule_if_node_exists(protocol='udp')
+            self.add_drop_rule(protocol='udp')
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
             raise NFTablesError(e)
         logger.info('Firewall rules are configured')
+
+    def cleanup_rules(self):
+        """ Cleanups all node-cli generated rules """
+        self.remove_drop_rule('tcp')
+        self.remove_drop_rule('udp')
+        tcp_ports = [get_ssh_port(), 53, 443, 3009, 8080, 9100]
+        for port in tcp_ports:
+            self.remove_rule(Rule(chain=self.chain, protocol='tcp', port=port))
+        self.remove_rule(Rule(chain=self.chain, protocol='udp', port=53))
 
     def flush_chain(self, chain: str) -> None:
         """Remove all rules from a specific chain"""
