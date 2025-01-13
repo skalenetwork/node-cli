@@ -39,6 +39,13 @@ class ServicePort:
     HTTPS: int = 443
 
 
+LEGACY_CHAIN = 'INPUT'
+CHAIN_PRIORITY = 1
+LEGACY_CHAIN_PRIORITY = 0
+HOOK = 'input'
+POLICY = 'accept'
+
+
 try:
     import nftables
 except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
@@ -101,7 +108,7 @@ class NFTablesManager:
         return chain_name in self.get_chains()
 
     def create_chain_if_not_exists(
-        self, chain: str, hook: str, priority: int = 1, policy: str = 'accept'
+        self, chain: str, hook: str, priority: int = CHAIN_PRIORITY, policy: str = POLICY
     ) -> None:
         if not self.chain_exists(chain):
             cmd = {
@@ -125,6 +132,33 @@ class NFTablesManager:
             logger.info('Created new chain: %s %s', chain, cmd)
         else:
             logger.info('Chain already exists: %s', chain)
+
+    def update_chain(
+        self, chain: str, hook: str, priority: int = CHAIN_PRIORITY, policy: str = POLICY
+    ) -> None:
+        """ Update specified chain if it exists. Otherwise do nothing """
+        if self.chain_exists(chain):
+            cmd = {
+                'nftables': [
+                    {
+                        'add': {
+                            'chain': {
+                                'family': self.family,
+                                'table': self.table,
+                                'name': chain,
+                                'type': 'filter',
+                                'hook': hook,
+                                'prio': priority,
+                                'policy': policy,
+                            }
+                        }
+                    }
+                ]
+            }
+            self.execute_cmd(cmd)
+            logger.info('Updated chain config: %s %s', chain, cmd)
+        else:
+            logger.info('Chain %s does not exist', chain)
 
     def table_exists(self) -> bool:
         try:
@@ -453,6 +487,8 @@ class NFTablesManager:
                 )
 
             self.add_drop_rule(protocol='udp')
+            # Make sure iptables legacy chain has default policy accept
+            self.update_chain(chain=LEGACY_CHAIN, hook=HOOK, priority=LEGACY_CHAIN_PRIORITY)
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
