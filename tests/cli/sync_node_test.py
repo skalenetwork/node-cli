@@ -22,10 +22,10 @@ import pathlib
 import mock
 import logging
 
-from node_cli.cli import __version__
 from node_cli.configs import SKALE_DIR, NODE_DATA_PATH
 from node_cli.core.node_options import NodeOptions
 from node_cli.cli.sync_node import _init_sync, _update_sync
+from node_cli.utils.meta import CliMeta
 from node_cli.utils.helper import init_default_logger
 
 from tests.helper import run_command, subprocess_run_mock
@@ -112,7 +112,8 @@ def test_update_sync(mocked_g_config):
     ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
         'node_cli.utils.decorators.is_node_inited', return_value=True
     ), mock.patch(
-        'node_cli.core.node.get_meta_info', return_value={'version': __version__}
+        'node_cli.core.node.get_meta_info',
+        return_value=CliMeta(version='2.6.0', config_stream='3.0.2')
     ):
         result = run_command(_update_sync, ['./tests/test-env', '--yes'])
         assert result.exit_code == 0
