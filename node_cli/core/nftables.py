@@ -74,6 +74,7 @@ class NFTablesManager:
     def __init__(self, family: str = 'inet', table: str = 'firewall', chain: str = 'skale') -> None:
         self.nft = nftables.Nftables()
         self.nft.set_json_output(True)
+        self.nft.set_stateless_output(True)
         self.family = family
         self.table = table
         self.chain = chain

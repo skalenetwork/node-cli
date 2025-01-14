@@ -18,6 +18,8 @@
 
 
 import logging
+import os
+import shutil
 
 from node_cli.core.nftables import LEGACY_CHAIN, POLICY, NFTablesManager
 from node_cli.utils.helper import run_cmd
@@ -111,6 +113,15 @@ def remove_old_iptables_rules() -> None:
     remove_icmp_rules()
 
 
+def remove_old_saved_rules() -> None:
+    logger.info('Removing saved on disk legacy rules')
+    rules_files = ['/etc/iptables/rules.v4', '/etc/iptables/rules.v6']
+    backup_files = ['/etc/iptables/.rules.v4', '/etc/iptables/.rules.v6']
+    for rules_filepath, backup_filepath in zip(rules_files, backup_files):
+        if os.path.isfile(rules_filepath):
+            shutil.move(rules_filepath, backup_filepath)
+
+
 def migrate() -> None:
     nft = NFTablesManager(family='ip', table='filter', chain=LEGACY_CHAIN)
     logger.info('Making sure legacy chain has default policy accept')
@@ -126,5 +137,7 @@ def migrate() -> None:
     res = run_cmd(['nft', 'list', 'ruleset'])
     plain_rules = res.stdout.decode('utf-8')
     logger.debug(plain_rules)
+
+    remove_old_saved_rules()
 
     logger.info('Migration from focal to jammy completed')
