@@ -37,6 +37,7 @@ def base_rules():
 
 
 def test_migration(base_rules):
+    res = run_cmd(['iptables', '-P', 'INPUT', 'DROP'])
     migrate()
     res = run_cmd(['iptables', '-S'])
     output = res.stdout.decode('utf-8')
