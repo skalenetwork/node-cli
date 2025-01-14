@@ -133,30 +133,12 @@ class NFTablesManager:
         else:
             logger.info('Chain already exists: %s', chain)
 
-    def update_chain(
-        self, chain: str, hook: str, priority: int = CHAIN_PRIORITY, policy: str = POLICY
-    ) -> None:
+    def update_chain_policy(self, chain: str, policy: str = POLICY) -> None:
         """ Update specified chain if it exists. Otherwise do nothing """
         if self.chain_exists(chain):
-            cmd = {
-                'nftables': [
-                    {
-                        'add': {
-                            'chain': {
-                                'family': self.family,
-                                'table': self.table,
-                                'name': chain,
-                                'type': 'filter',
-                                'hook': hook,
-                                'prio': priority,
-                                'policy': policy,
-                            }
-                        }
-                    }
-                ]
-            }
-            self.execute_cmd(cmd)
-            logger.info('Updated chain config: %s %s', chain, cmd)
+            cmd = ['nft', 'add', 'chain', self.family, self.table, chain, '{', 'policy', POLICY, ';', '}']
+            run_cmd(cmd)
+            logger.info('Updated chain policy: %s %s', chain, policy)
         else:
             logger.info('Chain %s does not exist', chain)
 
@@ -487,8 +469,8 @@ class NFTablesManager:
                 )
 
             self.add_drop_rule(protocol='udp')
-            # Make sure iptables legacy chain has default policy accept
-            self.update_chain(chain=LEGACY_CHAIN, hook=HOOK, priority=LEGACY_CHAIN_PRIORITY)
+            logger.info('Making sure legacy chain has default policy %s', POLICY)
+            self.update_chain_policy(chain=LEGACY_CHAIN, policy=POLICY)
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
