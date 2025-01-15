@@ -532,7 +532,7 @@ def enable_nftables_service() -> None:
 def save_nftables_rules(ruleset: str) -> None:
     logger.info('Saving nftables rules')
     content = (
-        f'#!/usr/sbin/nft -f\nflush ruleset\n{ruleset}\ninclude "{NFTABLES_CHAIN_FOLDER_PATH}/*"'
+        f'#!/usr/sbin/nft -f\nflush ruleset\n{ruleset}\ninclude "{NFTABLES_CHAIN_FOLDER_PATH}/*.conf"'  # noqa
     )
     with open(NFTABLES_RULES_PATH, 'w') as f:
         f.write(content)
