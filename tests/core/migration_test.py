@@ -43,4 +43,39 @@ def test_migration(base_rules):
     output = res.stdout.decode('utf-8')
     assert output == f'-P INPUT ACCEPT\n-P FORWARD ACCEPT\n-P OUTPUT ACCEPT\n-N {CUSTOM_CHAIN_NAME}\n-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT\n-A INPUT -p udp -m udp --dport 53 -j ACCEPT\n-A {CUSTOM_CHAIN_NAME} -p tcp -m tcp --dport 2222 -j ACCEPT\n'  # noqa
     nft = NFTablesManager(family='ip', table='filter')
-    assert nft.get_rules(chain='INPUT') == [{'family': 'ip', 'table': 'filter', 'chain': 'INPUT', 'handle': 5, 'expr': [{'match': {'op': '==', 'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}}, 'right': 22}}, {'counter': {'packets': 0, 'bytes': 0}}, {'accept': None}]}, {'family': 'ip', 'table': 'filter', 'chain': 'INPUT', 'handle': 9, 'expr': [{'match': {'op': '==', 'left': {'payload': {'protocol': 'udp', 'field': 'dport'}}, 'right': 53}}, {'counter': {'packets': 0, 'bytes': 0}}, {'accept': None}]}]  # noqa
+    assert nft.get_rules(chain='INPUT') == [
+        {
+            'family': 'ip',
+            'table': 'filter',
+            'chain': 'INPUT',
+            'handle': 5,
+            'expr': [
+                {
+                    'match': {
+                        'op': '==',
+                        'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                        'right': 22,
+                    }
+                },
+                {'counter': None},
+                {'accept': None},
+            ],
+        },
+        {
+            'family': 'ip',
+            'table': 'filter',
+            'chain': 'INPUT',
+            'handle': 9,
+            'expr': [
+                {
+                    'match': {
+                        'op': '==',
+                        'left': {'payload': {'protocol': 'udp', 'field': 'dport'}},
+                        'right': 53,
+                    }
+                },
+                {'counter': None},
+                {'accept': None},
+            ],
+        },
+    ]
