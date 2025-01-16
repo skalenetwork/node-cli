@@ -168,3 +168,4 @@ NFTABLES_RULES_PATH = '/etc/nftables.conf'
 NFTABLES_CHAIN_FOLDER_PATH = '/etc/nft.conf.d/chains'
 
 UFW_CONFIG_PATH = '/etc/default/ufw'
+UFW_IPV6_BEFORE_INPUT_CHAIN = 'ufw6-before-input'

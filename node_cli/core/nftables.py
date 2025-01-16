@@ -106,8 +106,8 @@ class NFTablesManager:
     def flush(self) -> None:
         self.nft.cmd('flush ruleset')
 
-    def chain_exists(self, chain_name: str) -> bool:
-        return chain_name in self.get_chains()
+    def chain_exists(self, chain: str) -> bool:
+        return chain in self.get_chains()
 
     def create_chain_if_not_exists(
         self, chain: str, hook: str, priority: int = CHAIN_PRIORITY, policy: str = POLICY
