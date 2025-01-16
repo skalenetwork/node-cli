@@ -34,7 +34,8 @@ from node_cli.configs import (
     SCHAINS_DATA_PATH, LOG_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH,
-    SKALE_RUN_DIR, SKALE_STATE_DIR, SKALE_TMP_DIR
+    SKALE_RUN_DIR, SKALE_STATE_DIR, SKALE_TMP_DIR,
+    UFW_CONFIG_PATH,
 )
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH
@@ -169,3 +170,13 @@ def validate_abi_files(json_result=False):
             print(json.dumps({'result': 'ok'}))
         else:
             print('All abi files are correct json files!')
+
+
+def is_ufw_ipv6_enabled() -> bool:
+    """Check if UFW is enabled and IPv6 is configured."""
+    if os.path.isfile(UFW_CONFIG_PATH):
+        with open(UFW_CONFIG_PATH, 'r') as file:
+            for line in file:
+                if line.startswith('IPV6='):
+                    return line.strip().split('=')[1].strip() == 'yes'
+    return False
