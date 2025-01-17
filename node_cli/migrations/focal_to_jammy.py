@@ -18,9 +18,11 @@
 
 
 import logging
+import os
+import shutil
 
-from node_cli.core.nftables import NFTablesManager
-from node_cli.utils.helper import get_ssh_port, run_cmd
+from node_cli.core.nftables import LEGACY_CHAIN, POLICY, NFTablesManager
+from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -39,18 +41,16 @@ ALLOWED_INCOMING_UDP_PORTS = [
     '53'  # dns
 ]
 
-IPTABLES_CHAIN = 'INPUT'
-
 
 class NFTablesCmdFailedError(Exception):
     pass
 
 
-def remove_tcp_rules(ssh_port: int) -> None:
+def remove_tcp_rules() -> None:
     tcp_rule_template = 'iptables -{} {} -p tcp -m tcp --dport {} -j ACCEPT'
-    for tcp_port in [*ALLOWED_INCOMING_TCP_PORTS, ssh_port]:
-        check_cmd = tcp_rule_template.format('C', IPTABLES_CHAIN, tcp_port).split(' ')
-        remove_cmd = tcp_rule_template.format('D', IPTABLES_CHAIN, tcp_port).split(' ')
+    for tcp_port in [*ALLOWED_INCOMING_TCP_PORTS]:
+        check_cmd = tcp_rule_template.format('C', LEGACY_CHAIN, tcp_port).split(' ')
+        remove_cmd = tcp_rule_template.format('D', LEGACY_CHAIN, tcp_port).split(' ')
         result = run_cmd(check_cmd, check_code=False)
         if result.returncode == 0:
             result = run_cmd(remove_cmd)
@@ -59,8 +59,8 @@ def remove_tcp_rules(ssh_port: int) -> None:
 def remove_udp_rules() -> None:
     udp_rule_template = 'iptables -{} {} -p udp -m udp --dport {} -j ACCEPT'
     for udp_port in [*ALLOWED_INCOMING_UDP_PORTS]:
-        check_cmd = udp_rule_template.format('C', IPTABLES_CHAIN, udp_port).split(' ')
-        remove_cmd = udp_rule_template.format('D', IPTABLES_CHAIN, udp_port).split(' ')
+        check_cmd = udp_rule_template.format('C', LEGACY_CHAIN, udp_port).split(' ')
+        remove_cmd = udp_rule_template.format('D', LEGACY_CHAIN, udp_port).split(' ')
         result = run_cmd(check_cmd, check_code=False)
         if result.returncode == 0:
             result = run_cmd(remove_cmd)
@@ -68,8 +68,8 @@ def remove_udp_rules() -> None:
 
 def remove_loopback_rules() -> None:
     loopback_rule_template = 'iptables -{} {} -i lo -j ACCEPT'
-    check_cmd = loopback_rule_template.format('C', IPTABLES_CHAIN).split(' ')
-    remove_cmd = loopback_rule_template.format('D', IPTABLES_CHAIN).split(' ')
+    check_cmd = loopback_rule_template.format('C', LEGACY_CHAIN).split(' ')
+    remove_cmd = loopback_rule_template.format('D', LEGACY_CHAIN).split(' ')
     result = run_cmd(check_cmd, check_code=False)
     if result.returncode == 0:
         result = run_cmd(remove_cmd)
@@ -78,8 +78,8 @@ def remove_loopback_rules() -> None:
 def remove_icmp_rules() -> None:
     icmp_rule_template = 'iptables -{} {} -p icmp -m icmp --icmp-type {} -j ACCEPT'
     for icmp_type in [3, 4, 11]:
-        check_cmd = icmp_rule_template.format('C', IPTABLES_CHAIN, icmp_type).split(' ')
-        remove_cmd = icmp_rule_template.format('D', IPTABLES_CHAIN, icmp_type).split(' ')
+        check_cmd = icmp_rule_template.format('C', LEGACY_CHAIN, icmp_type).split(' ')
+        remove_cmd = icmp_rule_template.format('D', LEGACY_CHAIN, icmp_type).split(' ')
         result = run_cmd(check_cmd, check_code=False)
         if result.returncode == 0:
             result = run_cmd(remove_cmd)
@@ -87,8 +87,8 @@ def remove_icmp_rules() -> None:
 
 def remove_conntrack_rules() -> None:
     track_rule_template = 'iptables -{} {} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT'
-    check_cmd = track_rule_template.format('C', IPTABLES_CHAIN).split(' ')
-    remove_cmd = track_rule_template.format('D', IPTABLES_CHAIN).split(' ')
+    check_cmd = track_rule_template.format('C', LEGACY_CHAIN).split(' ')
+    remove_cmd = track_rule_template.format('D', LEGACY_CHAIN).split(' ')
     result = run_cmd(check_cmd, check_code=False)
     if result.returncode == 0:
         result = run_cmd(remove_cmd)
@@ -98,34 +98,46 @@ def remove_drop_rules() -> None:
     drop_rule_template = 'iptables -{} {} -p {} -j DROP'
     protocols = ['tcp', 'udp']
     for proto in protocols:
-        check_cmd = drop_rule_template.format('C', IPTABLES_CHAIN, proto).split(' ')
-        remove_cmd = drop_rule_template.format('D', IPTABLES_CHAIN, proto).split(' ')
+        check_cmd = drop_rule_template.format('C', LEGACY_CHAIN, proto).split(' ')
+        remove_cmd = drop_rule_template.format('D', LEGACY_CHAIN, proto).split(' ')
         result = run_cmd(check_cmd, check_code=False)
         if result.returncode == 0:
             result = run_cmd(remove_cmd)
 
 
-def remove_old_iptables_rules(ssh_port: int) -> None:
+def remove_old_iptables_rules() -> None:
     remove_drop_rules()
     remove_conntrack_rules()
     remove_loopback_rules()
-    remove_udp_rules()
-    remove_tcp_rules(ssh_port)
+    remove_tcp_rules()
     remove_icmp_rules()
 
 
+def remove_old_saved_rules() -> None:
+    logger.info('Removing saved on disk legacy rules')
+    rules_files = ['/etc/iptables/rules.v4', '/etc/iptables/rules.v6']
+    backup_files = ['/etc/iptables/.rules.v4', '/etc/iptables/.rules.v6']
+    for rules_filepath, backup_filepath in zip(rules_files, backup_files):
+        if os.path.isfile(rules_filepath):
+            shutil.move(rules_filepath, backup_filepath)
+
+
 def migrate() -> None:
-    ssh_port = get_ssh_port()
+    nft = NFTablesManager(family='ip', table='filter', chain=LEGACY_CHAIN)
+    logger.info('Making sure legacy chain has default policy accept')
+    nft.update_chain_policy(chain=LEGACY_CHAIN, policy=POLICY)
+
     logger.info('Running migration from focal to jammy')
-    remove_old_iptables_rules(ssh_port)
+    remove_old_iptables_rules()
 
     logger.info('Flushing nftables rules generated by release upgrade')
-    nft = NFTablesManager(family='ip', table='filter')
-    nft.cleanup_rules()
+    nft.cleanup_rules(ssh=False, dns=False)
 
     # Logging rules after migration
     res = run_cmd(['nft', 'list', 'ruleset'])
     plain_rules = res.stdout.decode('utf-8')
     logger.debug(plain_rules)
+
+    remove_old_saved_rules()
 
     logger.info('Migration from focal to jammy completed')

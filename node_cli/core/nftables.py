@@ -30,11 +30,28 @@ from node_cli.utils.helper import get_ssh_port, remove_between_brackets, run_cmd
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class ServicePort:
+    DNS: int = 53
+    CADVISOR: int = 9100
+    EXPORTER: int = 8080
+    WATCHDOG: int = 3009
+    HTTPS: int = 443
+
+
+LEGACY_CHAIN = 'INPUT'
+CHAIN_PRIORITY = 1
+LEGACY_CHAIN_PRIORITY = 0
+HOOK = 'input'
+POLICY = 'accept'
+
+
 try:
     import nftables
 except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
-    if "pytest" in sys.modules or ENV == 'dev':
+    if 'pytest' in sys.modules or ENV == 'dev':
         from collections import namedtuple  # hotfix for tests
+
         iptc = namedtuple('nftables', ['Chain', 'Rule'])
     else:
         logger.error(f'Unable to import nftables due to an error {err}')
@@ -57,6 +74,7 @@ class NFTablesManager:
     def __init__(self, family: str = 'inet', table: str = 'firewall', chain: str = 'skale') -> None:
         self.nft = nftables.Nftables()
         self.nft.set_json_output(True)
+        self.nft.set_stateless_output(True)
         self.family = family
         self.table = table
         self.chain = chain
@@ -92,7 +110,7 @@ class NFTablesManager:
         return chain_name in self.get_chains()
 
     def create_chain_if_not_exists(
-        self, chain: str, hook: str, priority: int = 1, policy: str = 'accept'
+        self, chain: str, hook: str, priority: int = CHAIN_PRIORITY, policy: str = POLICY
     ) -> None:
         if not self.chain_exists(chain):
             cmd = {
@@ -116,6 +134,27 @@ class NFTablesManager:
             logger.info('Created new chain: %s %s', chain, cmd)
         else:
             logger.info('Chain already exists: %s', chain)
+
+    def update_chain_policy(self, chain: str, policy: str = POLICY) -> None:
+        """Update specified chain if it exists. Otherwise do nothing"""
+        if self.chain_exists(chain):
+            cmd = [
+                'nft',
+                'add',
+                'chain',
+                self.family,
+                self.table,
+                chain,
+                '{',
+                'policy',
+                POLICY,
+                ';',
+                '}',
+            ]
+            run_cmd(cmd)
+            logger.info('Updated chain policy: %s %s', chain, policy)
+        else:
+            logger.info('Chain %s does not exist', chain)
 
     def table_exists(self) -> bool:
         try:
@@ -164,20 +203,15 @@ class NFTablesManager:
 
     def add_drop_rule(self, protocol: str) -> None:
         expr = [
-          {
-            "match": {
-              "op": "==",
-              "left": {
-                "payload": {
-                  "protocol": "ip",
-                  "field": "protocol"
+            {
+                'match': {
+                    'op': '==',
+                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
+                    'right': protocol,
                 }
-              },
-              "right": protocol
-            }
-          },
-          {'counter': None},
-          {"drop": None}
+            },
+            {'counter': None},
+            {'drop': None},
         ]
         if not self.rule_exists(self.chain, expr):
             cmd = {
@@ -200,19 +234,14 @@ class NFTablesManager:
     def remove_drop_rule(self, protocol: str) -> None:
         expr = [
             {
-                "match": {
-                    "op": "==",
-                    "left": {
-                        "payload": {
-                            "protocol": "ip",
-                            "field": "protocol"
-                        }
-                    },
-                    "right": protocol
+                'match': {
+                    'op': '==',
+                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
+                    'right': protocol,
                 }
             },
             {'counter': None},
-            {"drop": None}
+            {'drop': None},
         ]
 
         # Check if the drop rule exists before attempting to remove it
@@ -424,53 +453,52 @@ class NFTablesManager:
 
             self.add_connection_tracking_rule(self.chain)
 
-            tcp_ports = [get_ssh_port(), 53, 443, 3009]
+            tcp_ports = [get_ssh_port(), ServicePort.DNS, ServicePort.HTTPS, ServicePort.WATCHDOG]
             if enable_monitoring:
-                tcp_ports.extend([8080, 9100])
+                tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
             for port in tcp_ports:
                 self.add_rule(Rule(chain=self.chain, protocol='tcp', port=port))
 
-            self.add_rule(Rule(chain=self.chain, protocol='udp', port=53))
+            self.add_rule(Rule(chain=self.chain, protocol='udp', port=ServicePort.DNS))
             self.add_loopback_rule(chain=self.chain)
 
             icmp_types = ['destination-unreachable', 'source-quench', 'time-exceeded']
             for icmp_type in icmp_types:
-                self.add_rule(
-                    Rule(
-                        chain=self.chain,
-                        protocol='icmp',
-                        icmp_type=icmp_type
-                    )
-                )
+                self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
 
             self.add_drop_rule(protocol='udp')
+            logger.info('Making sure legacy chain has default policy %s', POLICY)
+            self.update_chain_policy(chain=LEGACY_CHAIN, policy=POLICY)
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
             raise NFTablesError(e)
         logger.info('Firewall rules are configured')
 
-    def cleanup_rules(self):
-        """ Cleanups all node-cli generated rules """
+    def cleanup_rules(self, ssh: bool = False, dns: bool = False) -> None:
+        """Cleanups all node-cli generated rules"""
         self.remove_drop_rule('tcp')
         self.remove_drop_rule('udp')
-        tcp_ports = [get_ssh_port(), 53, 443, 3009, 8080, 9100]
+        tcp_ports = [
+            ServicePort.HTTPS,
+            ServicePort.WATCHDOG,
+            ServicePort.EXPORTER,
+            ServicePort.CADVISOR,
+            ServicePort.DNS,  # tcp is redundant, making sure it's removed
+        ]
+        if ssh:
+            tcp_ports.append(get_ssh_port())
         for port in tcp_ports:
             self.remove_rule(Rule(chain=self.chain, protocol='tcp', port=port))
-        self.remove_rule(Rule(chain=self.chain, protocol='udp', port=53))
+        if dns:
+            self.remove_rule(Rule(chain=self.chain, protocol='udp', port=ServicePort.DNS))
 
     def flush_chain(self, chain: str) -> None:
         """Remove all rules from a specific chain"""
         json_cmd = {
-            'nftables': [{
-                'flush': {
-                    'chain': {
-                        'family': self.family,
-                        'table': self.table,
-                        'name': chain
-                    }
-                }
-            }]
+            'nftables': [
+                {'flush': {'chain': {'family': self.family, 'table': self.table, 'name': chain}}}
+            ]
         }
 
         try:
@@ -503,7 +531,9 @@ def enable_nftables_service() -> None:
 
 def save_nftables_rules(ruleset: str) -> None:
     logger.info('Saving nftables rules')
-    content = f'#!/usr/sbin/nft -f\nflush ruleset\n{ruleset}\ninclude "{NFTABLES_CHAIN_FOLDER_PATH}/*"'  # noqa
+    content = (
+        f'#!/usr/sbin/nft -f\nflush ruleset\n{ruleset}\ninclude "{NFTABLES_CHAIN_FOLDER_PATH}/*.conf"'  # noqa
+    )
     with open(NFTABLES_RULES_PATH, 'w') as f:
         f.write(content)
     logger.info('Rules saved successfully to %s', NFTABLES_RULES_PATH)

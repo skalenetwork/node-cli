@@ -194,7 +194,7 @@ def init_sync(env_filepath: str, archive: bool, historic_state: bool, snapshot_f
 @check_user
 def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
-    prev_version = get_meta_info()['version']
+    prev_version = get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     env = compose_node_env(env_filepath, sync_node=True)
