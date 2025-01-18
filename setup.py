@@ -65,7 +65,7 @@ setup(
         "packaging==23.0",
         "python-debian==0.1.49",
         "PyYAML==6.0",
-        "pyOpenSSL==24.2.1",
+        "pyOpenSSL==25.0.0",
         "MarkupSafe==3.0.2",
         'Flask==2.3.3',
         'itsdangerous==2.1.2',
