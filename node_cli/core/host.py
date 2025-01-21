@@ -34,13 +34,15 @@ from node_cli.configs import (
     SCHAINS_DATA_PATH, LOG_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     IMA_CONTRACTS_FILEPATH, MANAGER_CONTRACTS_FILEPATH,
-    SKALE_RUN_DIR, SKALE_STATE_DIR, SKALE_TMP_DIR
+    SKALE_RUN_DIR, SKALE_STATE_DIR, SKALE_TMP_DIR,
+    UFW_CONFIG_PATH, UFW_IPV6_BEFORE_INPUT_CHAIN
 )
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH
 )
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
+from node_cli.core.nftables import NFTablesManager
 from node_cli.utils.helper import safe_mkdir
 from node_cli.utils.print_formatters import print_abi_validation_errors
 
@@ -169,3 +171,18 @@ def validate_abi_files(json_result=False):
             print(json.dumps({'result': 'ok'}))
         else:
             print('All abi files are correct json files!')
+
+
+def is_ufw_ipv6_option_enabled() -> bool:
+    """Check if UFW is enabled and IPv6 is configured."""
+    if os.path.isfile(UFW_CONFIG_PATH):
+        with open(UFW_CONFIG_PATH, 'r') as file:
+            for line in file:
+                if line.startswith('IPV6='):
+                    return line.strip().split('=')[1].strip() == 'yes'
+    return False
+
+
+def is_ufw_ipv6_chain_exists() -> bool:
+    nft_manager = NFTablesManager(family='ip6', table='filter')
+    return nft_manager.chain_exists(chain=UFW_IPV6_BEFORE_INPUT_CHAIN)
