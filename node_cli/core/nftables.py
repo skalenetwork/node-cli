@@ -529,7 +529,6 @@ def configure_nftables(enable_monitoring: bool = False) -> None:
     nft_mgr = NFTablesManager()
     nft_mgr.setup_firewall(enable_monitoring=enable_monitoring)
     ruleset = nft_mgr.get_base_ruleset()
-    logger.info('HERE output %s', ruleset)
     save_nftables_rules(ruleset)
 
 
