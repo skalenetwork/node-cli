@@ -422,28 +422,3 @@ def get_ssh_port(ssh_service_name='ssh'):
     except OSError:
         logger.exception('Cannot get ssh service port')
         return DEFAULT_SSH_PORT
-
-
-def remove_between_brackets(text: str, pattern: str) -> str:
-    """ Remove all lines between brackets where the bracket line starts with the pattern """
-    result = []
-    skip = 0
-    found_pattern = False
-
-    lines = text.split('\n')
-    for line in lines:
-        if pattern in line:
-            found_pattern = True
-
-        if found_pattern:
-            if '{' in line:
-                skip += line.count('{')
-            if '}' in line:
-                skip -= line.count('}')
-            if skip == 0:
-                found_pattern = False
-                continue
-        else:
-            result.append(line)
-
-    return '\n'.join(result)
