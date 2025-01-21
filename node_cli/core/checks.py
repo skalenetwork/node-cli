@@ -349,7 +349,7 @@ class PackageChecker(BaseChecker):
         elif is_ufw_ipv6_chain_exists():
             return self._failed(
                 name=name,
-                info='ufw should be reloaded to switch of ipv6'
+                info='ufw should be reloaded to switch off ipv6'
             )
         else:
             return self._ok(name=name)
