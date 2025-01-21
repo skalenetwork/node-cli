@@ -436,7 +436,6 @@ class NFTablesManager:
         output = ''
         try:
             cmd = f'list chain {self.family} {self.table} {self.chain}'
-            logger.debug('HERE cmd %s', cmd)
             rc, output, error = self.nft.cmd(cmd)
             if rc != 0:
                 raise NFTablesError(f'Failed to get ruleset: {error}')
