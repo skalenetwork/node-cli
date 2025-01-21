@@ -24,7 +24,13 @@ import sys
 from typing import Optional
 from dataclasses import dataclass
 
-from node_cli.configs import ENV, NFTABLES_RULES_PATH, NFTABLES_CHAIN_FOLDER_PATH
+from node_cli.configs import (
+    ENV,
+    NFTABLES_CHAIN_CONFIG_WILDCARD,
+    NFTABLES_CHAIN_FOLDER_PATH,
+    NFTABLES_MAIN_CONFIG_PATH,
+    NFTABLES_SKALE_BASE_CONFIG_PATH,
+)
 from node_cli.utils.helper import get_ssh_port, remove_between_brackets, run_cmd
 
 logger = logging.getLogger(__name__)
@@ -429,9 +435,12 @@ class NFTablesManager:
         self.nft.set_json_output(False)
         output = ''
         try:
-            rc, output, error = self.nft.cmd('list ruleset')
+            cmd = f'list chain {self.family} {self.table} {self.chain}'
+            logger.debug('HERE cmd %s', cmd)
+            rc, output, error = self.nft.cmd(cmd)
             if rc != 0:
                 raise NFTablesError(f'Failed to get ruleset: {error}')
+            return output
         finally:
             self.nft.set_json_output(True)
 
@@ -530,11 +539,25 @@ def enable_nftables_service() -> None:
     run_cmd(['systemctl', 'enable', 'nftables'])
 
 
+def save_nftables_base_rules(ruleset: str) -> None:
+    ruleset_lines = ruleset.split('\n')
+    include_line = f'\tinclude "{NFTABLES_CHAIN_CONFIG_WILDCARD}"'
+    ruleset_lines.insert(-2, include_line)
+    with open(NFTABLES_SKALE_BASE_CONFIG_PATH, 'w') as f:
+        f.write('\n'.join(ruleset_lines))
+    logger.info('Rules saved successfully to %s', NFTABLES_SKALE_BASE_CONFIG_PATH)
+
+
+def update_main_nftables_config() -> None:
+    logger.info('Updating main nftables rules')
+    content = (
+        f'#!/usr/sbin/nft -f\nflush ruleset\n' f'include "{NFTABLES_SKALE_BASE_CONFIG_PATH}";'
+    )
+    with open(NFTABLES_MAIN_CONFIG_PATH, 'w') as f:
+        f.write(content)
+
+
 def save_nftables_rules(ruleset: str) -> None:
     logger.info('Saving nftables rules')
-    content = (
-        f'#!/usr/sbin/nft -f\nflush ruleset\n{ruleset}\ninclude "{NFTABLES_CHAIN_FOLDER_PATH}/*.conf"'  # noqa
-    )
-    with open(NFTABLES_RULES_PATH, 'w') as f:
-        f.write(content)
-    logger.info('Rules saved successfully to %s', NFTABLES_RULES_PATH)
+    save_nftables_base_rules(ruleset=ruleset)
+    update_main_nftables_config()
