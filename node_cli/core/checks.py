@@ -49,6 +49,7 @@ from node_cli.configs import (
     REPORTS_PATH,
     STATIC_PARAMS_FILEPATH
 )
+from node_cli.core.host import is_ufw_ipv6_chain_exists, is_ufw_ipv6_option_enabled
 from node_cli.core.resources import get_disk_size
 from node_cli.utils.helper import run_cmd, safe_mkdir
 
@@ -336,6 +337,22 @@ class PackageChecker(BaseChecker):
     @preinstall
     def psmisc(self) -> CheckResult:
         return self._check_apt_package('psmisc')
+
+    @preinstall
+    def ufw_ipv6_disabled(self) -> CheckResult:
+        name = 'ufw-ipv6'
+        if is_ufw_ipv6_option_enabled():
+            return self._failed(
+                name=name,
+                info='ufw ipv6 configuration should be disabled'
+            )
+        elif is_ufw_ipv6_chain_exists():
+            return self._failed(
+                name=name,
+                info='ufw should be reloaded to switch off ipv6'
+            )
+        else:
+            return self._ok(name=name)
 
     def _version_from_dpkg_output(self, output: str) -> str:
         info_lines = map(lambda s: s.strip(), output.split('\n'))
