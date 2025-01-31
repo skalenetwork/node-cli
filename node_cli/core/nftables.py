@@ -47,8 +47,9 @@ class ServicePort:
 
 
 LEGACY_CHAIN = 'INPUT'
+LEGACY_FAMILY = 'ip'
+LEGACY_TABLE = 'filter'
 CHAIN_PRIORITY = 1
-LEGACY_CHAIN_PRIORITY = 0
 HOOK = 'input'
 POLICY = 'accept'
 
@@ -487,7 +488,12 @@ class NFTablesManager:
 
             self.add_drop_rule(protocol='udp')
             logger.info('Making sure legacy chain has default policy %s', POLICY)
-            self.update_chain_policy(chain=LEGACY_CHAIN, policy=POLICY)
+            self.update_chain_policy(
+                chain=LEGACY_CHAIN,
+                policy=POLICY,
+                family=LEGACY_FAMILY,
+                table=LEGACY_TABLE
+            )
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
