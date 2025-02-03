@@ -53,7 +53,7 @@ def check_cert(
             logger.exception('Cerificate/key pair is incorrect')
             return err_result(f'Certificate check failed. {err}')
 
-    if check_type in ('all', 'skaled'):
+    if check_type in ('skaled',):
         try:
             check_cert_skaled(
                 cert_path, key_path,

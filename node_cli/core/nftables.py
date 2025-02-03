@@ -20,6 +20,7 @@
 import json
 import logging
 import os
+import shutil
 import sys
 from typing import Optional
 from dataclasses import dataclass
@@ -46,8 +47,9 @@ class ServicePort:
 
 
 LEGACY_CHAIN = 'INPUT'
+LEGACY_FAMILY = 'ip'
+LEGACY_TABLE = 'filter'
 CHAIN_PRIORITY = 1
-LEGACY_CHAIN_PRIORITY = 0
 HOOK = 'input'
 POLICY = 'accept'
 
@@ -95,9 +97,10 @@ class NFTablesManager:
             logger.error('Failed to execute command: %s', e)
             raise NFTablesError(e)
 
-    def get_chains(self) -> list[str]:
+    def get_chains(self, family: Optional[str] = None) -> list[str]:
+        family = family or self.family
         try:
-            rc, output, error = self.nft.cmd(f'list chains {self.family}')
+            rc, output, error = self.nft.cmd(f'list chains {family}')
             if rc != 0:
                 if 'No such file or directory' in error:
                     return []
@@ -112,8 +115,9 @@ class NFTablesManager:
     def flush(self) -> None:
         self.nft.cmd('flush ruleset')
 
-    def chain_exists(self, chain: str) -> bool:
-        return chain in self.get_chains()
+    def chain_exists(self, chain: str, family: Optional[str] = None) -> bool:
+        family = family or self.family
+        return chain in self.get_chains(family=family)
 
     def create_chain_if_not_exists(
         self, chain: str, hook: str, priority: int = CHAIN_PRIORITY, policy: str = POLICY
@@ -141,15 +145,23 @@ class NFTablesManager:
         else:
             logger.info('Chain already exists: %s', chain)
 
-    def update_chain_policy(self, chain: str, policy: str = POLICY) -> None:
+    def update_chain_policy(
+        self,
+        chain: str,
+        policy: str = POLICY,
+        family: Optional[str] = None,
+        table: Optional[str] = None
+    ) -> None:
         """Update specified chain if it exists. Otherwise do nothing"""
-        if self.chain_exists(chain):
+        family = family or self.family
+        table = table or self.table
+        if self.chain_exists(chain, family=family):
             cmd = [
                 'nft',
                 'add',
                 'chain',
-                self.family,
-                self.table,
+                family,
+                table,
                 chain,
                 '{',
                 'policy',
@@ -476,7 +488,12 @@ class NFTablesManager:
 
             self.add_drop_rule(protocol='udp')
             logger.info('Making sure legacy chain has default policy %s', POLICY)
-            self.update_chain_policy(chain=LEGACY_CHAIN, policy=POLICY)
+            self.update_chain_policy(
+                chain=LEGACY_CHAIN,
+                policy=POLICY,
+                family=LEGACY_FAMILY,
+                table=LEGACY_TABLE
+            )
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
@@ -530,6 +547,7 @@ def configure_nftables(enable_monitoring: bool = False) -> None:
     nft_mgr.setup_firewall(enable_monitoring=enable_monitoring)
     ruleset = nft_mgr.get_base_ruleset()
     save_nftables_rules(ruleset)
+    remove_legacy_saved_rules()
 
 
 def enable_nftables_service() -> None:
@@ -559,3 +577,12 @@ def save_nftables_rules(ruleset: str) -> None:
     logger.info('Saving nftables rules')
     save_nftables_base_rules(ruleset=ruleset)
     update_main_nftables_config()
+
+
+def remove_legacy_saved_rules() -> None:
+    logger.info('Removing saved on disk legacy rules')
+    rules_files = ['/etc/iptables/rules.v4', '/etc/iptables/rules.v6']
+    backup_files = ['/etc/iptables/.rules.v4', '/etc/iptables/.rules.v6']
+    for rules_filepath, backup_filepath in zip(rules_files, backup_files):
+        if os.path.isfile(rules_filepath):
+            shutil.move(rules_filepath, backup_filepath)
