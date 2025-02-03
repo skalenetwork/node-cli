@@ -49,6 +49,7 @@ from node_cli.configs import (
     REPORTS_PATH,
     STATIC_PARAMS_FILEPATH
 )
+from node_cli.core.host import is_ufw_ipv6_chain_exists, is_ufw_ipv6_option_enabled
 from node_cli.core.resources import get_disk_size
 from node_cli.utils.helper import run_cmd, safe_mkdir
 
@@ -322,10 +323,6 @@ class PackageChecker(BaseChecker):
             return self._ok(name=package_name, info=info)
 
     @preinstall
-    def iptables_persistent(self) -> CheckResult:
-        return self._check_apt_package('iptables-persistent')
-
-    @preinstall
     def lvm2(self) -> CheckResult:
         return self._check_apt_package('lvm2')
 
@@ -340,6 +337,22 @@ class PackageChecker(BaseChecker):
     @preinstall
     def psmisc(self) -> CheckResult:
         return self._check_apt_package('psmisc')
+
+    @preinstall
+    def ufw_ipv6_disabled(self) -> CheckResult:
+        name = 'ufw-ipv6'
+        if is_ufw_ipv6_option_enabled():
+            return self._failed(
+                name=name,
+                info='ufw ipv6 configuration should be disabled'
+            )
+        elif is_ufw_ipv6_chain_exists():
+            return self._failed(
+                name=name,
+                info='ufw should be reloaded to switch off ipv6'
+            )
+        else:
+            return self._ok(name=name)
 
     def _version_from_dpkg_output(self, output: str) -> str:
         info_lines = map(lambda s: s.strip(), output.split('\n'))
@@ -415,26 +428,26 @@ class DockerChecker(BaseChecker):
 
     @preinstall
     def docker_compose(self) -> CheckResult:
-        name = 'docker-compose'
-        cmd = shutil.which('docker-compose')
+        name = 'docker'
+        cmd = shutil.which('docker')
         if cmd is None:
-            info = 'No such command: "docker-compose"'
+            info = 'No such command: "docker"'
             return self._failed(name=name, info=info)
 
         v_cmd_result = run_cmd(
-            ['docker-compose', '-v'],
+            ['docker', 'compose', 'version'],
             check_code=False,
             separate_stderr=True
         )
         output = v_cmd_result.stdout.decode('utf-8').rstrip()
         if v_cmd_result.returncode != 0:
-            info = f'Checking docker-compose version failed with: {output}'
+            info = f'Checking docker compose version failed with: {output}'
             return self._failed(name=name, info=output)
 
         actual_version = output.split(',')[0].split()[-1].strip()
         expected_version = self.requirements['docker-compose']
 
-        info = f'Expected docker-compose version {expected_version}, actual {actual_version}'  # noqa
+        info = f'Expected docker compose version {expected_version}, actual {actual_version}'  # noqa
         if version_parse(actual_version) < version_parse(expected_version):
             return self._failed(name=name, info=info)
         else:

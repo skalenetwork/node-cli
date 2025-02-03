@@ -21,6 +21,7 @@ import ipaddress
 import json
 import os
 import re
+import socket
 import sys
 import uuid
 from urllib.parse import urlparse
@@ -54,7 +55,7 @@ from node_cli.configs.env import (
 )
 from node_cli.configs import (
     TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG, GLOBAL_SKALE_DIR,
-    GLOBAL_SKALE_CONF_FILEPATH
+    GLOBAL_SKALE_CONF_FILEPATH, DEFAULT_SSH_PORT
 )
 from node_cli.configs.routes import get_route
 from node_cli.utils.global_config import read_g_config, get_system_user
@@ -65,7 +66,6 @@ from node_cli.configs.cli_logger import (
 
 
 logger = logging.getLogger(__name__)
-
 
 HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
 
@@ -414,3 +414,11 @@ def get_tmp_path(path: str) -> str:
     base, ext = os.path.splitext(path)
     salt = uuid.uuid4().hex[:5]
     return base + salt + '.tmp' + ext
+
+
+def get_ssh_port(ssh_service_name='ssh'):
+    try:
+        return socket.getservbyname(ssh_service_name)
+    except OSError:
+        logger.exception('Cannot get ssh service port')
+        return DEFAULT_SSH_PORT

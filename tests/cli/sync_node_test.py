@@ -25,6 +25,7 @@ import logging
 from node_cli.configs import SKALE_DIR, NODE_DATA_PATH
 from node_cli.core.node_options import NodeOptions
 from node_cli.cli.sync_node import _init_sync, _update_sync
+from node_cli.utils.meta import CliMeta
 from node_cli.utils.helper import init_default_logger
 
 from tests.helper import run_command, subprocess_run_mock
@@ -40,7 +41,7 @@ def test_init_sync(mocked_g_config):
         'node_cli.core.node.init_sync_op'
     ), mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), mock.patch(
         'node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE
-    ), mock.patch('node_cli.core.node.configure_firewall_rules'), mock.patch(
+    ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
         'node_cli.utils.decorators.is_node_inited', return_value=False
     ):
         result = run_command(_init_sync, ['./tests/test-env'])
@@ -72,7 +73,7 @@ def test_init_sync_archive(mocked_g_config, clean_node_options):
         'node_cli.operations.base.update_images'
     ), mock.patch('node_cli.operations.base.compose_up'), mock.patch(
         'node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE
-    ), mock.patch('node_cli.core.node.configure_firewall_rules'), mock.patch(
+    ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
         'node_cli.utils.decorators.is_node_inited', return_value=False
     ):
         result = run_command(
@@ -93,7 +94,7 @@ def test_init_sync_historic_state_fail(mocked_g_config, clean_node_options):
         'node_cli.core.node.init_sync_op'
     ), mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), mock.patch(
         'node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE
-    ), mock.patch('node_cli.core.node.configure_firewall_rules'), mock.patch(
+    ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
         'node_cli.utils.decorators.is_node_inited', return_value=False
     ):
         result = run_command(_init_sync, ['./tests/test-env', '--historic-state'])
@@ -108,8 +109,11 @@ def test_update_sync(mocked_g_config):
         'node_cli.core.node.update_sync_op'
     ), mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), mock.patch(
         'node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE
-    ), mock.patch('node_cli.core.node.configure_firewall_rules'), mock.patch(
+    ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
         'node_cli.utils.decorators.is_node_inited', return_value=True
+    ), mock.patch(
+        'node_cli.core.node.get_meta_info',
+        return_value=CliMeta(version='2.6.0', config_stream='3.0.2')
     ):
         result = run_command(_update_sync, ['./tests/test-env', '--yes'])
         assert result.exit_code == 0

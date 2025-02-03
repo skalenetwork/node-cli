@@ -7,7 +7,6 @@
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
 #
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,18 +39,17 @@ from node_cli.configs import (
     SCHAINS_MNT_DIR_SYNC,
     SKALE_DIR,
     SKALE_STATE_DIR,
-    TM_INIT_TIMEOUT
+    TM_INIT_TIMEOUT,
 )
-from node_cli.configs.env import get_env_config
+from node_cli.cli import __version__
+from node_cli.configs.env import get_env_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
-from node_cli.core.iptables import configure_iptables
-from node_cli.core.host import (
-    is_node_inited, save_env_params, get_flask_secret_key
-)
+from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.resources import update_resource_allocation
 from node_cli.operations import (
+    configure_nftables,
     update_op,
     init_op,
     turn_off_op,
@@ -59,20 +57,25 @@ from node_cli.operations import (
     restore_op,
     init_sync_op,
     repair_sync_op,
-    update_sync_op
+    update_sync_op,
 )
 from node_cli.utils.print_formatters import (
-    print_failed_requirements_checks, print_node_cmd_error, print_node_info
+    print_failed_requirements_checks,
+    print_node_cmd_error,
+    print_node_info,
 )
-from node_cli.utils.helper import error_exit, get_request, post_request
-from node_cli.utils.helper import extract_env_params
+from node_cli.utils.helper import (
+    error_exit,
+    get_request,
+    post_request,
+    extract_env_params,
+)
+from node_cli.utils.meta import get_meta_info
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.decorators import (
-    check_not_inited,
-    check_inited,
-    check_user
-)
+from node_cli.utils.decorators import check_not_inited, check_inited, check_user
+from node_cli.utils.docker_utils import is_admin_running, is_api_running, is_sync_admin_running
+from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 
 
 logger = logging.getLogger(__name__)
@@ -85,6 +88,7 @@ BLUEPRINT_NAME = 'node'
 
 class NodeStatuses(Enum):
     """This class contains possible node statuses"""
+
     ACTIVE = 0
     LEAVING = 1
     FROZEN = 2
@@ -93,7 +97,11 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def is_update_safe() -> bool:
+def is_update_safe(sync_node: bool = False) -> bool:
+    if not sync_node and not is_admin_running() and not is_api_running():
+        return True
+    if sync_node and not is_sync_admin_running():
+        return True
     status, payload = get_request(BLUEPRINT_NAME, 'update-safe')
     if status == 'error':
         return False
@@ -105,9 +113,7 @@ def is_update_safe() -> bool:
 
 @check_inited
 @check_user
-def register_node(name, p2p_ip,
-                  public_ip, port, domain_name):
-
+def register_node(name, p2p_ip, public_ip, port, domain_name):
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
         return
@@ -118,13 +124,9 @@ def register_node(name, p2p_ip,
         'ip': p2p_ip,
         'publicIP': public_ip,
         'port': port,
-        'domain_name': domain_name
+        'domain_name': domain_name,
     }
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME,
-        method='register',
-        json=json_data
-    )
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='register', json=json_data)
     if status == 'ok':
         msg = TEXTS['node']['registered']
         logger.info(msg)
@@ -137,23 +139,17 @@ def register_node(name, p2p_ip,
 
 @check_not_inited
 def init(env_filepath):
-    env = get_node_env(env_filepath)
+    env = compose_node_env(env_filepath)
     if env is None:
         return
-    configure_firewall_rules()
+
     inited_ok = init_op(env_filepath, env)
     if not inited_ok:
-        error_exit(
-            'Init operation failed',
-            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
-        )
+        error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
-        error_exit(
-            'Containers are not running',
-            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
-        )
+        error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
     logger.info('Init procedure finished')
@@ -161,7 +157,7 @@ def init(env_filepath):
 
 @check_not_inited
 def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
-    env = get_node_env(env_filepath)
+    env = compose_node_env(env_filepath)
     if env is None:
         return
     save_env_params(env_filepath)
@@ -173,45 +169,24 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
 
     restored_ok = restore_op(env, backup_path, config_only=config_only)
     if not restored_ok:
-        error_exit(
-            'Restore operation failed',
-            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
-        )
+        error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
     print('Node is restored from backup')
 
 
-def init_sync(
-    env_filepath: str,
-    archive: bool,
-    historic_state: bool,
-    snapshot_from: str
-) -> None:
-    configure_firewall_rules()
-    env = get_node_env(env_filepath, sync_node=True)
+def init_sync(env_filepath: str, archive: bool, historic_state: bool, snapshot_from: str) -> None:
+    env = compose_node_env(env_filepath, sync_node=True)
     if env is None:
         return
-    inited_ok = init_sync_op(
-        env_filepath,
-        env,
-        archive,
-        historic_state,
-        snapshot_from
-    )
+    inited_ok = init_sync_op(env_filepath, env, archive, historic_state, snapshot_from)
     if not inited_ok:
-        error_exit(
-            'Init operation failed',
-            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
-        )
+        error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(sync_node=True):
-        error_exit(
-            'Containers are not running',
-            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
-        )
+        error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Sync node initialized successfully')
 
 
@@ -219,8 +194,10 @@ def init_sync(
 @check_user
 def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
-    configure_firewall_rules()
-    env = get_node_env(env_filepath, sync_node=True)
+    prev_version = get_meta_info().version
+    if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
+        migrate_2_6()
+    env = compose_node_env(env_filepath, sync_node=True)
     update_ok = update_sync_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
@@ -235,37 +212,30 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
 
 @check_inited
 @check_user
-def repair_sync(
-    archive: bool,
-    historic_state: bool,
-    snapshot_from: str
-) -> None:
-
+def repair_sync(archive: bool, historic_state: bool, snapshot_from: str) -> None:
     env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=True)
     schain_name = env_params['SCHAIN_NAME']
     repair_sync_op(
         schain_name=schain_name,
         archive=archive,
         historic_state=historic_state,
-        snapshot_from=snapshot_from
+        snapshot_from=snapshot_from,
     )
     logger.info('Schain was started from scratch')
 
 
-def get_node_env(
+def compose_node_env(
     env_filepath,
     inited_node=False,
     sync_schains=None,
     pull_config_for_schain=None,
-    sync_node=False
+    sync_node=False,
+    save: bool = True
 ):
     if env_filepath is not None:
-        env_params = extract_env_params(
-            env_filepath,
-            sync_node=sync_node,
-            raise_for_status=True
-        )
-        save_env_params(env_filepath)
+        env_params = extract_env_params(env_filepath, sync_node=sync_node, raise_for_status=True)
+        if save:
+            save_env_params(env_filepath)
     else:
         env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
 
@@ -275,7 +245,7 @@ def get_node_env(
         'SCHAINS_MNT_DIR': mnt_dir,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
         'SKALE_LIB_PATH': SKALE_STATE_DIR,
-        **env_params
+        **env_params,
     }
     if inited_node and not sync_node:
         flask_secret_key = get_flask_secret_key()
@@ -294,13 +264,15 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
         error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
+    prev_version = get_meta_info().version
+    if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
+        migrate_2_6()
     logger.info('Node update started')
-    configure_firewall_rules()
-    env = get_node_env(
+    env = compose_node_env(
         env_filepath,
         inited_node=True,
         sync_schains=False,
-        pull_config_for_schain=pull_config_for_schain
+        pull_config_for_schain=pull_config_for_schain,
     )
     update_ok = update_op(env_filepath, env)
     if update_ok:
@@ -316,11 +288,7 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
 
 def get_node_signature(validator_id):
     params = {'validator_id': validator_id}
-    status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='signature',
-        params=params
-    )
+    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='signature', params=params)
     if status == 'ok':
         return payload['signature']
     else:
@@ -333,7 +301,7 @@ def backup(path):
 
 
 def get_backup_filename():
-    time = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S")
+    time = datetime.datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S')
     return f'{BACKUP_ARCHIVE_NAME}-{time}.tar.gz'
 
 
@@ -380,20 +348,13 @@ def create_backup_archive(backup_filepath):
     print('Creating backup archive...')
     cli_log_path = CLI_LOG_DATA_PATH
     container_log_path = LOG_PATH
-    pack_dir(
-        SKALE_DIR,
-        backup_filepath,
-        exclude=(cli_log_path, container_log_path)
-    )
+    pack_dir(SKALE_DIR, backup_filepath, exclude=(cli_log_path, container_log_path))
     print(f'Backup archive succesfully created {backup_filepath}')
 
 
 def set_maintenance_mode_on():
     print('Setting maintenance mode on...')
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME,
-        method='maintenance-on'
-    )
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='maintenance-on')
     if status == 'ok':
         msg = TEXTS['node']['maintenance_on']
         logger.info(msg)
@@ -406,10 +367,7 @@ def set_maintenance_mode_on():
 
 def set_maintenance_mode_off():
     print('Setting maintenance mode off...')
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME,
-        method='maintenance-off'
-    )
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='maintenance-off')
     if status == 'ok':
         msg = TEXTS['node']['maintenance_off']
         logger.info(msg)
@@ -428,13 +386,14 @@ def turn_off(maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()
-    turn_off_op()
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False)
+    turn_off_op(env=env)
 
 
 @check_inited
 @check_user
 def turn_on(maintenance_off, sync_schains, env_file):
-    env = get_node_env(env_file, inited_node=True, sync_schains=sync_schains)
+    env = compose_node_env(env_file, inited_node=True, sync_schains=sync_schains)
     turn_on_op(env)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
@@ -449,18 +408,13 @@ def turn_on(maintenance_off, sync_schains, env_file):
 def is_base_containers_alive(sync_node: bool = False):
     dclient = docker.from_env()
     containers = dclient.containers.list()
-    skale_containers = list(filter(
-        lambda c: c.name.startswith('skale_'), containers
-    ))
+    skale_containers = list(filter(lambda c: c.name.startswith('skale_'), containers))
     containers_amount = SYNC_BASE_CONTAINERS_AMOUNT if sync_node else BASE_CONTAINERS_AMOUNT
     return len(skale_containers) >= containers_amount
 
 
 def get_node_info_plain():
-    status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='info'
-    )
+    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='info')
     if status == 'ok':
         return payload['node_info']
     else:
@@ -474,10 +428,7 @@ def get_node_info(format):
     elif node_info['status'] == NodeStatuses.NOT_CREATED.value:
         print(TEXTS['service']['node_not_registered'])
     else:
-        print_node_info(
-            node_info,
-            get_node_status(int(node_info['status']))
-        )
+        print_node_info(node_info, get_node_status(int(node_info['status'])))
 
 
 def get_node_status(status):
@@ -489,11 +440,7 @@ def get_node_status(status):
 def set_domain_name(domain_name):
     print(f'Setting new domain name: {domain_name}')
     status, payload = post_request(
-        blueprint=BLUEPRINT_NAME,
-        method='set-domain-name',
-        json={
-            'domain_name': domain_name
-        }
+        blueprint=BLUEPRINT_NAME, method='set-domain-name', json={'domain_name': domain_name}
     )
     if status == 'ok':
         msg = TEXTS['node']['domain_name_changed']
@@ -506,7 +453,7 @@ def set_domain_name(domain_name):
 def run_checks(
     network: str = 'mainnet',
     container_config_path: str = CONTAINER_CONFIG_PATH,
-    disk: Optional[str] = None
+    disk: Optional[str] = None,
 ) -> None:
     if not is_node_inited():
         print(TEXTS['node']['not_inited'])
@@ -515,11 +462,7 @@ def run_checks(
     if disk is None:
         env = get_env_config()
         disk = env['DISK_MOUNTPOINT']
-    failed_checks = run_host_checks(
-        disk,
-        network,
-        container_config_path
-    )
+    failed_checks = run_host_checks(disk, network, container_config_path)
     if not failed_checks:
         print('Requirements checking succesfully finished!')
     else:
@@ -527,7 +470,5 @@ def run_checks(
         print_failed_requirements_checks(failed_checks)
 
 
-def configure_firewall_rules() -> None:
-    print('Configuring firewall ...')
-    configure_iptables()
-    print('Done')
+def configure_firewall_rules(enable_monitoring: bool = False) -> None:
+    configure_nftables(enable_monitoring=enable_monitoring)
