@@ -116,8 +116,8 @@ You should specify the following environment variables:
 -   `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
 -   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
 -   `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
--   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
--   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
+-   `MANAGER_CONTRACTS_ALIAS_OR_ADDRESS` - SKALE Manager main contract alias or address
+-   `IMA_CONTRACTS_ALIAS_OR_ADDRESS` - IMA main contract alias or address
 -   `FILEBEAT_URL` - URL to the Filebeat log server
 -   `ENV_TYPE` - environement type (mainnet, testnet, etc)
 
@@ -550,8 +550,8 @@ You should specify the following environment variables:
 -   `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
 -   `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
 -   `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
--   `MANAGER_CONTRACTS_ABI_URL` - URL to SKALE Manager contracts ABI and addresses
--   `IMA_CONTRACTS_ABI_URL` - URL to IMA contracts ABI and addresses
+-   `MANAGER_CONTRACTS_ALIAS_OR_ADDRESS` - SKALE Manager main contract alias or address
+-   `IMA_CONTRACTS_ALIAS_OR_ADDRESS` - IMA main contract alias or address
 -   `SCHAIN_NAME` - name of the SKALE chain to sync
 -   `ENV_TYPE` - environement type (mainnet, testnet, etc)
   
