@@ -126,7 +126,7 @@ Optional variables:
 
 -   `TG_API_KEY` - Telegram API key
 -   `TG_CHAT_ID` - Telegram chat ID
--   `MONITORING_CONTAINERS` - will enable monitoring containers (`filebeat`, `cadvisor`, `prometheus`)
+-   `MONITORING_CONTAINERS` - will enable monitoring containers (`cadvisor`, `node-exporter`)
 
 #### Node initialization from backup
 
