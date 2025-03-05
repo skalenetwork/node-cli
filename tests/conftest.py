@@ -16,10 +16,11 @@
 #
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-""" SKALE config test """
+"""SKALE config test"""
 
 import json
 import os
+import tempfile
 import pathlib
 import shutil
 
@@ -36,7 +37,7 @@ from node_cli.configs import (
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
     STATIC_PARAMS_FILEPATH,
-    SCHAIN_NODE_DATA_PATH
+    SCHAIN_NODE_DATA_PATH,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -55,20 +56,6 @@ mainnet:
     memory: 32
     swap: 16
     disk: 2000000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-testnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
 
   packages:
     docker: 1.1.3
@@ -126,11 +113,7 @@ devnet:
 @pytest.fixture
 def net_params_file():
     with open(STATIC_PARAMS_FILEPATH, 'w') as f:
-        yaml.dump(
-            yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader),
-            stream=f,
-            Dumper=yaml.Dumper
-        )
+        yaml.dump(yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader), stream=f, Dumper=yaml.Dumper)
     yield STATIC_PARAMS_FILEPATH
     os.remove(STATIC_PARAMS_FILEPATH)
 
@@ -165,12 +148,7 @@ def dclient():
 def simple_image(dclient):
     name = 'simple-image'
     try:
-        dclient.images.build(
-            tag=name,
-            rm=True,
-            nocache=True,
-            path='tests/simple_container'
-        )
+        dclient.images.build(tag=name, rm=True, nocache=True, path='tests/simple_container')
         yield name
     finally:
         try:
@@ -184,9 +162,7 @@ def simple_image(dclient):
 def docker_hc(dclient):
     dclient = docker.from_env()
     return dclient.api.create_host_config(
-        log_config=docker.types.LogConfig(
-            type=docker.types.LogConfig.types.JSON
-        )
+        log_config=docker.types.LogConfig(type=docker.types.LogConfig.types.JSON)
     )
 
 
@@ -240,13 +216,7 @@ def nginx_container(dutils, ssl_folder):
             'nginx:1.20.2',
             name=NGINX_CONTAINER_NAME,
             detach=True,
-            volumes={
-                ssl_folder: {
-                    'bind': '/ssl',
-                    'mode': 'ro',
-                    'propagation': 'slave'
-                }
-            }
+            volumes={ssl_folder: {'bind': '/ssl', 'mode': 'ro', 'propagation': 'slave'}},
         )
         yield c
     finally:
@@ -321,3 +291,64 @@ def tmp_sync_datadir():
         yield TEST_SCHAINS_MNT_DIR_SYNC
     finally:
         shutil.rmtree(TEST_SCHAINS_MNT_DIR_SYNC)
+
+
+@pytest.fixture
+def valid_env_params():
+    """
+    Return a dictionary of environment parameters that mimics the contents of test-env.
+    """
+    return {
+        'ENDPOINT': 'http://localhost:8545',
+        'IMA_ENDPOINT': 'http://127.0.01',
+        'DB_USER': 'user',
+        'DB_PASSWORD': 'pass',
+        'DB_PORT': '3307',
+        'CONTAINER_CONFIGS_STREAM': 'master',
+        'FILEBEAT_HOST': '127.0.0.1:3010',
+        'SGX_SERVER_URL': 'http://127.0.0.1',
+        'DISK_MOUNTPOINT': '/dev/sss',
+        'DOCKER_LVMPY_STREAM': 'master',
+        'ENV_TYPE': 'devnet',
+        'SCHAIN_NAME': 'test',
+        'ENFORCE_BTRFS': 'False',
+        'MANAGER_CONTRACTS_ALIAS_OR_ADDRESS': 'test-manager',
+        'IMA_CONTRACTS_ALIAS_OR_ADDRESS': 'test-ima',
+    }
+
+
+@pytest.fixture
+def valid_env_file(valid_env_params):
+    """
+    Create a temporary .env file whose contents mimic test-env.
+
+    This file is created using the key/value pairs from valid_env_params,
+    one per line in the form KEY=VALUE.
+    """
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+        for key, value in valid_env_params.items():
+            f.write(f'{key}={value}\n')
+        file_name = f.name
+    yield file_name
+    os.unlink(file_name)
+
+
+@pytest.fixture
+def mock_chain_response():
+    """Return a fake RPC response for chain ID 1."""
+    return {
+        'jsonrpc': '2.0',
+        'id': 1,
+        'result': '0x1',  # Represents chain ID 1
+    }
+
+
+@pytest.fixture
+def mock_networks_metadata():
+    """Return fake network metadata that includes chain ID 1."""
+    return {
+        'networks': [
+            {'chainId': 1, 'name': 'Mainnet', 'path': 'mainnet'},
+            {'chainId': 2, 'name': 'Testnet', 'path': 'testnet'},
+        ]
+    }

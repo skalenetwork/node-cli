@@ -17,8 +17,7 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    2.5 [Health](#health-commands)  
    2.6 [SSL](#ssl-commands)  
    2.7 [Logs](#logs-commands)  
-   2.8 [Resources allocation](#resources-allocation-commands)  
-   2.9 [Validate](#validate-commands)
+   2.8 [Resources allocation](#resources-allocation-commands)
 3. [Sync CLI usage](#sync-cli-usage)  
    3.1 [Top level commands](#top-level-commands-sync)  
    3.2 [Sync node commands](#sync-node-commands)
@@ -488,22 +487,6 @@ Options:
 
 - `--yes` - generate without additional confirmation
 - `-f/--force` - rewrite allocation file if it exists
-
-### Validate commands
-
-> Prefix: `skale validate`
-
-#### Validate abi
-
-Check whether ABI files contain valid JSON data
-
-```shell
-skale validate abi
-```
-
-Options:
-
-- `--json` - show validation result in json format
 
 ## Sync CLI usage
 

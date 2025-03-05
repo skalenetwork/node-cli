@@ -25,7 +25,7 @@ import socket
 import sys
 import uuid
 from urllib.parse import urlparse
-from typing import Optional
+from typing import Any, Optional
 
 import yaml
 import shutil
@@ -49,20 +49,26 @@ from jinja2 import Environment
 
 from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.configs.env import (
-    absent_params as absent_env_params,
-    get_env_config
-)
 from node_cli.configs import (
-    TEXT_FILE, ADMIN_HOST, ADMIN_PORT, HIDE_STREAM_LOG, GLOBAL_SKALE_DIR,
-    GLOBAL_SKALE_CONF_FILEPATH, DEFAULT_SSH_PORT
+    TEXT_FILE,
+    ADMIN_HOST,
+    ADMIN_PORT,
+    HIDE_STREAM_LOG,
+    GLOBAL_SKALE_DIR,
+    GLOBAL_SKALE_CONF_FILEPATH,
+    DEFAULT_SSH_PORT,
 )
 from node_cli.configs.routes import get_route
 from node_cli.utils.global_config import read_g_config, get_system_user
 
 from node_cli.configs.cli_logger import (
-    FILE_LOG_FORMAT, LOG_BACKUP_COUNT, LOG_FILE_SIZE_BYTES,
-    LOG_FILEPATH, STREAM_LOG_FORMAT, DEBUG_LOG_FILEPATH)
+    FILE_LOG_FORMAT,
+    LOG_BACKUP_COUNT,
+    LOG_FILE_SIZE_BYTES,
+    LOG_FILEPATH,
+    STREAM_LOG_FORMAT,
+    DEBUG_LOG_FILEPATH,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -71,7 +77,7 @@ HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
 
 DEFAULT_ERROR_DATA = {
     'status': 'error',
-    'payload': 'Request failed. Check skale_api container logs'
+    'payload': 'Request failed. Check skale_api container logs',
 }
 
 
@@ -100,14 +106,7 @@ def init_file(path, content=None):
         write_json(path, content)
 
 
-def run_cmd(
-    cmd,
-    env={},
-    shell=False,
-    secure=False,
-    check_code=True,
-    separate_stderr=False
-):
+def run_cmd(cmd, env={}, shell=False, secure=False, check_code=True, separate_stderr=False):
     if not secure:
         logger.debug(f'Running: {cmd}')
     else:
@@ -115,13 +114,7 @@ def run_cmd(
     stdout, stderr = subprocess.PIPE, subprocess.PIPE
     if not separate_stderr:
         stderr = subprocess.STDOUT
-    res = subprocess.run(
-        cmd,
-        shell=shell,
-        stdout=stdout,
-        stderr=stderr,
-        env={**env, **os.environ}
-    )
+    res = subprocess.run(cmd, shell=shell, stdout=stdout, stderr=stderr, env={**env, **os.environ})
     if check_code:
         output = res.stdout.decode('utf-8')
         if res.returncode:
@@ -152,7 +145,7 @@ def process_template(source, destination, data):
     """
     template = read_file(source)
     processed_template = Environment().from_string(template).render(data)
-    with open(destination, "w") as f:
+    with open(destination, 'w') as f:
         f.write(processed_template)
 
 
@@ -160,26 +153,28 @@ def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
-def extract_env_params(env_filepath, sync_node=False, raise_for_status=True):
-    env_params = get_env_config(env_filepath, sync_node=sync_node)
-    absent_params = ', '.join(absent_env_params(env_params))
-    if absent_params:
-        click.echo(f"Your env file({env_filepath}) have some absent params: "
-                   f"{absent_params}.\n"
-                   f"You should specify them to make sure that "
-                   f"all services are working",
-                   err=True)
-        if raise_for_status:
-            raise InvalidEnvFileError(f'Missing params: {absent_params}')
-        return None
-    return env_params
-
-
 def str_to_bool(val):
     return bool(distutils.util.strtobool(val))
 
 
-def error_exit(error_payload, exit_code=CLIExitCodes.FAILURE):
+def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> None:
+    """Print error message and exit the program with specified exit code.
+
+    Args:
+        error_payload: Error message string or list of error messages
+        exit_code: Exit code to use when terminating the program (default: FAILURE)
+
+    Raises:
+        TypeError: If exit_code is not CLIExitCodes
+
+    Example:
+        >>> error_exit("Permission denied", CLIExitCodes.BAD_USER_ERROR)
+        Permission denied
+        <exits with code 3>
+    """
+    if not isinstance(exit_code, CLIExitCodes):
+        raise TypeError('exit_code must be CLIExitCodes enum')
+
     print_err_response(error_payload)
     sys.exit(exit_code.value)
 
@@ -260,7 +255,7 @@ def download_dump(path, container_name=None):
             error_exit(r.json())
             return None
         d = r.headers['Content-Disposition']
-        fname_q = re.findall("filename=(.+)", d)[0]
+        fname_q = re.findall('filename=(.+)', d)[0]
         fname = fname_q.replace('"', '')
         filepath = os.path.join(path, fname)
         with open(filepath, 'wb') as f:
@@ -271,8 +266,7 @@ def download_dump(path, container_name=None):
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
-    logging.basicConfig(
-        level=logging.DEBUG, handlers=[f_handler, debug_f_handler])
+    logging.basicConfig(level=logging.DEBUG, handlers=[f_handler, debug_f_handler])
 
 
 def get_stream_handler():
@@ -286,8 +280,8 @@ def get_stream_handler():
 def get_file_handler(log_filepath, log_level):
     formatter = Formatter(FILE_LOG_FORMAT)
     f_handler = py_handlers.RotatingFileHandler(
-        log_filepath, maxBytes=LOG_FILE_SIZE_BYTES,
-        backupCount=LOG_BACKUP_COUNT)
+        log_filepath, maxBytes=LOG_FILE_SIZE_BYTES, backupCount=LOG_BACKUP_COUNT
+    )
     f_handler.setFormatter(formatter)
     f_handler.setLevel(log_level)
 
@@ -304,27 +298,15 @@ def to_camel_case(snake_str):
     return components[0] + ''.join(x.title() for x in components[1:])
 
 
-def validate_abi(abi_filepath: str) -> dict:
-    if not os.path.isfile(abi_filepath):
-        return {'filepath': abi_filepath,
-                'status': 'error',
-                'msg': 'No such file'}
-    try:
-        with open(abi_filepath) as abi_file:
-            json.load(abi_file)
-    except Exception:
-        return {'filepath': abi_filepath, 'status': 'error',
-                'msg': 'Failed to load abi file as json'}
-    return {'filepath': abi_filepath, 'status': 'ok', 'msg': ''}
-
-
 def streamed_cmd(func):
-    """ Decorator that allow function to print logs into stderr """
+    """Decorator that allow function to print logs into stderr"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if HIDE_STREAM_LOG is None:
             logging.getLogger('').addHandler(get_stream_handler())
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -349,27 +331,70 @@ def get_g_conf_home():
 
 
 def rm_dir(folder: str) -> None:
-    if os.path.exists(folder):
-        logger.info(f'{folder} exists, removing...')
-        shutil.rmtree(folder)
-    else:
-        logger.info(f'{folder} doesn\'t exist, skipping...')
+    """Safely remove a directory and all its contents, if it exists."""
+    if not isinstance(folder, str):
+        error_exit(f'folder must be a string, got {type(folder)}', exit_code=CLIExitCodes.FAILURE)
+
+    try:
+        if os.path.exists(folder):
+            logger.info(f'Directory {folder} exists, removing...')
+            shutil.rmtree(folder, ignore_errors=False)
+        else:
+            logger.info(f"Directory {folder} doesn't exist, skipping...")
+    except OSError as e:
+        logger.error(f'Failed to remove directory {folder}: {e}')
+        error_exit(
+            f'Failed to remove directory {folder}: {e}',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR,
+        )
 
 
-def safe_mkdir(path: str, print_res: bool = False):
+def safe_mkdir(path: str, print_res: bool = False) -> None:
+    """Create a directory if it doesn't exist."""
+    if not isinstance(path, str):
+        error_exit(f'path must be a string, got {type(path)}', exit_code=CLIExitCodes.FAILURE)
+
     if os.path.exists(path):
+        logger.debug(f'Directory {path} already exists')
         return
+
     msg = f'Creating {path} directory...'
     logger.info(msg)
     if print_res:
         print(msg)
-    os.makedirs(path, exist_ok=True)
+
+    try:
+        os.makedirs(path, exist_ok=True)
+    except OSError as e:
+        logger.error(f'Failed to create directory {path}: {e}')
+        error_exit(
+            f'Failed to create directory {path}: {e}',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR,
+        )
 
 
 def rsync_dirs(src: str, dest: str) -> None:
-    logger.info(f'Syncing {dest} with {src}')
-    run_cmd(['rsync', '-r', f'{src}/', dest])
-    run_cmd(['rsync', '-r', f'{src}/.git', dest])
+    """Synchronize two directories using rsync."""
+    if not isinstance(src, str) or not isinstance(dest, str):
+        error_exit('Source and destination paths must be strings', exit_code=CLIExitCodes.FAILURE)
+
+    if not src.strip() or not dest.strip():
+        error_exit('Source and destination paths cannot be empty', exit_code=CLIExitCodes.FAILURE)
+
+    if not os.path.isdir(src):
+        error_exit(f'Source directory does not exist: {src}', exit_code=CLIExitCodes.FAILURE)
+
+    logger.info(f'Syncing directory {dest} with {src}')
+
+    try:
+        # Sync all files including hidden ones
+        run_cmd(['rsync', '-r', f'{src}/', dest])
+        run_cmd(['rsync', '-r', f'{src}/.git', dest])
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Rsync failed: {e}')
+        error_exit(
+            f'Failed to sync directories: {e}', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
 
 
 def ok_result(payload: dict = None):
@@ -387,8 +412,7 @@ class UrlType(click.ParamType):
         try:
             result = urlparse(value)
         except ValueError:
-            self.fail(f'Some characters are not allowed in {value}',
-                      param, ctx)
+            self.fail(f'Some characters are not allowed in {value}', param, ctx)
         if not all([result.scheme, result.netloc]):
             self.fail(f'Expected valid url. Got {value}', param, ctx)
         return value
@@ -401,8 +425,7 @@ class IpType(click.ParamType):
         try:
             ipaddress.ip_address(value)
         except ValueError:
-            self.fail(f'expected valid ipv4/ipv6 address. Got {value}',
-                      param, ctx)
+            self.fail(f'expected valid ipv4/ipv6 address. Got {value}', param, ctx)
         return value
 
 

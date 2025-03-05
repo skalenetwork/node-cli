@@ -36,10 +36,10 @@ from node_cli.cli.schains import schains_cli
 from node_cli.cli.wallet import wallet_cli
 from node_cli.cli.ssl import ssl_cli
 from node_cli.cli.exit import exit_cli
-from node_cli.cli.validate import validate_cli
 from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.cli.sync_node import sync_node_cli
 
+from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import safe_load_texts, init_default_logger
 from node_cli.configs import LONG_LINE
 from node_cli.core.host import init_logs_dir
@@ -55,7 +55,7 @@ def cli():
     pass
 
 
-@cli.command('version', help="Show SKALE node CLI version")
+@cli.command('version', help='Show SKALE node CLI version')
 @click.option('--short', is_flag=True)
 def version(short):
     if short:
@@ -64,9 +64,10 @@ def version(short):
         print(f'SKALE Node CLI version: {VERSION}')
 
 
-@cli.command('info', help="Show SKALE node CLI info")
+@cli.command('info', help='Show SKALE node CLI info')
 def info():
-    print(inspect.cleandoc(f'''
+    print(
+        inspect.cleandoc(f"""
             {LONG_LINE}
             Version: {__version__}
             Full version: {VERSION}
@@ -75,7 +76,8 @@ def info():
             Commit: {COMMIT}
             Git branch: {BRANCH}
             {LONG_LINE}
-        '''))
+        """)
+    )
 
 
 def get_sources_list() -> List[click.MultiCommand]:
@@ -93,8 +95,7 @@ def get_sources_list() -> List[click.MultiCommand]:
             wallet_cli,
             ssl_cli,
             exit_cli,
-            validate_cli,
-            lvmpy_cli
+            lvmpy_cli,
         ]
 
 
@@ -102,8 +103,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    logger.error("Uncaught exception",
-                 exc_info=(exc_type, exc_value, exc_traceback))
+    logger.error('Uncaught exception', exc_info=(exc_type, exc_value, exc_traceback))
 
 
 sys.excepthook = handle_exception
@@ -123,5 +123,5 @@ if __name__ == '__main__':
     except Exception as err:
         traceback.print_exc()
         logger.debug('Execution time: %d seconds', time.time() - start_time)
-        error_exit(err)
+        error_exit(err, CLIExitCodes.FAILURE)
     logger.debug('Execution time: %d seconds', time.time() - start_time)

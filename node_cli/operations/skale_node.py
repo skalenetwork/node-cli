@@ -22,14 +22,11 @@ import os
 import shutil
 from typing import Optional
 
-from node_cli.utils.helper import rm_dir, rsync_dirs, safe_mkdir
+from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.helper import rm_dir, rsync_dirs, safe_mkdir, error_exit
 from node_cli.utils.git_utils import clone_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
-from node_cli.configs import (
-    CONTAINER_CONFIG_PATH,
-    CONTAINER_CONFIG_TMP_PATH,
-    SKALE_NODE_REPO_URL
-)
+from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH, SKALE_NODE_REPO_URL
 
 
 logger = logging.getLogger(__name__)
@@ -43,17 +40,35 @@ def update_images(env: dict, sync_node: bool = False) -> None:
         compose_pull(env=env, sync_node=sync_node)
 
 
-def download_skale_node(stream: Optional[str], src: Optional[str]) -> None:
-    rm_dir(CONTAINER_CONFIG_TMP_PATH)
-    safe_mkdir(CONTAINER_CONFIG_TMP_PATH)
-    dest = CONTAINER_CONFIG_TMP_PATH
-    if src:
-        rsync_dirs(src, dest)
-    else:
-        clone_repo(
-            SKALE_NODE_REPO_URL,
-            CONTAINER_CONFIG_TMP_PATH,
-            stream
+def download_skale_node(stream: Optional[str] = None, src: Optional[str] = None) -> None:
+    """Downloads SKALE node config from repo or local directory"""
+    if not src and not stream:
+        error_exit('Either src path or stream must be provided', exit_code=CLIExitCodes.FAILURE)
+
+    try:
+        rm_dir(CONTAINER_CONFIG_TMP_PATH)
+        safe_mkdir(CONTAINER_CONFIG_TMP_PATH)
+        dest = CONTAINER_CONFIG_TMP_PATH
+
+        if src:
+            if not os.path.isdir(src):
+                error_exit(
+                    f'Source directory does not exist: {src}', exit_code=CLIExitCodes.FAILURE
+                )
+            logger.info(f'Syncing config files from {src}')
+            rsync_dirs(src, dest)
+        elif stream:
+            logger.info(f'Cloning config files from {SKALE_NODE_REPO_URL} ({stream})')
+            clone_repo(SKALE_NODE_REPO_URL, dest, stream)
+        else:
+            # Should never reach this point
+            error_exit('Either src path or stream must be provided', exit_code=CLIExitCodes.FAILURE)
+
+    except (OSError, RuntimeError) as err:
+        rm_dir(CONTAINER_CONFIG_TMP_PATH)
+        error_exit(
+            f'Failed to download node configuration: {err}',
+            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR,
         )
 
 

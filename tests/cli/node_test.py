@@ -83,7 +83,10 @@ def test_register_node_with_error(resource_alloc, mocked_g_config):
             ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80', '-d', 'skale.test'],
         )
     assert result.exit_code == 3
-    assert (result.output == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n')  # noqa
+    assert (
+        result.output
+        == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'
+    )  # noqa
 
 
 def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
@@ -97,7 +100,10 @@ def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
             input='0.0.0.0\n',
         )
     assert result.exit_code == 0
-    assert (result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n')  # noqa
+    assert (
+        result.output
+        == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'
+    )  # noqa
 
 
 def test_register_node_with_default_port(resource_alloc, mocked_g_config):
@@ -111,7 +117,10 @@ def test_register_node_with_default_port(resource_alloc, mocked_g_config):
             input='0.0.0.0\n',
         )
     assert result.exit_code == 0
-    assert (result.output == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n')  # noqa
+    assert (
+        result.output
+        == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'
+    )  # noqa
 
 
 def test_register_with_no_alloc(mocked_g_config):
@@ -124,7 +133,10 @@ def test_register_with_no_alloc(mocked_g_config):
         input='0.0.0.0\n',
     )
     assert result.exit_code == 8
-    assert (result.output == f"Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n")  # noqa
+    assert (
+        result.output
+        == f"Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n"
+    )  # noqa
 
 
 def test_node_info_node_info():
@@ -149,7 +161,10 @@ def test_node_info_node_info():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n')  # noqa
+    assert (
+        result.output
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'
+    )  # noqa
 
 
 def test_node_info_node_info_not_created():
@@ -199,7 +214,10 @@ def test_node_info_node_info_frozen():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n')  # noqa
+    assert (
+        result.output
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'
+    )  # noqa
 
 
 def test_node_info_node_info_left():
@@ -224,7 +242,10 @@ def test_node_info_node_info_left():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n')  # noqa
+    assert (
+        result.output
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'
+    )  # noqa
 
 
 def test_node_info_node_info_leaving():
@@ -249,7 +270,10 @@ def test_node_info_node_info_leaving():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n')  # noqa
+    assert (
+        result.output
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'
+    )  # noqa
 
 
 def test_node_info_node_info_in_maintenance():
@@ -274,7 +298,10 @@ def test_node_info_node_info_in_maintenance():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert (result.output == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n')  # noqa
+    assert (
+        result.output
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n'
+    )  # noqa
 
 
 def test_node_signature():
@@ -301,14 +328,18 @@ def test_restore(mocked_g_config):
         '\n', ''
     )
 
-    with patch('node_cli.core.node.restore_op', MagicMock()) as mock_restore_op, patch(
-        'subprocess.run', new=subprocess_run_mock
-    ), patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), patch(
-        'node_cli.utils.decorators.is_node_inited', return_value=False
-    ), patch(
-        'node_cli.core.node.get_meta_info',
-        return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
-    ), patch('node_cli.operations.base.configure_nftables'):
+    with (
+        patch('node_cli.core.node.restore_op', MagicMock()) as mock_restore_op,
+        patch('subprocess.run', new=subprocess_run_mock),
+        patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        patch('node_cli.utils.decorators.is_node_inited', return_value=False),
+        patch(
+            'node_cli.core.node.get_meta_info',
+            return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
+        ),
+        patch('node_cli.operations.base.configure_nftables'),
+        patch('node_cli.configs.env.validate_params', lambda params: None),
+    ):
         result = run_command(restore_node, [backup_path, './tests/test-env'])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
@@ -323,14 +354,18 @@ def test_restore_no_snapshot(mocked_g_config):
         '\n', ''
     )
 
-    with patch('node_cli.core.node.restore_op', MagicMock()) as mock_restore_op, patch(
-        'subprocess.run', new=subprocess_run_mock
-    ), patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), patch(
-        'node_cli.utils.decorators.is_node_inited', return_value=False
-    ), patch(
-        'node_cli.core.node.get_meta_info',
-        return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
-    ), patch('node_cli.operations.base.configure_nftables'):
+    with (
+        patch('node_cli.core.node.restore_op', MagicMock()) as mock_restore_op,
+        patch('subprocess.run', new=subprocess_run_mock),
+        patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        patch('node_cli.utils.decorators.is_node_inited', return_value=False),
+        patch(
+            'node_cli.core.node.get_meta_info',
+            return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
+        ),
+        patch('node_cli.operations.base.configure_nftables'),
+        patch('node_cli.configs.env.validate_params', lambda params: None),
+    ):
         result = run_command(restore_node, [backup_path, './tests/test-env', '--no-snapshot'])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
@@ -364,9 +399,12 @@ def test_maintenance_off(mocked_g_config):
 
 def test_turn_off_maintenance_on(mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
-    with mock.patch('subprocess.run', new=subprocess_run_mock), mock.patch(
-        'node_cli.core.node.turn_off_op'
-    ), mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+    with (
+        mock.patch('subprocess.run', new=subprocess_run_mock),
+        mock.patch('node_cli.core.node.turn_off_op'),
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        patch('node_cli.configs.env.validate_params', lambda params: None),
+    ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -378,9 +416,7 @@ def test_turn_off_maintenance_on(mocked_g_config):
             == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'
         )  # noqa
         assert result.exit_code == 0
-        with mock.patch(
-            'node_cli.utils.docker_utils.is_container_running', return_value=True
-        ):
+        with mock.patch('node_cli.utils.docker_utils.is_container_running', return_value=True):
             result = run_command_mock(
                 'node_cli.utils.helper.requests.post',
                 resp_mock,
@@ -393,11 +429,14 @@ def test_turn_off_maintenance_on(mocked_g_config):
 
 def test_turn_on_maintenance_off(mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
-    with mock.patch('subprocess.run', new=subprocess_run_mock), mock.patch(
-        'node_cli.core.node.get_flask_secret_key'
-    ), mock.patch('node_cli.core.node.turn_on_op'), mock.patch(
-        'node_cli.core.node.is_base_containers_alive'
-    ), mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+    with (
+        mock.patch('subprocess.run', new=subprocess_run_mock),
+        mock.patch('node_cli.core.node.get_flask_secret_key'),
+        mock.patch('node_cli.core.node.turn_on_op'),
+        mock.patch('node_cli.core.node.is_base_containers_alive'),
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        patch('node_cli.configs.env.validate_params', lambda params: None),
+    ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -432,7 +471,10 @@ def test_node_version(meta_file_v2):
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command(version)
         assert result.exit_code == 0
-        assert (result.output == '--------------------------------------------------\nVersion: 0.1.1\nConfig Stream: develop\nLvmpy stream: 1.1.2\n--------------------------------------------------\n')  # noqa
+        assert (
+            result.output
+            == '--------------------------------------------------\nVersion: 0.1.1\nConfig Stream: develop\nLvmpy stream: 1.1.2\n--------------------------------------------------\n'
+        )  # noqa
 
         result = run_command(version, ['--json'])
         assert result.exit_code == 0

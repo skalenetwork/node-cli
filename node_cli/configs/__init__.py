@@ -24,8 +24,7 @@ from node_cli.utils.global_config import read_g_config
 
 GLOBAL_SKALE_DIR = os.getenv('GLOBAL_SKALE_DIR') or '/etc/skale'
 GLOBAL_SKALE_CONF_FILENAME = 'conf.json'
-GLOBAL_SKALE_CONF_FILEPATH = os.path.join(
-    GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILENAME)
+GLOBAL_SKALE_CONF_FILEPATH = os.path.join(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILENAME)
 GLOBAL_CONFIG = read_g_config(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
 
 G_CONF_USER = GLOBAL_CONFIG['user']
@@ -65,8 +64,7 @@ NGINX_CONTAINER_NAME = 'skale_nginx'
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
-REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(
-    LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
+REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
 
 ETH_STATE_PATH = os.path.join(NODE_DATA_PATH, 'eth-state')
 NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
@@ -105,7 +103,7 @@ HIDE_STREAM_LOG = os.getenv('HIDE_STREAM_LOG')
 
 def _get_env():
     try:
-        sys._MEIPASS
+        sys._MEIPASS  # type: ignore
     except AttributeError:
         return 'dev'
     return 'prod'
@@ -118,7 +116,7 @@ if ENV == 'dev':
     PARDIR = os.path.join(CURRENT_FILE_LOCATION, os.pardir)
     PROJECT_DIR = os.path.join(PARDIR, os.pardir)
 else:
-    PARDIR = os.path.join(sys._MEIPASS, 'data')
+    PARDIR = os.path.join(sys._MEIPASS, 'data')  # type: ignore
     PROJECT_DIR = PARDIR
 
 TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
@@ -140,9 +138,6 @@ BACKUP_ARCHIVE_NAME = 'skale-node-backup'
 
 TM_INIT_TIMEOUT = 20
 RESTORE_SLEEP_TIMEOUT = 20
-
-MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
-IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
 

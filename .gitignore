@@ -120,3 +120,5 @@ conf.json
 test-env
 
 nginx.conf
+tests/.skale/node_data/docker.json
+tests/.skale/node_data/node_options.json

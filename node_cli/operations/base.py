@@ -32,17 +32,11 @@ from node_cli.core.nftables import configure_nftables
 from node_cli.core.node_options import NodeOptions
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
-from node_cli.operations.common import (
-    backup_old_contracts,
-    download_contracts,
-    configure_filebeat,
-    configure_flask,
-    unpack_backup_archive
-)
+from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
 from node_cli.operations.volume import (
     cleanup_volume_artifacts,
     ensure_filestorage_mapping,
-    prepare_block_device
+    prepare_block_device,
 )
 from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
 from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
@@ -55,7 +49,7 @@ from node_cli.utils.docker_utils import (
     remove_dynamic_containers,
     remove_schain_container,
     start_admin,
-    stop_admin
+    stop_admin,
 )
 from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
@@ -68,15 +62,12 @@ logger = logging.getLogger(__name__)
 def checked_host(func):
     @functools.wraps(func)
     def wrapper(env_filepath: str, env: Dict, *args, **kwargs):
-        download_skale_node(
-            env['CONTAINER_CONFIGS_STREAM'],
-            env.get('CONTAINER_CONFIGS_DIR')
-        )
+        download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
             env['ENV_TYPE'],
             CONTAINER_CONFIG_TMP_PATH,
-            check_type=CheckType.PREINSTALL
+            check_type=CheckType.PREINSTALL,
         )
         if failed_checks:
             print_failed_requirements_checks(failed_checks)
@@ -90,7 +81,7 @@ def checked_host(func):
             env['DISK_MOUNTPOINT'],
             env['ENV_TYPE'],
             CONTAINER_CONFIG_PATH,
-            check_type=CheckType.POSTINSTALL
+            check_type=CheckType.POSTINSTALL,
         )
         if failed_checks:
             print_failed_requirements_checks(failed_checks)
@@ -114,17 +105,10 @@ def update(env_filepath: str, env: Dict) -> None:
     enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
     configure_nftables(enable_monitoring=enable_monitoring)
 
-    backup_old_contracts()
-    download_contracts(env)
-
     lvmpy_install(env)
     generate_nginx_config()
 
-    prepare_host(
-        env_filepath,
-        env['ENV_TYPE'],
-        allocation=True
-    )
+    prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
     init_shared_space_volume(env['ENV_TYPE'])
 
     current_stream = get_meta_info().config_stream
@@ -133,7 +117,7 @@ def update(env_filepath: str, env: Dict) -> None:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM']
+            env['CONTAINER_CONFIGS_STREAM'],
         )
         docker_cleanup()
 
@@ -142,7 +126,7 @@ def update(env_filepath: str, env: Dict) -> None:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_images(env=env)
     compose_up(env)
@@ -160,12 +144,8 @@ def init(env_filepath: str, env: dict) -> bool:
     enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
     configure_nftables(enable_monitoring=enable_monitoring)
 
-    prepare_host(
-        env_filepath,
-        env_type=env['ENV_TYPE']
-    )
+    prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
-    download_contracts(env)
 
     configure_filebeat()
     configure_flask()
@@ -179,7 +159,7 @@ def init(env_filepath: str, env: dict) -> bool:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env=env)
@@ -189,17 +169,10 @@ def init(env_filepath: str, env: dict) -> bool:
 
 
 def init_sync(
-    env_filepath: str,
-    env: dict,
-    archive: bool,
-    historic_state: bool,
-    snapshot_from: Optional[str]
+    env_filepath: str, env: dict, archive: bool, historic_state: bool, snapshot_from: Optional[str]
 ) -> bool:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-    download_skale_node(
-        env.get('CONTAINER_CONFIGS_STREAM'),
-        env.get('CONTAINER_CONFIGS_DIR')
-    )
+    download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -220,20 +193,16 @@ def init_sync(
 
     ensure_filestorage_mapping()
     link_env_file()
-    download_contracts(env)
 
     generate_nginx_config()
-    prepare_block_device(
-        env['DISK_MOUNTPOINT'],
-        force=env['ENFORCE_BTRFS'] == 'True'
-    )
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
 
@@ -251,10 +220,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     compose_rm(env, sync_node=True)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-    download_skale_node(
-        env['CONTAINER_CONFIGS_STREAM'],
-        env.get('CONTAINER_CONFIGS_DIR')
-    )
+    download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -264,27 +230,18 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     configure_nftables(enable_monitoring=enable_monitoring)
 
     ensure_filestorage_mapping()
-    backup_old_contracts()
-    download_contracts(env)
 
-    prepare_block_device(
-        env['DISK_MOUNTPOINT'],
-        force=env['ENFORCE_BTRFS'] == 'True'
-    )
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
     generate_nginx_config()
 
-    prepare_host(
-        env_filepath,
-        env['ENV_TYPE'],
-        allocation=True
-    )
+    prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
 
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_images(env=env, sync_node=True)
 
@@ -306,7 +263,7 @@ def turn_on(env: dict) -> None:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
@@ -324,7 +281,7 @@ def restore(env, backup_path, config_only=False):
         env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
-        check_type=CheckType.PREINSTALL
+        check_type=CheckType.PREINSTALL,
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
@@ -347,7 +304,7 @@ def restore(env, backup_path, config_only=False):
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
 
@@ -358,7 +315,7 @@ def restore(env, backup_path, config_only=False):
         env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
-        check_type=CheckType.POSTINSTALL
+        check_type=CheckType.POSTINSTALL,
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
@@ -367,10 +324,7 @@ def restore(env, backup_path, config_only=False):
 
 
 def repair_sync(
-    schain_name: str,
-    archive: bool,
-    historic_state: bool,
-    snapshot_from: Optional[str]
+    schain_name: str, archive: bool, historic_state: bool, snapshot_from: Optional[str]
 ) -> None:
     stop_admin(sync_node=True)
     remove_schain_container(schain_name=schain_name)

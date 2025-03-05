@@ -68,7 +68,6 @@ from node_cli.utils.helper import (
     error_exit,
     get_request,
     post_request,
-    extract_env_params,
 )
 from node_cli.utils.meta import get_meta_info
 from node_cli.utils.texts import Texts
@@ -140,8 +139,6 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 @check_not_inited
 def init(env_filepath):
     env = compose_node_env(env_filepath)
-    if env is None:
-        return
 
     inited_ok = init_op(env_filepath, env)
     if not inited_ok:
@@ -213,7 +210,7 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
 @check_inited
 @check_user
 def repair_sync(archive: bool, historic_state: bool, snapshot_from: str) -> None:
-    env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=True)
+    env_params = get_env_config(INIT_ENV_FILEPATH, sync_node=True)
     schain_name = env_params['SCHAIN_NAME']
     repair_sync_op(
         schain_name=schain_name,
@@ -225,21 +222,25 @@ def repair_sync(archive: bool, historic_state: bool, snapshot_from: str) -> None
 
 
 def compose_node_env(
-    env_filepath,
-    inited_node=False,
-    sync_schains=None,
-    pull_config_for_schain=None,
-    sync_node=False,
-    save: bool = True
-):
+    env_filepath: Optional[str],
+    inited_node: bool = False,
+    sync_schains: Optional[bool] = None,
+    pull_config_for_schain: Optional[str] = None,
+    sync_node: bool = False,
+    save: bool = True,
+) -> dict:
+    """Compose environment variables dictionary for SKALE node."""
     if env_filepath is not None:
-        env_params = extract_env_params(env_filepath, sync_node=sync_node, raise_for_status=True)
+        env_params = get_env_config(env_filepath, sync_node=sync_node)
         if save:
             save_env_params(env_filepath)
     else:
-        env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
+        env_params = get_env_config(INIT_ENV_FILEPATH, sync_node=sync_node)
 
+    # Set mount directory based on node type
     mnt_dir = SCHAINS_MNT_DIR_SYNC if sync_node else SCHAINS_MNT_DIR_REGULAR
+
+    # Compose base environment dictionary
     env = {
         'SKALE_DIR': SKALE_DIR,
         'SCHAINS_MNT_DIR': mnt_dir,
@@ -247,13 +248,20 @@ def compose_node_env(
         'SKALE_LIB_PATH': SKALE_STATE_DIR,
         **env_params,
     }
+
+    # Add Flask secret key for initialized non-sync nodes
     if inited_node and not sync_node:
-        flask_secret_key = get_flask_secret_key()
-        env['FLASK_SECRET_KEY'] = flask_secret_key
+        env['FLASK_SECRET_KEY'] = get_flask_secret_key()
+
+    # Enable backup run for syncing schains
     if sync_schains and not sync_node:
         env['BACKUP_RUN'] = 'True'
+
+    # Add schain config pull parameter if specified
     if pull_config_for_schain:
         env['PULL_CONFIG_FOR_SCHAIN'] = pull_config_for_schain
+
+    # Remove empty values and return
     return {k: v for k, v in env.items() if v != ''}
 
 
