@@ -85,8 +85,8 @@ def test_register_node_with_error(resource_alloc, mocked_g_config):
     assert result.exit_code == 3
     assert (
         result.output
-        == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'
-    )  # noqa
+        == f'Command failed with following errors:\n--------------------------------------------------\nStrange error\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'  # noqa
+    )
 
 
 def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
@@ -102,8 +102,8 @@ def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
     assert result.exit_code == 0
     assert (
         result.output
-        == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'
-    )  # noqa
+        == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
+    )
 
 
 def test_register_node_with_default_port(resource_alloc, mocked_g_config):
@@ -119,8 +119,8 @@ def test_register_node_with_default_port(resource_alloc, mocked_g_config):
     assert result.exit_code == 0
     assert (
         result.output
-        == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'
-    )  # noqa
+        == 'Enter node public IP: 0.0.0.0\nNode registered in SKALE manager.\nFor more info run < skale node info >\n'  # noqa
+    )
 
 
 def test_register_with_no_alloc(mocked_g_config):
@@ -135,8 +135,8 @@ def test_register_with_no_alloc(mocked_g_config):
     assert result.exit_code == 8
     assert (
         result.output
-        == f"Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n"
-    )  # noqa
+        == f"Enter node public IP: 0.0.0.0\nCommand failed with following errors:\n--------------------------------------------------\nNode hasn't been inited before.\nYou should run < skale node init >\n--------------------------------------------------\nYou can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n"  # noqa
+    )
 
 
 def test_node_info_node_info():
@@ -163,8 +163,8 @@ def test_node_info_node_info():
     assert result.exit_code == 0
     assert (
         result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'
-    )  # noqa
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Active\n--------------------------------------------------\n'  # noqa
+    )
 
 
 def test_node_info_node_info_not_created():
@@ -216,8 +216,8 @@ def test_node_info_node_info_frozen():
     assert result.exit_code == 0
     assert (
         result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'
-    )  # noqa
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Frozen\n--------------------------------------------------\n'  # noqa
+    )
 
 
 def test_node_info_node_info_left():
@@ -244,8 +244,8 @@ def test_node_info_node_info_left():
     assert result.exit_code == 0
     assert (
         result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'
-    )  # noqa
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Left\n--------------------------------------------------\n'  # noqa
+    )
 
 
 def test_node_info_node_info_leaving():
@@ -272,8 +272,8 @@ def test_node_info_node_info_leaving():
     assert result.exit_code == 0
     assert (
         result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'
-    )  # noqa
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: Leaving\n--------------------------------------------------\n'  # noqa
+    )
 
 
 def test_node_info_node_info_in_maintenance():
@@ -300,8 +300,8 @@ def test_node_info_node_info_in_maintenance():
     assert result.exit_code == 0
     assert (
         result.output
-        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n'
-    )  # noqa
+        == '--------------------------------------------------\nNode info\nName: test\nID: 32\nIP: 0.0.0.0\nPublic IP: 1.1.1.1\nPort: 10001\nDomain name: skale.test\nStatus: In Maintenance\n--------------------------------------------------\n'  # noqa
+    )
 
 
 def test_node_signature():
@@ -382,7 +382,7 @@ def test_maintenance_on():
     assert (
         result.output
         == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'
-    )  # noqa
+    )
 
 
 def test_maintenance_off(mocked_g_config):
@@ -394,7 +394,7 @@ def test_maintenance_off(mocked_g_config):
     assert (
         result.output
         == 'Setting maintenance mode off...\nNode is successfully removed from maintenance mode\n'
-    )  # noqa
+    )
 
 
 def test_turn_off_maintenance_on(mocked_g_config):
@@ -414,7 +414,7 @@ def test_turn_off_maintenance_on(mocked_g_config):
         assert (
             result.output
             == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'
-        )  # noqa
+        )
         assert result.exit_code == 0
         with mock.patch('node_cli.utils.docker_utils.is_container_running', return_value=True):
             result = run_command_mock(
@@ -448,7 +448,7 @@ def test_turn_on_maintenance_off(mocked_g_config):
     assert (
         result.output
         == 'Setting maintenance mode off...\nNode is successfully removed from maintenance mode\n'
-    )  # noqa, tmp fix
+    )
 
 
 def test_set_domain_name():
@@ -464,7 +464,7 @@ def test_set_domain_name():
     assert result.exit_code == 0
     assert (
         result.output == 'Setting new domain name: skale.test\nDomain name successfully changed\n'
-    )  # noqa
+    )
 
 
 def test_node_version(meta_file_v2):
@@ -473,12 +473,12 @@ def test_node_version(meta_file_v2):
         assert result.exit_code == 0
         assert (
             result.output
-            == '--------------------------------------------------\nVersion: 0.1.1\nConfig Stream: develop\nLvmpy stream: 1.1.2\n--------------------------------------------------\n'
-        )  # noqa
+            == '--------------------------------------------------\nVersion: 0.1.1\nConfig Stream: develop\nLvmpy stream: 1.1.2\n--------------------------------------------------\n'  # noqa
+        )
 
         result = run_command(version, ['--json'])
         assert result.exit_code == 0
         assert (
             result.output
             == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_stream': '1.1.2'}\n"
-        )  # noqa
+        )
