@@ -30,6 +30,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .[dev]
 
+    - name: Generate info
+      run: ./scripts/generate_info.sh 1.0.0 my-branch normal
+
     - name: Lint with flake8
       run: |
         flake8 .

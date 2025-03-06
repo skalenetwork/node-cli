@@ -593,6 +593,12 @@ Exit codes conventions for SKALE CLI tools
 pip install -e .[dev]
 ```
 
+#### Generate info.py locally
+
+```shell
+./scripts/generate_info.sh 1.0.0 my-branch normal
+```
+
 ##### Add flake8 git hook
 
 In file `.git/hooks/pre-commit` add:

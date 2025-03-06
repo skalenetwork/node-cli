@@ -1,6 +1,0 @@
-BUILD_DATETIME = ''
-COMMIT = ''
-BRANCH = ''
-OS = ''
-VERSION = ''
-TYPE = ''
