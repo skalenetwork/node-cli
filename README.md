@@ -115,12 +115,12 @@ You should specify the following environment variables:
 - `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
 - `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
 - `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
-- `MANAGER_CONTRACTS_ALIAS_OR_ADDRESS` - SKALE Manager main contract alias or address
-- `IMA_CONTRACTS_ALIAS_OR_ADDRESS` - IMA main contract alias or address
+- `MANAGER_CONTRACTS` - SKALE Manager main contract alias or address
+- `IMA_CONTRACTS` - IMA main contract alias or address
 - `FILEBEAT_URL` - URL to the Filebeat log server
 - `ENV_TYPE` - environment type (e.g., 'mainnet', 'testnet', 'qanet', 'devnet')
 
-> In `MANAGER_CONTRACTS_ALIAS_OR_ADDRESS` and `IMA_CONTRACTS_ALIAS_OR_ADDRESS` fields, if you are using a recognized network (e.g., 'Mainnet', 'Holesky', 'local'), you can use a recognized alias (e.g., 'production', 'grants'). You can check the list of recognized networks and aliases in [contract deployments](https://github.com/skalenetwork/skale-contracts/tree/deployments).
+> In `MANAGER_CONTRACTS` and `IMA_CONTRACTS` fields, if you are using a recognized network (e.g., 'Mainnet', 'Holesky', 'local'), you can use a recognized alias (e.g., 'production', 'grants'). You can check the list of recognized networks and aliases in [contract deployments](https://github.com/skalenetwork/skale-contracts/tree/deployments).
 > :warning: If you are using a custom network or a contract which isn't recognized by underlying skale library, you **MUST** provide a direct contract address.
 
 Optional variables:
@@ -536,12 +536,12 @@ You should specify the following environment variables:
 - `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
 - `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
 - `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
-- `MANAGER_CONTRACTS_ALIAS_OR_ADDRESS` - SKALE Manager main contract alias or address
-- `IMA_CONTRACTS_ALIAS_OR_ADDRESS` - IMA main contract alias or address
+- `MANAGER_CONTRACTS` - SKALE Manager main contract alias or address
+- `IMA_CONTRACTS` - IMA main contract alias or address
 - `SCHAIN_NAME` - name of the SKALE chain to sync
 - `ENV_TYPE` - environment type (e.g., 'mainnet', 'testnet', 'qanet', 'devnet')
 
-> In `MANAGER_CONTRACTS_ALIAS_OR_ADDRESS` and `IMA_CONTRACTS_ALIAS_OR_ADDRESS` fields, if you are using a recognized network (e.g., 'Mainnet', 'Holesky', 'local'), you can use a recognized alias (e.g., 'production', 'grants'). You can check the list of recognized networks and aliases in [contract deployments](https://github.com/skalenetwork/skale-contracts/tree/deployments).
+> In `MANAGER_CONTRACTS` and `IMA_CONTRACTS` fields, if you are using a recognized network (e.g., 'Mainnet', 'Holesky', 'local'), you can use a recognized alias (e.g., 'production', 'grants'). You can check the list of recognized networks and aliases in [contract deployments](https://github.com/skalenetwork/skale-contracts/tree/deployments).
 > :warning: If you are using a custom network or a contract which isn't recognized by underlying skale library, you **MUST** provide a direct contract address.
 
 Options:

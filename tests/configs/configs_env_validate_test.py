@@ -243,7 +243,7 @@ class TestEnvAliasAndParams:
         populated_params = {
             'CONTAINER_CONFIGS_STREAM': 'value',
             'ENDPOINT': 'http://localhost:8545',
-            'MANAGER_CONTRACTS_ALIAS_OR_ADDRESS': '',
+            'MANAGER_CONTRACTS': '',
             'FILEBEAT_HOST': '127.0.0.1:3010',
             'DISK_MOUNTPOINT': '/dev/sss',
             'SGX_SERVER_URL': 'http://127.0.0.1',

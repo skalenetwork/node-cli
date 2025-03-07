@@ -312,8 +312,8 @@ def valid_env_params():
         'ENV_TYPE': 'devnet',
         'SCHAIN_NAME': 'test',
         'ENFORCE_BTRFS': 'False',
-        'MANAGER_CONTRACTS_ALIAS_OR_ADDRESS': 'test-manager',
-        'IMA_CONTRACTS_ALIAS_OR_ADDRESS': 'test-ima',
+        'MANAGER_CONTRACTS': 'test-manager',
+        'IMA_CONTRACTS': 'test-ima',
     }
 
 

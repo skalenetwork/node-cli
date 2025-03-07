@@ -30,8 +30,8 @@ class ContractType(Enum):
 REQUIRED_PARAMS: Dict[str, str] = {
     'CONTAINER_CONFIGS_STREAM': '',
     'ENDPOINT': '',
-    'MANAGER_CONTRACTS_ALIAS_OR_ADDRESS': '',
-    'IMA_CONTRACTS_ALIAS_OR_ADDRESS': '',
+    'MANAGER_CONTRACTS': '',
+    'IMA_CONTRACTS': '',
     'FILEBEAT_HOST': '',
     'DISK_MOUNTPOINT': '',
     'SGX_SERVER_URL': '',
@@ -43,8 +43,8 @@ REQUIRED_PARAMS_SYNC: Dict[str, str] = {
     'SCHAIN_NAME': '',
     'CONTAINER_CONFIGS_STREAM': '',
     'ENDPOINT': '',
-    'MANAGER_CONTRACTS_ALIAS_OR_ADDRESS': '',
-    'IMA_CONTRACTS_ALIAS_OR_ADDRESS': '',
+    'MANAGER_CONTRACTS': '',
+    'IMA_CONTRACTS': '',
     'DISK_MOUNTPOINT': '',
     'DOCKER_LVMPY_STREAM': '',
     'ENV_TYPE': '',
@@ -116,12 +116,8 @@ def validate_params(params: Dict[str, str]) -> None:
     validate_env_type(params['ENV_TYPE'])
     # Get the endpoint explicitly from the params.
     endpoint = params['ENDPOINT']
-    validate_env_alias_or_address(
-        params['IMA_CONTRACTS_ALIAS_OR_ADDRESS'], ContractType.IMA, endpoint
-    )
-    validate_env_alias_or_address(
-        params['MANAGER_CONTRACTS_ALIAS_OR_ADDRESS'], ContractType.MANAGER, endpoint
-    )
+    validate_env_alias_or_address(params['IMA_CONTRACTS'], ContractType.IMA, endpoint)
+    validate_env_alias_or_address(params['MANAGER_CONTRACTS'], ContractType.MANAGER, endpoint)
 
 
 def validate_env_type(env_type: str) -> None:
@@ -138,11 +134,7 @@ def validate_env_alias_or_address(
 ) -> None:
     """Validate contract alias or address."""
     if not alias_or_address:
-        param_name = (
-            'IMA_CONTRACTS_ALIAS_OR_ADDRESS'
-            if contract_type == ContractType.IMA
-            else 'MANAGER_CONTRACTS_ALIAS_OR_ADDRESS'
-        )
+        param_name = 'IMA_CONTRACTS' if contract_type == ContractType.IMA else 'MANAGER_CONTRACTS'
         error_exit(f'{param_name} is not set', CLIExitCodes.FAILURE)
     if is_contract_address(alias_or_address):
         validate_contract_address(alias_or_address, endpoint)
