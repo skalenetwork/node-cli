@@ -606,6 +606,7 @@ In file `.git/hooks/pre-commit` add:
 ```shell
 #!/bin/sh
 flake8 .
+ruff check
 ```
 
 ### Debugging
