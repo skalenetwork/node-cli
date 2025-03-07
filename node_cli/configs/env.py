@@ -11,7 +11,7 @@ import requests
 from enum import Enum
 
 from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
-from node_cli.utils.helper import error_exit
+from node_cli.utils.helper import error_exit, is_contract_address
 from node_cli.utils.exit_codes import CLIExitCodes
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
@@ -144,9 +144,7 @@ def validate_env_alias_or_address(
             else 'MANAGER_CONTRACTS_ALIAS_OR_ADDRESS'
         )
         error_exit(f'{param_name} is not set', CLIExitCodes.FAILURE)
-    # If alias_or_address is 42 characters and starts with '0x', treat it as a contract address.
-    # TODO: Add a more robust check for contract address and see if doesn't conflict with alias.
-    if len(alias_or_address) == 42 and alias_or_address.startswith('0x'):
+    if is_contract_address(alias_or_address):
         validate_contract_address(alias_or_address, endpoint)
     else:
         validate_contract_alias(alias_or_address, contract_type, endpoint)

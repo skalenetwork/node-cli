@@ -445,3 +445,8 @@ def get_ssh_port(ssh_service_name='ssh'):
     except OSError:
         logger.exception('Cannot get ssh service port')
         return DEFAULT_SSH_PORT
+
+
+# TODO: Add a more robust check for contract address and see if doesn't conflict with alias.
+def is_contract_address(value: str) -> bool:
+    return len(value) == 42 and value.startswith('0x')
