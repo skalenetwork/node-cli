@@ -46,6 +46,12 @@ class ServicePort:
     HTTPS: int = 443
 
 
+class SGXPort:
+    HTTPS: int = 1026
+    TLS: int = 1027
+    ZMQ: int = 1031
+
+
 LEGACY_CHAIN = 'INPUT'
 LEGACY_FAMILY = 'ip'
 LEGACY_TABLE = 'filter'
@@ -219,18 +225,30 @@ class NFTablesManager:
                 return True
         return False
 
-    def add_drop_rule(self, protocol: str) -> None:
-        expr = [
-            {
-                'match': {
-                    'op': '==',
-                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
-                    'right': protocol,
+    def add_drop_rule(self, rule: Rule) -> None:
+
+        expr = []
+        if rule.port:
+            expr.append(
+                {
+                    'match': {
+                        'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
+                        'op': '==',
+                        'right': rule.port,
+                    }
                 }
-            },
-            {'counter': None},
-            {'drop': None},
-        ]
+            )
+        else:
+            expr.append(
+                {
+                    'match': {
+                        'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
+                        'op': '==',
+                        'right': rule.protocol,
+                    }
+                },
+            )
+        expr.extend([{'counter': None}, {'drop': None}])
         if not self.rule_exists(self.chain, expr):
             cmd = {
                 'nftables': [
@@ -239,7 +257,7 @@ class NFTablesManager:
                             'rule': {
                                 'family': self.family,
                                 'table': self.table,
-                                'chain': self.chain,
+                                'chain': rule.chain,
                                 'expr': expr,
                             }
                         }
@@ -247,7 +265,7 @@ class NFTablesManager:
                 ]
             }
             self.execute_cmd(cmd)
-            logger.info('Added drop rule for %s', protocol)
+            logger.info('Added drop rule %s', Rule)
 
     def remove_drop_rule(self, protocol: str) -> None:
         expr = [
@@ -486,7 +504,11 @@ class NFTablesManager:
             for icmp_type in icmp_types:
                 self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
 
-            self.add_drop_rule(protocol='udp')
+            sgx_ports = [SGXPort.HTTPS, SGXPort.TLS, SGXPort.ZMQ]
+            for port in sgx_ports:
+                self.add_drop_rule(Rule(chain=self.chain, port=port, protocol='tcp'))
+
+            self.add_drop_rule(Rule(chain=self.chain, protocol='udp'))
             logger.info('Making sure legacy chain has default policy %s', POLICY)
             self.update_chain_policy(
                 chain=LEGACY_CHAIN,
