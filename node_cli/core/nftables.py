@@ -22,6 +22,7 @@ import logging
 import os
 import shutil
 import sys
+from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
 
@@ -31,6 +32,7 @@ from node_cli.configs import (
     NFTABLES_CHAIN_FOLDER_PATH,
     NFTABLES_MAIN_CONFIG_PATH,
     NFTABLES_SKALE_BASE_CONFIG_PATH,
+    NFTABLES_USER_CONFIG_PATH
 )
 from node_cli.utils.helper import get_ssh_port, run_cmd
 
@@ -49,6 +51,9 @@ class ServicePort:
 class SGXPort:
     HTTPS: int = 1026
     TLS: int = 1027
+    LOCAL: int = 1028
+    HTTP_ONLY: int = 1029
+    INFO: int = 1030
     ZMQ: int = 1031
 
 
@@ -76,6 +81,7 @@ class Rule:
     chain: str
     protocol: str
     port: Optional[int] = None
+    port_range: Optional[str] = None
     icmp_type: Optional[str] = None
     action: str = 'accept'
 
@@ -94,6 +100,7 @@ class NFTablesManager:
         self.chain = chain
 
     def execute_cmd(self, json_cmd: dict) -> None:
+        logger.debug('Executing nft cmd %s', json_cmd)
         try:
             rc, output, error = self.nft.json_cmd(json_cmd)
             if rc != 0:
@@ -235,6 +242,16 @@ class NFTablesManager:
                         'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
                         'op': '==',
                         'right': rule.port,
+                    }
+                }
+            )
+        elif rule.port_range:
+            expr.append(
+                {
+                    'match': {
+                        'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
+                        'op': '==',
+                        'right': rule.port_range,
                     }
                 }
             )
@@ -504,9 +521,15 @@ class NFTablesManager:
             for icmp_type in icmp_types:
                 self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
 
-            sgx_ports = [SGXPort.HTTPS, SGXPort.TLS, SGXPort.ZMQ]
+            sgx_ports = range(SGXPort.HTTPS, SGXPort.ZMQ + 1)
             for port in sgx_ports:
-                self.add_drop_rule(Rule(chain=self.chain, port=port, protocol='tcp'))
+                self.add_drop_rule(
+                    Rule(
+                        chain=self.chain,
+                        port=port,
+                        protocol='tcp'
+                    )
+                )
 
             self.add_drop_rule(Rule(chain=self.chain, protocol='udp'))
             logger.info('Making sure legacy chain has default policy %s', POLICY)
@@ -560,6 +583,7 @@ class NFTablesManager:
 def prepare_directories() -> None:
     logger.info('Prepare directories for nftables')
     os.makedirs(NFTABLES_CHAIN_FOLDER_PATH, exist_ok=True)
+    create_user_config_path()
 
 
 def configure_nftables(enable_monitoring: bool = False) -> None:
@@ -579,17 +603,24 @@ def enable_nftables_service() -> None:
 
 def save_nftables_base_rules(ruleset: str) -> None:
     ruleset_lines = ruleset.split('\n')
-    include_line = f'\tinclude "{NFTABLES_CHAIN_CONFIG_WILDCARD}"'
-    ruleset_lines.insert(-2, include_line)
+    chain_include_line = f'\tinclude "{NFTABLES_CHAIN_CONFIG_WILDCARD}"'
+    user_include_line = f'\t\tinclude "{NFTABLES_USER_CONFIG_PATH}"'
+    ruleset_lines.insert(3, user_include_line)
+    ruleset_lines.insert(-2, chain_include_line)
     with open(NFTABLES_SKALE_BASE_CONFIG_PATH, 'w') as f:
         f.write('\n'.join(ruleset_lines))
     logger.info('Rules saved successfully to %s', NFTABLES_SKALE_BASE_CONFIG_PATH)
 
 
+def create_user_config_path() -> None:
+    Path(NFTABLES_USER_CONFIG_PATH).touch(exist_ok=True)
+
+
 def update_main_nftables_config() -> None:
     logger.info('Updating main nftables rules')
     content = (
-        f'#!/usr/sbin/nft -f\nflush ruleset\n' f'include "{NFTABLES_SKALE_BASE_CONFIG_PATH}";'
+        f'#!/usr/sbin/nft -f\nflush ruleset\n'
+        f'include "{NFTABLES_SKALE_BASE_CONFIG_PATH}";'
     )
     with open(NFTABLES_MAIN_CONFIG_PATH, 'w') as f:
         f.write(content)
