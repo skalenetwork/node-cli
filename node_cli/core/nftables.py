@@ -458,11 +458,19 @@ class NFTablesManager:
             }
             self.execute_cmd(cmd)
             logger.info(
-                'Removed rule from chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+                'Removed rule from chain %s: %s ports [%s, %s]',
+                rule.chain,
+                rule.protocol,
+                rule.first_port,
+                rule.last_port
             )
         else:
             logger.info(
-                'Rule does not exist in chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+                'Rule does not exist in chain %s: %s ports [%s, %s]',
+                rule.chain,
+                rule.protocol,
+                rule.first_port,
+                rule.last_port
             )
 
     def add_connection_tracking_rule(self, chain: str) -> None:
