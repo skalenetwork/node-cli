@@ -1,5 +1,5 @@
-#   -*- coding: utf-8 -*-
 #
+#   -*- coding: utf-8 -*-
 #   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
@@ -76,18 +76,32 @@ except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
         logger.error(f'Unable to import nftables due to an error {err}')
 
 
+class NFTablesError(Exception):
+    pass
+
+
 @dataclass
 class Rule:
     chain: str
     protocol: str
-    port: Optional[int] = None
-    port_range: Optional[str] = None
+    first_port: Optional[int] = None
+    last_port: Optional[int] = None
     icmp_type: Optional[str] = None
     action: str = 'accept'
 
-
-class NFTablesError(Exception):
-    pass
+    def __post_init__(self):
+        if self.first_port is not None and self.last_port is None:
+            self.last_port = self.first_port
+        if all(
+            val is None
+            for val in (
+                self.first_port,
+                self.last_port,
+                self.protocol,
+                self.icmp_type
+            )
+        ):
+            raise NFTablesError('Rule has no meaningful fields')
 
 
 class NFTablesManager:
@@ -235,36 +249,37 @@ class NFTablesManager:
     def add_drop_rule(self, rule: Rule) -> None:
 
         expr = []
-        if rule.port:
-            expr.append(
-                {
-                    'match': {
-                        'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                        'op': '==',
-                        'right': rule.port,
+
+        if rule.first_port:
+            if rule.last_port == rule.first_port:
+                expr.append(
+                    {
+                        'match': {
+                            'op': '==',
+                            'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                            'right': rule.first_port,
+                        }
                     }
+                )
+            else:
+                expr.append(
+                    {
+                        'match': {
+                            'op': '==',
+                            'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                            'right': {'range': [rule.first_port, rule.last_port]},
+                        }
+                    }
+                )
+        expr.append(
+            {
+                'match': {
+                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
+                    'op': '==',
+                    'right': rule.protocol,
                 }
-            )
-        elif rule.port_range:
-            expr.append(
-                {
-                    'match': {
-                        'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                        'op': '==',
-                        'right': rule.port_range,
-                    }
-                }
-            )
-        else:
-            expr.append(
-                {
-                    'match': {
-                        'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
-                        'op': '==',
-                        'right': rule.protocol,
-                    }
-                },
-            )
+            },
+        )
         expr.extend([{'counter': None}, {'drop': None}])
         if not self.rule_exists(self.chain, expr):
             cmd = {
@@ -322,16 +337,27 @@ class NFTablesManager:
         expr = []
 
         if rule.protocol in ['tcp', 'udp']:
-            if rule.port:
-                expr.append(
-                    {
-                        'match': {
-                            'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                            'op': '==',
-                            'right': rule.port,
+            if rule.first_port:
+                if rule.last_port == rule.first_port:
+                    expr.append(
+                        {
+                            'match': {
+                                'op': '==',
+                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'right': rule.first_port,
+                            }
                         }
-                    }
-                )
+                    )
+                else:
+                    expr.append(
+                        {
+                            'match': {
+                                'op': '==',
+                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'right': {'range': [rule.first_port, rule.last_port]},
+                            }
+                        }
+                    )
         elif rule.protocol == 'icmp' and rule.icmp_type:
             expr.append(
                 {
@@ -363,27 +389,46 @@ class NFTablesManager:
             }
             self.execute_cmd(cmd)
             logger.info(
-                'Added new rule to chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+                'Added new rule to chain %s: %s ports [%s, %s]',
+                rule.chain,
+                rule.protocol,
+                rule.first_port,
+                rule.last_port
             )
         else:
             logger.info(
-                'Rule already exists in chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+                'Rule already exists in chain %s: %s ports [%s, %s]',
+                rule.chain,
+                rule.protocol,
+                rule.first_port,
+                rule.last_port
             )
 
     def remove_rule(self, rule: Rule) -> None:
         expr = []
 
         if rule.protocol in ['tcp', 'udp']:
-            if rule.port:
-                expr.append(
-                    {
-                        'match': {
-                            'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                            'op': '==',
-                            'right': rule.port,
+            if rule.first_port:
+                if rule.last_port == rule.first_port:
+                    expr.append(
+                        {
+                            'match': {
+                                'op': '==',
+                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'right': rule.first_port,
+                            }
                         }
-                    }
-                )
+                    )
+                else:
+                    expr.append(
+                        {
+                            'match': {
+                                'op': '==',
+                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'right': {'range': [rule.first_port, rule.last_port]},
+                            }
+                        }
+                    )
         elif rule.protocol == 'icmp' and rule.icmp_type:
             expr.append(
                 {
@@ -512,24 +557,23 @@ class NFTablesManager:
             if enable_monitoring:
                 tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
             for port in tcp_ports:
-                self.add_rule(Rule(chain=self.chain, protocol='tcp', port=port))
+                self.add_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
 
-            self.add_rule(Rule(chain=self.chain, protocol='udp', port=ServicePort.DNS))
+            self.add_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
             self.add_loopback_rule(chain=self.chain)
 
             icmp_types = ['destination-unreachable', 'source-quench', 'time-exceeded']
             for icmp_type in icmp_types:
                 self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
 
-            sgx_ports = range(SGXPort.HTTPS, SGXPort.ZMQ + 1)
-            for port in sgx_ports:
-                self.add_drop_rule(
-                    Rule(
-                        chain=self.chain,
-                        port=port,
-                        protocol='tcp'
-                    )
+            self.add_drop_rule(
+                Rule(
+                    chain=self.chain,
+                    first_port=SGXPort.HTTPS,
+                    last_port=SGXPort.ZMQ,
+                    protocol='tcp'
                 )
+            )
 
             self.add_drop_rule(Rule(chain=self.chain, protocol='udp'))
             logger.info('Making sure legacy chain has default policy %s', POLICY)
@@ -545,7 +589,7 @@ class NFTablesManager:
             raise NFTablesError(e)
         logger.info('Firewall rules are configured')
 
-    def cleanup_rules(self, ssh: bool = False, dns: bool = False) -> None:
+    def cleanup_legacy_rules(self, ssh: bool = False, dns: bool = False) -> None:
         """Cleanups all node-cli generated rules"""
         self.remove_drop_rule('tcp')
         self.remove_drop_rule('udp')
@@ -559,9 +603,9 @@ class NFTablesManager:
         if ssh:
             tcp_ports.append(get_ssh_port())
         for port in tcp_ports:
-            self.remove_rule(Rule(chain=self.chain, protocol='tcp', port=port))
+            self.remove_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
         if dns:
-            self.remove_rule(Rule(chain=self.chain, protocol='udp', port=ServicePort.DNS))
+            self.remove_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
 
     def flush_chain(self, chain: str) -> None:
         """Remove all rules from a specific chain"""
