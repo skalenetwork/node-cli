@@ -46,8 +46,10 @@ class ServicePort:
     EXPORTER: int = 8080
     WATCHDOG: int = 3009
     HTTPS: int = 443
+    HTTP: int = 80
 
 
+@dataclass
 class SGXPort:
     HTTPS: int = 1026
     TLS: int = 1027
@@ -561,7 +563,13 @@ class NFTablesManager:
 
             self.add_connection_tracking_rule(self.chain)
 
-            tcp_ports = [get_ssh_port(), ServicePort.DNS, ServicePort.HTTPS, ServicePort.WATCHDOG]
+            tcp_ports = [
+                get_ssh_port(),
+                ServicePort.DNS,
+                ServicePort.HTTPS,
+                ServicePort.HTTP,
+                ServicePort.WATCHDOG
+            ]
             if enable_monitoring:
                 tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
             for port in tcp_ports:
