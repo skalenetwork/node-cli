@@ -1,5 +1,5 @@
-#   -*- coding: utf-8 -*-
 #
+#   -*- coding: utf-8 -*-
 #   This file is part of node-cli
 #
 #   Copyright (C) 2019 SKALE Labs
@@ -22,6 +22,7 @@ import logging
 import os
 import shutil
 import sys
+from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
 
@@ -31,6 +32,7 @@ from node_cli.configs import (
     NFTABLES_CHAIN_FOLDER_PATH,
     NFTABLES_MAIN_CONFIG_PATH,
     NFTABLES_SKALE_BASE_CONFIG_PATH,
+    NFTABLES_USER_CONFIG_PATH
 )
 from node_cli.utils.helper import get_ssh_port, run_cmd
 
@@ -44,6 +46,17 @@ class ServicePort:
     EXPORTER: int = 8080
     WATCHDOG: int = 3009
     HTTPS: int = 443
+    HTTP: int = 80
+
+
+@dataclass
+class SGXPort:
+    HTTPS: int = 1026
+    TLS: int = 1027
+    LOCAL: int = 1028
+    HTTP_ONLY: int = 1029
+    INFO: int = 1030
+    ZMQ: int = 1031
 
 
 LEGACY_CHAIN = 'INPUT'
@@ -65,17 +78,32 @@ except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
         logger.error(f'Unable to import nftables due to an error {err}')
 
 
+class NFTablesError(Exception):
+    pass
+
+
 @dataclass
 class Rule:
     chain: str
     protocol: str
-    port: Optional[int] = None
+    first_port: Optional[int] = None
+    last_port: Optional[int] = None
     icmp_type: Optional[str] = None
     action: str = 'accept'
 
-
-class NFTablesError(Exception):
-    pass
+    def __post_init__(self):
+        if self.first_port is not None and self.last_port is None:
+            self.last_port = self.first_port
+        if all(
+            val is None
+            for val in (
+                self.first_port,
+                self.last_port,
+                self.protocol,
+                self.icmp_type
+            )
+        ):
+            raise NFTablesError('Rule has no meaningful fields')
 
 
 class NFTablesManager:
@@ -88,6 +116,7 @@ class NFTablesManager:
         self.chain = chain
 
     def execute_cmd(self, json_cmd: dict) -> None:
+        logger.debug('Executing nft cmd %s', json_cmd)
         try:
             rc, output, error = self.nft.json_cmd(json_cmd)
             if rc != 0:
@@ -219,18 +248,41 @@ class NFTablesManager:
                 return True
         return False
 
-    def add_drop_rule(self, protocol: str) -> None:
-        expr = [
+    def add_drop_rule(self, rule: Rule) -> None:
+
+        expr = []
+
+        if rule.first_port:
+            if rule.last_port == rule.first_port:
+                expr.append(
+                    {
+                        'match': {
+                            'op': '==',
+                            'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                            'right': rule.first_port,
+                        }
+                    }
+                )
+            else:
+                expr.append(
+                    {
+                        'match': {
+                            'op': '==',
+                            'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                            'right': {'range': [rule.first_port, rule.last_port]},
+                        }
+                    }
+                )
+        expr.append(
             {
                 'match': {
-                    'op': '==',
                     'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
-                    'right': protocol,
+                    'op': '==',
+                    'right': rule.protocol,
                 }
             },
-            {'counter': None},
-            {'drop': None},
-        ]
+        )
+        expr.extend([{'counter': None}, {'drop': None}])
         if not self.rule_exists(self.chain, expr):
             cmd = {
                 'nftables': [
@@ -239,7 +291,7 @@ class NFTablesManager:
                             'rule': {
                                 'family': self.family,
                                 'table': self.table,
-                                'chain': self.chain,
+                                'chain': rule.chain,
                                 'expr': expr,
                             }
                         }
@@ -247,7 +299,7 @@ class NFTablesManager:
                 ]
             }
             self.execute_cmd(cmd)
-            logger.info('Added drop rule for %s', protocol)
+            logger.info('Added drop rule %s', Rule)
 
     def remove_drop_rule(self, protocol: str) -> None:
         expr = [
@@ -287,16 +339,27 @@ class NFTablesManager:
         expr = []
 
         if rule.protocol in ['tcp', 'udp']:
-            if rule.port:
-                expr.append(
-                    {
-                        'match': {
-                            'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                            'op': '==',
-                            'right': rule.port,
+            if rule.first_port:
+                if rule.last_port == rule.first_port:
+                    expr.append(
+                        {
+                            'match': {
+                                'op': '==',
+                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'right': rule.first_port,
+                            }
                         }
-                    }
-                )
+                    )
+                else:
+                    expr.append(
+                        {
+                            'match': {
+                                'op': '==',
+                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'right': {'range': [rule.first_port, rule.last_port]},
+                            }
+                        }
+                    )
         elif rule.protocol == 'icmp' and rule.icmp_type:
             expr.append(
                 {
@@ -328,27 +391,46 @@ class NFTablesManager:
             }
             self.execute_cmd(cmd)
             logger.info(
-                'Added new rule to chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+                'Added new rule to chain %s: %s ports [%s, %s]',
+                rule.chain,
+                rule.protocol,
+                rule.first_port,
+                rule.last_port
             )
         else:
             logger.info(
-                'Rule already exists in chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+                'Rule already exists in chain %s: %s ports [%s, %s]',
+                rule.chain,
+                rule.protocol,
+                rule.first_port,
+                rule.last_port
             )
 
     def remove_rule(self, rule: Rule) -> None:
         expr = []
 
         if rule.protocol in ['tcp', 'udp']:
-            if rule.port:
-                expr.append(
-                    {
-                        'match': {
-                            'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                            'op': '==',
-                            'right': rule.port,
+            if rule.first_port:
+                if rule.last_port == rule.first_port:
+                    expr.append(
+                        {
+                            'match': {
+                                'op': '==',
+                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'right': rule.first_port,
+                            }
                         }
-                    }
-                )
+                    )
+                else:
+                    expr.append(
+                        {
+                            'match': {
+                                'op': '==',
+                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'right': {'range': [rule.first_port, rule.last_port]},
+                            }
+                        }
+                    )
         elif rule.protocol == 'icmp' and rule.icmp_type:
             expr.append(
                 {
@@ -378,11 +460,19 @@ class NFTablesManager:
             }
             self.execute_cmd(cmd)
             logger.info(
-                'Removed rule from chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+                'Removed rule from chain %s: %s ports [%s, %s]',
+                rule.chain,
+                rule.protocol,
+                rule.first_port,
+                rule.last_port
             )
         else:
             logger.info(
-                'Rule does not exist in chain %s: %s port %s', rule.chain, rule.protocol, rule.port
+                'Rule does not exist in chain %s: %s ports [%s, %s]',
+                rule.chain,
+                rule.protocol,
+                rule.first_port,
+                rule.last_port
             )
 
     def add_connection_tracking_rule(self, chain: str) -> None:
@@ -473,20 +563,35 @@ class NFTablesManager:
 
             self.add_connection_tracking_rule(self.chain)
 
-            tcp_ports = [get_ssh_port(), ServicePort.DNS, ServicePort.HTTPS, ServicePort.WATCHDOG]
+            tcp_ports = [
+                get_ssh_port(),
+                ServicePort.DNS,
+                ServicePort.HTTPS,
+                ServicePort.HTTP,
+                ServicePort.WATCHDOG
+            ]
             if enable_monitoring:
                 tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
             for port in tcp_ports:
-                self.add_rule(Rule(chain=self.chain, protocol='tcp', port=port))
+                self.add_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
 
-            self.add_rule(Rule(chain=self.chain, protocol='udp', port=ServicePort.DNS))
+            self.add_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
             self.add_loopback_rule(chain=self.chain)
 
             icmp_types = ['destination-unreachable', 'source-quench', 'time-exceeded']
             for icmp_type in icmp_types:
                 self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
 
-            self.add_drop_rule(protocol='udp')
+            self.add_drop_rule(
+                Rule(
+                    chain=self.chain,
+                    first_port=SGXPort.HTTPS,
+                    last_port=SGXPort.ZMQ,
+                    protocol='tcp'
+                )
+            )
+
+            self.add_drop_rule(Rule(chain=self.chain, protocol='udp'))
             logger.info('Making sure legacy chain has default policy %s', POLICY)
             self.update_chain_policy(
                 chain=LEGACY_CHAIN,
@@ -500,7 +605,7 @@ class NFTablesManager:
             raise NFTablesError(e)
         logger.info('Firewall rules are configured')
 
-    def cleanup_rules(self, ssh: bool = False, dns: bool = False) -> None:
+    def cleanup_legacy_rules(self, ssh: bool = False, dns: bool = False) -> None:
         """Cleanups all node-cli generated rules"""
         self.remove_drop_rule('tcp')
         self.remove_drop_rule('udp')
@@ -514,9 +619,9 @@ class NFTablesManager:
         if ssh:
             tcp_ports.append(get_ssh_port())
         for port in tcp_ports:
-            self.remove_rule(Rule(chain=self.chain, protocol='tcp', port=port))
+            self.remove_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
         if dns:
-            self.remove_rule(Rule(chain=self.chain, protocol='udp', port=ServicePort.DNS))
+            self.remove_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
 
     def flush_chain(self, chain: str) -> None:
         """Remove all rules from a specific chain"""
@@ -538,6 +643,7 @@ class NFTablesManager:
 def prepare_directories() -> None:
     logger.info('Prepare directories for nftables')
     os.makedirs(NFTABLES_CHAIN_FOLDER_PATH, exist_ok=True)
+    create_user_config_path()
 
 
 def configure_nftables(enable_monitoring: bool = False) -> None:
@@ -557,17 +663,24 @@ def enable_nftables_service() -> None:
 
 def save_nftables_base_rules(ruleset: str) -> None:
     ruleset_lines = ruleset.split('\n')
-    include_line = f'\tinclude "{NFTABLES_CHAIN_CONFIG_WILDCARD}"'
-    ruleset_lines.insert(-2, include_line)
+    chain_include_line = f'\tinclude "{NFTABLES_CHAIN_CONFIG_WILDCARD}"'
+    user_include_line = f'\t\tinclude "{NFTABLES_USER_CONFIG_PATH}"'
+    ruleset_lines.insert(3, user_include_line)
+    ruleset_lines.insert(-2, chain_include_line)
     with open(NFTABLES_SKALE_BASE_CONFIG_PATH, 'w') as f:
         f.write('\n'.join(ruleset_lines))
     logger.info('Rules saved successfully to %s', NFTABLES_SKALE_BASE_CONFIG_PATH)
 
 
+def create_user_config_path() -> None:
+    Path(NFTABLES_USER_CONFIG_PATH).touch(exist_ok=True)
+
+
 def update_main_nftables_config() -> None:
     logger.info('Updating main nftables rules')
     content = (
-        f'#!/usr/sbin/nft -f\nflush ruleset\n' f'include "{NFTABLES_SKALE_BASE_CONFIG_PATH}";'
+        f'#!/usr/sbin/nft -f\nflush ruleset\n'
+        f'include "{NFTABLES_SKALE_BASE_CONFIG_PATH}";'
     )
     with open(NFTABLES_MAIN_CONFIG_PATH, 'w') as f:
         f.write(content)
