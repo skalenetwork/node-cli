@@ -61,7 +61,6 @@ from node_cli.core.checks import CheckType, run_checks as run_host_checks
 from node_cli.core.schains import (
     update_node_cli_schain_status,
     cleanup_sync_datadir,
-    toggle_schain_repair_mode,
 )
 from node_cli.utils.docker_utils import (
     compose_rm,
