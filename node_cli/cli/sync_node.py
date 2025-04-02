@@ -48,9 +48,9 @@ def sync_node():
 
 @sync_node.command('init', help=TEXTS['init']['help'])
 @click.argument('env_file')
-@click.option('--indexer', help=TEXTS['init']['indexer'], default=False)
-@click.option('--archive', help=TEXTS['init']['archive'], default=False)
-@click.option('--snapshot', help=TEXTS['init']['snapshot'], default=False)
+@click.option('--indexer', help=TEXTS['init']['indexer'], is_flag=True)
+@click.option('--archive', help=TEXTS['init']['archive'], is_flag=True)
+@click.option('--snapshot', help=TEXTS['init']['snapshot'], is_flag=True)
 @click.option(
     '--snapshot-from', type=URL_TYPE, default=None, hidden=True, help=TEXTS['init']['snapshot_from']
 )
