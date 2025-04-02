@@ -17,14 +17,21 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
+import time
 import distro
 import functools
 import logging
+import shutil
 from typing import Dict, Optional
 
 from node_cli.cli.info import VERSION
-from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
-from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
+from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH, SKALE_DIR
+from node_cli.core.host import (
+    ensure_btrfs_kernel_module_autoloaded,
+    link_env_file,
+    prepare_host,
+)
 
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
@@ -37,25 +44,30 @@ from node_cli.operations.common import (
     download_contracts,
     configure_filebeat,
     configure_flask,
-    unpack_backup_archive
+    unpack_backup_archive,
 )
 from node_cli.operations.volume import (
     cleanup_volume_artifacts,
     ensure_filestorage_mapping,
-    prepare_block_device
+    prepare_block_device,
 )
 from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
-from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
+from node_cli.operations.skale_node import (
+    download_skale_node,
+    sync_skale_node,
+    update_images,
+)
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
-from node_cli.core.schains import update_node_cli_schain_status, cleanup_sync_datadir
+from node_cli.core.schains import (
+    update_node_cli_schain_status,
+    cleanup_sync_datadir,
+    toggle_schain_repair_mode,
+)
 from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
     docker_cleanup,
     remove_dynamic_containers,
-    remove_schain_container,
-    start_admin,
-    stop_admin
 )
 from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
@@ -68,15 +80,12 @@ logger = logging.getLogger(__name__)
 def checked_host(func):
     @functools.wraps(func)
     def wrapper(env_filepath: str, env: Dict, *args, **kwargs):
-        download_skale_node(
-            env['CONTAINER_CONFIGS_STREAM'],
-            env.get('CONTAINER_CONFIGS_DIR')
-        )
+        download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
             env['ENV_TYPE'],
             CONTAINER_CONFIG_TMP_PATH,
-            check_type=CheckType.PREINSTALL
+            check_type=CheckType.PREINSTALL,
         )
         if failed_checks:
             print_failed_requirements_checks(failed_checks)
@@ -90,7 +99,7 @@ def checked_host(func):
             env['DISK_MOUNTPOINT'],
             env['ENV_TYPE'],
             CONTAINER_CONFIG_PATH,
-            check_type=CheckType.POSTINSTALL
+            check_type=CheckType.POSTINSTALL,
         )
         if failed_checks:
             print_failed_requirements_checks(failed_checks)
@@ -120,11 +129,7 @@ def update(env_filepath: str, env: Dict) -> None:
     lvmpy_install(env)
     generate_nginx_config()
 
-    prepare_host(
-        env_filepath,
-        env['ENV_TYPE'],
-        allocation=True
-    )
+    prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
     init_shared_space_volume(env['ENV_TYPE'])
 
     current_stream = get_meta_info().config_stream
@@ -133,7 +138,7 @@ def update(env_filepath: str, env: Dict) -> None:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM']
+            env['CONTAINER_CONFIGS_STREAM'],
         )
         docker_cleanup()
 
@@ -142,7 +147,7 @@ def update(env_filepath: str, env: Dict) -> None:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_images(env=env)
     compose_up(env)
@@ -160,10 +165,7 @@ def init(env_filepath: str, env: dict) -> bool:
     enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
     configure_nftables(enable_monitoring=enable_monitoring)
 
-    prepare_host(
-        env_filepath,
-        env_type=env['ENV_TYPE']
-    )
+    prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
     download_contracts(env)
 
@@ -179,7 +181,7 @@ def init(env_filepath: str, env: dict) -> bool:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env=env)
@@ -191,15 +193,13 @@ def init(env_filepath: str, env: dict) -> bool:
 def init_sync(
     env_filepath: str,
     env: dict,
+    indexer: bool,
     archive: bool,
-    historic_state: bool,
-    snapshot_from: Optional[str]
+    snapshot_from: Optional[str],
+    snapshot: bool,
 ) -> bool:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-    download_skale_node(
-        env.get('CONTAINER_CONFIGS_STREAM'),
-        env.get('CONTAINER_CONFIGS_DIR')
-    )
+    download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -214,32 +214,30 @@ def init_sync(
     )
 
     node_options = NodeOptions()
-    node_options.archive = archive
-    node_options.catchup = archive
-    node_options.historic_state = historic_state
+    node_options.archive = archive or indexer
+    node_options.catchup = archive or indexer
+    node_options.historic_state = archive
 
     ensure_filestorage_mapping()
     link_env_file()
     download_contracts(env)
 
     generate_nginx_config()
-    prepare_block_device(
-        env['DISK_MOUNTPOINT'],
-        force=env['ENFORCE_BTRFS'] == 'True'
-    )
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
 
     schain_name = env['SCHAIN_NAME']
-    if snapshot_from:
-        update_node_cli_schain_status(schain_name, snapshot_from=snapshot_from)
+    if snapshot or snapshot_from:
+        ts = int(time.time()) if snapshot else None
+        update_node_cli_schain_status(schain_name, repair_ts=ts, snapshot_from=snapshot_from)
 
     update_images(env=env, sync_node=True)
 
@@ -251,10 +249,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     compose_rm(env, sync_node=True)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-    download_skale_node(
-        env['CONTAINER_CONFIGS_STREAM'],
-        env.get('CONTAINER_CONFIGS_DIR')
-    )
+    download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -267,24 +262,17 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     backup_old_contracts()
     download_contracts(env)
 
-    prepare_block_device(
-        env['DISK_MOUNTPOINT'],
-        force=env['ENFORCE_BTRFS'] == 'True'
-    )
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
     generate_nginx_config()
 
-    prepare_host(
-        env_filepath,
-        env['ENV_TYPE'],
-        allocation=True
-    )
+    prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
 
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_images(env=env, sync_node=True)
 
@@ -306,7 +294,7 @@ def turn_on(env: dict) -> None:
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
@@ -324,7 +312,7 @@ def restore(env, backup_path, config_only=False):
         env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
-        check_type=CheckType.PREINSTALL
+        check_type=CheckType.PREINSTALL,
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
@@ -347,7 +335,7 @@ def restore(env, backup_path, config_only=False):
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
-        distro.version()
+        distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
 
@@ -358,7 +346,7 @@ def restore(env, backup_path, config_only=False):
         env['DISK_MOUNTPOINT'],
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
-        check_type=CheckType.POSTINSTALL
+        check_type=CheckType.POSTINSTALL,
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
@@ -366,24 +354,15 @@ def restore(env, backup_path, config_only=False):
     return True
 
 
-def repair_sync(
-    schain_name: str,
-    archive: bool,
-    historic_state: bool,
-    snapshot_from: Optional[str]
-) -> None:
-    stop_admin(sync_node=True)
-    remove_schain_container(schain_name=schain_name)
-
-    logger.info('Updating node options')
+def cleanup_sync(env, schain_name: str) -> None:
+    turn_off(env)
     cleanup_sync_datadir(schain_name=schain_name)
+    remove_skale_dir()
 
-    logger.info('Updating node options')
-    node_options = NodeOptions()
-    node_options.archive = archive
-    node_options.catchup = archive
-    node_options.historic_state = historic_state
 
-    logger.info('Updating cli status')
-    update_node_cli_schain_status(schain_name, snapshot_from=snapshot_from)
-    start_admin(sync_node=True)
+def remove_skale_dir():
+    if os.path.exists(SKALE_DIR):
+        shutil.rmtree(SKALE_DIR)
+        logger.info('%s was removed', SKALE_DIR)
+    else:
+        logger.info('%s does not exist, skipping', SKALE_DIR)

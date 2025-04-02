@@ -12,7 +12,7 @@ import requests
 from node_cli.configs import NODE_DATA_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.node import BASE_CONTAINERS_AMOUNT, is_base_containers_alive
-from node_cli.core.node import init, pack_dir, update, is_update_safe, repair_sync
+from node_cli.core.node import init, pack_dir, update, is_update_safe
 from node_cli.utils.meta import CliMeta
 
 from tests.helper import response_mock, safe_update_api_response, subprocess_run_mock
@@ -142,14 +142,15 @@ def test_init_node(no_resource_file):  # todo: write new init node test
     resp_mock = response_mock(requests.codes.created)
     assert not os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
     env_filepath = './tests/test-env'
-    with mock.patch('subprocess.run', new=subprocess_run_mock), mock.patch(
-        'node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE
-    ), mock.patch('node_cli.core.host.prepare_host'), mock.patch(
-        'node_cli.core.host.init_data_dir'
-    ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
-        'node_cli.core.node.init_op'
-    ), mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), mock.patch(
-        'node_cli.utils.helper.post_request', resp_mock
+    with (
+        mock.patch('subprocess.run', new=subprocess_run_mock),
+        mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        mock.patch('node_cli.core.host.prepare_host'),
+        mock.patch('node_cli.core.host.init_data_dir'),
+        mock.patch('node_cli.operations.base.configure_nftables'),
+        mock.patch('node_cli.core.node.init_op'),
+        mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
+        mock.patch('node_cli.utils.helper.post_request', resp_mock),
     ):
         init(env_filepath)
         assert os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
@@ -159,23 +160,25 @@ def test_update_node(mocked_g_config, resource_file):
     env_filepath = './tests/test-env'
     resp_mock = response_mock(requests.codes.created)
     os.makedirs(NODE_DATA_PATH, exist_ok=True)
-    with mock.patch('subprocess.run', new=subprocess_run_mock), mock.patch(
-        'node_cli.core.node.update_op'
-    ), mock.patch('node_cli.core.node.get_flask_secret_key'), mock.patch(
-        'node_cli.core.node.save_env_params'
-    ), mock.patch('node_cli.operations.base.configure_nftables'), mock.patch(
-        'node_cli.core.host.prepare_host'
-    ), mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True), mock.patch(
-        'node_cli.utils.helper.post_request', resp_mock
-    ), mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE), mock.patch(
-        'node_cli.core.host.init_data_dir'
-    ), mock.patch(
-        'node_cli.core.node.get_meta_info',
-        return_value=CliMeta(
-            version='2.6.0', config_stream='3.0.2'
-            )
+    with (
+        mock.patch('subprocess.run', new=subprocess_run_mock),
+        mock.patch('node_cli.core.node.update_op'),
+        mock.patch('node_cli.core.node.get_flask_secret_key'),
+        mock.patch('node_cli.core.node.save_env_params'),
+        mock.patch('node_cli.operations.base.configure_nftables'),
+        mock.patch('node_cli.core.host.prepare_host'),
+        mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
+        mock.patch('node_cli.utils.helper.post_request', resp_mock),
+        mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        mock.patch('node_cli.core.host.init_data_dir'),
+        mock.patch(
+            'node_cli.core.node.get_meta_info',
+            return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
+        ),
     ):
-        with mock.patch( 'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()):  # noqa
+        with mock.patch(
+            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
+        ):  # noqa
             result = update(env_filepath, pull_config_for_schain=None)
             assert result is None
 
@@ -207,10 +210,3 @@ def test_is_update_safe():
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response(safe=False)
         ):
             assert not is_update_safe()
-
-
-def test_repair_sync(tmp_sync_datadir, mocked_g_config, resource_file):
-    with mock.patch('node_cli.core.schains.rm_btrfs_subvolume'), \
-         mock.patch('node_cli.utils.docker_utils.stop_container'), \
-         mock.patch('node_cli.utils.docker_utils.start_container'):
-        repair_sync(archive=True, historic_state=True, snapshot_from='127.0.0.1')
