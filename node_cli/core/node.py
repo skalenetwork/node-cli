@@ -215,7 +215,7 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
 @check_inited
 @check_user
 def cleanup_sync() -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False)
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, sync_node=True)
     schain_name = env['SCHAIN_NAME']
     cleanup_sync_op(env, schain_name)
     logger.info('Sync node was cleaned up, all containers and data removed')
