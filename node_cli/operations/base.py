@@ -26,7 +26,12 @@ import shutil
 from typing import Dict, Optional
 
 from node_cli.cli.info import VERSION
-from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH, SKALE_DIR
+from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
+    CONTAINER_CONFIG_TMP_PATH,
+    SKALE_DIR,
+    GLOBAL_SKALE_DIR,
+)
 from node_cli.core.host import (
     ensure_btrfs_kernel_module_autoloaded,
     link_env_file,
@@ -70,7 +75,7 @@ from node_cli.utils.docker_utils import (
 )
 from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
-from node_cli.utils.helper import str_to_bool
+from node_cli.utils.helper import str_to_bool, rm_dir
 
 
 logger = logging.getLogger(__name__)
@@ -356,12 +361,5 @@ def restore(env, backup_path, config_only=False):
 def cleanup_sync(env, schain_name: str) -> None:
     turn_off(env)
     cleanup_sync_datadir(schain_name=schain_name)
-    remove_skale_dir()
-
-
-def remove_skale_dir():
-    if os.path.exists(SKALE_DIR):
-        shutil.rmtree(SKALE_DIR)
-        logger.info('%s was removed', SKALE_DIR)
-    else:
-        logger.info('%s does not exist, skipping', SKALE_DIR)
+    rm_dir(SKALE_DIR)
+    rm_dir(GLOBAL_SKALE_DIR)
