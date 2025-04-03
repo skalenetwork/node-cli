@@ -155,7 +155,6 @@ def get_username():
 
 
 def extract_env_params(env_filepath, sync_node=False, raise_for_status=True):
-    print('sync_node:', sync_node)
     env_params = get_env_config(env_filepath, sync_node=sync_node)
     absent_params = ', '.join(absent_env_params(env_params))
     if absent_params:
