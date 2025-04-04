@@ -17,12 +17,10 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import time
 import distro
 import functools
 import logging
-import shutil
 from typing import Dict, Optional
 
 from node_cli.cli.info import VERSION
@@ -284,9 +282,9 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     return True
 
 
-def turn_off(env: dict) -> None:
+def turn_off(env: dict, sync_node: bool = False) -> None:
     logger.info('Turning off the node...')
-    compose_rm(env=env)
+    compose_rm(env=env, sync_node=sync_node)
     remove_dynamic_containers()
     logger.info('Node was successfully turned off')
 
@@ -359,7 +357,7 @@ def restore(env, backup_path, config_only=False):
 
 
 def cleanup_sync(env, schain_name: str) -> None:
-    turn_off(env)
+    turn_off(env, sync_node=True)
     cleanup_sync_datadir(schain_name=schain_name)
     rm_dir(SKALE_DIR)
     rm_dir(GLOBAL_SKALE_DIR)
