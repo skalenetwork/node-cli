@@ -21,13 +21,13 @@ from typing import Optional
 
 import click
 
-from node_cli.core.node import init_sync, update_sync, repair_sync
+from node_cli.core.node import init_sync, update_sync, cleanup_sync
 from node_cli.utils.helper import (
     abort_if_false,
     error_exit,
     safe_load_texts,
     streamed_cmd,
-    URL_TYPE
+    URL_TYPE,
 )
 from node_cli.utils.exit_codes import CLIExitCodes
 
@@ -41,86 +41,54 @@ def sync_node_cli():
     pass
 
 
-@sync_node_cli.group(help="SKALE sync node commands")
+@sync_node_cli.group(help='SKALE sync node commands')
 def sync_node():
     pass
 
 
 @sync_node.command('init', help=TEXTS['init']['help'])
 @click.argument('env_file')
+@click.option('--indexer', help=TEXTS['init']['indexer'], is_flag=True)
+@click.option('--archive', help=TEXTS['init']['archive'], is_flag=True)
+@click.option('--snapshot', help=TEXTS['init']['snapshot'], is_flag=True)
 @click.option(
-    '--archive',
-    help=TEXTS['init']['archive'],
-    is_flag=True
-)
-@click.option(
-    '--historic-state',
-    help=TEXTS['init']['historic_state'],
-    is_flag=True
-)
-@click.option(
-    '--snapshot-from',
-    type=URL_TYPE,
-    default=None,
-    hidden=True,
-    help='Ip of the node from to download snapshot from'
+    '--snapshot-from', type=URL_TYPE, default=None, hidden=True, help=TEXTS['init']['snapshot_from']
 )
 @streamed_cmd
-def _init_sync(env_file, archive, historic_state, snapshot_from: Optional[str]):
-    if historic_state and not archive:
+def _init_sync(
+    env_file, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
+) -> None:
+    if indexer and archive:
         error_exit(
-            '--historic-state can be used only is combination with --archive',
-            exit_code=CLIExitCodes.FAILURE
+            'Cannot use both --indexer and --archive options',
+            exit_code=CLIExitCodes.FAILURE,
         )
-    init_sync(env_file, archive, historic_state, snapshot_from)
+    init_sync(env_file, indexer, archive, snapshot, snapshot_from)
 
 
 @sync_node.command('update', help='Update sync node from .env file')
-@click.option('--yes', is_flag=True, callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure you want to update SKALE node software?')
 @click.option(
-    '--unsafe',
-    'unsafe_ok',
-    help='Allow unsafe update',
-    hidden=True,
-    is_flag=True
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to update SKALE node software?',
 )
+@click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
 @click.argument('env_file')
 @streamed_cmd
 def _update_sync(env_file, unsafe_ok):
     update_sync(env_file)
 
 
-@sync_node.command('repair', help='Start sync node from empty database')
-@click.option('--yes', is_flag=True, callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure you want to start sync node from empty database?')
+@sync_node.command('cleanup', help='Remove sync node data and containers')
 @click.option(
-    '--archive',
-    help=TEXTS['init']['archive'],
-    is_flag=True
-)
-@click.option(
-    '--historic-state',
-    help=TEXTS['init']['historic_state'],
-    is_flag=True
-)
-@click.option(
-    '--snapshot-from',
-    type=URL_TYPE,
-    default=None,
-    hidden=True,
-    help='Ip of the node from to download snapshot from'
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to remove all node containers and data?',
 )
 @streamed_cmd
-def _repair_sync(
-    archive: str,
-    historic_state: str,
-    snapshot_from: Optional[str] = None
-) -> None:
-    repair_sync(
-        archive=archive,
-        historic_state=historic_state,
-        snapshot_from=snapshot_from
-    )
+def _cleanup_sync() -> None:
+    cleanup_sync()

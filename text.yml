@@ -63,8 +63,10 @@ exit:
 sync_node:
   init:
     help: Initialize sync SKALE node
-    archive: Run sync node in an archive node (disable block rotation)
-    historic_state: Enable historic state (works only in pair with --archive flag)
+    indexer: Run sync node in indexer mode (disable block rotation)
+    archive: Enable historic state and disable block rotation
+    snapshot_from: IP of the node to take snapshot from
+    snapshot: Start sync node from snapshot
 
 lvmpy:
   help: Lvmpy commands

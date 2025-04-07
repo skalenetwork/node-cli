@@ -16,12 +16,13 @@
 #
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-""" SKALE config test """
+"""SKALE config test"""
 
 import json
 import os
 import pathlib
 import shutil
+from contextlib import contextmanager
 
 import docker
 import mock
@@ -36,7 +37,7 @@ from node_cli.configs import (
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
     STATIC_PARAMS_FILEPATH,
-    SCHAIN_NODE_DATA_PATH
+    SCHAIN_NODE_DATA_PATH,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -126,11 +127,7 @@ devnet:
 @pytest.fixture
 def net_params_file():
     with open(STATIC_PARAMS_FILEPATH, 'w') as f:
-        yaml.dump(
-            yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader),
-            stream=f,
-            Dumper=yaml.Dumper
-        )
+        yaml.dump(yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader), stream=f, Dumper=yaml.Dumper)
     yield STATIC_PARAMS_FILEPATH
     os.remove(STATIC_PARAMS_FILEPATH)
 
@@ -165,12 +162,7 @@ def dclient():
 def simple_image(dclient):
     name = 'simple-image'
     try:
-        dclient.images.build(
-            tag=name,
-            rm=True,
-            nocache=True,
-            path='tests/simple_container'
-        )
+        dclient.images.build(tag=name, rm=True, nocache=True, path='tests/simple_container')
         yield name
     finally:
         try:
@@ -184,9 +176,7 @@ def simple_image(dclient):
 def docker_hc(dclient):
     dclient = docker.from_env()
     return dclient.api.create_host_config(
-        log_config=docker.types.LogConfig(
-            type=docker.types.LogConfig.types.JSON
-        )
+        log_config=docker.types.LogConfig(type=docker.types.LogConfig.types.JSON)
     )
 
 
@@ -240,13 +230,7 @@ def nginx_container(dutils, ssl_folder):
             'nginx:1.20.2',
             name=NGINX_CONTAINER_NAME,
             detach=True,
-            volumes={
-                ssl_folder: {
-                    'bind': '/ssl',
-                    'mode': 'ro',
-                    'propagation': 'slave'
-                }
-            }
+            volumes={ssl_folder: {'bind': '/ssl', 'mode': 'ro', 'propagation': 'slave'}},
         )
         yield c
     finally:
@@ -321,3 +305,16 @@ def tmp_sync_datadir():
         yield TEST_SCHAINS_MNT_DIR_SYNC
     finally:
         shutil.rmtree(TEST_SCHAINS_MNT_DIR_SYNC)
+
+
+@contextmanager
+def set_env_var(name, value):
+    old_value = os.environ.get(name)
+    os.environ[name] = value
+    try:
+        yield
+    finally:
+        if old_value is None:
+            del os.environ[name]
+        else:
+            os.environ[name] = old_value
