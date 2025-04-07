@@ -127,11 +127,12 @@ def test_cleanup_sync(mocked_g_config):
 
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.update_sync_op'),
+        mock.patch('node_cli.core.node.cleanup_sync_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.compose_node_env', return_value={'SCHAIN_NAME': 'test'}),
         mock.patch(
             'node_cli.core.node.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
