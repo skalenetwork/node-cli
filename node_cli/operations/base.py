@@ -360,5 +360,5 @@ def restore(env, backup_path, config_only=False):
 def cleanup_sync(env, schain_name: str) -> None:
     turn_off(env, sync_node=True)
     cleanup_sync_datadir(schain_name=schain_name)
-    rm_dir(SKALE_DIR)
     rm_dir(GLOBAL_SKALE_DIR)
+    rm_dir(SKALE_DIR)
