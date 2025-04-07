@@ -198,8 +198,8 @@ def init_sync(
     env: dict,
     indexer: bool,
     archive: bool,
-    snapshot_from: Optional[str],
     snapshot: bool,
+    snapshot_from: Optional[str],
 ) -> bool:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))

@@ -176,13 +176,14 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
     print('Node is restored from backup')
 
 
+@check_not_inited
 def init_sync(
-    env_filepath: str, indexer: bool, archive: bool, snapshot_from: Optional[str], snapshot: bool
+    env_filepath: str, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
     env = compose_node_env(env_filepath, sync_node=True)
     if env is None:
         return
-    inited_ok = init_sync_op(env_filepath, env, indexer, archive, snapshot_from, snapshot)
+    inited_ok = init_sync_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
     if not inited_ok:
         error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Waiting for containers initialization')

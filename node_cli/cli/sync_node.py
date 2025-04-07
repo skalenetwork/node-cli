@@ -56,14 +56,14 @@ def sync_node():
 )
 @streamed_cmd
 def _init_sync(
-    env_file, indexer: bool, archive: bool, snapshot_from: Optional[str], snapshot: bool
+    env_file, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
     if indexer and archive:
         error_exit(
             'Cannot use both --indexer and --archive options',
             exit_code=CLIExitCodes.FAILURE,
         )
-    init_sync(env_file, indexer, archive, snapshot_from, snapshot)
+    init_sync(env_file, indexer, archive, snapshot, snapshot_from)
 
 
 @sync_node.command('update', help='Update sync node from .env file')
