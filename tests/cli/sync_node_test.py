@@ -98,10 +98,10 @@ def test_init_archive_indexer_fail(mocked_g_config, clean_node_options):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
-        mock.patch('node_cli.configs', return_value=True),
+        mock.patch('node_cli.core.node.compose_node_env', return_value={}),
         set_env_var('ENV_TYPE', 'devnet'),
     ):
-        result = run_command(_init_sync, ['./tests/test-env --archive --indexer'])
+        result = run_command(_init_sync, ['./tests/test-env', '--archive', '--indexer'])
         assert result.exit_code == 1
         assert 'Cannot use both' in result.output
 
