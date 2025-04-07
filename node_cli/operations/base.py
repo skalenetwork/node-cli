@@ -239,7 +239,7 @@ def init_sync(
 
     schain_name = env['SCHAIN_NAME']
     if snapshot or snapshot_from:
-        ts = int(time.time()) if snapshot else None
+        ts = int(time.time()) if snapshot else 0
         update_node_cli_schain_status(schain_name, repair_ts=ts, snapshot_from=snapshot_from)
 
     update_images(env=env, sync_node=True)
