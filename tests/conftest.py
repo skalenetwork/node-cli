@@ -23,6 +23,7 @@ import os
 import tempfile
 import pathlib
 import shutil
+from contextlib import contextmanager
 
 import docker
 import mock
@@ -352,3 +353,16 @@ def mock_networks_metadata():
             {'chainId': 2, 'name': 'Testnet', 'path': 'testnet'},
         ]
     }
+
+
+@contextmanager
+def set_env_var(name, value):
+    old_value = os.environ.get(name)
+    os.environ[name] = value
+    try:
+        yield
+    finally:
+        if old_value is None:
+            del os.environ[name]
+        else:
+            os.environ[name] = old_value

@@ -56,8 +56,8 @@ from node_cli.operations import (
     turn_on_op,
     restore_op,
     init_sync_op,
-    repair_sync_op,
     update_sync_op,
+    cleanup_sync_op,
 )
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks,
@@ -173,11 +173,14 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
     print('Node is restored from backup')
 
 
-def init_sync(env_filepath: str, archive: bool, historic_state: bool, snapshot_from: str) -> None:
+@check_not_inited
+def init_sync(
+    env_filepath: str, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
+) -> None:
     env = compose_node_env(env_filepath, sync_node=True)
     if env is None:
         return
-    inited_ok = init_sync_op(env_filepath, env, archive, historic_state, snapshot_from)
+    inited_ok = init_sync_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
     if not inited_ok:
         error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Waiting for containers initialization')
@@ -209,16 +212,11 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
 
 @check_inited
 @check_user
-def repair_sync(archive: bool, historic_state: bool, snapshot_from: str) -> None:
-    env_params = get_env_config(INIT_ENV_FILEPATH, sync_node=True)
-    schain_name = env_params['SCHAIN_NAME']
-    repair_sync_op(
-        schain_name=schain_name,
-        archive=archive,
-        historic_state=historic_state,
-        snapshot_from=snapshot_from,
-    )
-    logger.info('Schain was started from scratch')
+def cleanup_sync() -> None:
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, sync_node=True)
+    schain_name = env['SCHAIN_NAME']
+    cleanup_sync_op(env, schain_name)
+    logger.info('Sync node was cleaned up, all containers and data removed')
 
 
 def compose_node_env(
@@ -229,7 +227,6 @@ def compose_node_env(
     sync_node: bool = False,
     save: bool = True,
 ) -> dict:
-    """Compose environment variables dictionary for SKALE node."""
     if env_filepath is not None:
         env_params = get_env_config(env_filepath, sync_node=sync_node)
         if save:

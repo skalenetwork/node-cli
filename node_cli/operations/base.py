@@ -17,14 +17,25 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import time
+
 import distro
 import functools
 import logging
 from typing import Dict, Optional
 
 from node_cli.cli.info import VERSION
-from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH
-from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
+from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
+    CONTAINER_CONFIG_TMP_PATH,
+    SKALE_DIR,
+    GLOBAL_SKALE_DIR,
+)
+from node_cli.core.host import (
+    ensure_btrfs_kernel_module_autoloaded,
+    link_env_file,
+    prepare_host,
+)
 
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.nginx import generate_nginx_config
@@ -39,21 +50,25 @@ from node_cli.operations.volume import (
     prepare_block_device,
 )
 from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
-from node_cli.operations.skale_node import download_skale_node, sync_skale_node, update_images
+from node_cli.operations.skale_node import (
+    download_skale_node,
+    sync_skale_node,
+    update_images,
+)
 from node_cli.core.checks import CheckType, run_checks as run_host_checks
-from node_cli.core.schains import update_node_cli_schain_status, cleanup_sync_datadir
+from node_cli.core.schains import (
+    update_node_cli_schain_status,
+    cleanup_sync_datadir,
+)
 from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
     docker_cleanup,
     remove_dynamic_containers,
-    remove_schain_container,
-    start_admin,
-    stop_admin,
 )
 from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.print_formatters import print_failed_requirements_checks
-from node_cli.utils.helper import str_to_bool
+from node_cli.utils.helper import str_to_bool, rm_dir
 
 
 logger = logging.getLogger(__name__)
@@ -92,7 +107,7 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict) -> None:
+def update(env_filepath: str, env: Dict) -> bool:
     compose_rm(env)
     remove_dynamic_containers()
 
@@ -169,7 +184,12 @@ def init(env_filepath: str, env: dict) -> bool:
 
 
 def init_sync(
-    env_filepath: str, env: dict, archive: bool, historic_state: bool, snapshot_from: Optional[str]
+    env_filepath: str,
+    env: dict,
+    indexer: bool,
+    archive: bool,
+    snapshot: bool,
+    snapshot_from: Optional[str],
 ) -> bool:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
@@ -187,9 +207,9 @@ def init_sync(
     )
 
     node_options = NodeOptions()
-    node_options.archive = archive
-    node_options.catchup = archive
-    node_options.historic_state = historic_state
+    node_options.archive = archive or indexer
+    node_options.catchup = archive or indexer
+    node_options.historic_state = archive
 
     ensure_filestorage_mapping()
     link_env_file()
@@ -207,8 +227,9 @@ def init_sync(
     update_resource_allocation(env_type=env['ENV_TYPE'])
 
     schain_name = env['SCHAIN_NAME']
-    if snapshot_from:
-        update_node_cli_schain_status(schain_name, snapshot_from=snapshot_from)
+    if snapshot or snapshot_from:
+        ts = int(time.time())
+        update_node_cli_schain_status(schain_name, repair_ts=ts, snapshot_from=snapshot_from)
 
     update_images(env=env, sync_node=True)
 
@@ -249,9 +270,9 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     return True
 
 
-def turn_off(env: dict) -> None:
+def turn_off(env: dict, sync_node: bool = False) -> None:
     logger.info('Turning off the node...')
-    compose_rm(env=env)
+    compose_rm(env=env, sync_node=sync_node)
     remove_dynamic_containers()
     logger.info('Node was successfully turned off')
 
@@ -323,21 +344,8 @@ def restore(env, backup_path, config_only=False):
     return True
 
 
-def repair_sync(
-    schain_name: str, archive: bool, historic_state: bool, snapshot_from: Optional[str]
-) -> None:
-    stop_admin(sync_node=True)
-    remove_schain_container(schain_name=schain_name)
-
-    logger.info('Updating node options')
+def cleanup_sync(env, schain_name: str) -> None:
+    turn_off(env, sync_node=True)
     cleanup_sync_datadir(schain_name=schain_name)
-
-    logger.info('Updating node options')
-    node_options = NodeOptions()
-    node_options.archive = archive
-    node_options.catchup = archive
-    node_options.historic_state = historic_state
-
-    logger.info('Updating cli status')
-    update_node_cli_schain_status(schain_name, snapshot_from=snapshot_from)
-    start_admin(sync_node=True)
+    rm_dir(GLOBAL_SKALE_DIR)
+    rm_dir(SKALE_DIR)

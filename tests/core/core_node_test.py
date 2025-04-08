@@ -12,7 +12,7 @@ import requests
 from node_cli.configs import NODE_DATA_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.node import BASE_CONTAINERS_AMOUNT, is_base_containers_alive
-from node_cli.core.node import init, pack_dir, update, is_update_safe, repair_sync
+from node_cli.core.node import init, pack_dir, update, is_update_safe
 from node_cli.utils.meta import CliMeta
 
 from tests.helper import response_mock, safe_update_api_response, subprocess_run_mock
@@ -212,13 +212,3 @@ def test_is_update_safe():
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response(safe=False)
         ):
             assert not is_update_safe()
-
-
-def test_repair_sync(tmp_sync_datadir, mocked_g_config, resource_file):
-    with (
-        mock.patch('node_cli.core.schains.rm_btrfs_subvolume'),
-        mock.patch('node_cli.utils.docker_utils.stop_container'),
-        mock.patch('node_cli.utils.docker_utils.start_container'),
-        mock.patch('node_cli.configs.env.validate_params', lambda params: None),
-    ):
-        repair_sync(archive=True, historic_state=True, snapshot_from='127.0.0.1')

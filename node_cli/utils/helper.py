@@ -331,22 +331,11 @@ def get_g_conf_home():
 
 
 def rm_dir(folder: str) -> None:
-    """Safely remove a directory and all its contents, if it exists."""
-    if not isinstance(folder, str):
-        error_exit(f'folder must be a string, got {type(folder)}', exit_code=CLIExitCodes.FAILURE)
-
-    try:
-        if os.path.exists(folder):
-            logger.info(f'Directory {folder} exists, removing...')
-            shutil.rmtree(folder, ignore_errors=False)
-        else:
-            logger.info(f"Directory {folder} doesn't exist, skipping...")
-    except OSError as e:
-        logger.error(f'Failed to remove directory {folder}: {e}')
-        error_exit(
-            f'Failed to remove directory {folder}: {e}',
-            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR,
-        )
+    if os.path.exists(folder):
+        logger.info(f'{folder} exists, removing...')
+        shutil.rmtree(folder)
+    else:
+        logger.info(f"{folder} doesn't exist, skipping...")
 
 
 def safe_mkdir(path: str, print_res: bool = False) -> None:

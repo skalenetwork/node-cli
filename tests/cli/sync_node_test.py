@@ -24,12 +24,13 @@ import logging
 
 from node_cli.configs import SKALE_DIR, NODE_DATA_PATH
 from node_cli.core.node_options import NodeOptions
-from node_cli.cli.sync_node import _init_sync, _update_sync
+from node_cli.cli.sync_node import _init_sync, _update_sync, _cleanup_sync
 from node_cli.utils.meta import CliMeta
 from node_cli.utils.helper import init_default_logger
 
 from tests.helper import run_command, subprocess_run_mock
 from tests.resources_test import BIG_DISK_SIZE
+from tests.conftest import set_env_var
 
 logger = logging.getLogger(__name__)
 init_default_logger()
@@ -79,7 +80,7 @@ def test_init_sync_archive(mocked_g_config, clean_node_options):
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
         mock.patch('node_cli.configs.env.validate_params', lambda params: None),
     ):
-        result = run_command(_init_sync, ['./tests/test-env', '--archive', '--historic-state'])
+        result = run_command(_init_sync, ['./tests/test-env', '--archive'])
         node_options = NodeOptions()
 
         assert node_options.archive
@@ -89,7 +90,7 @@ def test_init_sync_archive(mocked_g_config, clean_node_options):
         assert result.exit_code == 0
 
 
-def test_init_sync_historic_state_fail(mocked_g_config, clean_node_options):
+def test_init_archive_indexer_fail(mocked_g_config, clean_node_options):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -98,10 +99,12 @@ def test_init_sync_historic_state_fail(mocked_g_config, clean_node_options):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
+        mock.patch('node_cli.core.node.compose_node_env', return_value={}),
+        set_env_var('ENV_TYPE', 'devnet'),
     ):
-        result = run_command(_init_sync, ['./tests/test-env', '--historic-state'])
+        result = run_command(_init_sync, ['./tests/test-env', '--archive', '--indexer'])
         assert result.exit_code == 1
-        assert '--historic-state can be used only' in result.output
+        assert 'Cannot use both' in result.output
 
 
 def test_update_sync(mocked_g_config):
@@ -121,4 +124,24 @@ def test_update_sync(mocked_g_config):
         mock.patch('node_cli.configs.env.validate_params', lambda params: None),
     ):
         result = run_command(_update_sync, ['./tests/test-env', '--yes'])
+        assert result.exit_code == 0
+
+
+def test_cleanup_sync(mocked_g_config):
+    pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
+
+    with (
+        mock.patch('subprocess.run', new=subprocess_run_mock),
+        mock.patch('node_cli.core.node.cleanup_sync_op'),
+        mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
+        mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        mock.patch('node_cli.operations.base.configure_nftables'),
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.compose_node_env', return_value={'SCHAIN_NAME': 'test'}),
+        mock.patch(
+            'node_cli.core.node.get_meta_info',
+            return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
+        ),
+    ):
+        result = run_command(_cleanup_sync, ['--yes'])
         assert result.exit_code == 0

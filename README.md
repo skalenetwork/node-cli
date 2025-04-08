@@ -546,8 +546,11 @@ You should specify the following environment variables:
 
 Options:
 
-- `--archive` - Run sync node in an archive node (disable block rotation)
-- `--historic-state` - Enable historic state (works only in pair with --archive flag)
+- `--indexer` - run sync node in indexer mode (disable block rotation)
+- `--archive` - enable historic state and disable block rotation (can't be used with `--indexer`)
+- `--snapshot` - start sync node from snapshot
+- `--snapshot-from` - specify the IP of the node to take snapshot from
+- `--yes` - initialize without additional confirmation
 
 #### Sync node update
 
@@ -567,6 +570,20 @@ Arguments:
 
 > NOTE: You can just update a file with environment variables used during `skale sync-node init`.
 
+#### Sync node cleanup
+
+Cleanup full sync SKALE node on current machine
+
+```shell
+skale sync-node cleanup
+```
+
+Options:
+
+- `--yes` - cleanup without additional confirmation
+
+> WARNING: This command will remove all data from the node.
+
 ## Exit codes
 
 Exit codes conventions for SKALE CLI tools
@@ -580,7 +597,7 @@ Exit codes conventions for SKALE CLI tools
 - `7` - Bad user error\*\*
 - `8` - Node state error\*\*
 
-`*` - `validator-cli` only  
+`*` - `validator-cli` only\
 `**` - `node-cli` only
 
 ## Development

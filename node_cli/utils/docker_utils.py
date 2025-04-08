@@ -33,13 +33,12 @@ from node_cli.configs import (
     SYNC_COMPOSE_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    NGINX_CONTAINER_NAME
+    NGINX_CONTAINER_NAME,
 )
 
 
 logger = logging.getLogger(__name__)
 
-ADMIN_REMOVE_TIMEOUT = 60
 SCHAIN_REMOVE_TIMEOUT = 300
 IMA_REMOVE_TIMEOUT = 20
 TELEGRAF_REMOVE_TIMEOUT = 20
@@ -53,9 +52,12 @@ BASE_COMPOSE_SERVICES = (
     'nginx',
     'redis',
     'watchdog',
-    'filebeat'
+    'filebeat',
 )
-MONITORING_COMPOSE_SERVICES = ('node-exporter', 'advisor',)
+MONITORING_COMPOSE_SERVICES = (
+    'node-exporter',
+    'advisor',
+)
 TELEGRAF_SERVICES = ('telegraf',)
 NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
@@ -123,8 +125,7 @@ def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs)
     folder. Then stops and removes container with specified params.
     """
     container_name = container.name
-    logger.info(
-        f'Stopping container: {container_name}, timeout: {timeout}')
+    logger.info(f'Stopping container: {container_name}, timeout: {timeout}')
     container.stop(timeout=timeout)
     backup_container_logs(container)
     logger.info(f'Removing container: {container_name}, kwargs: {kwargs}')
@@ -135,7 +136,7 @@ def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs)
 def stop_container(
     container_name: str,
     timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
-    dclient: Optional[DockerClient] = None
+    dclient: Optional[DockerClient] = None,
 ) -> None:
     dc = dclient or docker_client()
     container = dc.containers.get(container_name)
@@ -146,7 +147,7 @@ def stop_container(
 def rm_container(
     container_name: str,
     timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
-    dclient: Optional[DockerClient] = None
+    dclient: Optional[DockerClient] = None,
 ) -> None:
     dc = dclient or docker_client()
     container_names = [container.name for container in get_containers()]
@@ -155,24 +156,11 @@ def rm_container(
         safe_rm(container)
 
 
-def start_container(
-    container_name: str,
-    dclient: Optional[DockerClient] = None
-) -> None:
+def start_container(container_name: str, dclient: Optional[DockerClient] = None) -> None:
     dc = dclient or docker_client()
     container = dc.containers.get(container_name)
     logger.info('Starting container %s', container_name)
     container.start()
-
-
-def start_admin(sync_node: bool = False, dclient: Optional[DockerClient] = None) -> None:
-    container_name = 'skale_sync_admin' if sync_node else 'skale_admin'
-    start_container(container_name=container_name, dclient=dclient)
-
-
-def stop_admin(sync_node: bool = False, dclient: Optional[DockerClient] = None) -> None:
-    container_name = 'skale_sync_admin' if sync_node else 'skale_admin'
-    stop_container(container_name=container_name, timeout=ADMIN_REMOVE_TIMEOUT, dclient=dclient)
 
 
 def remove_schain_container(schain_name: str, dclient: Optional[DockerClient] = None) -> None:
@@ -183,20 +171,19 @@ def remove_schain_container(schain_name: str, dclient: Optional[DockerClient] = 
 def backup_container_logs(
     container: Container,
     head: int = DOCKER_DEFAULT_HEAD_LINES,
-    tail: int = DOCKER_DEFAULT_TAIL_LINES
+    tail: int = DOCKER_DEFAULT_TAIL_LINES,
 ) -> None:
     logger.info(f'Going to backup container logs: {container.name}')
     logs_backup_filepath = get_logs_backup_filepath(container)
     save_container_logs(container, logs_backup_filepath, tail)
-    logger.info(
-        f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
+    logger.info(f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
 
 
 def save_container_logs(
     container: Container,
     log_filepath: str,
     head: int = DOCKER_DEFAULT_HEAD_LINES,
-    tail: int = DOCKER_DEFAULT_TAIL_LINES
+    tail: int = DOCKER_DEFAULT_TAIL_LINES,
 ) -> None:
     separator = b'=' * 80 + b'\n'
     tail_lines = container.logs(tail=tail)
@@ -211,8 +198,9 @@ def save_container_logs(
 
 
 def get_logs_backup_filepath(container: Container) -> str:
-    container_index = sum(1 for f in os.listdir(REMOVED_CONTAINERS_FOLDER_PATH)
-                          if f.startswith(f'{container.name}-'))
+    container_index = sum(
+        1 for f in os.listdir(REMOVED_CONTAINERS_FOLDER_PATH) if f.startswith(f'{container.name}-')
+    )
     log_file_name = f'{container.name}-{container_index}.log'
     return os.path.join(REMOVED_CONTAINERS_FOLDER_PATH, log_file_name)
 
@@ -224,11 +212,7 @@ def ensure_volume(name: str, size: int, driver='lvmpy', dutils=None):
         return
     logger.info('Creating volume %s, size: %d', name, size)
     driver_opts = {'size': str(size)} if driver == 'lvmpy' else None
-    volume = dutils.volumes.create(
-        name=name,
-        driver=driver,
-        driver_opts=driver_opts
-    )
+    volume = dutils.volumes.create(name=name, driver=driver, driver_opts=driver_opts)
     return volume
 
 
@@ -246,12 +230,15 @@ def compose_rm(env={}, sync_node: bool = False):
     compose_path = get_compose_path(sync_node)
     run_cmd(
         cmd=(
-            'docker', 'compose',
-            '-f', compose_path,
+            'docker',
+            'compose',
+            '-f',
+            compose_path,
             'down',
-            '-t', str(COMPOSE_SHUTDOWN_TIMEOUT),
+            '-t',
+            str(COMPOSE_SHUTDOWN_TIMEOUT),
         ),
-        env=env
+        env=env,
     )
     logger.info('Compose containers removed')
 
@@ -259,19 +246,13 @@ def compose_rm(env={}, sync_node: bool = False):
 def compose_pull(env: dict, sync_node: bool = False):
     logger.info('Pulling compose containers')
     compose_path = get_compose_path(sync_node)
-    run_cmd(
-        cmd=('docker', 'compose', '-f', compose_path, 'pull'),
-        env=env
-    )
+    run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'pull'), env=env)
 
 
 def compose_build(env: dict, sync_node: bool = False):
     logger.info('Building compose containers')
     compose_path = get_compose_path(sync_node)
-    run_cmd(
-        cmd=('docker', 'compose', '-f', compose_path, 'build'),
-        env=env
-    )
+    run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'build'), env=env)
 
 
 def get_up_compose_cmd(services):
@@ -329,10 +310,7 @@ def cleanup_unused_images(dclient=None, ignore=None):
     ignore = ignore or []
     dc = dclient or docker_client()
     used = get_used_images(dclient=dc)
-    remove_images(
-        filter(lambda i: i not in used and i not in ignore, dc.images.list()),
-        dclient=dc
-    )
+    remove_images(filter(lambda i: i not in used and i not in ignore, dc.images.list()), dclient=dc)
 
 
 def is_container_running(name: str, dclient: Optional[DockerClient] = None) -> bool:
