@@ -26,3 +26,5 @@ class SchainTypes(Enum):
     large = 1
     medium = 8
     small = 128
+    light64 = 2
+    light32 = 4

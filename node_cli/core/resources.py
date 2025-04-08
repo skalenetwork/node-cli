@@ -35,6 +35,8 @@ from node_cli.configs.resource_allocation import (
     TIMEOUT,
     TEST_DIVIDER,
     SMALL_DIVIDER,
+    LIGHT32_DIVIDER,
+    LIGHT64_DIVIDER,
     MEDIUM_DIVIDER,
     LARGE_DIVIDER,
     MEMORY_FACTOR,
@@ -56,6 +58,8 @@ class ResourceAlloc:
             'small': value / SMALL_DIVIDER,
             'medium': value / MEDIUM_DIVIDER,
             'large': value / LARGE_DIVIDER,
+            'light64': value / LIGHT64_DIVIDER,
+            'light32': value / LIGHT32_DIVIDER,
         }
         if not fractional:
             for k in self.values:

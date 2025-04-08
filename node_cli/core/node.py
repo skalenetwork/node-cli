@@ -279,6 +279,7 @@ def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fal
         sync_schains=False,
         pull_config_for_schain=pull_config_for_schain,
     )
+    update_resource_allocation(env['ENV_TYPE'])
     update_ok = update_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
