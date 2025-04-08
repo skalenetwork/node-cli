@@ -167,6 +167,7 @@ NODE_DOCKER_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'docker.json')
 NFTABLES_CHAIN_FOLDER_PATH = '/etc/nft.conf.d/skale/chains'
 NFTABLES_CHAIN_CONFIG_WILDCARD = os.path.join(NFTABLES_CHAIN_FOLDER_PATH, '*')
 NFTABLES_SKALE_BASE_CONFIG_PATH = '/etc/nft.conf.d/skale/base.conf'
+NFTABLES_USER_CONFIG_PATH = '/etc/nft.conf.d/skale/user.conf'
 NFTABLES_MAIN_CONFIG_PATH = '/etc/nftables.conf'
 
 UFW_CONFIG_PATH = '/etc/default/ufw'

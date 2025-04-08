@@ -105,8 +105,8 @@ def test_create_chain_if_not_exists(mock_exists, mock_execute, nft_manager):
 @pytest.mark.parametrize(
     'rule_data',
     [
-        {'chain': 'INPUT', 'protocol': 'tcp', 'port': 80, 'action': 'accept'},
-        {'chain': 'INPUT', 'protocol': 'udp', 'port': 53, 'action': 'accept'},
+        {'chain': 'INPUT', 'protocol': 'tcp', 'first_port': 80, 'action': 'accept'},
+        {'chain': 'INPUT', 'protocol': 'udp', 'first_port': 53, 'action': 'accept'},
         {'chain': 'INPUT', 'protocol': 'icmp', 'icmp_type': 'echo-request', 'action': 'accept'},
     ],
 )
@@ -136,6 +136,6 @@ def test_setup_firewall(mock_execute, nft_manager):
 
 def test_invalid_protocol(nft_manager):
     """Test adding rule with invalid protocol"""
-    rule = Rule(chain='INPUT', protocol='invalid', port=80)
+    rule = Rule(chain='INPUT', protocol='invalid', first_port=80)
     with pytest.raises(Exception):
         nft_manager.add_rule(rule)
