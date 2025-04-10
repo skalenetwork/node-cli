@@ -29,7 +29,6 @@ from node_cli.utils.helper import (
     streamed_cmd,
     URL_TYPE,
 )
-from node_cli.utils.exit_codes import CLIExitCodes
 
 
 G_TEXTS = safe_load_texts()

@@ -39,7 +39,6 @@ from node_cli.cli.exit import exit_cli
 from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.cli.sync_node import sync_node_cli
 
-from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import safe_load_texts, init_default_logger
 from node_cli.configs import LONG_LINE
 from node_cli.core.host import init_logs_dir

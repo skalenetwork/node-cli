@@ -24,7 +24,6 @@ from urllib.parse import urlparse
 
 from node_cli.core.resources import update_resource_allocation
 from node_cli.utils.helper import error_exit
-from node_cli.utils.exit_codes import CLIExitCodes
 
 from node_cli.configs import (
     ADMIN_PORT,

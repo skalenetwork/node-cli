@@ -21,8 +21,6 @@ import os
 import logging
 
 from git.repo.base import Repo
-from git.exc import GitCommandError, GitError
-from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 
 logger = logging.getLogger(__name__)

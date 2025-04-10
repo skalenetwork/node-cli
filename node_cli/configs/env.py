@@ -25,7 +25,6 @@ from enum import Enum
 
 from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
 from node_cli.utils.helper import error_exit, is_contract_address
-from node_cli.utils.exit_codes import CLIExitCodes
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
