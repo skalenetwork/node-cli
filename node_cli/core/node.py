@@ -220,7 +220,7 @@ def cleanup_sync() -> None:
 
 
 def compose_node_env(
-    env_filepath: Optional[str],
+    env_filepath: str,
     inited_node: bool = False,
     sync_schains: Optional[bool] = None,
     pull_config_for_schain: Optional[str] = None,
@@ -234,10 +234,8 @@ def compose_node_env(
     else:
         env_params = get_env_config(INIT_ENV_FILEPATH, sync_node=sync_node)
 
-    # Set mount directory based on node type
     mnt_dir = SCHAINS_MNT_DIR_SYNC if sync_node else SCHAINS_MNT_DIR_REGULAR
 
-    # Compose base environment dictionary
     env = {
         'SKALE_DIR': SKALE_DIR,
         'SCHAINS_MNT_DIR': mnt_dir,
@@ -246,19 +244,15 @@ def compose_node_env(
         **env_params,
     }
 
-    # Add Flask secret key for initialized non-sync nodes
     if inited_node and not sync_node:
         env['FLASK_SECRET_KEY'] = get_flask_secret_key()
 
-    # Enable backup run for syncing schains
     if sync_schains and not sync_node:
         env['BACKUP_RUN'] = 'True'
 
-    # Add schain config pull parameter if specified
     if pull_config_for_schain:
         env['PULL_CONFIG_FOR_SCHAIN'] = pull_config_for_schain
 
-    # Remove empty values and return
     return {k: v for k, v in env.items() if v != ''}
 
 

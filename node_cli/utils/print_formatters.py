@@ -254,13 +254,10 @@ def print_err_response(error_payload: Any) -> None:
     """
     try:
         if isinstance(error_payload, (list, tuple)):
-            # Join list items with newlines for multiple errors
             error_msg = '\n'.join(str(err) for err in error_payload)
         elif isinstance(error_payload, dict):
-            # Format dict as JSON string
             error_msg = json.dumps(error_payload, indent=2)
         else:
-            # Convert any other type to string
             error_msg = str(error_payload)
 
         print('Command failed with following errors:')
@@ -270,7 +267,6 @@ def print_err_response(error_payload: Any) -> None:
         print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
 
     except Exception as e:
-        # Fallback for unexpected errors while formatting
         print('Error occurred while processing error payload:')
         print(LONG_LINE)
         print(f'Original error payload: {error_payload}')

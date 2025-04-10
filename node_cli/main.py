@@ -123,5 +123,5 @@ if __name__ == '__main__':
     except Exception as err:
         traceback.print_exc()
         logger.debug('Execution time: %d seconds', time.time() - start_time)
-        error_exit(err, CLIExitCodes.FAILURE)
+        error_exit(err)
     logger.debug('Execution time: %d seconds', time.time() - start_time)

@@ -79,16 +79,14 @@ def get_flask_secret_key() -> str:
     secret_key_filepath = os.path.join(NODE_DATA_PATH, 'flask_db_key.txt')
 
     if not os.path.exists(secret_key_filepath):
-        error_exit(
-            f'Flask secret key file not found at {secret_key_filepath}', CLIExitCodes.FAILURE
-        )
+        error_exit(f'Flask secret key file not found at {secret_key_filepath}')
 
     try:
         with open(secret_key_filepath, 'r') as key_file:
             secret_key = key_file.read().strip()
             return secret_key
     except (IOError, OSError) as e:
-        error_exit(f'Failed to read Flask secret key: {e}', CLIExitCodes.FAILURE)
+        error_exit(f'Failed to read Flask secret key: {e}')
         # Will never reach here, but needed for type checking.
         return ''
 
@@ -96,7 +94,7 @@ def get_flask_secret_key() -> str:
 def prepare_host(env_filepath: str, env_type: str, allocation: bool = False) -> None:
     """Initialize SKALE node host environment."""
     if not env_filepath or not env_type:
-        error_exit('Missing required parameters for host initialization', CLIExitCodes.FAILURE)
+        error_exit('Missing required parameters for host initialization')
 
     try:
         logger.info('Preparing host started')
@@ -106,21 +104,11 @@ def prepare_host(env_filepath: str, env_type: str, allocation: bool = False) -> 
         if allocation:
             update_resource_allocation(env_type)
     except Exception as e:
-        error_exit(f'Failed to prepare host: {str(e)}', CLIExitCodes.FAILURE)
+        error_exit(f'Failed to prepare host: {str(e)}')
 
 
 def is_node_inited() -> bool:
-    """Check if the SKALE node has been initialized.
-
-    Determines initialization status by checking for existence of the
-    resource allocation file.
-    """
-    try:
-        # Check if resource allocation file exists as initialization indicator
-        return os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
-    except OSError as e:
-        logger.error(f'Error checking node initialization status: {e}')
-        return False
+    return os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
 
 
 def make_dirs():
@@ -145,15 +133,7 @@ def make_dirs():
 
 
 def save_env_params(env_filepath: str) -> None:
-    """Copy environment parameters file to SKALE directory."""
-    if not os.path.isfile(env_filepath):
-        error_exit(f'Environment file not found: {env_filepath}', CLIExitCodes.FAILURE)
-    if not os.access(env_filepath, os.R_OK):
-        error_exit(f'Cannot read environment file: {env_filepath}', CLIExitCodes.FAILURE)
-    try:
-        copyfile(env_filepath, SKALE_DIR_ENV_FILEPATH)
-    except (IOError, OSError) as e:
-        error_exit(f'Failed to copy environment file: {e}', CLIExitCodes.FAILURE)
+    copyfile(env_filepath, SKALE_DIR_ENV_FILEPATH)
 
 
 def link_env_file():

@@ -339,10 +339,6 @@ def rm_dir(folder: str) -> None:
 
 
 def safe_mkdir(path: str, print_res: bool = False) -> None:
-    """Create a directory if it doesn't exist."""
-    if not isinstance(path, str):
-        error_exit(f'path must be a string, got {type(path)}', exit_code=CLIExitCodes.FAILURE)
-
     if os.path.exists(path):
         logger.debug(f'Directory {path} already exists')
         return
@@ -352,31 +348,13 @@ def safe_mkdir(path: str, print_res: bool = False) -> None:
     if print_res:
         print(msg)
 
-    try:
-        os.makedirs(path, exist_ok=True)
-    except OSError as e:
-        logger.error(f'Failed to create directory {path}: {e}')
-        error_exit(
-            f'Failed to create directory {path}: {e}',
-            exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR,
-        )
+    os.makedirs(path, exist_ok=True)
 
 
 def rsync_dirs(src: str, dest: str) -> None:
-    """Synchronize two directories using rsync."""
-    if not isinstance(src, str) or not isinstance(dest, str):
-        error_exit('Source and destination paths must be strings', exit_code=CLIExitCodes.FAILURE)
-
-    if not src.strip() or not dest.strip():
-        error_exit('Source and destination paths cannot be empty', exit_code=CLIExitCodes.FAILURE)
-
-    if not os.path.isdir(src):
-        error_exit(f'Source directory does not exist: {src}', exit_code=CLIExitCodes.FAILURE)
-
     logger.info(f'Syncing directory {dest} with {src}')
 
     try:
-        # Sync all files including hidden ones
         run_cmd(['rsync', '-r', f'{src}/', dest])
         run_cmd(['rsync', '-r', f'{src}/.git', dest])
     except subprocess.CalledProcessError as e:

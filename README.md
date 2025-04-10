@@ -115,8 +115,8 @@ You should specify the following environment variables:
 - `DOCKER_LVMPY_STREAM` - stream of `docker-lvmpy` to use
 - `CONTAINER_CONFIGS_STREAM` - stream of `skale-node` to use
 - `ENDPOINT` - RPC endpoint of the node in the network where SKALE Manager is deployed
-- `MANAGER_CONTRACTS` - SKALE Manager main contract alias or address
-- `IMA_CONTRACTS` - IMA main contract alias or address
+- `MANAGER_CONTRACTS` - SKALE Manager `message_proxy_mainnet` contract alias or address
+- `IMA_CONTRACTS` - IMA `skale_manager` contract alias or address
 - `FILEBEAT_URL` - URL to the Filebeat log server
 - `ENV_TYPE` - environment type (e.g., 'mainnet', 'testnet', 'qanet', 'devnet')
 
@@ -128,8 +128,6 @@ Optional variables:
 - `TG_API_KEY` - Telegram API key
 - `TG_CHAT_ID` - Telegram chat ID
 - `MONITORING_CONTAINERS` - will enable monitoring containers (`cadvisor`, `node-exporter`).
-
-> Filebeat is always enabled and requires `FILEBEAT_URL`, it is **not optional**.
 
 #### Node initialization from backup
 
@@ -616,13 +614,12 @@ pip install -e .[dev]
 ./scripts/generate_info.sh 1.0.0 my-branch normal
 ```
 
-##### Add flake8 git hook
+##### Add linting git hook
 
 In file `.git/hooks/pre-commit` add:
 
 ```shell
 #!/bin/sh
-flake8 .
 ruff check
 ```
 
