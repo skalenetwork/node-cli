@@ -13,21 +13,17 @@ from node_cli.configs import (
     NODE_CONFIG_PATH,
     NODE_CLI_STATUS_FILENAME,
     SCHAIN_NODE_DATA_PATH,
-    SCHAINS_MNT_DIR_SYNC
+    SCHAINS_MNT_DIR_SYNC,
 )
 from node_cli.configs.env import get_env_config
 
-from node_cli.utils.helper import (
-    get_request,
-    error_exit,
-    safe_load_yml
-)
+from node_cli.utils.helper import get_request, error_exit, safe_load_yml
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.print_formatters import (
     print_dkg_statuses,
     print_firewall_rules,
     print_schain_info,
-    print_schains
+    print_schains,
 )
 from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
 from node_cli.utils.helper import read_json, run_cmd, save_json
@@ -41,9 +37,7 @@ BLUEPRINT_NAME = 'schains'
 
 def get_schain_firewall_rules(schain: str) -> None:
     status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='firewall-rules',
-        params={'schain_name': schain}
+        blueprint=BLUEPRINT_NAME, method='firewall-rules', params={'schain_name': schain}
     )
     if status == 'ok':
         print_firewall_rules(payload['endpoints'])
@@ -52,10 +46,7 @@ def get_schain_firewall_rules(schain: str) -> None:
 
 
 def show_schains() -> None:
-    status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='list'
-    )
+    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='list')
     if status == 'ok':
         schains = payload
         if not schains:
@@ -69,11 +60,7 @@ def show_schains() -> None:
 
 def show_dkg_info(all_: bool = False) -> None:
     params = {'all': all_}
-    status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='dkg-statuses',
-        params=params
-    )
+    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='dkg-statuses', params=params)
     if status == 'ok':
         print_dkg_statuses(payload)
     else:
@@ -82,9 +69,7 @@ def show_dkg_info(all_: bool = False) -> None:
 
 def show_config(name: str) -> None:
     status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='config',
-        params={'schain_name': name}
+        blueprint=BLUEPRINT_NAME, method='config', params={'schain_name': name}
     )
     if status == 'ok':
         pprint.pprint(payload)
@@ -97,9 +82,7 @@ def get_node_cli_schain_status_filepath(schain_name: str) -> str:
 
 
 def update_node_cli_schain_status(
-    schain_name: str,
-    repair_ts: Optional[int] = None,
-    snapshot_from: Optional[str] = None
+    schain_name: str, repair_ts: Optional[int] = None, snapshot_from: Optional[str] = None
 ) -> None:
     path = get_node_cli_schain_status_filepath(schain_name)
     if os.path.isdir(path):
@@ -110,7 +93,7 @@ def update_node_cli_schain_status(
         status = {
             'schain_name': schain_name,
             'repair_ts': repair_ts,
-            'snapshot_from': snapshot_from
+            'snapshot_from': snapshot_from,
         }
         os.makedirs(os.path.dirname(path), exist_ok=True)
     save_json(path, status)
@@ -121,10 +104,7 @@ def get_node_cli_schain_status(schain_name: str) -> dict:
     return read_json(path)
 
 
-def toggle_schain_repair_mode(
-    schain: str,
-    snapshot_from: Optional[str] = None
-) -> None:
+def toggle_schain_repair_mode(schain: str, snapshot_from: Optional[str] = None) -> None:
     ts = int(time.time())
     update_node_cli_schain_status(schain_name=schain, repair_ts=ts, snapshot_from=snapshot_from)
     print('Schain has been set for repair')
@@ -132,9 +112,7 @@ def toggle_schain_repair_mode(
 
 def describe(schain: str, raw=False) -> None:
     status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='get',
-        params={'schain_name': schain}
+        blueprint=BLUEPRINT_NAME, method='get', params={'schain_name': schain}
     )
     if status == 'ok':
         print_schain_info(payload, raw=raw)
@@ -193,23 +171,18 @@ def rm_btrfs_subvolume(subvolume: str) -> None:
 
 def fillin_snapshot_folder(src_path: str, block_number: int) -> None:
     snapshots_dirname = 'snapshots'
-    snapshot_folder_path = os.path.join(
-        src_path, snapshots_dirname, str(block_number))
+    snapshot_folder_path = os.path.join(src_path, snapshots_dirname, str(block_number))
     os.makedirs(snapshot_folder_path, exist_ok=True)
     for subvolume in os.listdir(src_path):
         if subvolume != snapshots_dirname:
             logger.debug('Copying %s to %s', subvolume, snapshot_folder_path)
             subvolume_path = os.path.join(src_path, subvolume)
-            subvolume_snapshot_path = os.path.join(
-                snapshot_folder_path, subvolume)
+            subvolume_snapshot_path = os.path.join(snapshot_folder_path, subvolume)
             make_btrfs_snapshot(subvolume_path, subvolume_snapshot_path)
 
 
 def restore_schain_from_snapshot(
-    schain: str,
-    snapshot_path: str,
-    env_type: Optional[str] = None,
-    schain_type: str = 'medium'
+    schain: str, snapshot_path: str, env_type: Optional[str] = None, schain_type: str = 'medium'
 ) -> None:
     if env_type is None:
         env_config = get_env_config()
