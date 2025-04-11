@@ -31,7 +31,7 @@ class FakeResponse:
         return self._json_data
 
 
-def test_absent_params_returns_missing_keys(self):
+def test_absent_params_returns_missing_keys():
     params = {
         'A': '',
         'B': 'value',
@@ -44,13 +44,13 @@ def test_absent_params_returns_missing_keys(self):
     assert 'MONITORING_CONTAINERS' not in missing
 
 
-def test_load_env_file_nonexistent(self):
+def test_load_env_file_nonexistent():
     with pytest.raises(SystemExit) as excinfo:
         load_env_file('nonexistent.env')
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_load_env_file_not_readable(self, tmp_path):
+def test_load_env_file_not_readable(tmp_path):
     # Create a temporary file and remove read permissions
     env_file = tmp_path / 'test.env'
     env_file.write_text('KEY=value')
@@ -61,17 +61,17 @@ def test_load_env_file_not_readable(self, tmp_path):
     os.chmod(env_file, 0o644)  # reset permissions
 
 
-def test_build_params_sync(self):
+def test_build_params_sync():
     params = build_params(sync_node=True)
     assert 'SCHAIN_NAME' in params
 
 
-def test_build_params_non_sync(self):
+def test_build_params_non_sync():
     params = build_params(sync_node=False)
     assert 'SCHAIN_NAME' not in params
 
 
-def test_populate_params_updates_from_environ(self, monkeypatch):
+def test_populate_params_updates_from_environ(monkeypatch):
     params = {'FOO': ''}
     monkeypatch.setenv('FOO', 'bar')
     populate_params(params)
@@ -79,17 +79,17 @@ def test_populate_params_updates_from_environ(self, monkeypatch):
 
 
 @pytest.mark.parametrize('env_type', ['mainnet', 'testnet', 'qanet', 'devnet'])
-def test_valid_env_types(self, env_type):
+def test_valid_env_types(env_type):
     validate_env_type(env_type)
 
 
-def test_invalid_env_type(self):
+def test_invalid_env_type():
     with pytest.raises(SystemExit) as excinfo:
         validate_env_type('invalid')
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_get_chain_id_success(self, monkeypatch):
+def test_get_chain_id_success(monkeypatch):
     fake_response = FakeResponse(200, {'result': '0x1'})
 
     def fake_post(url, json):
@@ -100,7 +100,7 @@ def test_get_chain_id_success(self, monkeypatch):
     assert chain_id == 1
 
 
-def test_get_chain_id_failure(self, monkeypatch):
+def test_get_chain_id_failure(monkeypatch):
     fake_response = FakeResponse(404)
 
     def fake_post(url, json):
@@ -112,7 +112,7 @@ def test_get_chain_id_failure(self, monkeypatch):
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_get_network_metadata_success(self, requests_mock):
+def test_get_network_metadata_success(requests_mock):
     metadata = {'networks': [{'chainId': 1, 'path': 'mainnet'}]}
     metadata_url = (
         'https://raw.githubusercontent.com/skalenetwork/skale-contracts/'
@@ -123,7 +123,7 @@ def test_get_network_metadata_success(self, requests_mock):
     assert result == metadata
 
 
-def test_get_network_metadata_failure(self, requests_mock):
+def test_get_network_metadata_failure(requests_mock):
     metadata_url = (
         'https://raw.githubusercontent.com/skalenetwork/skale-contracts/'
         'refs/heads/deployments/metadata.json'
@@ -134,13 +134,13 @@ def test_get_network_metadata_failure(self, requests_mock):
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_validate_contract_address_success(self, requests_mock):
+def test_validate_contract_address_success(requests_mock):
     endpoint = 'http://localhost:8545'
     requests_mock.post(endpoint, json={'result': '0x123'})
     validate_contract_address('0x' + 'a' * 40, endpoint)
 
 
-def test_validate_contract_address_no_code(self, requests_mock):
+def test_validate_contract_address_no_code(requests_mock):
     endpoint = 'http://localhost:8545'
     requests_mock.post(endpoint, json={'result': '0x'})
     with pytest.raises(SystemExit) as excinfo:
@@ -148,7 +148,7 @@ def test_validate_contract_address_no_code(self, requests_mock):
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_validate_contract_alias_success(self, requests_mock):
+def test_validate_contract_alias_success(requests_mock):
     endpoint = 'http://localhost:8545'
     requests_mock.post(endpoint, json={'result': '0x1'})
     metadata_url = (
@@ -165,7 +165,7 @@ def test_validate_contract_alias_success(self, requests_mock):
     validate_contract_alias('test-alias', ContractType.MANAGER, endpoint)
 
 
-def test_validate_contract_alias_network_missing(self, requests_mock):
+def test_validate_contract_alias_network_missing(requests_mock):
     endpoint = 'http://localhost:8545'
     requests_mock.post(endpoint, json={'result': '0x1'})
     metadata_url = (
@@ -178,14 +178,14 @@ def test_validate_contract_alias_network_missing(self, requests_mock):
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_validate_env_alias_or_address_with_address(self, requests_mock):
+def test_validate_env_alias_or_address_with_address(requests_mock):
     endpoint = 'http://localhost:8545'
     addr = '0x' + 'b' * 40
     requests_mock.post(endpoint, json={'result': '0x1'})
     validate_env_alias_or_address(addr, ContractType.IMA, endpoint)
 
 
-def test_validate_env_alias_or_address_with_alias(self, requests_mock):
+def test_validate_env_alias_or_address_with_alias(requests_mock):
     endpoint = 'http://localhost:8545'
     requests_mock.post(endpoint, json={'result': '0x1'})
     metadata_url = (
@@ -202,7 +202,7 @@ def test_validate_env_alias_or_address_with_alias(self, requests_mock):
     validate_env_alias_or_address('test-alias', ContractType.IMA, endpoint)
 
 
-def test_validate_params_missing_key(self):
+def test_validate_params_missing_key():
     populated_params = {
         'CONTAINER_CONFIGS_STREAM': 'value',
         'ENDPOINT': 'http://localhost:8545',
@@ -218,7 +218,7 @@ def test_validate_params_missing_key(self):
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_validate_params_success(self, valid_env_params, requests_mock):
+def test_validate_params_success(valid_env_params, requests_mock):
     endpoint = valid_env_params['ENDPOINT']
     requests_mock.post(endpoint, json={'result': '0x1'})
     metadata_url = (
@@ -241,7 +241,7 @@ def test_validate_params_success(self, valid_env_params, requests_mock):
 
 
 def test_get_env_config_success(
-    self, valid_env_file, mock_chain_response, mock_networks_metadata, requests_mock
+    valid_env_file, mock_chain_response, mock_networks_metadata, requests_mock
 ):
     endpoint = 'http://localhost:8545'
     requests_mock.post(endpoint, json=mock_chain_response)
@@ -265,13 +265,13 @@ def test_get_env_config_success(
     assert config['ENV_TYPE'] in ALLOWED_ENV_TYPES
 
 
-def test_get_env_config_missing_file(self):
+def test_get_env_config_missing_file():
     with pytest.raises(SystemExit) as excinfo:
         get_env_config('nonexistent.env')
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_get_env_config_unreadable_file(self, valid_env_file):
+def test_get_env_config_unreadable_file(valid_env_file):
     os.chmod(valid_env_file, 0o000)
     with pytest.raises(SystemExit) as excinfo:
         get_env_config(valid_env_file)
