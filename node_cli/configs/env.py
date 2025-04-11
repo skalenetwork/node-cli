@@ -102,8 +102,11 @@ def get_env_config(
 
 def load_env_file(env_filepath: str) -> None:
     """Check and load environment variables from the given file."""
-    if not load_dotenv(dotenv_path=env_filepath):
-        error_exit(f'Failed to load environment from {env_filepath}')
+    try:
+        if not load_dotenv(dotenv_path=env_filepath):
+            error_exit(f'Failed to load environment from {env_filepath}')
+    except Exception as e:
+        error_exit(f'An unexpected error occurred loading environment file {env_filepath}: {e}')
 
 
 def build_params(sync_node: bool = False) -> Dict[str, str]:
