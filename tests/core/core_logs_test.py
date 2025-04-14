@@ -44,10 +44,7 @@ def backup_func():
 def skale_container():
     client = docker_client()
     container = client.containers.run(
-        image=TEST_IMAGE,
-        name=TEST_SKALE_NAME,
-        detach=True,
-        entrypoint=TEST_ENTRYPOINT
+        image=TEST_IMAGE, name=TEST_SKALE_NAME, detach=True, entrypoint=TEST_ENTRYPOINT
     )
     time.sleep(10)
     try:
@@ -77,8 +74,8 @@ def test_create_logs_dump(backup_func, skale_container, removed_containers_folde
         content = data_file.readlines()
     assert content == [
         'Hello, SKALE!\n',
-        '================================================================================\n',   # noqa
-        'Hello, SKALE!\n'
+        '================================================================================\n',  # noqa
+        'Hello, SKALE!\n',
     ]
 
     assert os.path.exists(os.path.join(TEST_ARCHIVE_FOLDER_PATH, 'removed_containers'))

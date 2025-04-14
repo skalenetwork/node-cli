@@ -11,6 +11,7 @@ def test_check_not_inited():
     @check_not_inited
     def requires_not_inited_node():
         pass
+
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
         requires_not_inited_node()
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
@@ -22,6 +23,7 @@ def test_check_inited():
     @check_inited
     def requires_inited_node():
         pass
+
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         requires_inited_node()
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False):
@@ -33,6 +35,7 @@ def test_check_user(mocked_g_config):
     @check_user
     def this_checks_user():
         pass
+
     generate_g_config_file(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
     this_checks_user()
     write_json(GLOBAL_SKALE_CONF_FILEPATH, {'user': 'skaletest'})

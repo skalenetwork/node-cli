@@ -36,20 +36,21 @@ def exit_cli():
     pass
 
 
-@exit_cli.group('exit', help="Exit commands")
+@exit_cli.group('exit', help='Exit commands')
 def node_exit():
     pass
 
 
-@node_exit.command('start', help="Start exiting process")
-@click.option('--yes', is_flag=True, callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure you want to destroy your SKALE node?')
+@node_exit.command('start', help='Start exiting process')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to destroy your SKALE node?',
+)
 def start():
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME,
-        method='exit/start'
-    )
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='exit/start')
     if status == 'ok':
         msg = TEXTS['exit']['start']
         logger.info(msg)
@@ -58,13 +59,10 @@ def start():
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-@node_exit.command('status', help="Get exit process status")
+@node_exit.command('status', help='Get exit process status')
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 def status(format):
-    status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='exit/status'
-    )
+    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='exit/status')
     if status == 'ok':
         exit_status = payload
         if format == 'json':
@@ -75,6 +73,6 @@ def status(format):
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-@node_exit.command('finalize', help="Finalize exit process")
+@node_exit.command('finalize', help='Finalize exit process')
 def finalize():
     pass

@@ -48,11 +48,7 @@ def is_ssl_folder_empty(ssl_path=SSL_FOLDER_PATH):
 @contextmanager
 def detached_subprocess(cmd, expose_output=False):
     logger.debug(f'Starting detached subprocess: {cmd}')
-    p = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        encoding='utf-8'
-    )
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
     try:
         yield p
     finally:

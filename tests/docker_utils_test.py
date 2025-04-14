@@ -5,11 +5,7 @@ from time import sleep
 import mock
 import pytest
 
-from node_cli.utils.docker_utils import (
-    docker_cleanup,
-    save_container_logs,
-    safe_rm
-)
+from node_cli.utils.docker_utils import docker_cleanup, save_container_logs, safe_rm
 from node_cli.configs import REMOVED_CONTAINERS_FOLDER_PATH
 
 
@@ -19,10 +15,7 @@ def simple_container(dclient, simple_image, docker_hc):
     c = None
     try:
         info = dclient.api.create_container(
-            simple_image,
-            detach=True,
-            name=name,
-            host_config=docker_hc
+            simple_image, detach=True, name=name, host_config=docker_hc
         )
         c = dclient.containers.get(info['Id'])
         c.restart()
@@ -57,7 +50,7 @@ def test_save_container_logs(simple_container, tmp_dir_path):
         'INFO:__main__:Test 7\n',
         'INFO:__main__:Test 8\n',
         'INFO:__main__:Test 9\n',
-        'INFO:__main__:Waiting\n'
+        'INFO:__main__:Waiting\n',
     ]
     save_container_logs(simple_container, log_path, head=10, tail=5)
     with open(log_path) as log_file:
@@ -73,7 +66,7 @@ def test_save_container_logs(simple_container, tmp_dir_path):
         'INFO:__main__:Test 7\n',
         'INFO:__main__:Test 8\n',
         'INFO:__main__:Test 9\n',
-        'INFO:__main__:Waiting\n'
+        'INFO:__main__:Waiting\n',
     ]
 
 

@@ -1,6 +1,10 @@
 import pytest
-from node_cli.configs.routes import (route_exists, get_route, get_all_available_routes,
-                                     RouteNotFoundException)
+from node_cli.configs.routes import (
+    route_exists,
+    get_route,
+    get_all_available_routes,
+    RouteNotFoundException,
+)
 
 
 ALL_V1_ROUTES = [
@@ -14,23 +18,19 @@ ALL_V1_ROUTES = [
     '/api/v1/node/exit/status',
     '/api/v1/node/set-domain-name',
     '/api/v1/node/update-safe',
-
     '/api/v1/health/containers',
     '/api/v1/health/schains',
     '/api/v1/health/sgx',
-
     '/api/v1/schains/config',
     '/api/v1/schains/list',
     '/api/v1/schains/dkg-statuses',
     '/api/v1/schains/firewall-rules',
     '/api/v1/schains/repair',
     '/api/v1/schains/get',
-
     '/api/v1/ssl/status',
     '/api/v1/ssl/upload',
-
     '/api/v1/wallet/info',
-    '/api/v1/wallet/send-eth'
+    '/api/v1/wallet/send-eth',
 ]
 
 

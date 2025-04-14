@@ -19,7 +19,7 @@ from node_cli.core.checks import (
     MachineChecker,
     merge_reports,
     PackageChecker,
-    save_report
+    save_report,
 )
 
 
@@ -31,18 +31,10 @@ def requirements_data():
             'cpu_physical': 1,
             'memory': 100,
             'swap': 100,
-            'disk': 100000000
+            'disk': 100000000,
         },
-        'package': {
-            'iptables_persistant': '0.0.0',
-            'lvm2': '0.0.0',
-            'test-package': '2.2.2'
-        },
-        'docker': {
-            'docker-engine': '0.0.0',
-            'docker-api': '0.0.0',
-            'docker-compose': '1.27.4'
-        }
+        'package': {'iptables_persistant': '0.0.0', 'lvm2': '0.0.0', 'test-package': '2.2.2'},
+        'docker': {'docker-engine': '0.0.0', 'docker-api': '0.0.0', 'docker-compose': '1.27.4'},
     }
 
 
@@ -154,7 +146,7 @@ def test_checks_machine_check(server_req):
         {'name': 'disk', 'status': 'ok'},
         {'name': 'memory', 'status': 'ok'},
         {'name': 'network', 'status': 'ok'},
-        {'name': 'swap', 'status': 'ok'}
+        {'name': 'swap', 'status': 'ok'},
     ]
 
 
@@ -233,10 +225,7 @@ def test_checks_docker_compose_no_pkg(docker_req):
     r.status == 'ok'
 
 
-def test_checks_docker_compose_invalid_version(
-    docker_req,
-    docker_compose_pkg_1_24_1
-):
+def test_checks_docker_compose_invalid_version(docker_req, docker_compose_pkg_1_24_1):
     checker = DockerChecker(docker_req)
     r = checker.docker_compose()
     r.name == 'docker-compose'
@@ -245,16 +234,12 @@ def test_checks_docker_compose_invalid_version(
 
 def test_checks_docker_config(docker_req):
     checker = DockerChecker(docker_req)
-    valid_config = {
-        'live-restore': True
-    }
+    valid_config = {'live-restore': True}
     r = checker._check_docker_alive_option(valid_config)
     assert r[0] is True
     assert r[1] == 'Docker daemon live-restore option is set as "true"'
 
-    invalid_config = {
-        'live-restore': False
-    }
+    invalid_config = {'live-restore': False}
     r = checker._check_docker_alive_option(invalid_config)
     assert r[0] is False
     assert r[1] == 'Docker daemon live-restore option should be set as "true"'
@@ -274,16 +259,22 @@ def test_checks_docker_hosts(docker_req):
     r = checker._check_docker_hosts_option(invalid_config)
     assert r == (
         False,
-        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']"  # noqa
+        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']",  # noqa
     )
 
     invalid_config = {'hosts': ['http://127.0.0.1:8080']}
     r = checker._check_docker_hosts_option(invalid_config)
-    assert r == (False, "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']")  # noqa
+    assert r == (
+        False,
+        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']",
+    )  # noqa
 
     invalid_config = {'hosts': ['fd://']}
     r = checker._check_docker_hosts_option(invalid_config)
-    assert r == (False, "Docker daemon hosts is misconfigured. Missing hosts: ['unix:///var/run/skale/docker.sock']")  # noqa
+    assert r == (
+        False,
+        "Docker daemon hosts is misconfigured. Missing hosts: ['unix:///var/run/skale/docker.sock']",
+    )  # noqa
 
 
 def test_checks_docker_pre_post_install_checks(docker_req):
@@ -367,17 +358,17 @@ def test_merge_report():
     old_report = [
         {'name': 'test1', 'status': 'ok', 'info': 'Test'},
         {'name': 'test2', 'status': 'failed', 'info': 'Test1'},
-        {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
+        {'name': 'test3', 'status': 'failed', 'info': 'Test1'},
     ]
     new_report = [
         {'name': 'test1', 'status': 'ok', 'info': 'Test'},
-        {'name': 'test2', 'status': 'ok', 'info': 'Test1'}
+        {'name': 'test2', 'status': 'ok', 'info': 'Test1'},
     ]
     report = merge_reports(old_report, new_report)
     assert report == [
         {'name': 'test1', 'status': 'ok', 'info': 'Test'},
         {'name': 'test2', 'status': 'ok', 'info': 'Test1'},
-        {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
+        {'name': 'test3', 'status': 'failed', 'info': 'Test1'},
     ]
 
 

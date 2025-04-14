@@ -44,12 +44,7 @@ def containers(all):
 
 
 @health.command(help=TEXTS['schains_checks']['help'])
-@click.option(
-    '--json',
-    'json_format',
-    help=G_TEXTS['common']['json'],
-    is_flag=True
-)
+@click.option('--json', 'json_format', help=G_TEXTS['common']['json'], is_flag=True)
 def schains(json_format: bool) -> None:
     get_schains_checks(json_format)
 

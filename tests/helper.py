@@ -29,33 +29,20 @@ BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
 
 TEST_SCHAINS_MNT_DIR_SYNC = 'tests/tmp'
 
-TEST_META_V1 = {
-    'version': '0.1.1',
-    'config_stream': 'develop'
-}
+TEST_META_V1 = {'version': '0.1.1', 'config_stream': 'develop'}
 
-TEST_META_V2 = {
-    'version': '0.1.1',
-    'config_stream': 'develop',
-    'docker_lvmpy_stream': '1.1.2'
-
-}
+TEST_META_V2 = {'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_stream': '1.1.2'}
 
 TEST_META_V3 = {
     'version': '0.1.1',
     'config_stream': 'develop',
     'docker_lvmpy_stream': '1.1.2',
     'os_id': 'ubuntu',
-    'os_version': '18.04'
+    'os_version': '18.04',
 }
 
 
-def response_mock(
-    status_code=0,
-    json_data=None,
-    headers=None,
-    raw=None
-):
+def response_mock(status_code=0, json_data=None, headers=None, raw=None):
     result = MagicMock()
     result.status_code = status_code
 
@@ -75,10 +62,8 @@ def run_command(command, params=[], input=''):
     return runner.invoke(command, params, input=input)
 
 
-def run_command_mock(mock_call_path, response_mock,
-                     command, params=[], input=''):
-    with mock.patch(mock_call_path,
-                    new=request_mock(response_mock)):
+def run_command_mock(mock_call_path, response_mock, command, params=[], input=''):
+    with mock.patch(mock_call_path, new=request_mock(response_mock)):
         return run_command(command, params, input=input)
 
 

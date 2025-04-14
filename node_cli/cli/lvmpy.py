@@ -44,7 +44,7 @@ def health():
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt=TEXTS['run']['prompt']
+    prompt=TEXTS['run']['prompt'],
 )
 def run():
     run_lvmpy()
@@ -56,7 +56,7 @@ def run():
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt=TEXTS['heal']['prompt']
+    prompt=TEXTS['heal']['prompt'],
 )
 def heal():
     heal_service()

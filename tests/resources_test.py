@@ -9,12 +9,45 @@ from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.resources import (
     compose_resource_allocation_config,
     update_resource_allocation,
-    get_cpu_alloc, get_memory_alloc, verify_disk_size
+    get_cpu_alloc,
+    get_memory_alloc,
+    verify_disk_size,
 )
 
 from node_cli.utils.helper import write_json, safe_load_yml
 
-SCHAIN_VOLUME_PARTS = {'large': {'max_consensus_storage_bytes': 21311992627, 'max_file_storage_bytes': 21311992627, 'max_reserved_storage_bytes': 7103997542, 'max_skaled_leveldb_storage_bytes': 21311992627}, 'medium': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}, 'small': {'max_consensus_storage_bytes': 166499942, 'max_file_storage_bytes': 166499942, 'max_reserved_storage_bytes': 55499980, 'max_skaled_leveldb_storage_bytes': 166499942}, 'test': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}, 'test4': {'max_consensus_storage_bytes': 2663999078, 'max_file_storage_bytes': 2663999078, 'max_reserved_storage_bytes': 887999692, 'max_skaled_leveldb_storage_bytes': 2663999078}}  # noqa
+SCHAIN_VOLUME_PARTS = {
+    'large': {
+        'max_consensus_storage_bytes': 21311992627,
+        'max_file_storage_bytes': 21311992627,
+        'max_reserved_storage_bytes': 7103997542,
+        'max_skaled_leveldb_storage_bytes': 21311992627,
+    },
+    'medium': {
+        'max_consensus_storage_bytes': 2663999078,
+        'max_file_storage_bytes': 2663999078,
+        'max_reserved_storage_bytes': 887999692,
+        'max_skaled_leveldb_storage_bytes': 2663999078,
+    },
+    'small': {
+        'max_consensus_storage_bytes': 166499942,
+        'max_file_storage_bytes': 166499942,
+        'max_reserved_storage_bytes': 55499980,
+        'max_skaled_leveldb_storage_bytes': 166499942,
+    },
+    'test': {
+        'max_consensus_storage_bytes': 2663999078,
+        'max_file_storage_bytes': 2663999078,
+        'max_reserved_storage_bytes': 887999692,
+        'max_skaled_leveldb_storage_bytes': 2663999078,
+    },
+    'test4': {
+        'max_consensus_storage_bytes': 2663999078,
+        'max_file_storage_bytes': 2663999078,
+        'max_reserved_storage_bytes': 887999692,
+        'max_skaled_leveldb_storage_bytes': 2663999078,
+    },
+}  # noqa
 
 DEFAULT_ENV_TYPE = 'devnet'
 
@@ -67,7 +100,12 @@ def test_generate_resource_allocation_config():
         assert resource_allocation_config['schain']['disk']['large'] == 71039975424
 
         assert resource_allocation_config['ima']['cpu_shares'] == {
-            'large': 204, 'medium': 25, 'small': 1, 'test': 25, 'test4': 25}
+            'large': 204,
+            'medium': 25,
+            'small': 1,
+            'test': 25,
+            'test4': 25,
+        }
         assert isinstance(resource_allocation_config['ima']['mem'], dict)
 
         assert resource_allocation_config['schain']['volume_limits'] == SCHAIN_VOLUME_PARTS
@@ -80,10 +118,7 @@ def test_update_allocation_config(resource_alloc_config):
             assert json.load(jfile) != INITIAL_CONFIG
 
 
-def test_get_static_disk_alloc_devnet(
-    params_by_env_type,
-    schain_allocation_data
-):
+def test_get_static_disk_alloc_devnet(params_by_env_type, schain_allocation_data):
     env_configs = params_by_env_type['envs']['devnet']
     block_device = '/dev/test'
     with mock.patch('node_cli.core.resources.get_disk_size', return_value=SMALL_DISK_SIZE):
@@ -101,7 +136,7 @@ def test_get_static_disk_alloc_devnet(
         'medium': 8879996928,
         'small': 554999808,
         'test': 8879996928,
-        'test4': 8879996928
+        'test4': 8879996928,
     }
 
 
@@ -164,5 +199,5 @@ def test_leveldb_limits():
         'medium': {'contract_storage': 1598399446, 'db_storage': 532799815},
         'small': {'contract_storage': 99899965, 'db_storage': 33299988},
         'test': {'contract_storage': 1598399446, 'db_storage': 532799815},
-        'test4': {'contract_storage': 1598399446, 'db_storage': 532799815}
+        'test4': {'contract_storage': 1598399446, 'db_storage': 532799815},
     }
