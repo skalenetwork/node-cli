@@ -21,7 +21,6 @@ import os
 import logging
 
 from git.repo.base import Repo
-from node_cli.utils.helper import error_exit
 
 logger = logging.getLogger(__name__)
 
