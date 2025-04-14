@@ -15,7 +15,7 @@ from node_cli.configs import (
     SCHAIN_NODE_DATA_PATH,
     SCHAINS_MNT_DIR_SYNC,
 )
-from node_cli.configs.env import get_env_config
+from node_cli.configs.env import get_validated_env_config
 
 from node_cli.utils.helper import get_request, error_exit, safe_load_yml
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -185,7 +185,7 @@ def restore_schain_from_snapshot(
     schain: str, snapshot_path: str, env_type: Optional[str] = None, schain_type: str = 'medium'
 ) -> None:
     if env_type is None:
-        env_config = get_env_config()
+        env_config = get_validated_env_config()
         env_type = env_config['ENV_TYPE']
     ensure_schain_volume(schain, schain_type, env_type)
     block_number = get_block_number_from_path(snapshot_path)

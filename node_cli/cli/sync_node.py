@@ -29,7 +29,6 @@ from node_cli.utils.helper import (
     streamed_cmd,
     URL_TYPE,
 )
-from node_cli.utils.exit_codes import CLIExitCodes
 
 
 G_TEXTS = safe_load_texts()
@@ -59,10 +58,7 @@ def _init_sync(
     env_file, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
     if indexer and archive:
-        error_exit(
-            'Cannot use both --indexer and --archive options',
-            exit_code=CLIExitCodes.FAILURE,
-        )
+        error_exit('Cannot use both --indexer and --archive options')
     init_sync(env_file, indexer, archive, snapshot, snapshot_from)
 
 

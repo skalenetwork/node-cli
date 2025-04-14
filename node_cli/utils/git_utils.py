@@ -21,20 +21,12 @@ import os
 import logging
 
 from git.repo.base import Repo
-from git.exc import GitCommandError
-
 
 logger = logging.getLogger(__name__)
 
 
 def check_is_branch(repo: Repo, ref_name: str) -> bool:
-    try:
-        repo.git.show_ref('--verify', f'refs/heads/{ref_name}')
-        logger.debug(f'{ref_name} is branch')
-        return True
-    except GitCommandError:
-        logger.debug(f'{ref_name} is not branch')
-        return False
+    return ref_name in (branch.name for branch in repo.heads)
 
 
 def clone_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
@@ -44,6 +36,10 @@ def clone_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
 
 
 def sync_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
+    """
+    Sync Git repository by cloning if it doesn't exist locally. If it exists, fetch latest changes.
+    """
+
     logger.info(f'Sync repo {repo_url} → {repo_path}')
     if not os.path.isdir(os.path.join(repo_path, '.git')):
         clone_repo(repo_url, repo_path, ref_name)
@@ -52,11 +48,17 @@ def sync_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
 
 
 def fetch_pull_repo(repo_path: str, ref_name: str) -> None:
+    """Fetch latest changes and checkout/pull specific git reference."""
+
     repo = Repo(repo_path)
     repo_name = os.path.basename(repo.working_dir)
-    logger.info(f'Fetching {repo_name} changes')
+
+    logger.info(f'Fetching latest changes for {repo_name}')
     repo.remotes.origin.fetch()
-    logger.info(f'Checkouting {repo_path} to {ref_name}')
+
+    logger.info(f'Checking out {ref_name} in {repo_name}')
     repo.git.checkout(ref_name)
+
     if check_is_branch(repo, ref_name):
+        logger.info(f'Pulling latest changes for branch {ref_name}')
         repo.remotes.origin.pull()

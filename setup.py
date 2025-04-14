@@ -5,14 +5,13 @@ from setuptools import find_packages, setup
 
 def read(*parts):
     path = os.path.join(os.path.dirname(__file__), *parts)
-    f = open(path, "r")
+    f = open(path, 'r')
     return f.read()
 
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
     if version_match:
         return version_match.group(1)
     raise RuntimeError("Couldn't parse version from file.")
@@ -20,29 +19,27 @@ def find_version(*file_paths):
 
 extras_require = {
     'linter': [
-        "flake8==7.1.1",
-        "isort>=4.2.15,<5.10.2",
+        'isort>=4.2.15,<5.10.2',
+        'ruff==0.9.9',
     ],
     'dev': [
-        "bumpversion==0.6.0",
-        "pytest==8.3.2",
-        "pytest-cov==5.0.0",
-        "twine==4.0.2",
-        "mock==4.0.3",
-        "freezegun==1.2.2"
-    ]
+        'bumpversion==0.6.0',
+        'pytest==8.3.2',
+        'pytest-cov==5.0.0',
+        'twine==4.0.2',
+        'mock==4.0.3',
+        'freezegun==1.2.2',
+    ],
 }
 
-extras_require['dev'] = (
-    extras_require['linter'] + extras_require['dev']
-)
+extras_require['dev'] = extras_require['linter'] + extras_require['dev']
 
 
 setup(
     name='node-cli',
     # *IMPORTANT*: Don't manually change the version here.
     # Use the 'bumpversion' utility instead.
-    version=find_version("node_cli", "cli", "__init__.py"),
+    version=find_version('node_cli', 'cli', '__init__.py'),
     include_package_data=True,
     description='SKALE client tools',
     long_description_markdown_filename='README.md',
@@ -50,33 +47,33 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/node-cli',
     install_requires=[
-        "click==8.1.7",
-        "PyInstaller==5.12.0",
-        "distro==1.9.0",
-        "docker==6.0.1",
-        "texttable==1.6.7",
-        "python-dateutil==2.8.2",
-        "Jinja2==3.1.4",
-        "psutil==5.9.4",
-        "python-dotenv==0.21.0",
-        "terminaltables==3.1.10",
-        "requests==2.28.1",
-        "GitPython==3.1.41",
-        "packaging==23.0",
-        "python-debian==0.1.49",
-        "PyYAML==6.0",
-        "pyOpenSSL==24.2.1",
-        "MarkupSafe==3.0.2",
+        'click==8.1.7',
+        'PyInstaller==5.12.0',
+        'distro==1.9.0',
+        'docker==6.0.1',
+        'texttable==1.6.7',
+        'python-dateutil==2.8.2',
+        'Jinja2==3.1.4',
+        'psutil==5.9.4',
+        'python-dotenv==0.21.0',
+        'terminaltables==3.1.10',
+        'requests==2.28.1',
+        'GitPython==3.1.41',
+        'packaging==23.0',
+        'python-debian==0.1.49',
+        'PyYAML==6.0',
+        'pyOpenSSL==24.2.1',
+        'MarkupSafe==3.0.2',
         'Flask==2.3.3',
         'itsdangerous==2.1.2',
-        "cryptography==42.0.4",
-        "filelock==3.0.12",
+        'cryptography==42.0.4',
+        'filelock==3.0.12',
         'sh==1.14.2',
-        'python-crontab==2.6.0'
+        'python-crontab==2.6.0',
+        'requests-mock==1.12.1',
     ],
     python_requires='>=3.8,<4',
     extras_require=extras_require,
-
     keywords=['skale', 'cli'],
     packages=find_packages(exclude=['tests']),
     classifiers=[

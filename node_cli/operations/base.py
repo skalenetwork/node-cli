@@ -43,13 +43,7 @@ from node_cli.core.nftables import configure_nftables
 from node_cli.core.node_options import NodeOptions
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 
-from node_cli.operations.common import (
-    backup_old_contracts,
-    download_contracts,
-    configure_filebeat,
-    configure_flask,
-    unpack_backup_archive,
-)
+from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
 from node_cli.operations.volume import (
     cleanup_volume_artifacts,
     ensure_filestorage_mapping,
@@ -83,7 +77,7 @@ logger = logging.getLogger(__name__)
 def checked_host(func):
     @functools.wraps(func)
     def wrapper(env_filepath: str, env: Dict, *args, **kwargs):
-        download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
+        download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
             env['ENV_TYPE'],
@@ -113,7 +107,7 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict) -> None:
+def update(env_filepath: str, env: Dict) -> bool:
     compose_rm(env)
     remove_dynamic_containers()
 
@@ -125,9 +119,6 @@ def update(env_filepath: str, env: Dict) -> None:
 
     enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
     configure_nftables(enable_monitoring=enable_monitoring)
-
-    backup_old_contracts()
-    download_contracts(env)
 
     lvmpy_install(env)
     generate_nginx_config()
@@ -170,7 +161,6 @@ def init(env_filepath: str, env: dict) -> bool:
 
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
-    download_contracts(env)
 
     configure_filebeat()
     configure_flask()
@@ -223,7 +213,6 @@ def init_sync(
 
     ensure_filestorage_mapping()
     link_env_file()
-    download_contracts(env)
 
     generate_nginx_config()
     prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
@@ -262,8 +251,6 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     configure_nftables(enable_monitoring=enable_monitoring)
 
     ensure_filestorage_mapping()
-    backup_old_contracts()
-    download_contracts(env)
 
     prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
     generate_nginx_config()

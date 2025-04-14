@@ -151,6 +151,7 @@ def test_init_node(no_resource_file):  # todo: write new init node test
         mock.patch('node_cli.core.node.init_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.utils.helper.post_request', resp_mock),
+        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
     ):
         init(env_filepath)
         assert os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
@@ -175,6 +176,7 @@ def test_update_node(mocked_g_config, resource_file):
             'node_cli.core.node.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
+        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
     ):
         with mock.patch(
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()

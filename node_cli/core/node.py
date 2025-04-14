@@ -42,7 +42,7 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
 )
 from node_cli.cli import __version__
-from node_cli.configs.env import get_env_config, SKALE_DIR_ENV_FILEPATH
+from node_cli.configs.env import get_validated_env_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
@@ -68,7 +68,6 @@ from node_cli.utils.helper import (
     error_exit,
     get_request,
     post_request,
-    extract_env_params,
 )
 from node_cli.utils.meta import get_meta_info
 from node_cli.utils.texts import Texts
@@ -87,7 +86,7 @@ BLUEPRINT_NAME = 'node'
 
 
 class NodeStatuses(Enum):
-    """This class contains possible node statuses"""
+    """This class contains possible node statuses."""
 
     ACTIVE = 0
     LEAVING = 1
@@ -140,8 +139,6 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 @check_not_inited
 def init(env_filepath):
     env = compose_node_env(env_filepath)
-    if env is None:
-        return
 
     inited_ok = init_op(env_filepath, env)
     if not inited_ok:
@@ -223,21 +220,22 @@ def cleanup_sync() -> None:
 
 
 def compose_node_env(
-    env_filepath,
-    inited_node=False,
-    sync_schains=None,
-    pull_config_for_schain=None,
-    sync_node=False,
+    env_filepath: str,
+    inited_node: bool = False,
+    sync_schains: Optional[bool] = None,
+    pull_config_for_schain: Optional[str] = None,
+    sync_node: bool = False,
     save: bool = True,
-):
+) -> dict:
     if env_filepath is not None:
-        env_params = extract_env_params(env_filepath, sync_node=sync_node, raise_for_status=True)
+        env_params = get_validated_env_config(env_filepath, sync_node=sync_node)
         if save:
             save_env_params(env_filepath)
     else:
-        env_params = extract_env_params(INIT_ENV_FILEPATH, sync_node=sync_node)
+        env_params = get_validated_env_config(INIT_ENV_FILEPATH, sync_node=sync_node)
 
     mnt_dir = SCHAINS_MNT_DIR_SYNC if sync_node else SCHAINS_MNT_DIR_REGULAR
+
     env = {
         'SKALE_DIR': SKALE_DIR,
         'SCHAINS_MNT_DIR': mnt_dir,
@@ -245,13 +243,16 @@ def compose_node_env(
         'SKALE_LIB_PATH': SKALE_STATE_DIR,
         **env_params,
     }
+
     if inited_node and not sync_node:
-        flask_secret_key = get_flask_secret_key()
-        env['FLASK_SECRET_KEY'] = flask_secret_key
+        env['FLASK_SECRET_KEY'] = get_flask_secret_key()
+
     if sync_schains and not sync_node:
         env['BACKUP_RUN'] = 'True'
+
     if pull_config_for_schain:
         env['PULL_CONFIG_FOR_SCHAIN'] = pull_config_for_schain
+
     return {k: v for k, v in env.items() if v != ''}
 
 
@@ -458,7 +459,7 @@ def run_checks(
         return
 
     if disk is None:
-        env = get_env_config()
+        env = get_validated_env_config()
         disk = env['DISK_MOUNTPOINT']
     failed_checks = run_host_checks(disk, network, container_config_path)
     if not failed_checks:

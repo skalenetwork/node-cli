@@ -21,7 +21,8 @@ from enum import IntEnum
 
 
 class CLIExitCodes(IntEnum):
-    """This class contains exit codes for SKALE CLI tools"""
+    """This class contains exit codes for SKALE CLI tools."""
+
     SUCCESS = 0
     FAILURE = 1
     BAD_API_RESPONSE = 3

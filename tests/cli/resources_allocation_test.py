@@ -24,9 +24,7 @@ import requests
 
 import pytest
 
-from node_cli.configs.resource_allocation import (
-    RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
-)
+from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
 from node_cli.utils.helper import safe_mkdir, write_json
 from tests.helper import response_mock, run_command_mock
 
@@ -48,11 +46,7 @@ def resource_alloc_config():
 def test_show(resource_alloc_config):
     resp_mock = response_mock(requests.codes.created)
     write_json(RESOURCE_ALLOCATION_FILEPATH, TEST_CONFIG)
-    result = run_command_mock(
-        'node_cli.utils.helper.post_request',
-        resp_mock,
-        show
-    )
+    result = run_command_mock('node_cli.utils.helper.post_request', resp_mock, show)
     assert result.output == json.dumps(TEST_CONFIG, indent=4) + '\n'
     assert result.exit_code == 0
 
@@ -60,40 +54,38 @@ def test_show(resource_alloc_config):
 def test_generate():
     safe_mkdir(NODE_DATA_PATH)
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('node_cli.core.resources.get_disk_size',
-                    return_value=BIG_DISK_SIZE):
+    with (
+        mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
+    ):
         result = run_command_mock(
-            'node_cli.utils.helper.post_request',
-            resp_mock,
-            generate,
-            ['./tests/test-env', '--yes']
+            'node_cli.utils.helper.post_request', resp_mock, generate, ['./tests/test-env', '--yes']
         )
-    assert result.output == (f'Resource allocation file generated: '
-                             f'{RESOURCE_ALLOCATION_FILEPATH}\n')
+    assert result.output == (
+        f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}\n'
+    )
     assert result.exit_code == 0
 
 
 def test_generate_already_exists(resource_alloc_config):
     resp_mock = response_mock(requests.codes.created)
-    with mock.patch('node_cli.core.resources.get_disk_size',
-                    return_value=BIG_DISK_SIZE):
+    with (
+        mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
+    ):
+        result = run_command_mock(
+            'node_cli.utils.helper.post_request', resp_mock, generate, ['./tests/test-env', '--yes']
+        )
+        assert result.output == 'Resource allocation file already exists\n'
+        assert result.exit_code == 0
+
         result = run_command_mock(
             'node_cli.utils.helper.post_request',
             resp_mock,
             generate,
-            ['./tests/test-env', '--yes']
-        )
-        assert result.output == 'Resource allocation file is already exists\n'
-        assert result.exit_code == 0
-
-        result = run_command_mock(
-                'node_cli.utils.helper.post_request',
-                resp_mock,
-                generate,
-                ['./tests/test-env', '--yes', '--force']
+            ['./tests/test-env', '--yes', '--force'],
         )
         assert result.output == (
-            f'Resource allocation file generated: '
-            f'{RESOURCE_ALLOCATION_FILEPATH}\n'
+            f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}\n'
         )
         assert result.exit_code == 0

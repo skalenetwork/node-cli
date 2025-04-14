@@ -24,44 +24,23 @@ import logging
 import shutil
 import secrets
 
-import urllib.request
 from shutil import copyfile
-from distutils.dir_util import copy_tree
 
 from node_cli.configs import (
-    CONTRACTS_PATH,
-    BACKUP_CONTRACTS_PATH,
     G_CONF_HOME,
     FILEBEAT_CONFIG_PATH,
     FLASK_SECRET_KEY_FILE,
-    IMA_CONTRACTS_FILEPATH,
-    MANAGER_CONTRACTS_FILEPATH,
-    SRC_FILEBEAT_CONFIG_PATH
+    SRC_FILEBEAT_CONFIG_PATH,
 )
 
 logger = logging.getLogger(__name__)
-
-
-def backup_old_contracts():
-    logging.info('Copying old contracts ABIs')
-    copy_tree(CONTRACTS_PATH, BACKUP_CONTRACTS_PATH)
-
-
-def download_contracts(env):
-    urllib.request.urlretrieve(env['MANAGER_CONTRACTS_ABI_URL'], MANAGER_CONTRACTS_FILEPATH)
-    urllib.request.urlretrieve(env['IMA_CONTRACTS_ABI_URL'], IMA_CONTRACTS_FILEPATH)
 
 
 def configure_filebeat():
     logger.info('Configuring filebeat...')
     copyfile(SRC_FILEBEAT_CONFIG_PATH, FILEBEAT_CONFIG_PATH)
     shutil.chown(FILEBEAT_CONFIG_PATH, user='root')
-    os.chmod(
-        FILEBEAT_CONFIG_PATH,
-        stat.S_IREAD |
-        stat.S_IWRITE |
-        stat.S_IEXEC
-    )
+    os.chmod(FILEBEAT_CONFIG_PATH, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC)
     logger.info('Filebeat configured')
 
 

@@ -25,7 +25,7 @@ import socket
 import sys
 import uuid
 from urllib.parse import urlparse
-from typing import Optional
+from typing import Any, Optional, NoReturn
 
 import yaml
 import shutil
@@ -49,7 +49,6 @@ from jinja2 import Environment
 
 from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.configs.env import absent_params as absent_env_params, get_env_config
 from node_cli.configs import (
     TEXT_FILE,
     ADMIN_HOST,
@@ -154,28 +153,28 @@ def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
-def extract_env_params(env_filepath, sync_node=False, raise_for_status=True):
-    env_params = get_env_config(env_filepath, sync_node=sync_node)
-    absent_params = ', '.join(absent_env_params(env_params))
-    if absent_params:
-        click.echo(
-            f'Your env file({env_filepath}) have some absent params: '
-            f'{absent_params}.\n'
-            f'You should specify them to make sure that '
-            f'all services are working',
-            err=True,
-        )
-        if raise_for_status:
-            raise InvalidEnvFileError(f'Missing params: {absent_params}')
-        return None
-    return env_params
-
-
 def str_to_bool(val):
     return bool(distutils.util.strtobool(val))
 
 
-def error_exit(error_payload, exit_code=CLIExitCodes.FAILURE):
+def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> NoReturn:
+    """Print error message and exit the program with specified exit code.
+
+    Args:
+        error_payload: Error message string or list of error messages
+        exit_code: Exit code to use when terminating the program (default: FAILURE)
+
+    Raises:
+        TypeError: If exit_code is not CLIExitCodes
+
+    Example:
+        >>> error_exit("Permission denied", CLIExitCodes.BAD_USER_ERROR)
+        Permission denied
+        <exits with code 3>
+    """
+    if not isinstance(exit_code, CLIExitCodes):
+        raise TypeError('exit_code must be CLIExitCodes enum')
+
     print_err_response(error_payload)
     sys.exit(exit_code.value)
 
@@ -299,23 +298,8 @@ def to_camel_case(snake_str):
     return components[0] + ''.join(x.title() for x in components[1:])
 
 
-def validate_abi(abi_filepath: str) -> dict:
-    if not os.path.isfile(abi_filepath):
-        return {'filepath': abi_filepath, 'status': 'error', 'msg': 'No such file'}
-    try:
-        with open(abi_filepath) as abi_file:
-            json.load(abi_file)
-    except Exception:
-        return {
-            'filepath': abi_filepath,
-            'status': 'error',
-            'msg': 'Failed to load abi file as json',
-        }
-    return {'filepath': abi_filepath, 'status': 'ok', 'msg': ''}
-
-
 def streamed_cmd(func):
-    """Decorator that allow function to print logs into stderr"""
+    """Decorator that allows function to print logs into stderr."""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -354,20 +338,30 @@ def rm_dir(folder: str) -> None:
         logger.info(f"{folder} doesn't exist, skipping...")
 
 
-def safe_mkdir(path: str, print_res: bool = False):
+def safe_mkdir(path: str, print_res: bool = False) -> None:
     if os.path.exists(path):
+        logger.debug(f'Directory {path} already exists')
         return
+
     msg = f'Creating {path} directory...'
     logger.info(msg)
     if print_res:
         print(msg)
+
     os.makedirs(path, exist_ok=True)
 
 
 def rsync_dirs(src: str, dest: str) -> None:
-    logger.info(f'Syncing {dest} with {src}')
-    run_cmd(['rsync', '-r', f'{src}/', dest])
-    run_cmd(['rsync', '-r', f'{src}/.git', dest])
+    logger.info(f'Syncing directory {dest} with {src}')
+
+    try:
+        run_cmd(['rsync', '-r', f'{src}/', dest])
+        run_cmd(['rsync', '-r', f'{src}/.git', dest])
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Rsync failed: {e}')
+        error_exit(
+            f'Failed to sync directories: {e}', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
 
 
 def ok_result(payload: dict = None):
@@ -418,3 +412,7 @@ def get_ssh_port(ssh_service_name='ssh'):
     except OSError:
         logger.exception('Cannot get ssh service port')
         return DEFAULT_SSH_PORT
+
+
+def is_contract_address(value: str) -> bool:
+    return bool(re.fullmatch(r'0x[a-fA-F0-9]{40}', value))

@@ -46,7 +46,7 @@ ROUTES = {
 
 
 class RouteNotFoundException(Exception):
-    """Raised when requested route is not found in provided API version"""
+    """Raised when requested route is not found in provided API version."""
 
 
 def route_exists(blueprint, method, api_version):

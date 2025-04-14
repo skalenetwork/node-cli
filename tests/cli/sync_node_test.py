@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 init_default_logger()
 
 
-def test_init_sync(mocked_g_config):
+def test_init_sync(mocked_g_config, clean_node_options):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -45,6 +45,7 @@ def test_init_sync(mocked_g_config):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
+        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
     ):
         result = run_command(_init_sync, ['./tests/test-env'])
 
@@ -68,7 +69,6 @@ def test_init_sync_archive(mocked_g_config, clean_node_options):
         mock.patch('node_cli.operations.base.prepare_host'),
         mock.patch('node_cli.operations.base.ensure_filestorage_mapping'),
         mock.patch('node_cli.operations.base.link_env_file'),
-        mock.patch('node_cli.operations.base.download_contracts'),
         mock.patch('node_cli.operations.base.generate_nginx_config'),
         mock.patch('node_cli.operations.base.prepare_block_device'),
         mock.patch('node_cli.operations.base.update_meta'),
@@ -78,6 +78,7 @@ def test_init_sync_archive(mocked_g_config, clean_node_options):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
+        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
     ):
         result = run_command(_init_sync, ['./tests/test-env', '--archive'])
         node_options = NodeOptions()
@@ -120,6 +121,7 @@ def test_update_sync(mocked_g_config):
             'node_cli.core.node.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
+        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
     ):
         result = run_command(_update_sync, ['./tests/test-env', '--yes'])
         assert result.exit_code == 0

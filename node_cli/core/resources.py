@@ -24,16 +24,21 @@ from typing import Dict
 
 import psutil
 
+from node_cli.configs.env import get_validated_env_config
 from node_cli.utils.docker_utils import ensure_volume
 from node_cli.utils.schain_types import SchainTypes
-from node_cli.utils.helper import (
-    write_json, read_json, run_cmd, extract_env_params, safe_load_yml
-)
+from node_cli.utils.helper import write_json, read_json, run_cmd, safe_load_yml
 from node_cli.configs import ALLOCATION_FILEPATH, STATIC_PARAMS_FILEPATH, SNAPSHOTS_SHARED_VOLUME
 from node_cli.configs.resource_allocation import (
-    RESOURCE_ALLOCATION_FILEPATH, TIMES, TIMEOUT,
-    TEST_DIVIDER, SMALL_DIVIDER, MEDIUM_DIVIDER, LARGE_DIVIDER,
-    MEMORY_FACTOR, MAX_CPU_SHARES
+    RESOURCE_ALLOCATION_FILEPATH,
+    TIMES,
+    TIMEOUT,
+    TEST_DIVIDER,
+    SMALL_DIVIDER,
+    MEDIUM_DIVIDER,
+    LARGE_DIVIDER,
+    MEMORY_FACTOR,
+    MAX_CPU_SHARES,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,7 +55,7 @@ class ResourceAlloc:
             'test': value / TEST_DIVIDER,
             'small': value / SMALL_DIVIDER,
             'medium': value / MEDIUM_DIVIDER,
-            'large': value / LARGE_DIVIDER
+            'large': value / LARGE_DIVIDER,
         }
         if not fractional:
             for k in self.values:
@@ -67,10 +72,7 @@ def get_resource_allocation_info():
         return None
 
 
-def compose_resource_allocation_config(
-    env_type: str,
-    params_by_env_type: Dict = None
-) -> Dict:
+def compose_resource_allocation_config(env_type: str, params_by_env_type: Dict = None) -> Dict:
     params_by_env_type = params_by_env_type or safe_load_yml(STATIC_PARAMS_FILEPATH)
     common_config = params_by_env_type['common']
     schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(common_config)
@@ -83,37 +85,29 @@ def compose_resource_allocation_config(
             'mem': schain_mem_alloc.dict(),
             'disk': schain_allocation_data[env_type]['disk'],
             'volume_limits': schain_allocation_data[env_type]['volume_limits'],  # noqa
-            'leveldb_limits': schain_allocation_data[env_type]['leveldb_limits']  # noqa
+            'leveldb_limits': schain_allocation_data[env_type]['leveldb_limits'],  # noqa
         },
-        'ima': {
-            'cpu_shares': ima_cpu_alloc.dict(),
-            'mem': ima_mem_alloc.dict()
-        }
+        'ima': {'cpu_shares': ima_cpu_alloc.dict(), 'mem': ima_mem_alloc.dict()},
     }
 
 
 def generate_resource_allocation_config(env_file, force=False) -> None:
     if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
-        msg = 'Resource allocation file is already exists'
+        msg = 'Resource allocation file already exists'
         logger.debug(msg)
         print(msg)
         return
-    env_params = extract_env_params(env_file)
+    env_params = get_validated_env_config(env_file)
     if env_params is None:
         return
     logger.info('Generating resource allocation file ...')
     try:
-        update_resource_allocation(
-            env_params['ENV_TYPE']
-        )
+        update_resource_allocation(env_params['ENV_TYPE'])
     except Exception as e:
         logger.exception(e)
-        print('Can\'t generate resource allocation file, check out CLI logs')
+        print("Can't generate resource allocation file, check out CLI logs")
     else:
-        print(
-            f'Resource allocation file generated: '
-            f'{RESOURCE_ALLOCATION_FILEPATH}'
-        )
+        print(f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}')
 
 
 def update_resource_allocation(env_type: str) -> None:
@@ -151,10 +145,7 @@ def get_cpu_alloc(common_config: Dict) -> ResourceAlloc:
     cpu_proportions = common_config['schain']['cpu']
     schain_max_cpu_shares = int(cpu_proportions['skaled'] * MAX_CPU_SHARES)
     ima_max_cpu_shares = int(cpu_proportions['ima'] * MAX_CPU_SHARES)
-    return (
-        ResourceAlloc(schain_max_cpu_shares),
-        ResourceAlloc(ima_max_cpu_shares)
-    )
+    return (ResourceAlloc(schain_max_cpu_shares), ResourceAlloc(ima_max_cpu_shares))
 
 
 def verify_disk_size(
