@@ -16,7 +16,6 @@
 #
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""SKALE config test"""
 
 import json
 import os
@@ -296,9 +295,6 @@ def tmp_sync_datadir():
 
 @pytest.fixture
 def valid_env_params():
-    """
-    Return a dictionary of environment parameters that mimics the contents of test-env.
-    """
     return {
         'ENDPOINT': 'http://localhost:8545',
         'IMA_ENDPOINT': 'http://127.0.01',
@@ -320,33 +316,30 @@ def valid_env_params():
 
 @pytest.fixture
 def valid_env_file(valid_env_params):
-    """
-    Create a temporary .env file whose contents mimic test-env.
-
-    This file is created using the key/value pairs from valid_env_params,
-    one per line in the form KEY=VALUE.
-    """
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
-        for key, value in valid_env_params.items():
-            f.write(f'{key}={value}\n')
-        file_name = f.name
-    yield file_name
-    os.unlink(file_name)
+    """Create a temporary .env file whose contents mimic test-env."""
+    file_name = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+            for key, value in valid_env_params.items():
+                f.write(f'{key}={value}\n')
+            file_name = f.name
+        yield file_name
+    finally:
+        if file_name:
+            os.unlink(file_name)
 
 
 @pytest.fixture
 def mock_chain_response():
-    """Return a fake RPC response for chain ID 1."""
     return {
         'jsonrpc': '2.0',
         'id': 1,
-        'result': '0x1',  # Represents chain ID 1
+        'result': '0x1',
     }
 
 
 @pytest.fixture
 def mock_networks_metadata():
-    """Return fake network metadata that includes chain ID 1."""
     return {
         'networks': [
             {'chainId': 1, 'name': 'Mainnet', 'path': 'mainnet'},

@@ -25,7 +25,7 @@ import socket
 import sys
 import uuid
 from urllib.parse import urlparse
-from typing import Any, Optional
+from typing import Any, Optional, NoReturn
 
 import yaml
 import shutil
@@ -157,7 +157,7 @@ def str_to_bool(val):
     return bool(distutils.util.strtobool(val))
 
 
-def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> None:
+def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> NoReturn:
     """Print error message and exit the program with specified exit code.
 
     Args:
@@ -299,7 +299,7 @@ def to_camel_case(snake_str):
 
 
 def streamed_cmd(func):
-    """Decorator that allow function to print logs into stderr"""
+    """Decorator that allows function to print logs into stderr."""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -414,6 +414,5 @@ def get_ssh_port(ssh_service_name='ssh'):
         return DEFAULT_SSH_PORT
 
 
-# TODO: Add a more robust check for contract address and see if doesn't conflict with alias.
 def is_contract_address(value: str) -> bool:
-    return len(value) == 42 and value.startswith('0x')
+    return bool(re.fullmatch(r'0x[a-fA-F0-9]{40}', value))

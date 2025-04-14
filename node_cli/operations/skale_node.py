@@ -41,7 +41,7 @@ def update_images(env: dict, sync_node: bool = False) -> None:
 
 
 def download_skale_node(stream: Optional[str] = None, src: Optional[str] = None) -> None:
-    """Downloads SKALE node config from repo or local directory"""
+    """Copies SKALE node config from local directory if present. If not, downloads it from repo."""
     if not src and not stream:
         error_exit('Either src path or stream must be provided')
 

@@ -74,7 +74,6 @@ def fix_url(url):
 
 
 def get_flask_secret_key() -> str:
-    """Retrieve Flask secret key from filesystem."""
     secret_key_filepath = os.path.join(NODE_DATA_PATH, 'flask_db_key.txt')
 
     if not os.path.exists(secret_key_filepath):
@@ -86,12 +85,9 @@ def get_flask_secret_key() -> str:
             return secret_key
     except (IOError, OSError) as e:
         error_exit(f'Failed to read Flask secret key: {e}')
-        # Will never reach here, but needed for type checking.
-        return ''
 
 
 def prepare_host(env_filepath: str, env_type: str, allocation: bool = False) -> None:
-    """Initialize SKALE node host environment."""
     if not env_filepath or not env_type:
         error_exit('Missing required parameters for host initialization')
 

@@ -4,22 +4,26 @@ import pytest
 import requests
 
 from node_cli.configs.env import (
-    absent_params,
+    absent_required_params,
     load_env_file,
-    build_params,
-    populate_params,
-    get_env_config,
-    validate_params,
+    build_env_params,
+    populate_env_params,
+    get_validated_env_config,
+    validate_env_params,
     validate_env_type,
+    ALLOWED_ENV_TYPES,
+)
+from node_cli.configs.alias_address_validation import (
     validate_env_alias_or_address,
     validate_contract_address,
     validate_contract_alias,
     get_chain_id,
     get_network_metadata,
     ContractType,
-    ALLOWED_ENV_TYPES,
 )
 from node_cli.utils.exit_codes import CLIExitCodes
+
+ENDPOINT = 'http://localhost:8545'
 
 
 class FakeResponse:
@@ -31,14 +35,14 @@ class FakeResponse:
         return self._json_data
 
 
-def test_absent_params_returns_missing_keys():
+def test_absent_required_params_returns_missing_keys():
     params = {
         'A': '',
         'B': 'value',
         'C': '',
         'MONITORING_CONTAINERS': 'optional',
     }
-    missing = absent_params(params)
+    missing = absent_required_params(params)
     assert 'A' in missing
     assert 'C' in missing
     assert 'MONITORING_CONTAINERS' not in missing
@@ -61,20 +65,16 @@ def test_load_env_file_not_readable(tmp_path):
     os.chmod(env_file, 0o644)  # reset permissions
 
 
-def test_build_params_sync():
-    params = build_params(sync_node=True)
-    assert 'SCHAIN_NAME' in params
+@pytest.mark.parametrize('sync_node,has_schain_name', [(True, True), (False, False)])
+def test_build_env_params_sync_and_non_sync(sync_node, has_schain_name):
+    params = build_env_params(sync_node=sync_node)
+    assert ('SCHAIN_NAME' in params) == has_schain_name
 
 
-def test_build_params_non_sync():
-    params = build_params(sync_node=False)
-    assert 'SCHAIN_NAME' not in params
-
-
-def test_populate_params_updates_from_environ(monkeypatch):
+def test_populate_env_params_updates_from_environ(monkeypatch):
     params = {'FOO': ''}
     monkeypatch.setenv('FOO', 'bar')
-    populate_params(params)
+    populate_env_params(params)
     assert params['FOO'] == 'bar'
 
 
@@ -135,22 +135,19 @@ def test_get_network_metadata_failure(requests_mock):
 
 
 def test_validate_contract_address_success(requests_mock):
-    endpoint = 'http://localhost:8545'
-    requests_mock.post(endpoint, json={'result': '0x123'})
-    validate_contract_address('0x' + 'a' * 40, endpoint)
+    requests_mock.post(ENDPOINT, json={'result': '0x123'})
+    validate_contract_address('0x' + 'a' * 40, ENDPOINT)
 
 
 def test_validate_contract_address_no_code(requests_mock):
-    endpoint = 'http://localhost:8545'
-    requests_mock.post(endpoint, json={'result': '0x'})
+    requests_mock.post(ENDPOINT, json={'result': '0x'})
     with pytest.raises(SystemExit) as excinfo:
-        validate_contract_address('0x' + 'a' * 40, endpoint)
+        validate_contract_address('0x' + 'a' * 40, ENDPOINT)
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
 def test_validate_contract_alias_success(requests_mock):
-    endpoint = 'http://localhost:8545'
-    requests_mock.post(endpoint, json={'result': '0x1'})
+    requests_mock.post(ENDPOINT, json={'result': '0x1'})
     metadata_url = (
         'https://raw.githubusercontent.com/skalenetwork/skale-contracts/'
         'refs/heads/deployments/metadata.json'
@@ -162,32 +159,29 @@ def test_validate_contract_alias_success(requests_mock):
         'refs/heads/deployments/mainnet/skale-manager/test-alias.json'
     )
     requests_mock.get(alias_url, status_code=200)
-    validate_contract_alias('test-alias', ContractType.MANAGER, endpoint)
+    validate_contract_alias('test-alias', ContractType.MANAGER, ENDPOINT)
 
 
 def test_validate_contract_alias_network_missing(requests_mock):
-    endpoint = 'http://localhost:8545'
-    requests_mock.post(endpoint, json={'result': '0x1'})
+    requests_mock.post(ENDPOINT, json={'result': '0x1'})
     metadata_url = (
         'https://raw.githubusercontent.com/skalenetwork/skale-contracts/'
         'refs/heads/deployments/metadata.json'
     )
     requests_mock.get(metadata_url, json={'networks': []}, status_code=200)
     with pytest.raises(SystemExit) as excinfo:
-        validate_contract_alias('test-alias', ContractType.MANAGER, endpoint)
+        validate_contract_alias('test-alias', ContractType.MANAGER, ENDPOINT)
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
 def test_validate_env_alias_or_address_with_address(requests_mock):
-    endpoint = 'http://localhost:8545'
     addr = '0x' + 'b' * 40
-    requests_mock.post(endpoint, json={'result': '0x1'})
-    validate_env_alias_or_address(addr, ContractType.IMA, endpoint)
+    requests_mock.post(ENDPOINT, json={'result': '0x1'})
+    validate_env_alias_or_address(addr, ContractType.IMA, ENDPOINT)
 
 
 def test_validate_env_alias_or_address_with_alias(requests_mock):
-    endpoint = 'http://localhost:8545'
-    requests_mock.post(endpoint, json={'result': '0x1'})
+    requests_mock.post(ENDPOINT, json={'result': '0x1'})
     metadata_url = (
         'https://raw.githubusercontent.com/skalenetwork/skale-contracts/'
         'refs/heads/deployments/metadata.json'
@@ -199,10 +193,10 @@ def test_validate_env_alias_or_address_with_alias(requests_mock):
         'refs/heads/deployments/mainnet/mainnet-ima/test-alias.json'
     )
     requests_mock.get(alias_url, status_code=200)
-    validate_env_alias_or_address('test-alias', ContractType.IMA, endpoint)
+    validate_env_alias_or_address('test-alias', ContractType.IMA, ENDPOINT)
 
 
-def test_validate_params_missing_key():
+def test_validate_env_params_missing_key():
     populated_params = {
         'CONTAINER_CONFIGS_STREAM': 'value',
         'ENDPOINT': 'http://localhost:8545',
@@ -214,11 +208,11 @@ def test_validate_params_missing_key():
         'ENV_TYPE': 'mainnet',
     }
     with pytest.raises(SystemExit) as excinfo:
-        validate_params(populated_params)
+        validate_env_params(populated_params)
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_validate_params_success(valid_env_params, requests_mock):
+def test_validate_env_params_success(valid_env_params, requests_mock):
     endpoint = valid_env_params['ENDPOINT']
     requests_mock.post(endpoint, json={'result': '0x1'})
     metadata_url = (
@@ -237,14 +231,13 @@ def test_validate_params_success(valid_env_params, requests_mock):
         'refs/heads/deployments/mainnet/skale-manager/test-manager.json'
     )
     requests_mock.get(manager_alias_url, status_code=200)
-    validate_params(valid_env_params)
+    validate_env_params(valid_env_params)
 
 
-def test_get_env_config_success(
+def test_get_validated_env_config_success(
     valid_env_file, mock_chain_response, mock_networks_metadata, requests_mock
 ):
-    endpoint = 'http://localhost:8545'
-    requests_mock.post(endpoint, json=mock_chain_response)
+    requests_mock.post(ENDPOINT, json=mock_chain_response)
     metadata_url = (
         'https://raw.githubusercontent.com/skalenetwork/skale-contracts/'
         'refs/heads/deployments/metadata.json'
@@ -260,20 +253,20 @@ def test_get_env_config_success(
         'refs/heads/deployments/mainnet/skale-manager/test-manager.json'
     )
     requests_mock.get(manager_alias_url, status_code=200)
-    config = get_env_config(valid_env_file)
+    config = get_validated_env_config(valid_env_file)
     assert config['ENDPOINT'] == 'http://localhost:8545'
     assert config['ENV_TYPE'] in ALLOWED_ENV_TYPES
 
 
-def test_get_env_config_missing_file():
+def test_get_validated_env_config_missing_file():
     with pytest.raises(SystemExit) as excinfo:
-        get_env_config('nonexistent.env')
+        get_validated_env_config('nonexistent.env')
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
 
 
-def test_get_env_config_unreadable_file(valid_env_file):
+def test_get_validated_env_config_unreadable_file(valid_env_file):
     os.chmod(valid_env_file, 0o000)
     with pytest.raises(SystemExit) as excinfo:
-        get_env_config(valid_env_file)
+        get_validated_env_config(valid_env_file)
     assert excinfo.value.code == CLIExitCodes.FAILURE.value
     os.chmod(valid_env_file, 0o644)

@@ -42,7 +42,7 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
 )
 from node_cli.cli import __version__
-from node_cli.configs.env import get_env_config, SKALE_DIR_ENV_FILEPATH
+from node_cli.configs.env import get_validated_env_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
@@ -86,7 +86,7 @@ BLUEPRINT_NAME = 'node'
 
 
 class NodeStatuses(Enum):
-    """This class contains possible node statuses"""
+    """This class contains possible node statuses."""
 
     ACTIVE = 0
     LEAVING = 1
@@ -228,11 +228,11 @@ def compose_node_env(
     save: bool = True,
 ) -> dict:
     if env_filepath is not None:
-        env_params = get_env_config(env_filepath, sync_node=sync_node)
+        env_params = get_validated_env_config(env_filepath, sync_node=sync_node)
         if save:
             save_env_params(env_filepath)
     else:
-        env_params = get_env_config(INIT_ENV_FILEPATH, sync_node=sync_node)
+        env_params = get_validated_env_config(INIT_ENV_FILEPATH, sync_node=sync_node)
 
     mnt_dir = SCHAINS_MNT_DIR_SYNC if sync_node else SCHAINS_MNT_DIR_REGULAR
 
@@ -459,7 +459,7 @@ def run_checks(
         return
 
     if disk is None:
-        env = get_env_config()
+        env = get_validated_env_config()
         disk = env['DISK_MOUNTPOINT']
     failed_checks = run_host_checks(disk, network, container_config_path)
     if not failed_checks:

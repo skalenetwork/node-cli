@@ -40,7 +40,9 @@ def clone_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
 
 
 def sync_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
-    """Sync Git repository by cloning if not exists or fetching latest changes."""
+    """
+    Sync Git repository by cloning if it doesn't exist locally. If it exists, fetch latest changes.
+    """
 
     logger.info(f'Sync repo {repo_url} → {repo_path}')
     if not os.path.isdir(os.path.join(repo_path, '.git')):
