@@ -59,9 +59,8 @@ def test_load_env_file_not_readable(tmp_path):
     env_file = tmp_path / 'test.env'
     env_file.write_text('KEY=value')
     os.chmod(env_file, 0o000)
-    with pytest.raises(SystemExit) as excinfo:
+    with pytest.raises(PermissionError):
         load_env_file(str(env_file))
-    assert excinfo.value.code == CLIExitCodes.FAILURE.value
     os.chmod(env_file, 0o644)  # reset permissions
 
 
@@ -266,7 +265,6 @@ def test_get_validated_env_config_missing_file():
 
 def test_get_validated_env_config_unreadable_file(valid_env_file):
     os.chmod(valid_env_file, 0o000)
-    with pytest.raises(SystemExit) as excinfo:
+    with pytest.raises(PermissionError):
         get_validated_env_config(valid_env_file)
-    assert excinfo.value.code == CLIExitCodes.FAILURE.value
     os.chmod(valid_env_file, 0o644)
