@@ -56,7 +56,8 @@ def download_skale_node(stream: Optional[str] = None, src: Optional[str] = None)
             logger.info(f'Syncing config files from {src}')
             rsync_dirs(src, dest)
         else:
-            assert stream
+            if not stream:
+                error_exit('Stream must be provided if src is not specified in download_skale_node')
             logger.info(f'Cloning config files from {SKALE_NODE_REPO_URL} ({stream})')
             clone_repo(SKALE_NODE_REPO_URL, dest, stream)
 

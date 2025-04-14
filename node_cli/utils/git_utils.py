@@ -31,12 +31,9 @@ def check_is_branch(repo: Repo, ref_name: str) -> bool:
 
 
 def clone_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
-    try:
-        logger.info(f'Cloning {repo_url} → {repo_path}')
-        Repo.clone_from(repo_url, repo_path)
-        fetch_pull_repo(repo_path, ref_name)
-    except Exception as e:
-        error_exit(f'Unexpected error cloning repository: {str(e)}')
+    logger.info(f'Cloning {repo_url} → {repo_path}')
+    Repo.clone_from(repo_url, repo_path)
+    fetch_pull_repo(repo_path, ref_name)
 
 
 def sync_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
@@ -54,19 +51,15 @@ def sync_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
 def fetch_pull_repo(repo_path: str, ref_name: str) -> None:
     """Fetch latest changes and checkout/pull specific git reference."""
 
-    try:
-        repo = Repo(repo_path)
-        repo_name = os.path.basename(repo.working_dir)
+    repo = Repo(repo_path)
+    repo_name = os.path.basename(repo.working_dir)
 
-        logger.info(f'Fetching latest changes for {repo_name}')
-        repo.remotes.origin.fetch()
+    logger.info(f'Fetching latest changes for {repo_name}')
+    repo.remotes.origin.fetch()
 
-        logger.info(f'Checking out {ref_name} in {repo_name}')
-        repo.git.checkout(ref_name)
+    logger.info(f'Checking out {ref_name} in {repo_name}')
+    repo.git.checkout(ref_name)
 
-        if check_is_branch(repo, ref_name):
-            logger.info(f'Pulling latest changes for branch {ref_name}')
-            repo.remotes.origin.pull()
-
-    except Exception as e:
-        error_exit(f'Repository operation failed: {str(e)}')
+    if check_is_branch(repo, ref_name):
+        logger.info(f'Pulling latest changes for branch {ref_name}')
+        repo.remotes.origin.pull()
