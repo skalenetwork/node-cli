@@ -23,11 +23,11 @@ from node_cli.cli.logs import dump
 from node_cli.configs import G_CONF_HOME
 
 from tests.helper import run_command
-from tests.core.core_logs_test import backup_func, CURRENT_DATETIME, TEST_ARCHIVE_PATH # noqa
+from tests.core.core_logs_test import backup_func, CURRENT_DATETIME, TEST_ARCHIVE_PATH  # noqa
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
-def test_dump(backup_func, removed_containers_folder): # noqa
+def test_dump(backup_func, removed_containers_folder):  # noqa
     result = run_command(dump, [G_CONF_HOME])
     assert result.exit_code == 0
     assert result.output == f'Logs dump created: {TEST_ARCHIVE_PATH}\n'

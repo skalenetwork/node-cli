@@ -30,10 +30,18 @@ import socket
 from collections import namedtuple
 from functools import wraps
 from typing import (
-    Any, Callable, cast,
-    Dict, Iterable, Iterator,
-    List, Optional,
-    Tuple, TypeVar, Union, )
+    Any,
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import docker  # type: ignore
 import psutil  # type: ignore
@@ -47,7 +55,7 @@ from node_cli.configs import (
     DOCKER_CONFIG_FILEPATH,
     DOCKER_DAEMON_HOSTS,
     REPORTS_PATH,
-    STATIC_PARAMS_FILEPATH
+    STATIC_PARAMS_FILEPATH,
 )
 from node_cli.core.host import is_ufw_ipv6_chain_exists, is_ufw_ipv6_option_enabled
 from node_cli.core.resources import get_disk_size
@@ -68,10 +76,7 @@ Func = TypeVar('Func', bound=Callable[..., Any])
 FuncList = List[Func]
 
 
-def get_static_params(
-    env_type: str = 'mainnet',
-    config_path: str = CONTAINER_CONFIG_PATH
-) -> Dict:
+def get_static_params(env_type: str = 'mainnet', config_path: str = CONTAINER_CONFIG_PATH) -> Dict:
     status_params_filename = os.path.basename(STATIC_PARAMS_FILEPATH)
     static_params_filepath = os.path.join(config_path, status_params_filename)
     with open(static_params_filepath) as requirements_file:
@@ -84,11 +89,7 @@ def check_quietly(check: Func, *args, **kwargs) -> CheckResult:
         return check(*args, **kwargs)
     except Exception as err:
         logger.exception('%s check errored')
-        return CheckResult(
-            name=check.__name__,
-            status='error',
-            info=repr(err)
-        )
+        return CheckResult(name=check.__name__, status='error', info=repr(err))
 
 
 class CheckType(enum.Enum):
@@ -117,13 +118,8 @@ def postinstall(func) -> Func:
     return cast(Func, wrapper)
 
 
-def generate_report_from_result(
-    check_result: List[CheckResult]
-) -> List[Dict]:
-    report = [
-        {'name': cr.name, 'status': cr.status}
-        for cr in check_result
-    ]
+def generate_report_from_result(check_result: List[CheckResult]) -> List[Dict]:
+    report = [{'name': cr.name, 'status': cr.status} for cr in check_result]
     return report
 
 
@@ -144,10 +140,7 @@ def get_report(report_path: str = CHECK_REPORT_PATH) -> List[Dict]:
     return saved_report
 
 
-def save_report(
-    new_report: List[Dict],
-    report_path: str = CHECK_REPORT_PATH
-) -> None:
+def save_report(new_report: List[Dict], report_path: str = CHECK_REPORT_PATH) -> None:
     safe_mkdir(REPORTS_PATH)
     with open(report_path, 'w') as report_file:
         json.dump(new_report, report_file, indent=4)
@@ -157,28 +150,14 @@ def merge_reports(
     old_report: List[Dict],
     new_report: List[Dict],
 ) -> List[Dict]:
-    return list(dedup(
-        itertools.chain(
-            new_report,
-            old_report
-        ),
-        key=lambda r: r['name']
-    ))
+    return list(dedup(itertools.chain(new_report, old_report), key=lambda r: r['name']))
 
 
 class BaseChecker:
-    def _ok(
-        self,
-        name: str,
-        info: Optional[Union[str, Dict]] = None
-    ) -> CheckResult:
+    def _ok(self, name: str, info: Optional[Union[str, Dict]] = None) -> CheckResult:
         return CheckResult(name=name, status='ok', info=info)
 
-    def _failed(
-        self,
-        name: str,
-        info: Optional[Union[str, Dict]] = None
-    ) -> CheckResult:
+    def _failed(self, name: str, info: Optional[Union[str, Dict]] = None) -> CheckResult:
         return CheckResult(name=name, status='failed', info=info)
 
     def get_checks(self, check_type: CheckType = CheckType.ALL) -> FuncList:
@@ -189,8 +168,8 @@ class BaseChecker:
 
         methods = inspect.getmembers(
             type(self),
-            predicate=lambda m: inspect.isfunction(m) and
-            getattr(m, '_check_type', None) in allowed_types
+            predicate=lambda m: inspect.isfunction(m)
+            and getattr(m, '_check_type', None) in allowed_types,
         )
         return [functools.partial(m[1], self) for m in methods]
 
@@ -209,10 +188,8 @@ class BaseChecker:
 
 class MachineChecker(BaseChecker):
     def __init__(
-            self,
-            requirements: Dict,
-            disk_device: str,
-            network_timeout: Optional[int] = None) -> None:
+        self, requirements: Dict, disk_device: str, network_timeout: Optional[int] = None
+    ) -> None:
         self.requirements = requirements
         self.disk_device = disk_device
         self.network_timeout = network_timeout or NETWORK_CHECK_TIMEOUT
@@ -242,11 +219,10 @@ class MachineChecker(BaseChecker):
     @preinstall
     def memory(self) -> CheckResult:
         name = 'memory'
-        mem_info = psutil.virtual_memory().total,
-        actual = mem_info[0]
+        actual = psutil.virtual_memory().total
         expected = self.requirements['memory']
-        actual_gb = round(actual / 1024 ** 3, 2)
-        expected_gb = round(expected / 1024 ** 3, 2)
+        actual_gb = round(actual / 1024**3, 2)
+        expected_gb = round(expected / 1024**3, 2)
         info = f'Expected RAM {expected_gb} GB, actual {actual_gb} GB'
         if actual < expected:
             return self._failed(name=name, info=info)
@@ -258,8 +234,8 @@ class MachineChecker(BaseChecker):
         name = 'swap'
         actual = psutil.swap_memory().total
         expected = self.requirements['swap']
-        actual_gb = round(actual / 1024 ** 3, 2)
-        expected_gb = round(expected / 1024 ** 3, 2)
+        actual_gb = round(actual / 1024**3, 2)
+        expected_gb = round(expected / 1024**3, 2)
         info = f'Expected swap memory {expected_gb} GB, actual {actual_gb} GB'
         if actual < expected:
             return self._failed(name=name, info=info)
@@ -274,8 +250,8 @@ class MachineChecker(BaseChecker):
         name = 'disk'
         actual = self._get_disk_size()
         expected = self.requirements['disk']
-        actual_gb = round(actual / 1024 ** 3, 2)
-        expected_gb = round(expected / 1024 ** 3, 2)
+        actual_gb = round(actual / 1024**3, 2)
+        expected_gb = round(expected / 1024**3, 2)
         info = f'Expected disk size {expected_gb} GB, actual {actual_gb} GB'
         if actual < expected:
             return self._failed(name=name, info=info)
@@ -288,7 +264,8 @@ class MachineChecker(BaseChecker):
         try:
             socket.setdefaulttimeout(self.network_timeout)
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
-                (CLOUDFLARE_DNS_HOST, CLOUDFLARE_DNS_HOST_PORT))
+                (CLOUDFLARE_DNS_HOST, CLOUDFLARE_DNS_HOST_PORT)
+            )
             return self._ok(name=name)
         except socket.error as err:
             info = f'Network checking returned error: {err}'
@@ -299,24 +276,17 @@ class PackageChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         self.requirements = requirements
 
-    def _check_apt_package(self, package_name: str,
-                           version: str = None) -> CheckResult:
+    def _check_apt_package(self, package_name: str, version: str = None) -> CheckResult:
         # TODO: check versions
-        dpkg_cmd_result = run_cmd(
-            ['dpkg', '-s', package_name], check_code=False)
+        dpkg_cmd_result = run_cmd(['dpkg', '-s', package_name], check_code=False)
         output = dpkg_cmd_result.stdout.decode('utf-8').strip()
         if dpkg_cmd_result.returncode != 0:
             return self._failed(name=package_name, info=output)
 
         actual_version = self._version_from_dpkg_output(output)
         expected_version = self.requirements[package_name]
-        info = {
-            'expected_version': expected_version,
-            'actual_version': actual_version
-        }
-        compare_result = debian_support.version_compare(
-            actual_version, expected_version
-        )
+        info = {'expected_version': expected_version, 'actual_version': actual_version}
+        compare_result = debian_support.version_compare(actual_version, expected_version)
         if compare_result == -1:
             return self._failed(name=package_name, info=info)
         else:
@@ -342,24 +312,15 @@ class PackageChecker(BaseChecker):
     def ufw_ipv6_disabled(self) -> CheckResult:
         name = 'ufw-ipv6'
         if is_ufw_ipv6_option_enabled():
-            return self._failed(
-                name=name,
-                info='ufw ipv6 configuration should be disabled'
-            )
+            return self._failed(name=name, info='ufw ipv6 configuration should be disabled')
         elif is_ufw_ipv6_chain_exists():
-            return self._failed(
-                name=name,
-                info='ufw should be reloaded to switch off ipv6'
-            )
+            return self._failed(name=name, info='ufw should be reloaded to switch off ipv6')
         else:
             return self._ok(name=name)
 
     def _version_from_dpkg_output(self, output: str) -> str:
         info_lines = map(lambda s: s.strip(), output.split('\n'))
-        v_line = next(filter(
-            lambda s: s.startswith('Version'),
-            info_lines
-        ))
+        v_line = next(filter(lambda s: s.startswith('Version'), info_lines))
         return v_line.split()[1]
 
 
@@ -386,17 +347,11 @@ class DockerChecker(BaseChecker):
 
         version_info = self._get_docker_version_info()
         if not version_info:
-            return self._failed(
-                name=name,
-                info='Docker api request failed. Is docker installed?'
-            )
+            return self._failed(name=name, info='Docker api request failed. Is docker installed?')
         logger.debug('Docker version info %s', version_info)
         actual_version = self.docker_client.version()['Version']
         expected_version = self.requirements['docker-engine']
-        info = {
-            'expected_version': expected_version,
-            'actual_version': actual_version
-        }
+        info = {'expected_version': expected_version, 'actual_version': actual_version}
         if version_parse(actual_version) < version_parse(expected_version):
             return self._failed(name=name, info=info)
         else:
@@ -410,17 +365,11 @@ class DockerChecker(BaseChecker):
 
         version_info = self._get_docker_version_info()
         if not version_info:
-            return self._failed(
-                name=name,
-                info='Docker api request failed. Is docker installed?'
-            )
+            return self._failed(name=name, info='Docker api request failed. Is docker installed?')
         logger.debug('Docker version info %s', version_info)
         actual_version = version_info['ApiVersion']
         expected_version = self.requirements['docker-api']
-        info = {
-            'expected_version': expected_version,
-            'actual_version': actual_version
-        }
+        info = {'expected_version': expected_version, 'actual_version': actual_version}
         if version_parse(actual_version) < version_parse(expected_version):
             return self._failed(name=name, info=info)
         else:
@@ -435,9 +384,7 @@ class DockerChecker(BaseChecker):
             return self._failed(name=name, info=info)
 
         v_cmd_result = run_cmd(
-            ['docker', 'compose', 'version'],
-            check_code=False,
-            separate_stderr=True
+            ['docker', 'compose', 'version'], check_code=False, separate_stderr=True
         )
         output = v_cmd_result.stdout.decode('utf-8').rstrip()
         if v_cmd_result.returncode != 0:
@@ -468,10 +415,7 @@ class DockerChecker(BaseChecker):
     def _check_docker_alive_option(self, config: Dict) -> Tuple:
         actual_value = config.get('live-restore', None)
         if actual_value is not True:
-            info = (
-                'Docker daemon live-restore option '
-                'should be set as "true"'
-            )
+            info = 'Docker daemon live-restore option should be set as "true"'
             return False, info
         else:
             info = 'Docker daemon live-restore option is set as "true"'
@@ -509,16 +453,10 @@ class DockerChecker(BaseChecker):
             return self._failed(name=name, info=info)
 
 
-def get_checks(
-    checkers: List[BaseChecker],
-    check_type: CheckType = CheckType.ALL
-) -> FuncList:
+def get_checks(checkers: List[BaseChecker], check_type: CheckType = CheckType.ALL) -> FuncList:
     return list(
         itertools.chain.from_iterable(
-            (
-                checker.get_checks(check_type=check_type)
-                for checker in checkers
-            )
+            (checker.get_checks(check_type=check_type) for checker in checkers)
         )
     )
 
@@ -527,7 +465,7 @@ def get_all_checkers(disk: str, requirements: Dict) -> List[BaseChecker]:
     return [
         MachineChecker(requirements['server'], disk),
         PackageChecker(requirements['package']),
-        DockerChecker(requirements['docker'])
+        DockerChecker(requirements['docker']),
     ]
 
 
@@ -535,7 +473,7 @@ def run_checks(
     disk: str,
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH,
-    check_type: CheckType = CheckType.ALL
+    check_type: CheckType = CheckType.ALL,
 ) -> ResultList:
     logger.info('Executing checks. Type: %s', check_type)
     requirements = get_static_params(env_type, config_path)

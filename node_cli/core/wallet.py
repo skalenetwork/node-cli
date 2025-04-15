@@ -39,10 +39,7 @@ def get_wallet_info(_format):
 
 
 def send_eth(address: str, amount: float):
-    json_data = {
-        'address': address,
-        'amount': amount
-    }
+    json_data = {'address': address, 'amount': amount}
     status, payload = post_request(BLUEPRINT_NAME, 'send-eth', json=json_data)
     if status == 'ok':
         msg = TEXTS['wallet']['successful_transfer']

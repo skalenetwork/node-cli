@@ -26,10 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class NodeOptions:
-    def __init__(
-        self,
-        filepath: str = NODE_OPTIONS_FILEPATH
-    ):
+    def __init__(self, filepath: str = NODE_OPTIONS_FILEPATH):
         self.filepath = filepath
         init_file(filepath, {})
 

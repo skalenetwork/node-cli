@@ -31,7 +31,7 @@ from node_cli.configs import (
     FILESTORAGE_MAPPING,
     SCHAINS_MNT_DIR_REGULAR,
     SCHAINS_MNT_DIR_SYNC,
-    SKALE_STATE_DIR
+    SKALE_STATE_DIR,
 )
 
 logger = logging.getLogger(__name__)
@@ -58,11 +58,7 @@ def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
 def sync_docker_lvmpy_repo(env):
     if os.path.isdir(DOCKER_LVMPY_PATH):
         shutil.rmtree(DOCKER_LVMPY_PATH)
-    sync_repo(
-        DOCKER_LVMPY_REPO_URL,
-        DOCKER_LVMPY_PATH,
-        env["DOCKER_LVMPY_STREAM"]
-    )
+    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_STREAM'])
 
 
 def docker_lvmpy_update(env):
@@ -70,10 +66,7 @@ def docker_lvmpy_update(env):
     ensure_filestorage_mapping()
     logger.info('Running docker-lvmpy update script')
     update_docker_lvmpy_env(env)
-    run_cmd(
-        cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/update.sh'.split(),
-        env=env
-    )
+    run_cmd(cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/update.sh'.split(), env=env)
     logger.info('docker-lvmpy update done')
 
 
@@ -81,10 +74,7 @@ def docker_lvmpy_install(env):
     sync_docker_lvmpy_repo(env)
     ensure_filestorage_mapping()
     update_docker_lvmpy_env(env)
-    run_cmd(
-        cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/install.sh'.split(),
-        env=env
-    )
+    run_cmd(cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/install.sh'.split(), env=env)
     logger.info('docker-lvmpy installed')
 
 

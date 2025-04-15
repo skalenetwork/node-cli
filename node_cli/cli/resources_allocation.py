@@ -22,7 +22,7 @@ import click
 
 from node_cli.core.resources import (
     get_resource_allocation_info,
-    generate_resource_allocation_config
+    generate_resource_allocation_config,
 )
 from node_cli.utils.helper import abort_if_false, safe_load_texts
 
@@ -34,12 +34,12 @@ def resources_allocation_cli():
     pass
 
 
-@resources_allocation_cli.group(help="Resources allocation commands")
+@resources_allocation_cli.group(help='Resources allocation commands')
 def resources_allocation():
     pass
 
 
-@resources_allocation.command('show', help="Show resources allocation file")
+@resources_allocation.command('show', help='Show resources allocation file')
 def show():
     resource_allocation_info = get_resource_allocation_info()
     if resource_allocation_info:
@@ -48,15 +48,15 @@ def show():
         print('No resources allocation file on this machine')
 
 
-@resources_allocation.command('generate',
-                              help="Generate/update resources allocation file")
+@resources_allocation.command('generate', help='Generate/update resources allocation file')
 @click.argument('env_file')
 @click.option(
-    '--yes', is_flag=True, callback=abort_if_false,
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to generate/update resource allocation file?'
+    prompt='Are you sure you want to generate/update resource allocation file?',
 )
-@click.option('--force', '-f', is_flag=True,
-              help='Rewrite if already exists')
+@click.option('--force', '-f', is_flag=True, help='Rewrite if already exists')
 def generate(env_file, force):
     generate_resource_allocation_config(env_file=env_file, force=force)

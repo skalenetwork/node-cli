@@ -30,12 +30,12 @@ def logs_cli():
     pass
 
 
-@logs_cli.group(help="Logs commands")
+@logs_cli.group(help='Logs commands')
 def logs():
     pass
 
 
-@logs.command(help="Fetch the logs of the node-cli")
+@logs.command(help='Fetch the logs of the node-cli')
 @click.option('--debug', is_flag=True)
 def cli(debug):
     filepath = DEBUG_LOG_FILEPATH if debug else LOG_FILEPATH
@@ -43,13 +43,8 @@ def cli(debug):
         print(fin.read())
 
 
-@logs.command(help="Dump all logs from the connected node")
-@click.option(
-    '--container',
-    '-c',
-    help='Dump logs only from specified container',
-    default=None
-)
+@logs.command(help='Dump all logs from the connected node')
+@click.option('--container', '-c', help='Dump logs only from specified container', default=None)
 @click.argument('path')
 def dump(container, path):
     res = create_logs_dump(path, container)
