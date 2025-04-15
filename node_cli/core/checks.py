@@ -219,8 +219,7 @@ class MachineChecker(BaseChecker):
     @preinstall
     def memory(self) -> CheckResult:
         name = 'memory'
-        mem_info = (psutil.virtual_memory().total,)
-        actual = mem_info[0]
+        actual = psutil.virtual_memory().total
         expected = self.requirements['memory']
         actual_gb = round(actual / 1024**3, 2)
         expected_gb = round(expected / 1024**3, 2)
