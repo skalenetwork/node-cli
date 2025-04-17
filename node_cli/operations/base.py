@@ -306,7 +306,7 @@ def init_sync(
 
 
 def update_sync(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env, sync_node=True)
+    compose_rm(env, node_type=NodeTypes.MIRAGE)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
@@ -338,9 +338,9 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     return True
 
 
-def turn_off(env: dict, sync_node: bool = False) -> None:
+def turn_off(env: dict, node_type: NodeTypes = NodeTypes.REGULAR) -> None:
     logger.info('Turning off the node...')
-    compose_rm(env=env, sync_node=sync_node)
+    compose_rm(env=env, node_type=node_type)
     remove_dynamic_containers()
     logger.info('Node was successfully turned off')
 
@@ -412,8 +412,53 @@ def restore(env, backup_path, config_only=False):
     return True
 
 
+def restore_mirage(env, backup_path, config_only=False):
+    unpack_backup_archive(backup_path)
+    failed_checks = run_host_checks(
+        env['DISK_MOUNTPOINT'],
+        env['ENV_TYPE'],
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.PREINSTALL,
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+        return False
+
+    ensure_btrfs_kernel_module_autoloaded()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
+
+    link_env_file()
+
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version(),
+    )
+
+    if not config_only:
+        compose_up(env, node_type=NodeTypes.MIRAGE)
+
+    failed_checks = run_host_checks(
+        env['DISK_MOUNTPOINT'],
+        env['ENV_TYPE'],
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.POSTINSTALL,
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+        return False
+    return True
+
+
 def cleanup_sync(env, schain_name: str) -> None:
-    turn_off(env, sync_node=True)
+    turn_off(env, node_type=NodeTypes.SYNC)
     cleanup_sync_datadir(schain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)

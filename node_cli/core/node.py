@@ -311,7 +311,7 @@ def backup(path):
 
 
 def get_backup_filename():
-    time = datetime.datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S')
+    time = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d-%H-%M-%S')
     return f'{BACKUP_ARCHIVE_NAME}-{time}.tar.gz'
 
 
@@ -338,7 +338,7 @@ def pack_dir(source: str, dest: str, exclude: Tuple[str] = ()):
     def logfilter(tarinfo):
         path = Path(tarinfo.name)
         for e in exclude:
-            logger.debug('Cheking if %s is parent of %s', e, tarinfo.name)
+            logger.debug('Checking if %s is parent of %s', e, tarinfo.name)
             try:
                 path.relative_to(e)
             except ValueError:
