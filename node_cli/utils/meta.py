@@ -1,6 +1,7 @@
 import json
 import os
 from collections import namedtuple
+from typing import Optional
 from node_cli.configs import META_FILEPATH
 
 DEFAULT_VERSION = '1.0.0'
@@ -19,12 +20,14 @@ class CliMeta(
         cls,
         version=DEFAULT_VERSION,
         config_stream=DEFAULT_CONFIG_STREAM,
-        docker_lvmpy_stream=DEFAULT_DOCKER_LVMPY_STREAM,
+        docker_lvmpy_stream: Optional[str] = DEFAULT_DOCKER_LVMPY_STREAM,
         os_id=DEFAULT_OS_ID,
         os_version=DEFAULT_OS_VERSION,
     ):
+        # If docker_lvmpy_stream is None, use the default value
+        actual_docker_lvmpy_stream = docker_lvmpy_stream or DEFAULT_DOCKER_LVMPY_STREAM
         return super(CliMeta, cls).__new__(
-            cls, version, config_stream, docker_lvmpy_stream, os_id, os_version
+            cls, version, config_stream, actual_docker_lvmpy_stream, os_id, os_version
         )
 
 
@@ -53,14 +56,18 @@ def compose_default_meta() -> CliMeta:
     )
 
 
-def ensure_meta(meta: CliMeta = None) -> None:
+def ensure_meta(meta: Optional[CliMeta] = None) -> None:
     if not get_meta_info():
         meta = meta or compose_default_meta()
         save_meta(meta)
 
 
 def update_meta(
-    version: str, config_stream: str, docker_lvmpy_stream: str, os_id: str, os_version: str
+    version: str,
+    config_stream: str,
+    docker_lvmpy_stream: Optional[str],
+    os_id: str,
+    os_version: str,
 ) -> None:
     ensure_meta()
     meta = CliMeta(version, config_stream, docker_lvmpy_stream, os_id, os_version)

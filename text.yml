@@ -76,3 +76,11 @@ lvmpy:
   heal:
     help: Run healing procedure for lvmpy server
     prompt: Are you sure you want run healing procedure?
+
+mirage:
+  init:
+    help: Initialize sync SKALE node
+    indexer: Run sync node in indexer mode (disable block rotation)
+    archive: Enable historic state and disable block rotation
+    snapshot_from: IP of the node to take snapshot from
+    snapshot: Start sync node from snapshot

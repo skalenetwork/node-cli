@@ -73,14 +73,19 @@ from node_cli.utils.meta import get_meta_info
 from node_cli.utils.texts import Texts
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.decorators import check_not_inited, check_inited, check_user
-from node_cli.utils.docker_utils import is_admin_running, is_api_running, is_sync_admin_running
+from node_cli.utils.docker_utils import (
+    is_admin_running,
+    is_api_running,
+    BASE_SKALE_COMPOSE_SERVICES,
+    BASE_SYNC_COMPOSE_SERVICES,
+    BASE_MIRAGE_COMPOSE_SERVICES,
+)
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 
 
 logger = logging.getLogger(__name__)
 TEXTS = Texts()
 
-SYNC_BASE_CONTAINERS_AMOUNT = 2
 BASE_CONTAINERS_AMOUNT = 5
 BLUEPRINT_NAME = 'node'
 
@@ -96,11 +101,20 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def is_update_safe(sync_node: bool = False) -> bool:
-    if not sync_node and not is_admin_running() and not is_api_running():
-        return True
-    if sync_node and not is_sync_admin_running():
-        return True
+class NodeTypes(Enum):
+    """This class contains possible node types."""
+
+    REGULAR = 0
+    SYNC = 1
+    MIRAGE = 2
+
+
+def is_update_safe(node_type: NodeTypes = NodeTypes.REGULAR) -> bool:
+    if not is_admin_running(node_type):
+        if node_type == NodeTypes.SYNC:
+            return True
+        elif not is_api_running(node_type):
+            return True
     status, payload = get_request(BLUEPRINT_NAME, 'update-safe')
     if status == 'error':
         return False
@@ -140,9 +154,7 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 def init(env_filepath):
     env = compose_node_env(env_filepath)
 
-    inited_ok = init_op(env_filepath, env)
-    if not inited_ok:
-        error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
+    init_op(env_filepath, env)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive():
@@ -177,15 +189,13 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
 def init_sync(
     env_filepath: str, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
-    env = compose_node_env(env_filepath, sync_node=True)
+    env = compose_node_env(env_filepath, node_type=NodeTypes.SYNC)
     if env is None:
         return
-    inited_ok = init_sync_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
-    if not inited_ok:
-        error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
+    init_sync_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive(sync_node=True):
+    if not is_base_containers_alive(NodeTypes.SYNC):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Sync node initialized successfully')
 
@@ -197,12 +207,12 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     prev_version = get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
-    env = compose_node_env(env_filepath, sync_node=True)
+    env = compose_node_env(env_filepath, node_type=NodeTypes.SYNC)
     update_ok = update_sync_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
-    alive = is_base_containers_alive(sync_node=True)
+    alive = is_base_containers_alive(NodeTypes.SYNC)
     if not update_ok or not alive:
         print_node_cmd_error()
         return
@@ -213,7 +223,7 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
 @check_inited
 @check_user
 def cleanup_sync() -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, sync_node=True)
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeTypes.SYNC)
     schain_name = env['SCHAIN_NAME']
     cleanup_sync_op(env, schain_name)
     logger.info('Sync node was cleaned up, all containers and data removed')
@@ -224,17 +234,18 @@ def compose_node_env(
     inited_node: bool = False,
     sync_schains: Optional[bool] = None,
     pull_config_for_schain: Optional[str] = None,
-    sync_node: bool = False,
+    node_type: NodeTypes = NodeTypes.REGULAR,
     save: bool = True,
-) -> dict:
+    is_mirage_boot: bool = False,
+) -> dict[str, str]:
     if env_filepath is not None:
-        env_params = get_validated_env_config(env_filepath, sync_node=sync_node)
+        env_params = get_validated_env_config(env_filepath, node_type=node_type)
         if save:
             save_env_params(env_filepath)
     else:
-        env_params = get_validated_env_config(INIT_ENV_FILEPATH, sync_node=sync_node)
+        env_params = get_validated_env_config(INIT_ENV_FILEPATH, node_type=node_type)
 
-    mnt_dir = SCHAINS_MNT_DIR_SYNC if sync_node else SCHAINS_MNT_DIR_REGULAR
+    mnt_dir = SCHAINS_MNT_DIR_SYNC if node_type == NodeTypes.SYNC else SCHAINS_MNT_DIR_REGULAR
 
     env = {
         'SKALE_DIR': SKALE_DIR,
@@ -244,10 +255,10 @@ def compose_node_env(
         **env_params,
     }
 
-    if inited_node and not sync_node:
+    if inited_node and not node_type == NodeTypes.SYNC:
         env['FLASK_SECRET_KEY'] = get_flask_secret_key()
 
-    if sync_schains and not sync_node:
+    if sync_schains and not node_type == NodeTypes.SYNC:
         env['BACKUP_RUN'] = 'True'
 
     if pull_config_for_schain:
@@ -404,11 +415,25 @@ def turn_on(maintenance_off, sync_schains, env_file):
         set_maintenance_mode_off()
 
 
-def is_base_containers_alive(sync_node: bool = False):
+def get_base_containers_amount(node_type: NodeTypes = NodeTypes.REGULAR):
+    if node_type == NodeTypes.SYNC:
+        return len(BASE_SYNC_COMPOSE_SERVICES)
+    elif node_type == NodeTypes.MIRAGE:
+        return len(BASE_MIRAGE_COMPOSE_SERVICES)
+    else:
+        return len(BASE_SKALE_COMPOSE_SERVICES)
+
+
+def is_base_containers_alive(node_type: NodeTypes = NodeTypes.REGULAR) -> bool:
+    if node_type == NodeTypes.MIRAGE:
+        prefix = 'mirage_'
+    else:
+        prefix = 'skale_'
+
     dclient = docker.from_env()
     containers = dclient.containers.list()
-    skale_containers = list(filter(lambda c: c.name.startswith('skale_'), containers))
-    containers_amount = SYNC_BASE_CONTAINERS_AMOUNT if sync_node else BASE_CONTAINERS_AMOUNT
+    skale_containers = list(filter(lambda c: c.name.startswith(prefix), containers))
+    containers_amount = get_base_containers_amount(node_type)
     return len(skale_containers) >= containers_amount
 
 

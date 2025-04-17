@@ -24,34 +24,47 @@ from dotenv import load_dotenv
 
 from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
 from node_cli.configs.alias_address_validation import validate_env_alias_or_address, ContractType
+from node_cli.core.node import NodeTypes
 from node_cli.utils.helper import error_exit
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
 
-ALLOWED_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
+ALLOWED_SKALE_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
+ALLOWED_MIRAGE_ENV_TYPES = ['mainnet-mirage', 'devnet-mirage']
+ALLOWED_ENV_TYPES = [*ALLOWED_SKALE_ENV_TYPES, *ALLOWED_MIRAGE_ENV_TYPES]
 
-REQUIRED_PARAMS: Dict[str, str] = {
+PROTO_REQUIRED_PARAMS: Dict[str, str] = {
     'CONTAINER_CONFIGS_STREAM': '',
     'ENDPOINT': '',
     'MANAGER_CONTRACTS': '',
-    'IMA_CONTRACTS': '',
-    'FILEBEAT_HOST': '',
     'DISK_MOUNTPOINT': '',
     'SGX_SERVER_URL': '',
-    'DOCKER_LVMPY_STREAM': '',
     'ENV_TYPE': '',
 }
 
-REQUIRED_PARAMS_SYNC: Dict[str, str] = {
-    'SCHAIN_NAME': '',
-    'CONTAINER_CONFIGS_STREAM': '',
-    'ENDPOINT': '',
-    'MANAGER_CONTRACTS': '',
+REQUIRED_PARAMS_SKALE: Dict[str, str] = {
+    **PROTO_REQUIRED_PARAMS,
     'IMA_CONTRACTS': '',
-    'DISK_MOUNTPOINT': '',
     'DOCKER_LVMPY_STREAM': '',
-    'ENV_TYPE': '',
+    'FILEBEAT_HOST': '',
+}
+
+REQUIRED_PARAMS_MIRAGE_BOOT: Dict[str, str] = {
+    **PROTO_REQUIRED_PARAMS,
+    'IMA_CONTRACTS': '',
+    'FILEBEAT_HOST': '',
+}
+REQUIRED_PARAMS_MIRAGE: Dict[str, str] = {
+    **PROTO_REQUIRED_PARAMS,
+    'FILEBEAT_HOST': '',
+}
+
+REQUIRED_PARAMS_SYNC: Dict[str, str] = {
+    **PROTO_REQUIRED_PARAMS,
+    'SCHAIN_NAME': '',
+    'IMA_CONTRACTS': '',
+    'DOCKER_LVMPY_STREAM': '',
 }
 
 OPTIONAL_PARAMS: Dict[str, str] = {
@@ -76,10 +89,12 @@ def absent_required_params(params: Dict[str, str]) -> List[str]:
 
 
 def get_validated_env_config(
-    env_filepath: str = SKALE_DIR_ENV_FILEPATH, sync_node: bool = False
+    env_filepath: str = SKALE_DIR_ENV_FILEPATH,
+    node_type: NodeTypes = NodeTypes.REGULAR,
+    is_mirage_boot: bool = False,
 ) -> Dict[str, str]:
     load_env_file(env_filepath)
-    params = build_env_params(sync_node)
+    params = build_env_params(node_type=node_type, is_mirage_boot=is_mirage_boot)
     populate_env_params(params)
     validate_env_params(params)
     return params
@@ -90,9 +105,19 @@ def load_env_file(env_filepath: str) -> None:
         error_exit(f'Failed to load environment from {env_filepath}')
 
 
-def build_env_params(sync_node: bool = False) -> Dict[str, str]:
+def build_env_params(
+    node_type: NodeTypes = NodeTypes.REGULAR, is_mirage_boot: bool = False
+) -> Dict[str, str]:
     """Return environment variables dictionary with keys based on node type."""
-    params = REQUIRED_PARAMS_SYNC.copy() if sync_node else REQUIRED_PARAMS.copy()
+    if node_type == NodeTypes.MIRAGE and is_mirage_boot:
+        params = REQUIRED_PARAMS_MIRAGE_BOOT.copy()
+    elif node_type == NodeTypes.MIRAGE:
+        params = REQUIRED_PARAMS_MIRAGE.copy()
+    elif node_type == NodeTypes.SYNC:
+        params = REQUIRED_PARAMS_SYNC.copy()
+    else:
+        params = REQUIRED_PARAMS_SKALE.copy()
+
     params.update(OPTIONAL_PARAMS)
     return params
 

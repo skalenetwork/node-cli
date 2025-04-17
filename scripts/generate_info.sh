@@ -18,7 +18,7 @@ if [ -z "$BRANCH" ]; then
     exit 1
 fi
 if [ -z "$TYPE" ]; then
-    (>&2 echo 'You should provide type: normal or sync')
+    (>&2 echo 'You should provide type: normal, sync or mirage')
     echo $USAGE_MSG
     exit 1
 fi

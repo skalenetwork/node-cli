@@ -20,10 +20,10 @@
 import logging
 import os.path
 
-from node_cli.utils.docker_utils import restart_nginx_container, docker_client
+from node_cli.cli.info import TYPE
 from node_cli.configs import NODE_CERTS_PATH, NGINX_TEMPLATE_FILEPATH, NGINX_CONFIG_FILEPATH
+from node_cli.utils.docker_utils import restart_nginx_container, docker_client
 from node_cli.utils.helper import process_template
-
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +34,12 @@ SSL_CRT_NAME = 'ssl_cert'
 
 def generate_nginx_config() -> None:
     ssl_on = check_ssl_certs()
+    regular_node = TYPE != 'mirage'
     template_data = {
         'ssl': ssl_on,
+        'regular_node': regular_node,
     }
-    logger.info(f'Processing nginx template. ssl: {ssl_on}')
+    logger.info(f'Processing nginx template. ssl: {ssl_on}, regular_node: {regular_node}')
     process_template(NGINX_TEMPLATE_FILEPATH, NGINX_CONFIG_FILEPATH, template_data)
 
 

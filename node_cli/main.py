@@ -38,6 +38,9 @@ from node_cli.cli.ssl import ssl_cli
 from node_cli.cli.exit import exit_cli
 from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.cli.sync_node import sync_node_cli
+from node_cli.cli.mirage_boot import mirage_boot_cli
+from node_cli.cli.mirage_node import mirage_node_cli
+
 
 from node_cli.utils.helper import safe_load_texts, init_default_logger
 from node_cli.configs import LONG_LINE
@@ -82,6 +85,15 @@ def info():
 def get_sources_list() -> List[click.MultiCommand]:
     if TYPE == 'sync':
         return [cli, sync_node_cli, ssl_cli]
+    elif TYPE == 'mirage':
+        return [
+            cli,
+            logs_cli,
+            mirage_boot_cli,
+            mirage_node_cli,
+            wallet_cli,
+            ssl_cli,
+        ]
     else:
         return [
             cli,

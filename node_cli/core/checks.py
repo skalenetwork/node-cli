@@ -154,6 +154,9 @@ def merge_reports(
 
 
 class BaseChecker:
+    def __init__(self, requirements: Dict) -> None:
+        self.requirements = requirements
+
     def _ok(self, name: str, info: Optional[Union[str, Dict]] = None) -> CheckResult:
         return CheckResult(name=name, status='ok', info=info)
 
@@ -169,7 +172,8 @@ class BaseChecker:
         methods = inspect.getmembers(
             type(self),
             predicate=lambda m: inspect.isfunction(m)
-            and getattr(m, '_check_type', None) in allowed_types,
+            and getattr(m, '_check_type', None) in allowed_types
+            and self.requirements.get(m.__name__, None) is not None,
         )
         return [functools.partial(m[1], self) for m in methods]
 
@@ -190,9 +194,9 @@ class MachineChecker(BaseChecker):
     def __init__(
         self, requirements: Dict, disk_device: str, network_timeout: Optional[int] = None
     ) -> None:
-        self.requirements = requirements
         self.disk_device = disk_device
         self.network_timeout = network_timeout or NETWORK_CHECK_TIMEOUT
+        super().__init__(requirements=requirements)
 
     @preinstall
     def cpu_total(self) -> CheckResult:
@@ -274,7 +278,7 @@ class MachineChecker(BaseChecker):
 
 class PackageChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
-        self.requirements = requirements
+        super().__init__(requirements=requirements)
 
     def _check_apt_package(self, package_name: str, version: str = None) -> CheckResult:
         # TODO: check versions
@@ -327,7 +331,7 @@ class PackageChecker(BaseChecker):
 class DockerChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         self.docker_client = docker.from_env()
-        self.requirements = requirements
+        super().__init__(requirements=requirements)
 
     def _check_docker_command(self) -> Optional[str]:
         return shutil.which('docker')

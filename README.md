@@ -9,17 +9,17 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 ## Table of Contents
 
 1. [Installation](#installation)
-2. [CLI usage](#cli-usage)  
-   2.1 [Top level commands](#top-level-commands)  
-   2.2 [Node](#node-commands)  
-   2.3 [Wallet](#wallet-commands)  
-   2.4 [sChains](#schain-commands)  
-   2.5 [Health](#health-commands)  
-   2.6 [SSL](#ssl-commands)  
-   2.7 [Logs](#logs-commands)  
+2. [CLI usage](#cli-usage)
+   2.1 [Top level commands](#top-level-commands)
+   2.2 [Node](#node-commands)
+   2.3 [Wallet](#wallet-commands)
+   2.4 [sChains](#schain-commands)
+   2.5 [Health](#health-commands)
+   2.6 [SSL](#ssl-commands)
+   2.7 [Logs](#logs-commands)
    2.8 [Resources allocation](#resources-allocation-commands)
-3. [Sync CLI usage](#sync-cli-usage)  
-   3.1 [Top level commands](#top-level-commands-sync)  
+3. [Sync CLI usage](#sync-cli-usage)
+   3.1 [Top level commands](#top-level-commands-sync)
    3.2 [Sync node commands](#sync-node-commands)
 4. [Exit codes](#exit-codes)
 5. [Development](#development)
@@ -40,6 +40,12 @@ For Sync node version:
 
 ```shell
 VERSION_NUM={put the version number here} && sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m`-sync >  /usr/local/bin/skale"
+```
+
+For Mirage node version:
+
+```shell
+VERSION_NUM={put the version number here} && sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m`-mirage >  /usr/local/bin/mirage"
 ```
 
 - Apply executable permissions to the downloaded binary:
