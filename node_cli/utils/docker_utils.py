@@ -36,7 +36,7 @@ from node_cli.configs import (
     SGX_CERTIFICATES_DIR_NAME,
     NGINX_CONTAINER_NAME,
 )
-from node_cli.core.node import NodeType
+from node_cli.utils.node_type import NodeType
 
 
 logger = logging.getLogger(__name__)
