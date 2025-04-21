@@ -27,6 +27,7 @@ from typing import List
 import click
 
 from node_cli.cli import __version__
+from node_cli.cli.exit import exit_cli
 from node_cli.cli.health import health_cli
 from node_cli.cli.info import BUILD_DATETIME, COMMIT, BRANCH, OS, VERSION, TYPE
 from node_cli.cli.logs import logs_cli
@@ -35,16 +36,14 @@ from node_cli.cli.node import node_cli
 from node_cli.cli.schains import schains_cli
 from node_cli.cli.wallet import wallet_cli
 from node_cli.cli.ssl import ssl_cli
-from node_cli.cli.exit import exit_cli
 from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.cli.sync_node import sync_node_cli
 from node_cli.cli.mirage_boot import mirage_boot_cli
 from node_cli.cli.mirage_node import mirage_node_cli
-
-
-from node_cli.utils.helper import safe_load_texts, init_default_logger
-from node_cli.configs import LONG_LINE
 from node_cli.core.host import init_logs_dir
+from node_cli.core.node import NodeType
+from node_cli.configs import LONG_LINE
+from node_cli.utils.helper import safe_load_texts, init_default_logger
 from node_cli.utils.helper import error_exit
 
 TEXTS = safe_load_texts()
@@ -83,9 +82,9 @@ def info():
 
 
 def get_sources_list() -> List[click.MultiCommand]:
-    if TYPE == 'sync':
+    if TYPE == NodeType.SYNC:
         return [cli, sync_node_cli, ssl_cli]
-    elif TYPE == 'mirage':
+    elif TYPE == NodeType.MIRAGE:
         return [
             cli,
             logs_cli,

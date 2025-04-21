@@ -39,7 +39,7 @@ from node_cli.core.host import (
 )
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
-from node_cli.core.node import NodeTypes
+from node_cli.core.node import NodeType
 from node_cli.core.node_options import NodeOptions
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 from node_cli.core.schains import (
@@ -149,8 +149,7 @@ def update(env_filepath: str, env: Dict) -> bool:
 
 @checked_host
 def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env, node_type=NodeTypes.MIRAGE)
-    remove_dynamic_containers()
+    compose_rm(env, node_type=NodeType.MIRAGE)
 
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
@@ -183,7 +182,7 @@ def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
         distro.version(),
     )
     update_images(env=env)
-    compose_up(env, node_type=NodeTypes.MIRAGE)
+    compose_up(env, node_type=NodeType.MIRAGE)
     return True
 
 
@@ -249,7 +248,7 @@ def init_mirage_boot(env_filepath: str, env: dict) -> None:
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env=env)
 
-    compose_up(env, node_type=NodeTypes.MIRAGE, is_mirage_boot=True)
+    compose_up(env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
 
 
 def init_sync(
@@ -302,11 +301,11 @@ def init_sync(
 
     update_images(env=env, sync_node=True)
 
-    compose_up(env, node_type=NodeTypes.SYNC)
+    compose_up(env, node_type=NodeType.SYNC)
 
 
 def update_sync(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env, node_type=NodeTypes.MIRAGE)
+    compose_rm(env, node_type=NodeType.SYNC)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
@@ -334,11 +333,11 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     )
     update_images(env=env, sync_node=True)
 
-    compose_up(env, node_type=NodeTypes.SYNC)
+    compose_up(env, node_type=NodeType.SYNC)
     return True
 
 
-def turn_off(env: dict, node_type: NodeTypes = NodeTypes.REGULAR) -> None:
+def turn_off(env: dict, node_type: NodeType = NodeType.REGULAR) -> None:
     logger.info('Turning off the node...')
     compose_rm(env=env, node_type=node_type)
     remove_dynamic_containers()
@@ -443,7 +442,7 @@ def restore_mirage(env, backup_path, config_only=False):
     )
 
     if not config_only:
-        compose_up(env, node_type=NodeTypes.MIRAGE)
+        compose_up(env, node_type=NodeType.MIRAGE)
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -458,7 +457,7 @@ def restore_mirage(env, backup_path, config_only=False):
 
 
 def cleanup_sync(env, schain_name: str) -> None:
-    turn_off(env, node_type=NodeTypes.SYNC)
+    turn_off(env, node_type=NodeType.SYNC)
     cleanup_sync_datadir(schain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)

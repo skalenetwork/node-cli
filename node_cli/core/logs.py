@@ -58,7 +58,7 @@ def create_logs_dump(path, filter_container=None):
 
 
 def create_dump_dir():
-    time = datetime.datetime.utcnow().strftime('%Y-%m-%d--%H-%M-%S')
+    time = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d--%H-%M-%S')
     folder_name = f'skale-logs-dump-{time}'
     folder_path = os.path.join(SKALE_TMP_DIR, folder_name)
     containers_path = os.path.join(folder_path, 'containers')

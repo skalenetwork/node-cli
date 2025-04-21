@@ -22,6 +22,7 @@ import os.path
 
 from node_cli.cli.info import TYPE
 from node_cli.configs import NODE_CERTS_PATH, NGINX_TEMPLATE_FILEPATH, NGINX_CONFIG_FILEPATH
+from node_cli.core.node import NodeType
 from node_cli.utils.docker_utils import restart_nginx_container, docker_client
 from node_cli.utils.helper import process_template
 
@@ -32,9 +33,13 @@ SSL_KEY_NAME = 'ssl_key'
 SSL_CRT_NAME = 'ssl_cert'
 
 
+def is_regular_node_nginx() -> bool:
+    return TYPE != NodeType.MIRAGE
+
+
 def generate_nginx_config() -> None:
     ssl_on = check_ssl_certs()
-    regular_node = TYPE != 'mirage'
+    regular_node = is_regular_node_nginx()
     template_data = {
         'ssl': ssl_on,
         'regular_node': regular_node,

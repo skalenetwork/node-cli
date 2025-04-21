@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 
 from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
 from node_cli.configs.alias_address_validation import validate_env_alias_or_address, ContractType
-from node_cli.core.node import NodeTypes
+from node_cli.core.node import NodeType
 from node_cli.utils.helper import error_exit
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
@@ -34,7 +34,7 @@ ALLOWED_SKALE_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
 ALLOWED_MIRAGE_ENV_TYPES = ['mainnet-mirage', 'devnet-mirage']
 ALLOWED_ENV_TYPES = [*ALLOWED_SKALE_ENV_TYPES, *ALLOWED_MIRAGE_ENV_TYPES]
 
-PROTO_REQUIRED_PARAMS: Dict[str, str] = {
+CORE_REQUIRED_PARAMS: Dict[str, str] = {
     'CONTAINER_CONFIGS_STREAM': '',
     'ENDPOINT': '',
     'MANAGER_CONTRACTS': '',
@@ -44,24 +44,24 @@ PROTO_REQUIRED_PARAMS: Dict[str, str] = {
 }
 
 REQUIRED_PARAMS_SKALE: Dict[str, str] = {
-    **PROTO_REQUIRED_PARAMS,
+    **CORE_REQUIRED_PARAMS,
     'IMA_CONTRACTS': '',
     'DOCKER_LVMPY_STREAM': '',
     'FILEBEAT_HOST': '',
 }
 
 REQUIRED_PARAMS_MIRAGE_BOOT: Dict[str, str] = {
-    **PROTO_REQUIRED_PARAMS,
+    **CORE_REQUIRED_PARAMS,
     'IMA_CONTRACTS': '',
     'FILEBEAT_HOST': '',
 }
 REQUIRED_PARAMS_MIRAGE: Dict[str, str] = {
-    **PROTO_REQUIRED_PARAMS,
+    **CORE_REQUIRED_PARAMS,
     'FILEBEAT_HOST': '',
 }
 
 REQUIRED_PARAMS_SYNC: Dict[str, str] = {
-    **PROTO_REQUIRED_PARAMS,
+    **CORE_REQUIRED_PARAMS,
     'SCHAIN_NAME': '',
     'IMA_CONTRACTS': '',
     'DOCKER_LVMPY_STREAM': '',
@@ -90,7 +90,7 @@ def absent_required_params(params: Dict[str, str]) -> List[str]:
 
 def get_validated_env_config(
     env_filepath: str = SKALE_DIR_ENV_FILEPATH,
-    node_type: NodeTypes = NodeTypes.REGULAR,
+    node_type: NodeType = NodeType.REGULAR,
     is_mirage_boot: bool = False,
 ) -> Dict[str, str]:
     load_env_file(env_filepath)
@@ -106,14 +106,14 @@ def load_env_file(env_filepath: str) -> None:
 
 
 def build_env_params(
-    node_type: NodeTypes = NodeTypes.REGULAR, is_mirage_boot: bool = False
+    node_type: NodeType = NodeType.REGULAR, is_mirage_boot: bool = False
 ) -> Dict[str, str]:
     """Return environment variables dictionary with keys based on node type."""
-    if node_type == NodeTypes.MIRAGE and is_mirage_boot:
+    if node_type == NodeType.MIRAGE and is_mirage_boot:
         params = REQUIRED_PARAMS_MIRAGE_BOOT.copy()
-    elif node_type == NodeTypes.MIRAGE:
+    elif node_type == NodeType.MIRAGE:
         params = REQUIRED_PARAMS_MIRAGE.copy()
-    elif node_type == NodeTypes.SYNC:
+    elif node_type == NodeType.SYNC:
         params = REQUIRED_PARAMS_SYNC.copy()
     else:
         params = REQUIRED_PARAMS_SKALE.copy()

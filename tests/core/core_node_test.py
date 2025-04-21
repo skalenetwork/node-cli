@@ -11,7 +11,7 @@ import requests
 
 from node_cli.configs import NODE_DATA_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
-from node_cli.core.node import NodeTypes, get_base_containers_amount, is_base_containers_alive
+from node_cli.core.node import NodeType, get_base_containers_amount, is_base_containers_alive
 from node_cli.core.node import init, pack_dir, update, is_update_safe
 from node_cli.utils.meta import CliMeta
 
@@ -187,16 +187,16 @@ def test_update_node(mocked_g_config, resource_file):
 
 def test_is_update_safe():
     assert is_update_safe()
-    assert is_update_safe(node_type=NodeTypes.SYNC)
+    assert is_update_safe(node_type=NodeType.SYNC)
 
     with mock.patch('node_cli.core.node.is_admin_running', return_value=True):
         with mock.patch('node_cli.core.node.is_api_running', return_value=True):
             assert not is_update_safe()
-            assert is_update_safe(node_type=NodeTypes.SYNC)
+            assert is_update_safe(node_type=NodeType.SYNC)
 
     with mock.patch('node_cli.core.node.is_admin_running', return_value=True):
         assert is_update_safe()
-        assert not is_update_safe(node_type=NodeTypes.SYNC)
+        assert not is_update_safe(node_type=NodeType.SYNC)
 
     with mock.patch('node_cli.utils.docker_utils.is_container_running', return_value=True):
         with mock.patch(

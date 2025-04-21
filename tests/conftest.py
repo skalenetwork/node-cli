@@ -45,7 +45,7 @@ from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 
-from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SYNC
+from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
 
 TEST_ENV_PARAMS = """
@@ -286,11 +286,11 @@ def tmp_schains_dir():
 
 @pytest.fixture
 def tmp_sync_datadir():
-    os.makedirs(TEST_SCHAINS_MNT_DIR_SYNC, exist_ok=True)
+    os.makedirs(TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN, exist_ok=True)
     try:
-        yield TEST_SCHAINS_MNT_DIR_SYNC
+        yield TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
     finally:
-        shutil.rmtree(TEST_SCHAINS_MNT_DIR_SYNC)
+        shutil.rmtree(TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN)
 
 
 @pytest.fixture

@@ -13,7 +13,7 @@ from node_cli.configs import (
     NODE_CONFIG_PATH,
     NODE_CLI_STATUS_FILENAME,
     SCHAIN_NODE_DATA_PATH,
-    SCHAINS_MNT_DIR_SYNC,
+    SCHAINS_MNT_DIR_SINGLE_CHAIN,
 )
 from node_cli.configs.env import get_validated_env_config
 
@@ -222,7 +222,7 @@ def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
         logger.warning('Volume %s already exists', schain)
 
 
-def cleanup_sync_datadir(schain_name: str, base_path: str = SCHAINS_MNT_DIR_SYNC) -> None:
+def cleanup_sync_datadir(schain_name: str, base_path: str = SCHAINS_MNT_DIR_SINGLE_CHAIN) -> None:
     base_path = os.path.join(base_path, schain_name)
     regular_folders_pattern = f'{base_path}/[!snapshots]*'
     logger.info('Removing regular folders')

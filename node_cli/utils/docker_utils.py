@@ -36,7 +36,7 @@ from node_cli.configs import (
     SGX_CERTIFICATES_DIR_NAME,
     NGINX_CONTAINER_NAME,
 )
-from node_cli.core.node import NodeTypes
+from node_cli.core.node import NodeType
 
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ BASE_SKALE_COMPOSE_SERVICES = (
     'filebeat',
 )
 BASE_SYNC_COMPOSE_SERVICES = ('skale-sync-admin', 'nginx')
-PROTO_MIRAGE_COMPOSE_SERVICES = (
+CORE_MIRAGE_COMPOSE_SERVICES = (
     'transaction-manager',
     'skale-api',
     'redis',
@@ -64,8 +64,8 @@ PROTO_MIRAGE_COMPOSE_SERVICES = (
     'nginx',
     'filebeat',
 )
-BASE_MIRAGE_COMPOSE_SERVICES = (*PROTO_MIRAGE_COMPOSE_SERVICES, 'mirage-admin')
-BASE_MIRAGE_BOOT_COMPOSE_SERVICES = (*PROTO_MIRAGE_COMPOSE_SERVICES, 'mirage-boot')
+BASE_MIRAGE_COMPOSE_SERVICES = (*CORE_MIRAGE_COMPOSE_SERVICES, 'mirage-admin')
+BASE_MIRAGE_BOOT_COMPOSE_SERVICES = (*CORE_MIRAGE_COMPOSE_SERVICES, 'mirage-boot')
 
 MONITORING_COMPOSE_SERVICES = (
     'node-exporter',
@@ -238,7 +238,7 @@ def is_volume_exists(name: str, dutils=None):
     return True
 
 
-def compose_rm(env={}, node_type: NodeTypes = NodeTypes.REGULAR):
+def compose_rm(env={}, node_type: NodeType = NodeType.REGULAR):
     logger.info('Removing compose containers')
     compose_path = get_compose_path(node_type)
     run_cmd(
@@ -258,36 +258,36 @@ def compose_rm(env={}, node_type: NodeTypes = NodeTypes.REGULAR):
 
 def compose_pull(env: dict, sync_node: bool = False):
     logger.info('Pulling compose containers')
-    compose_path = get_compose_path(NodeTypes.SYNC)
+    compose_path = get_compose_path(NodeType.SYNC)
     run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'pull'), env=env)
 
 
 def compose_build(env: dict, sync_node: bool = False):
     logger.info('Building compose containers')
-    compose_path = get_compose_path(NodeTypes.SYNC)
+    compose_path = get_compose_path(NodeType.SYNC)
     run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'build'), env=env)
 
 
-def get_compose_path(node_type: NodeTypes = NodeTypes.REGULAR) -> str:
-    if node_type == NodeTypes.SYNC:
+def get_compose_path(node_type: NodeType = NodeType.REGULAR) -> str:
+    if node_type == NodeType.SYNC:
         return SYNC_COMPOSE_PATH
-    elif node_type == NodeTypes.MIRAGE:
+    elif node_type == NodeType.MIRAGE:
         return MIRAGE_COMPOSE_PATH
     else:
         return COMPOSE_PATH
 
 
-def get_compose_services(node_type: NodeTypes = NodeTypes.REGULAR) -> tuple:
-    if node_type == NodeTypes.SYNC:
+def get_compose_services(node_type: NodeType = NodeType.REGULAR) -> tuple:
+    if node_type == NodeType.SYNC:
         return BASE_SYNC_COMPOSE_SERVICES
-    elif node_type == NodeTypes.MIRAGE:
+    elif node_type == NodeType.MIRAGE:
         return BASE_MIRAGE_COMPOSE_SERVICES
     else:
         return BASE_SKALE_COMPOSE_SERVICES
 
 
 def get_up_compose_cmd(
-    node_type: NodeTypes = NodeTypes.REGULAR, services: Optional[tuple] = None
+    node_type: NodeType = NodeType.REGULAR, services: Optional[tuple] = None
 ) -> tuple:
     compose_path = get_compose_path(node_type)
 
@@ -297,38 +297,38 @@ def get_up_compose_cmd(
     return ('docker', 'compose', '-f', compose_path, 'up', '-d', *services)
 
 
-def compose_up(env, node_type: NodeTypes = NodeTypes.REGULAR, is_mirage_boot: bool = False):
-    if node_type == NodeTypes.SYNC:
+def compose_up(env, node_type: NodeType = NodeType.REGULAR, is_mirage_boot: bool = False):
+    if node_type == NodeType.SYNC:
         logger.info('Running containers for sync node')
-        run_cmd(cmd=get_up_compose_cmd(node_type=NodeTypes.SYNC), env=env)
+        run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.SYNC), env=env)
         return
 
     if 'SGX_CERTIFICATES_DIR_NAME' not in env:
         env['SGX_CERTIFICATES_DIR_NAME'] = SGX_CERTIFICATES_DIR_NAME
 
-    if node_type == NodeTypes.MIRAGE:
+    if node_type == NodeType.MIRAGE:
         logger.info('Running mirage base set of containers')
         if not is_mirage_boot:
             logger.debug('Launching mirage containers with env %s', env)
-            run_cmd(cmd=get_up_compose_cmd(node_type=NodeTypes.MIRAGE), env=env)
+            run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.MIRAGE), env=env)
         else:
             logger.debug('Launching mirage boot containers with env %s', env)
             run_cmd(
                 cmd=get_up_compose_cmd(
-                    node_type=NodeTypes.MIRAGE, services=BASE_MIRAGE_BOOT_COMPOSE_SERVICES
+                    node_type=NodeType.MIRAGE, services=BASE_MIRAGE_BOOT_COMPOSE_SERVICES
                 ),
                 env=env,
             )
     else:
         logger.info('Running skale node base set of containers')
         logger.debug('Launching skale node containers with env %s', env)
-        run_cmd(cmd=get_up_compose_cmd(node_type=NodeTypes.REGULAR), env=env)
+        run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.REGULAR), env=env)
 
         if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
             logger.info('Running containers for Telegram notifications')
             run_cmd(
                 cmd=get_up_compose_cmd(
-                    node_type=NodeTypes.REGULAR, services=NOTIFICATION_COMPOSE_SERVICES
+                    node_type=NodeType.REGULAR, services=NOTIFICATION_COMPOSE_SERVICES
                 ),
                 env=env,
             )
@@ -337,7 +337,7 @@ def compose_up(env, node_type: NodeTypes = NodeTypes.REGULAR, is_mirage_boot: bo
         logger.info('Running monitoring containers')
         run_cmd(
             cmd=get_up_compose_cmd(
-                node_type=NodeTypes.REGULAR, services=MONITORING_COMPOSE_SERVICES
+                node_type=NodeType.REGULAR, services=MONITORING_COMPOSE_SERVICES
             ),
             env=env,
         )
@@ -378,20 +378,20 @@ def is_container_running(name: str, dclient: Optional[DockerClient] = None) -> b
 
 
 def is_api_running(
-    node_type: NodeTypes = NodeTypes.REGULAR, dclient: Optional[DockerClient] = None
+    node_type: NodeType = NodeType.REGULAR, dclient: Optional[DockerClient] = None
 ) -> bool:
-    if node_type == NodeTypes.MIRAGE:
+    if node_type == NodeType.MIRAGE:
         return is_container_running(name='mirage_api', dclient=dclient)
     else:
         return is_container_running(name='skale_api', dclient=dclient)
 
 
 def is_admin_running(
-    node_type: NodeTypes = NodeTypes.REGULAR, client: Optional[DockerClient] = None
+    node_type: NodeType = NodeType.REGULAR, client: Optional[DockerClient] = None
 ) -> bool:
-    if node_type == NodeTypes.MIRAGE:
+    if node_type == NodeType.MIRAGE:
         return is_container_running(name='mirage_admin', dclient=client)
-    elif node_type == NodeTypes.SYNC:
+    elif node_type == NodeType.SYNC:
         return is_container_running(name='skale_sync_admin', dclient=client)
     else:
         return is_container_running(name='skale_admin', dclient=client)

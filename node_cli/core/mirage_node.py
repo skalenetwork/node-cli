@@ -23,7 +23,7 @@ import time
 
 from node_cli.configs import SKALE_DIR, RESTORE_SLEEP_TIMEOUT
 from node_cli.core.host import save_env_params
-from node_cli.core.node import NodeTypes, compose_node_env
+from node_cli.core.node import NodeType, compose_node_env
 from node_cli.utils.decorators import check_not_inited
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
@@ -36,16 +36,12 @@ TEXTS = Texts()
 
 
 @check_not_inited
-def restore_mirage(backup_path, env_filepath, no_snapshot=False, config_only=False):
-    env = compose_node_env(env_filepath, node_type=NodeTypes.MIRAGE)
+def restore_mirage(backup_path, env_filepath, config_only=False):
+    env = compose_node_env(env_filepath, node_type=NodeType.MIRAGE)
     if env is None:
         return
     save_env_params(env_filepath)
     env['SKALE_DIR'] = SKALE_DIR
-
-    if not no_snapshot:
-        logger.info('Adding BACKUP_RUN to env ...')
-        env['BACKUP_RUN'] = 'True'
 
     restored_ok = restore_mirage_op(env, backup_path, config_only=config_only)
     if not restored_ok:

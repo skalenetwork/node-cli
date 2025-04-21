@@ -24,10 +24,8 @@ class CliMeta(
         os_id=DEFAULT_OS_ID,
         os_version=DEFAULT_OS_VERSION,
     ):
-        # If docker_lvmpy_stream is None, use the default value
-        actual_docker_lvmpy_stream = docker_lvmpy_stream or DEFAULT_DOCKER_LVMPY_STREAM
         return super(CliMeta, cls).__new__(
-            cls, version, config_stream, actual_docker_lvmpy_stream, os_id, os_version
+            cls, version, config_stream, docker_lvmpy_stream, os_id, os_version
         )
 
 

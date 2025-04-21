@@ -21,7 +21,7 @@ import click
 
 from node_cli.core.node import get_node_signature, backup
 from node_cli.core.mirage_node import restore_mirage
-from node_cli.utils.helper import error_exit, streamed_cmd
+from node_cli.utils.helper import error_exit, streamed_cmd, abort_if_false
 from node_cli.utils.decorators import check_inited
 
 
@@ -46,6 +46,23 @@ def register_node():
     pass
 
 
+@mirage_node_cli.command('update', help='Update Mirage.')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to update Mirage node software?',
+)
+@click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
+@click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
+@click.argument('env_file')
+@streamed_cmd
+def update_node(env_file, pull_config_for_schain, unsafe_ok):
+    click.echo("Placeholder: Command 'mirage node update' is not yet implemented.")
+    pass
+
+
 @mirage_node_cli.command('signature', help='Get mirage node signature for a validator ID.')
 @click.argument('validator_id')
 def signature_node(validator_id):
@@ -66,14 +83,11 @@ def backup_node(backup_folder_path):
 @click.argument('backup_path')
 @click.argument('env_file')
 @click.option(
-    '--no-snapshot', help='Do not restore mirage from snapshot', is_flag=True, hidden=True
-)
-@click.option(
     '--config-only',
     help='Only restore configuration files in .skale and artifacts',
     is_flag=True,
     hidden=True,
 )
 @streamed_cmd
-def restore_node(backup_path, env_file, no_snapshot, config_only):
-    restore_mirage(backup_path, env_file, no_snapshot, config_only)
+def restore_node(backup_path, env_file, config_only):
+    restore_mirage(backup_path, env_file, config_only)

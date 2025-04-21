@@ -23,7 +23,7 @@ import time
 
 from node_cli.configs import TM_INIT_TIMEOUT
 from node_cli.core.resources import update_resource_allocation
-from node_cli.core.node import NodeTypes, compose_node_env, is_base_containers_alive
+from node_cli.core.node import NodeType, compose_node_env, is_base_containers_alive
 from node_cli.operations import init_mirage_boot_op, migrate_mirage_boot_op
 from node_cli.utils.decorators import check_not_inited, check_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -40,14 +40,14 @@ TEXTS = Texts()
 def init(env_filepath: str) -> None:
     env = compose_node_env(
         env_filepath,
-        node_type=NodeTypes.MIRAGE,
+        node_type=NodeType.MIRAGE,
         is_mirage_boot=True,
     )
 
     init_mirage_boot_op(env_filepath, env)
     logger.info('Waiting for mirage containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive(NodeTypes.MIRAGE):
+    if not is_base_containers_alive(NodeType.MIRAGE):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Generating mirage resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
@@ -63,13 +63,13 @@ def migrate(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = Fa
         inited_node=True,
         sync_schains=False,
         pull_config_for_schain=pull_config_for_schain,
-        node_type=NodeTypes.MIRAGE,
+        node_type=NodeType.MIRAGE,
     )
     migrate_ok = migrate_mirage_boot_op(env_filepath, env)
     if migrate_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
-    alive = is_base_containers_alive(node_type=NodeTypes.MIRAGE)
+    alive = is_base_containers_alive(node_type=NodeType.MIRAGE)
     if not migrate_ok or not alive:
         print_node_cmd_error()
         return
