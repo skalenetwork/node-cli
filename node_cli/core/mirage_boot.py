@@ -56,7 +56,7 @@ def init(env_filepath: str) -> None:
 
 @check_inited
 @check_user
-def migrate(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = False) -> None:
+def migrate(env_filepath: str, pull_config_for_schain: str) -> None:
     logger.info('Node update started')
     env = compose_node_env(
         env_filepath,

@@ -80,8 +80,7 @@ def signature_boot(validator_id):
     prompt='Are you sure you want to update SKALE node software?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
-@click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
 @click.argument('env_file')
 @streamed_cmd
-def migrate_boot(env_file, pull_config_for_schain, unsafe_ok):
-    migrate(env_file, pull_config_for_schain, unsafe_ok)
+def migrate_boot(env_file, pull_config_for_schain):
+    migrate(env_file, pull_config_for_schain)
