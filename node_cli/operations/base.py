@@ -39,7 +39,6 @@ from node_cli.core.host import (
 )
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
-from node_cli.core.node import NodeType
 from node_cli.core.node_options import NodeOptions
 from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
 from node_cli.core.schains import (
@@ -67,6 +66,7 @@ from node_cli.utils.docker_utils import (
 )
 from node_cli.utils.helper import str_to_bool, rm_dir
 from node_cli.utils.meta import get_meta_info, update_meta
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 

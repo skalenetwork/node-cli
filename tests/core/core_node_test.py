@@ -11,9 +11,10 @@ import requests
 
 from node_cli.configs import NODE_DATA_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
-from node_cli.core.node import NodeType, get_base_containers_amount, is_base_containers_alive
+from node_cli.core.node import get_base_containers_amount, is_base_containers_alive
 from node_cli.core.node import init, pack_dir, update, is_update_safe
 from node_cli.utils.meta import CliMeta
+from node_cli.utils.node_type import NodeType
 
 from tests.helper import response_mock, safe_update_api_response, subprocess_run_mock
 from tests.resources_test import BIG_DISK_SIZE

@@ -41,7 +41,7 @@ from node_cli.cli.sync_node import sync_node_cli
 from node_cli.cli.mirage_boot import mirage_boot_cli
 from node_cli.cli.mirage_node import mirage_node_cli
 from node_cli.core.host import init_logs_dir
-from node_cli.core.node import NodeType
+from node_cli.utils.node_type import NodeType
 from node_cli.configs import LONG_LINE
 from node_cli.utils.helper import safe_load_texts, init_default_logger
 from node_cli.utils.helper import error_exit

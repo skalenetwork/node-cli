@@ -23,11 +23,12 @@ import time
 
 from node_cli.configs import TM_INIT_TIMEOUT
 from node_cli.core.resources import update_resource_allocation
-from node_cli.core.node import NodeType, compose_node_env, is_base_containers_alive
+from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.operations import init_mirage_boot_op, migrate_mirage_boot_op
 from node_cli.utils.decorators import check_not_inited, check_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
 from node_cli.utils.texts import Texts
 

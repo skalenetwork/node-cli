@@ -80,6 +80,7 @@ from node_cli.utils.docker_utils import (
     BASE_SYNC_COMPOSE_SERVICES,
     BASE_MIRAGE_COMPOSE_SERVICES,
 )
+from node_cli.utils.node_type import NodeType
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 
 
@@ -99,12 +100,6 @@ class NodeStatuses(Enum):
     IN_MAINTENANCE = 3
     LEFT = 4
     NOT_CREATED = 5
-
-
-class NodeType(Enum):
-    REGULAR = 0
-    SYNC = 1
-    MIRAGE = 2
 
 
 def is_update_safe(node_type: NodeType = NodeType.REGULAR) -> bool:

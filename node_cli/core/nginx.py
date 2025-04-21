@@ -22,7 +22,7 @@ import os.path
 
 from node_cli.cli.info import TYPE
 from node_cli.configs import NODE_CERTS_PATH, NGINX_TEMPLATE_FILEPATH, NGINX_CONFIG_FILEPATH
-from node_cli.core.node import NodeType
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.docker_utils import restart_nginx_container, docker_client
 from node_cli.utils.helper import process_template
 

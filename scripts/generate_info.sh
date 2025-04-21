@@ -50,7 +50,7 @@ esac
 rm -f "$DIST_INFO_FILEPATH"
 touch "$DIST_INFO_FILEPATH"
 
-echo "from node_cli.core.node import NodeType" >> "$DIST_INFO_FILEPATH"
+echo "from node_cli.utils.node_type import NodeType" >> "$DIST_INFO_FILEPATH"
 echo "" >> "$DIST_INFO_FILEPATH"
 
 echo "BUILD_DATETIME = '$CURRENT_DATETIME'" >> "$DIST_INFO_FILEPATH"

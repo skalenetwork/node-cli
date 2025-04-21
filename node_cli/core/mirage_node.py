@@ -23,10 +23,11 @@ import time
 
 from node_cli.configs import SKALE_DIR, RESTORE_SLEEP_TIMEOUT
 from node_cli.core.host import save_env_params
-from node_cli.core.node import NodeType, compose_node_env
+from node_cli.core.node import compose_node_env
 from node_cli.utils.decorators import check_not_inited
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.texts import Texts
 from node_cli.operations import restore_mirage_op
 

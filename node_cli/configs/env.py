@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 
 from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
 from node_cli.configs.alias_address_validation import validate_env_alias_or_address, ContractType
-from node_cli.core.node import NodeType
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.helper import error_exit
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
