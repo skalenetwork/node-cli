@@ -883,8 +883,6 @@ In file `.git/hooks/pre-commit` add:
 ruff check . && ruff format .
 ```
 
-Make it executable: `chmod +x .git/hooks/pre-commit`
-
 ### Debugging
 
 Run commands in dev mode:
