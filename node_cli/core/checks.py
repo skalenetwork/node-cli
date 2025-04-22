@@ -173,7 +173,7 @@ class BaseChecker:
             type(self),
             predicate=lambda m: inspect.isfunction(m)
             and getattr(m, '_check_type', None) in allowed_types
-            and self.requirements.get(m.__name__, None) is not None,
+            and self.requirements.get(m.__name__, None) != 'disabled',
         )
         return [functools.partial(m[1], self) for m in methods]
 

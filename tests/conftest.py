@@ -49,6 +49,46 @@ from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_
 
 
 TEST_ENV_PARAMS = """
+mainnet-mirage:
+    server:
+      cpu_total: 8
+      cpu_physical: 1
+      memory: 32000000000
+      swap: 16000000000
+      disk: 500000000000
+
+    package:
+      iptables-persistent: 1.0.4
+      btrfs-progs: 4.15.1
+      lsof: "4.89"
+      psmisc: 23.1-1
+      lvm2: disabled
+
+    docker:
+      docker-api: 1.41.0
+      docker-engine: 20.10.7
+      docker-compose: 1.27.4
+
+  devnet-mirage:
+    server:
+      cpu_total: 1
+      cpu_physical: 1
+      memory: 2000000000
+      swap: 2000000000
+      disk: 80000000000
+
+    package:
+      iptables-persistent: 1.0.4
+      btrfs-progs: 4.15.1
+      lsof: "4.89"
+      psmisc: 23.1-1
+      lvm2: disabled
+
+    docker:
+      docker-api: 1.41.0
+      docker-engine: 20.10.7
+      docker-compose: 1.27.4
+
 mainnet:
   server:
     cpu_total: 4
