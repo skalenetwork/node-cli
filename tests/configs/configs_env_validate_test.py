@@ -22,6 +22,7 @@ from node_cli.configs.alias_address_validation import (
     ContractType,
 )
 from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.node_type import NodeType
 
 ENDPOINT = 'http://localhost:8545'
 
@@ -66,7 +67,7 @@ def test_load_env_file_not_readable(tmp_path):
 
 @pytest.mark.parametrize('sync_node,has_schain_name', [(True, True), (False, False)])
 def test_build_env_params_sync_and_non_sync(sync_node, has_schain_name):
-    params = build_env_params(sync_node=sync_node)
+    params = build_env_params(node_type=NodeType.SYNC if sync_node else NodeType.REGULAR)
     assert ('SCHAIN_NAME' in params) == has_schain_name
 
 
