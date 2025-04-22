@@ -422,15 +422,20 @@ def get_base_containers_amount(node_type: NodeType = NodeType.REGULAR):
 
 def is_base_containers_alive(node_type: NodeType = NodeType.REGULAR) -> bool:
     if node_type == NodeType.MIRAGE:
-        prefix = 'mirage_'
+        prefixes = ['mirage_', 'skale_']
     else:
-        prefix = 'skale_'
+        prefixes = ['skale_']
 
     dclient = docker.from_env()
     containers = dclient.containers.list()
-    skale_containers = list(filter(lambda c: c.name.startswith(prefix), containers))
+
+    alive_containers = []
+    for prefix in prefixes:
+        prefix_containers = list(filter(lambda c: c.name.startswith(prefix), containers))
+        alive_containers.extend(prefix_containers)
+
     containers_amount = get_base_containers_amount(node_type)
-    return len(skale_containers) >= containers_amount
+    return len(alive_containers) >= containers_amount
 
 
 def get_node_info_plain():
