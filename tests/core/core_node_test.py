@@ -11,8 +11,14 @@ import requests
 
 from node_cli.configs import NODE_DATA_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
-from node_cli.core.node import get_base_containers_amount, is_base_containers_alive
-from node_cli.core.node import init, pack_dir, update, is_update_safe
+from node_cli.core.node import (
+    get_base_containers_amount,
+    is_base_containers_alive,
+    init,
+    pack_dir,
+    update,
+    is_update_safe,
+)
 from node_cli.utils.meta import CliMeta
 from node_cli.utils.node_type import NodeType
 
@@ -187,8 +193,8 @@ def test_update_node(mocked_g_config, resource_file):
 
 
 @pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
-@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=False)
-@mock.patch('node_cli.utils.docker_utils.is_api_running', return_value=False)
+@mock.patch('node_cli.core.node.is_admin_running', return_value=False)
+@mock.patch('node_cli.core.node.is_api_running', return_value=False)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_admin_and_api_not_running(
     mock_requests_get, mock_is_api_running, mock_is_admin_running, node_type
@@ -197,8 +203,8 @@ def test_is_update_safe_when_admin_and_api_not_running(
     mock_requests_get.assert_not_called()
 
 
-@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=False)
-@mock.patch('node_cli.utils.docker_utils.is_api_running', return_value=True)
+@mock.patch('node_cli.core.node.is_admin_running', return_value=False)
+@mock.patch('node_cli.core.node.is_api_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_admin_not_running_for_sync(
     mock_requests_get, mock_is_api_running, mock_is_admin_running
@@ -213,7 +219,7 @@ def test_is_update_safe_when_admin_not_running_for_sync(
     [(True, True), (False, False)],
     ids=['api_safe', 'api_unsafe'],
 )
-@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=True)
+@mock.patch('node_cli.core.node.is_admin_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_admin_running(
     mock_requests_get, mock_is_admin_running, api_is_safe, expected_result, node_type
@@ -229,8 +235,8 @@ def test_is_update_safe_when_admin_running(
     [(True, True), (False, False)],
     ids=['api_safe', 'api_unsafe'],
 )
-@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=False)
-@mock.patch('node_cli.utils.docker_utils.is_api_running', return_value=True)
+@mock.patch('node_cli.core.node.is_admin_running', return_value=False)
+@mock.patch('node_cli.core.node.is_api_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_only_api_running_for_regular(
     mock_requests_get,
@@ -246,7 +252,7 @@ def test_is_update_safe_when_only_api_running_for_regular(
 
 
 @pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
-@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=True)
+@mock.patch('node_cli.core.node.is_admin_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_api_call_fails(mock_requests_get, mock_is_admin_running, node_type):
     mock_requests_get.side_effect = requests.exceptions.ConnectionError('Test connection error')
