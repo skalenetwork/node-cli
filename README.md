@@ -853,10 +853,36 @@ Exit codes conventions for SKALE CLI tools
 
 ### Setup repo
 
+#### Dependencies
+
+- Python 3.11
+- Git
+
+#### Clone the repository
+
+Clone with HTTPS:
+
+```shell
+git clone https://github.com/skalenetwork/node-cli.git
+```
+
+Or with SSH:
+
+```shell
+git clone git@github.com:skalenetwork/node-cli.git
+```
+
+#### Create and source virtual environment
+
+```shell
+python3.11 -m venv venv
+source venv/bin/activate
+```
+
 #### Install development dependencies
 
 ```shell
-pip install -e .[dev]
+pip install -e ".[dev]"
 ```
 
 #### Generate info.py locally
@@ -880,15 +906,15 @@ In file `.git/hooks/pre-commit` add:
 
 ```shell
 #!/bin/sh
-ruff check . && ruff format .
+./venv/bin/ruff check .
 ```
 
-### Debugging
+> **Note:** This hook assumes your virtual environment is named 'venv' and is located at the root of the repository.
 
-Run commands in dev mode:
+Make the hook executable:
 
 ```shell
-ENV=dev python main.py YOUR_COMMAND
+chmod +x .git/hooks/pre-commit
 ```
 
 ## Contributing
