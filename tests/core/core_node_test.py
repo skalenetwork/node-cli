@@ -186,30 +186,69 @@ def test_update_node(mocked_g_config, resource_file):
             assert result is None
 
 
-def test_is_update_safe():
-    assert is_update_safe()
-    assert is_update_safe(node_type=NodeType.SYNC)
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
+@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=False)
+@mock.patch('node_cli.utils.docker_utils.is_api_running', return_value=False)
+@mock.patch('node_cli.utils.helper.requests.get')
+def test_is_update_safe_when_admin_and_api_not_running(
+    mock_requests_get, mock_is_api_running, mock_is_admin_running, node_type
+):
+    assert is_update_safe(node_type=node_type) is True
+    mock_requests_get.assert_not_called()
 
-    with mock.patch('node_cli.core.node.is_admin_running', return_value=True):
-        with mock.patch('node_cli.core.node.is_api_running', return_value=True):
-            assert not is_update_safe()
-            assert is_update_safe(node_type=NodeType.SYNC)
 
-    with mock.patch('node_cli.core.node.is_admin_running', return_value=True):
-        assert is_update_safe()
-        assert not is_update_safe(node_type=NodeType.SYNC)
+@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=False)
+@mock.patch('node_cli.utils.docker_utils.is_api_running', return_value=True)
+@mock.patch('node_cli.utils.helper.requests.get')
+def test_is_update_safe_when_admin_not_running_for_sync(
+    mock_requests_get, mock_is_api_running, mock_is_admin_running
+):
+    assert is_update_safe(node_type=NodeType.SYNC) is True
+    mock_requests_get.assert_not_called()
 
-    with mock.patch('node_cli.utils.docker_utils.is_container_running', return_value=True):
-        with mock.patch(
-            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
-        ):
-            assert is_update_safe()
 
-    with mock.patch('node_cli.utils.helper.requests.get', return_value=safe_update_api_response()):
-        assert is_update_safe()
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
+@pytest.mark.parametrize(
+    'api_is_safe, expected_result',
+    [(True, True), (False, False)],
+    ids=['api_safe', 'api_unsafe'],
+)
+@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=True)
+@mock.patch('node_cli.utils.helper.requests.get')
+def test_is_update_safe_when_admin_running(
+    mock_requests_get, mock_is_admin_running, api_is_safe, expected_result, node_type
+):
+    mock_requests_get.return_value = safe_update_api_response(safe=api_is_safe)
+    assert is_update_safe(node_type=node_type) is expected_result
+    mock_requests_get.assert_called_once()
 
-    with mock.patch('node_cli.utils.docker_utils.is_container_running', return_value=True):
-        with mock.patch(
-            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response(safe=False)
-        ):
-            assert not is_update_safe()
+
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.MIRAGE])
+@pytest.mark.parametrize(
+    'api_is_safe, expected_result',
+    [(True, True), (False, False)],
+    ids=['api_safe', 'api_unsafe'],
+)
+@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=False)
+@mock.patch('node_cli.utils.docker_utils.is_api_running', return_value=True)
+@mock.patch('node_cli.utils.helper.requests.get')
+def test_is_update_safe_when_only_api_running_for_regular(
+    mock_requests_get,
+    mock_is_api_running,
+    mock_is_admin_running,
+    api_is_safe,
+    expected_result,
+    node_type,
+):
+    mock_requests_get.return_value = safe_update_api_response(safe=api_is_safe)
+    assert is_update_safe(node_type=node_type) is expected_result
+    mock_requests_get.assert_called_once()
+
+
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
+@mock.patch('node_cli.utils.docker_utils.is_admin_running', return_value=True)
+@mock.patch('node_cli.utils.helper.requests.get')
+def test_is_update_safe_when_api_call_fails(mock_requests_get, mock_is_admin_running, node_type):
+    mock_requests_get.side_effect = requests.exceptions.ConnectionError('Test connection error')
+    assert is_update_safe(node_type=node_type) is False
+    mock_requests_get.assert_called_once()
