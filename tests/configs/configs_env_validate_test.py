@@ -14,7 +14,6 @@ from node_cli.configs.env import (
     validate_env_type,
     ALLOWED_SKALE_ENV_TYPES,
     ALLOWED_MIRAGE_ENV_TYPES,
-    ALLOWED_ENV_TYPES,
     REQUIRED_PARAMS_SKALE,
     REQUIRED_PARAMS_SYNC,
     REQUIRED_PARAMS_MIRAGE_BOOT,
