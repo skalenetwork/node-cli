@@ -77,7 +77,7 @@ def signature_boot(validator_id):
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to update SKALE node software?',
+    prompt='Are you sure you want to mirage node from Mirage Boot Phase to Mirage Main Phase?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
 @click.argument('env_file')

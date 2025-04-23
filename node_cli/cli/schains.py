@@ -32,6 +32,7 @@ from node_cli.core.schains import (
     show_schains,
     toggle_schain_repair_mode,
 )
+from node_cli.cli.info import TYPE
 
 
 @click.group()
@@ -107,4 +108,4 @@ def info_(schain_name: str, json_format: bool) -> None:
 def restore(
     schain_name: str, snapshot_path: str, schain_type: str, env_type: Optional[str]
 ) -> None:
-    restore_schain_from_snapshot(schain_name, snapshot_path)
+    restore_schain_from_snapshot(schain_name, snapshot_path, node_type=TYPE)

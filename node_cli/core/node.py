@@ -232,11 +232,11 @@ def compose_node_env(
     is_mirage_boot: bool = False,
 ) -> dict[str, str]:
     if env_filepath is not None:
-        env_params = get_validated_env_config(env_filepath, node_type=node_type)
+        env_params = get_validated_env_config(node_type=node_type, env_filepath=env_filepath)
         if save:
             save_env_params(env_filepath)
     else:
-        env_params = get_validated_env_config(INIT_ENV_FILEPATH, node_type=node_type)
+        env_params = get_validated_env_config(node_type=node_type, env_filepath=INIT_ENV_FILEPATH)
 
     if node_type == NodeType.SYNC or node_type == NodeType.MIRAGE:
         mnt_dir = SCHAINS_MNT_DIR_SINGLE_CHAIN
@@ -265,8 +265,13 @@ def compose_node_env(
 
 @check_inited
 @check_user
-def update(env_filepath: str, pull_config_for_schain: str, unsafe_ok: bool = False) -> None:
-    if not unsafe_ok and not is_update_safe():
+def update(
+    env_filepath: str,
+    pull_config_for_schain: Optional[str],
+    node_type: NodeType,
+    unsafe_ok: bool = False,
+) -> None:
+    if not unsafe_ok and not is_update_safe(node_type=node_type):
         error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
@@ -386,14 +391,14 @@ def set_maintenance_mode_off():
 
 @check_inited
 @check_user
-def turn_off(maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
+def turn_off(node_type: NodeType, maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
     if not unsafe_ok and not is_update_safe():
         error_msg = 'Cannot turn off safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()
     env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False)
-    turn_off_op(env=env)
+    turn_off_op(node_type=node_type, env=env)
 
 
 @check_inited
@@ -476,6 +481,7 @@ def set_domain_name(domain_name):
 
 
 def run_checks(
+    node_type: NodeType,
     network: str = 'mainnet',
     container_config_path: str = CONTAINER_CONFIG_PATH,
     disk: Optional[str] = None,
@@ -485,13 +491,13 @@ def run_checks(
         return
 
     if disk is None:
-        env = get_validated_env_config()
+        env = get_validated_env_config(node_type=node_type)
         disk = env['DISK_MOUNTPOINT']
     failed_checks = run_host_checks(disk, network, container_config_path)
     if not failed_checks:
-        print('Requirements checking succesfully finished!')
+        print('Requirements checking successfully finished!')
     else:
-        print('Node is not fully meet the requirements!')
+        print('Node does not fully meet the requirements!')
         print_failed_requirements_checks(failed_checks)
 
 

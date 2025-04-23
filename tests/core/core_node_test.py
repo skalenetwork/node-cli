@@ -164,7 +164,8 @@ def test_init_node(no_resource_file):  # todo: write new init node test
         assert os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
 
 
-def test_update_node(mocked_g_config, resource_file):
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
+def test_update_node(node_type, mocked_g_config, resource_file):
     env_filepath = './tests/test-env'
     resp_mock = response_mock(requests.codes.created)
     os.makedirs(NODE_DATA_PATH, exist_ok=True)
@@ -188,7 +189,7 @@ def test_update_node(mocked_g_config, resource_file):
         with mock.patch(
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
         ):  # noqa
-            result = update(env_filepath, pull_config_for_schain=None)
+            result = update(env_filepath, pull_config_for_schain=None, node_type=node_type)
             assert result is None
 
 

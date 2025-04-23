@@ -89,14 +89,14 @@ def absent_required_params(params: Dict[str, str]) -> List[str]:
 
 
 def get_validated_env_config(
+    node_type: NodeType,
     env_filepath: str = SKALE_DIR_ENV_FILEPATH,
-    node_type: NodeType = NodeType.REGULAR,
     is_mirage_boot: bool = False,
 ) -> Dict[str, str]:
     load_env_file(env_filepath)
     params = build_env_params(node_type=node_type, is_mirage_boot=is_mirage_boot)
     populate_env_params(params)
-    validate_env_params(params)
+    validate_env_params(node_type=node_type, params=params)
     return params
 
 
@@ -106,9 +106,9 @@ def load_env_file(env_filepath: str) -> None:
 
 
 def build_env_params(
-    node_type: NodeType = NodeType.REGULAR, is_mirage_boot: bool = False
+    node_type: NodeType,
+    is_mirage_boot: bool = False,
 ) -> Dict[str, str]:
-    """Return environment variables dictionary with keys based on node type."""
     if node_type == NodeType.MIRAGE and is_mirage_boot:
         params = REQUIRED_PARAMS_MIRAGE_BOOT.copy()
     elif node_type == NodeType.MIRAGE:
@@ -129,16 +129,27 @@ def populate_env_params(params: Dict[str, str]) -> None:
             params[key] = str(env_value)
 
 
-def validate_env_params(params: Dict[str, str]) -> None:
+def validate_env_params(
+    node_type: NodeType,
+    params: Dict[str, str],
+) -> None:
     missing = absent_required_params(params)
     if missing:
         error_exit(f'Missing required parameters: {missing}')
-    validate_env_type(params['ENV_TYPE'])
+    validate_env_type(node_type=node_type, env_type=params['ENV_TYPE'])
     endpoint = params['ENDPOINT']
     validate_env_alias_or_address(params['IMA_CONTRACTS'], ContractType.IMA, endpoint)
     validate_env_alias_or_address(params['MANAGER_CONTRACTS'], ContractType.MANAGER, endpoint)
 
 
-def validate_env_type(env_type: str) -> None:
-    if env_type not in ALLOWED_ENV_TYPES:
-        error_exit(f'Allowed ENV_TYPE values are {ALLOWED_ENV_TYPES}. Actual: "{env_type}"')
+def validate_env_type(node_type: NodeType, env_type: str) -> None:
+    allowed_env_types_for_node_type = list()
+    if node_type == NodeType.MIRAGE:
+        allowed_env_types_for_node_type = ALLOWED_MIRAGE_ENV_TYPES
+    else:
+        allowed_env_types_for_node_type = ALLOWED_SKALE_ENV_TYPES
+
+    if env_type not in allowed_env_types_for_node_type:
+        error_exit(
+            f'Allowed ENV_TYPE values are {allowed_env_types_for_node_type}. Actual: "{env_type}"'
+        )

@@ -27,6 +27,7 @@ from node_cli.utils.print_formatters import (
 )
 from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
 from node_cli.utils.helper import read_json, run_cmd, save_json
+from node_cli.utils.node_type import NodeType
 from lvmpy.src.core import mount, volume_mountpoint
 
 
@@ -182,10 +183,14 @@ def fillin_snapshot_folder(src_path: str, block_number: int) -> None:
 
 
 def restore_schain_from_snapshot(
-    schain: str, snapshot_path: str, env_type: Optional[str] = None, schain_type: str = 'medium'
+    schain: str,
+    snapshot_path: str,
+    node_type: NodeType,
+    env_type: Optional[str] = None,
+    schain_type: str = 'medium',
 ) -> None:
     if env_type is None:
-        env_config = get_validated_env_config()
+        env_config = get_validated_env_config(node_type=node_type)
         env_type = env_config['ENV_TYPE']
     ensure_schain_volume(schain, schain_type, env_type)
     block_number = get_block_number_from_path(snapshot_path)

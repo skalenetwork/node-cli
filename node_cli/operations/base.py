@@ -337,7 +337,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     return True
 
 
-def turn_off(env: dict, node_type: NodeType = NodeType.REGULAR) -> None:
+def turn_off(env: dict, node_type: NodeType) -> None:
     logger.info('Turning off the node...')
     compose_rm(env=env, node_type=node_type)
     remove_dynamic_containers()

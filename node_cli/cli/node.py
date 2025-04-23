@@ -19,8 +19,9 @@
 
 import click
 
-from node_cli.core.node import configure_firewall_rules
+from node_cli.cli.info import TYPE
 from node_cli.core.node import (
+    configure_firewall_rules,
     get_node_signature,
     init,
     restore,
@@ -36,11 +37,12 @@ from node_cli.core.node import (
     run_checks,
 )
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
-from node_cli.configs.env import ALLOWED_ENV_TYPES
+from node_cli.configs.env import ALLOWED_SKALE_ENV_TYPES
 from node_cli.utils.decorators import check_inited
 from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd, IP_TYPE
 from node_cli.utils.meta import get_meta_info
 from node_cli.utils.print_formatters import print_meta_info
+from node_cli.utils.node_type import NodeType
 
 
 TEXTS = safe_load_texts()
@@ -99,7 +101,12 @@ def init_node(env_file):
 @click.argument('env_file')
 @streamed_cmd
 def update_node(env_file, pull_config_for_schain, unsafe_ok):
-    update(env_file, pull_config_for_schain, unsafe_ok)
+    update(
+        env_filepath=env_file,
+        pull_config_for_schain=pull_config_for_schain,
+        node_type=NodeType.REGULAR,
+        unsafe_ok=unsafe_ok,
+    )
 
 
 @node.command('signature', help='Get node signature for given validator id')
@@ -166,7 +173,7 @@ def remove_node_from_maintenance():
 @click.option('--unsafe', 'unsafe_ok', help='Allow unsafe turn-off', hidden=True, is_flag=True)
 @streamed_cmd
 def _turn_off(maintenance_on, unsafe_ok):
-    turn_off(maintenance_on, unsafe_ok)
+    turn_off(node_type=TYPE, maintenance_on=maintenance_on, unsafe_ok=unsafe_ok)
 
 
 @node.command('turn-on', help='Turn on the node')
@@ -206,16 +213,16 @@ def _set_domain_name(domain):
     set_domain_name(domain)
 
 
-@node.command(help='Check if node meet network requirements')
+@node.command(help='Check if node meets network requirements')
 @click.option(
     '--network',
     '-n',
-    type=click.Choice(ALLOWED_ENV_TYPES),
+    type=click.Choice(ALLOWED_SKALE_ENV_TYPES),
     default='mainnet',
     help='Network to check',
 )
 def check(network):
-    run_checks(network)
+    run_checks(node_type=NodeType.REGULAR, network=network)
 
 
 @node.command(help='Reconfigure nftables rules')
