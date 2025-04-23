@@ -137,7 +137,13 @@ def backup_node(backup_folder_path):
 )
 @streamed_cmd
 def restore_node(backup_path, env_file, no_snapshot, config_only):
-    restore(backup_path, env_file, no_snapshot, config_only)
+    restore(
+        backup_path=backup_path,
+        env_filepath=env_file,
+        no_snapshot=no_snapshot,
+        config_only=config_only,
+        node_type=TYPE,
+    )
 
 
 @node.command('maintenance-on', help='Set SKALE node into maintenance mode')
