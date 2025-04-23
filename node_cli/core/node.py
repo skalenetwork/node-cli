@@ -102,7 +102,7 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def is_update_safe(node_type: NodeType = NodeType.REGULAR) -> bool:
+def is_update_safe(node_type: NodeType) -> bool:
     if not is_admin_running(node_type):
         if node_type == NodeType.SYNC:
             return True
@@ -144,13 +144,13 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 
 
 @check_not_inited
-def init(env_filepath):
-    env = compose_node_env(env_filepath)
+def init(env_filepath: str, node_type: NodeType) -> None:
+    env = compose_node_env(env_filepath=env_filepath, node_type=node_type)
 
-    init_op(env_filepath, env)
+    init_op(env_filepath=env_filepath, env=env, node_type=node_type)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive():
+    if not is_base_containers_alive(node_type=node_type):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
@@ -158,8 +158,8 @@ def init(env_filepath):
 
 
 @check_not_inited
-def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
-    env = compose_node_env(env_filepath)
+def restore(backup_path, env_filepath, node_type: NodeType, no_snapshot=False, config_only=False):
+    env = compose_node_env(env_filepath=env_filepath, node_type=node_type)
     if env is None:
         return
     save_env_params(env_filepath)
@@ -169,7 +169,7 @@ def restore(backup_path, env_filepath, no_snapshot=False, config_only=False):
         logger.info('Adding BACKUP_RUN to env ...')
         env['BACKUP_RUN'] = 'True'  # should be str
 
-    restored_ok = restore_op(env, backup_path, config_only=config_only)
+    restored_ok = restore_op(env, backup_path, node_type=node_type, config_only=config_only)
     if not restored_ok:
         error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
@@ -188,7 +188,7 @@ def init_sync(
     init_sync_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive(NodeType.SYNC):
+    if not is_base_containers_alive(node_type=NodeType.SYNC):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Sync node initialized successfully')
 
@@ -205,7 +205,7 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
-    alive = is_base_containers_alive(NodeType.SYNC)
+    alive = is_base_containers_alive(node_type=NodeType.SYNC)
     if not update_ok or not alive:
         print_node_cmd_error()
         return
@@ -224,19 +224,27 @@ def cleanup_sync() -> None:
 
 def compose_node_env(
     env_filepath: str,
+    node_type: NodeType,
     inited_node: bool = False,
     sync_schains: Optional[bool] = None,
     pull_config_for_schain: Optional[str] = None,
-    node_type: NodeType = NodeType.REGULAR,
     save: bool = True,
     is_mirage_boot: bool = False,
 ) -> dict[str, str]:
     if env_filepath is not None:
-        env_params = get_validated_env_config(node_type=node_type, env_filepath=env_filepath)
+        env_params = get_validated_env_config(
+            node_type=node_type,
+            env_filepath=env_filepath,
+            is_mirage_boot=is_mirage_boot,
+        )
         if save:
             save_env_params(env_filepath)
     else:
-        env_params = get_validated_env_config(node_type=node_type, env_filepath=INIT_ENV_FILEPATH)
+        env_params = get_validated_env_config(
+            node_type=node_type,
+            env_filepath=INIT_ENV_FILEPATH,
+            is_mirage_boot=is_mirage_boot,
+        )
 
     if node_type == NodeType.SYNC or node_type == NodeType.MIRAGE:
         mnt_dir = SCHAINS_MNT_DIR_SINGLE_CHAIN
@@ -284,12 +292,13 @@ def update(
         inited_node=True,
         sync_schains=False,
         pull_config_for_schain=pull_config_for_schain,
+        node_type=node_type,
     )
-    update_ok = update_op(env_filepath, env)
+    update_ok = update_op(env_filepath, env, node_type=node_type)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
-    alive = is_base_containers_alive()
+    alive = is_base_containers_alive(node_type=node_type)
     if not update_ok or not alive:
         print_node_cmd_error()
         return
@@ -392,23 +401,25 @@ def set_maintenance_mode_off():
 @check_inited
 @check_user
 def turn_off(node_type: NodeType, maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
-    if not unsafe_ok and not is_update_safe():
+    if not unsafe_ok and not is_update_safe(node_type=node_type):
         error_msg = 'Cannot turn off safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False)
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=node_type)
     turn_off_op(node_type=node_type, env=env)
 
 
 @check_inited
 @check_user
-def turn_on(maintenance_off, sync_schains, env_file):
-    env = compose_node_env(env_file, inited_node=True, sync_schains=sync_schains)
-    turn_on_op(env)
+def turn_on(maintenance_off, sync_schains, env_file, node_type: NodeType) -> None:
+    env = compose_node_env(
+        env_file, inited_node=True, sync_schains=sync_schains, node_type=node_type
+    )
+    turn_on_op(env=env, node_type=node_type)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive():
+    if not is_base_containers_alive(node_type=node_type):
         print_node_cmd_error()
         return
     logger.info('Node turned on')
@@ -416,7 +427,7 @@ def turn_on(maintenance_off, sync_schains, env_file):
         set_maintenance_mode_off()
 
 
-def get_base_containers_amount(node_type: NodeType = NodeType.REGULAR):
+def get_base_containers_amount(node_type: NodeType):
     if node_type == NodeType.SYNC:
         return len(BASE_SYNC_COMPOSE_SERVICES)
     elif node_type == NodeType.MIRAGE:
@@ -425,7 +436,7 @@ def get_base_containers_amount(node_type: NodeType = NodeType.REGULAR):
         return len(BASE_SKALE_COMPOSE_SERVICES)
 
 
-def is_base_containers_alive(node_type: NodeType = NodeType.REGULAR) -> bool:
+def is_base_containers_alive(node_type: NodeType) -> bool:
     if node_type == NodeType.MIRAGE:
         prefixes = ['mirage_', 'skale_']
     else:

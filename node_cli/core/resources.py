@@ -94,8 +94,8 @@ def compose_resource_allocation_config(env_type: str, params_by_env_type: Dict =
 
 def generate_resource_allocation_config(
     env_file,
+    node_type: NodeType,
     force=False,
-    node_type: NodeType = NodeType.REGULAR,
 ) -> None:
     if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
         msg = 'Resource allocation file already exists'

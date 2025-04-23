@@ -238,7 +238,7 @@ def is_volume_exists(name: str, dutils=None):
     return True
 
 
-def compose_rm(env={}, node_type: NodeType = NodeType.REGULAR):
+def compose_rm(node_type: NodeType, env={}):
     logger.info('Removing compose containers')
     compose_path = get_compose_path(node_type)
     run_cmd(
@@ -268,7 +268,7 @@ def compose_build(env: dict, sync_node: bool = False):
     run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'build'), env=env)
 
 
-def get_compose_path(node_type: NodeType = NodeType.REGULAR) -> str:
+def get_compose_path(node_type: NodeType) -> str:
     if node_type == NodeType.SYNC:
         return SYNC_COMPOSE_PATH
     elif node_type == NodeType.MIRAGE:
@@ -277,7 +277,7 @@ def get_compose_path(node_type: NodeType = NodeType.REGULAR) -> str:
         return COMPOSE_PATH
 
 
-def get_compose_services(node_type: NodeType = NodeType.REGULAR) -> tuple:
+def get_compose_services(node_type: NodeType) -> tuple:
     if node_type == NodeType.SYNC:
         return BASE_SYNC_COMPOSE_SERVICES
     elif node_type == NodeType.MIRAGE:
@@ -286,9 +286,7 @@ def get_compose_services(node_type: NodeType = NodeType.REGULAR) -> tuple:
         return BASE_SKALE_COMPOSE_SERVICES
 
 
-def get_up_compose_cmd(
-    node_type: NodeType = NodeType.REGULAR, services: Optional[tuple] = None
-) -> tuple:
+def get_up_compose_cmd(node_type: NodeType, services: Optional[tuple] = None) -> tuple:
     compose_path = get_compose_path(node_type)
 
     if services is None:
@@ -297,7 +295,7 @@ def get_up_compose_cmd(
     return ('docker', 'compose', '-f', compose_path, 'up', '-d', *services)
 
 
-def compose_up(env, node_type: NodeType = NodeType.REGULAR, is_mirage_boot: bool = False):
+def compose_up(env, node_type: NodeType, is_mirage_boot: bool = False):
     if node_type == NodeType.SYNC:
         logger.info('Running containers for sync node')
         run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.SYNC), env=env)
@@ -377,18 +375,14 @@ def is_container_running(name: str, dclient: Optional[DockerClient] = None) -> b
         return False
 
 
-def is_api_running(
-    node_type: NodeType = NodeType.REGULAR, dclient: Optional[DockerClient] = None
-) -> bool:
+def is_api_running(node_type: NodeType, dclient: Optional[DockerClient] = None) -> bool:
     if node_type == NodeType.MIRAGE:
         return is_container_running(name='mirage_api', dclient=dclient)
     else:
         return is_container_running(name='skale_api', dclient=dclient)
 
 
-def is_admin_running(
-    node_type: NodeType = NodeType.REGULAR, client: Optional[DockerClient] = None
-) -> bool:
+def is_admin_running(node_type: NodeType, client: Optional[DockerClient] = None) -> bool:
     if node_type == NodeType.MIRAGE:
         return is_container_running(name='mirage_admin', dclient=client)
     elif node_type == NodeType.SYNC:

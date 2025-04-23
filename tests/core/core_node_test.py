@@ -36,7 +36,7 @@ CMD = 'sleep 10'
 def skale_base_containers():
     containers = [
         dclient.containers.run(ALPINE_IMAGE_NAME, detach=True, name=f'skale_test{i}', command=CMD)
-        for i in range(get_base_containers_amount())
+        for i in range(get_base_containers_amount(node_type=NodeType.REGULAR))
     ]
     yield containers
     for c in containers:
@@ -47,7 +47,7 @@ def skale_base_containers():
 def skale_base_containers_without_one():
     containers = [
         dclient.containers.run(ALPINE_IMAGE_NAME, detach=True, name=f'skale_test{i}', command=CMD)
-        for i in range(get_base_containers_amount() - 1)
+        for i in range(get_base_containers_amount(node_type=NodeType.REGULAR) - 1)
     ]
     yield containers
     for c in containers:
@@ -58,7 +58,7 @@ def skale_base_containers_without_one():
 def skale_base_containers_exited():
     containers = [
         dclient.containers.run(HELLO_WORLD_IMAGE_NAME, detach=True, name=f'skale_test{i}')
-        for i in range(get_base_containers_amount())
+        for i in range(get_base_containers_amount(node_type=NodeType.REGULAR))
     ]
     time.sleep(10)
     yield containers
@@ -111,19 +111,19 @@ def test_pack_dir(tmp_dir):
 def test_is_base_containers_alive(skale_base_containers):
     cont = skale_base_containers
     print([c.name for c in cont])
-    assert is_base_containers_alive()
+    assert is_base_containers_alive(node_type=NodeType.REGULAR)
 
 
 def test_is_base_containers_alive_one_failed(skale_base_containers_without_one):
-    assert not is_base_containers_alive()
+    assert not is_base_containers_alive(node_type=NodeType.REGULAR)
 
 
 def test_is_base_containers_alive_exited(skale_base_containers_exited):
-    assert not is_base_containers_alive()
+    assert not is_base_containers_alive(node_type=NodeType.REGULAR)
 
 
 def test_is_base_containers_alive_empty():
-    assert not is_base_containers_alive()
+    assert not is_base_containers_alive(node_type=NodeType.REGULAR)
 
 
 @pytest.fixture

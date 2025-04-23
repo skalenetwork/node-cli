@@ -48,7 +48,7 @@ def init(env_filepath: str) -> None:
     init_mirage_boot_op(env_filepath, env)
     logger.info('Waiting for mirage containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive(NodeType.MIRAGE):
+    if not is_base_containers_alive(node_type=NodeType.MIRAGE):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Generating mirage resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])

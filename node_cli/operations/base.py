@@ -106,8 +106,8 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env)
+def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
+    compose_rm(node_type=node_type, env=env)
     remove_dynamic_containers()
 
     sync_skale_node()
@@ -143,13 +143,13 @@ def update(env_filepath: str, env: Dict) -> bool:
         distro.version(),
     )
     update_images(env=env)
-    compose_up(env)
+    compose_up(env=env, node_type=node_type)
     return True
 
 
 @checked_host
 def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env, node_type=NodeType.MIRAGE)
+    compose_rm(node_type=NodeType.MIRAGE, env=env)
 
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
@@ -182,12 +182,12 @@ def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
         distro.version(),
     )
     update_images(env=env)
-    compose_up(env, node_type=NodeType.MIRAGE)
+    compose_up(env=env, node_type=NodeType.MIRAGE)
     return True
 
 
 @checked_host
-def init(env_filepath: str, env: dict) -> None:
+def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
     sync_skale_node()
 
     ensure_btrfs_kernel_module_autoloaded()
@@ -217,7 +217,7 @@ def init(env_filepath: str, env: dict) -> None:
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env=env)
 
-    compose_up(env)
+    compose_up(env=env, node_type=node_type)
 
 
 @checked_host
@@ -248,7 +248,7 @@ def init_mirage_boot(env_filepath: str, env: dict) -> None:
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env=env)
 
-    compose_up(env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
+    compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
 
 
 def init_sync(
@@ -301,11 +301,11 @@ def init_sync(
 
     update_images(env=env, sync_node=True)
 
-    compose_up(env, node_type=NodeType.SYNC)
+    compose_up(env=env, node_type=NodeType.SYNC)
 
 
 def update_sync(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env, node_type=NodeType.SYNC)
+    compose_rm(env=env, node_type=NodeType.SYNC)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
@@ -333,7 +333,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     )
     update_images(env=env, sync_node=True)
 
-    compose_up(env, node_type=NodeType.SYNC)
+    compose_up(env=env, node_type=NodeType.SYNC)
     return True
 
 
@@ -344,7 +344,7 @@ def turn_off(env: dict, node_type: NodeType) -> None:
     logger.info('Node was successfully turned off')
 
 
-def turn_on(env: dict) -> None:
+def turn_on(env: dict, node_type: NodeType) -> None:
     logger.info('Turning on the node...')
     update_meta(
         VERSION,
@@ -360,10 +360,10 @@ def turn_on(env: dict) -> None:
     configure_nftables(enable_monitoring=enable_monitoring)
 
     logger.info('Launching containers on the node...')
-    compose_up(env)
+    compose_up(env=env, node_type=node_type)
 
 
-def restore(env, backup_path, config_only=False):
+def restore(env, backup_path, node_type: NodeType, config_only=False):
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -397,7 +397,7 @@ def restore(env, backup_path, config_only=False):
     update_resource_allocation(env_type=env['ENV_TYPE'])
 
     if not config_only:
-        compose_up(env)
+        compose_up(env=env, node_type=node_type)
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -442,7 +442,7 @@ def restore_mirage(env, backup_path, config_only=False):
     )
 
     if not config_only:
-        compose_up(env, node_type=NodeType.MIRAGE)
+        compose_up(env=env, node_type=NodeType.MIRAGE)
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],

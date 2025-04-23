@@ -85,7 +85,7 @@ def register_node(name, ip, port, domain):
 @click.argument('env_file')
 @streamed_cmd
 def init_node(env_file):
-    init(env_file)
+    init(env_filepath=env_file, node_type=TYPE)
 
 
 @node.command('update', help='Update node from .env file')
@@ -196,7 +196,7 @@ def _turn_off(maintenance_on, unsafe_ok):
 @click.argument('env_file')
 @streamed_cmd
 def _turn_on(maintenance_off, sync_schains, env_file):
-    turn_on(maintenance_off, sync_schains, env_file)
+    turn_on(maintenance_off, sync_schains, env_file, node_type=TYPE)
 
 
 @node.command('set-domain', help='Set node domain name')
