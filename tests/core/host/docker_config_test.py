@@ -130,7 +130,7 @@ def container(dclient):
         c.remove(force=True)
 
 
-def test_assert_no_contaners():
+def test_assert_no_containers():
     assert_no_containers(ignore=('ganache',))
 
 

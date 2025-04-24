@@ -276,7 +276,7 @@ def test_validate_env_params_mirage(
     params['ENV_TYPE'] = env_type
 
     if key_to_remove:
-        del params[key_to_remove]
+        params[key_to_remove] = ''
 
     if should_fail:
         with pytest.raises(SystemExit):
@@ -293,10 +293,10 @@ def test_validate_env_params_mirage(
     ],
     ids=['mirage_boot', 'mirage_regular'],
 )
-@mock.patch('node_cli.configs.env.validate_env_alias_or_address')
-@mock.patch('node_cli.configs.env.get_chain_id', return_value=1)
+@mock.patch('node_cli.configs.alias_address_validation.validate_env_alias_or_address')
+@mock.patch('node_cli.configs.alias_address_validation.get_chain_id', return_value=1)
 @mock.patch(
-    'node_cli.configs.env.get_network_metadata',
+    'node_cli.configs.alias_address_validation.get_network_metadata',
     return_value={'networks': [{'chainId': 1, 'path': 'mainnet'}]},
 )
 def test_get_validated_env_config_mirage_success(

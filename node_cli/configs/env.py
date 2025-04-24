@@ -138,8 +138,10 @@ def validate_env_params(
         error_exit(f'Missing required parameters: {missing}')
     validate_env_type(node_type=node_type, env_type=params['ENV_TYPE'])
     endpoint = params['ENDPOINT']
-    validate_env_alias_or_address(params['IMA_CONTRACTS'], ContractType.IMA, endpoint)
     validate_env_alias_or_address(params['MANAGER_CONTRACTS'], ContractType.MANAGER, endpoint)
+
+    if 'IMA_CONTRACTS' in params.keys():
+        validate_env_alias_or_address(params['IMA_CONTRACTS'], ContractType.IMA, endpoint)
 
 
 def validate_env_type(node_type: NodeType, env_type: str) -> None:
