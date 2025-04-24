@@ -356,7 +356,6 @@ def valid_env_params():
 
 @pytest.fixture
 def valid_env_file(valid_env_params):
-    """Create a temporary .env file whose contents mimic test-env."""
     file_name = None
     try:
         with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:

@@ -45,32 +45,44 @@ SCHAIN_REMOVE_TIMEOUT = 300
 IMA_REMOVE_TIMEOUT = 20
 TELEGRAF_REMOVE_TIMEOUT = 20
 
-BASE_SKALE_COMPOSE_SERVICES = (
-    'transaction-manager',
-    'skale-admin',
-    'skale-api',
-    'bounty',
-    'nginx',
-    'redis',
-    'watchdog',
-    'filebeat',
-)
-BASE_SYNC_COMPOSE_SERVICES = ('skale-sync-admin', 'nginx')
-CORE_MIRAGE_COMPOSE_SERVICES = (
-    'transaction-manager',
-    'skale-api',
-    'redis',
-    'watchdog',
-    'nginx',
-    'filebeat',
-)
-BASE_MIRAGE_COMPOSE_SERVICES = (*CORE_MIRAGE_COMPOSE_SERVICES, 'mirage-admin')
-BASE_MIRAGE_BOOT_COMPOSE_SERVICES = (*CORE_MIRAGE_COMPOSE_SERVICES, 'mirage-boot')
+# Services have format <service_name>: <container_name>
+CORE_COMMON_COMPOSE_SERVICES = {
+    'transaction-manager': 'skale_transaction-manager',
+    'redis': 'skale_redis',
+    'watchdog': 'skale_watchdog',
+    'nginx': 'skale_nginx',
+    'filebeat': 'skale_filebeat',
+}
 
-MONITORING_COMPOSE_SERVICES = (
-    'node-exporter',
-    'advisor',
-)
+BASE_SKALE_COMPOSE_SERVICES = {
+    **CORE_COMMON_COMPOSE_SERVICES,
+    'skale-admin': 'skale_admin',
+    'skale-api': 'skale_api',
+    'bounty': 'skale_bounty',
+}
+
+CORE_MIRAGE_COMPOSE_SERVICES = {
+    **CORE_COMMON_COMPOSE_SERVICES,
+    'mirage-api': 'mirage_api',
+}
+BASE_MIRAGE_COMPOSE_SERVICES = {
+    **CORE_MIRAGE_COMPOSE_SERVICES,
+    'mirage-admin': 'mirage_admin',
+}
+BASE_MIRAGE_BOOT_COMPOSE_SERVICES = {
+    **CORE_MIRAGE_COMPOSE_SERVICES,
+    'mirage-boot': 'mirage_boot_admin',
+}
+
+BASE_SYNC_COMPOSE_SERVICES = {
+    'skale-sync-admin': 'skale_sync_admin',
+    'nginx': 'skale_nginx',
+}
+
+MONITORING_COMPOSE_SERVICES = {
+    'node-exporter': 'monitor_node_exporter',
+    'advisor': 'monitor_cadvisor',
+}
 TELEGRAF_SERVICES = ('telegraf',)
 NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
@@ -277,16 +289,16 @@ def get_compose_path(node_type: NodeType) -> str:
         return COMPOSE_PATH
 
 
-def get_compose_services(node_type: NodeType) -> tuple:
+def get_compose_services(node_type: NodeType) -> list[str]:
     if node_type == NodeType.SYNC:
-        return BASE_SYNC_COMPOSE_SERVICES
+        return list(BASE_SYNC_COMPOSE_SERVICES)
     elif node_type == NodeType.MIRAGE:
-        return BASE_MIRAGE_COMPOSE_SERVICES
+        return list(BASE_MIRAGE_COMPOSE_SERVICES)
     else:
-        return BASE_SKALE_COMPOSE_SERVICES
+        return list(BASE_SKALE_COMPOSE_SERVICES)
 
 
-def get_up_compose_cmd(node_type: NodeType, services: Optional[tuple] = None) -> tuple:
+def get_up_compose_cmd(node_type: NodeType, services: Optional[list[str]] = None) -> tuple:
     compose_path = get_compose_path(node_type)
 
     if services is None:
@@ -313,7 +325,7 @@ def compose_up(env, node_type: NodeType, is_mirage_boot: bool = False):
             logger.debug('Launching mirage boot containers with env %s', env)
             run_cmd(
                 cmd=get_up_compose_cmd(
-                    node_type=NodeType.MIRAGE, services=BASE_MIRAGE_BOOT_COMPOSE_SERVICES
+                    node_type=NodeType.MIRAGE, services=list(BASE_MIRAGE_BOOT_COMPOSE_SERVICES)
                 ),
                 env=env,
             )
@@ -326,7 +338,7 @@ def compose_up(env, node_type: NodeType, is_mirage_boot: bool = False):
             logger.info('Running containers for Telegram notifications')
             run_cmd(
                 cmd=get_up_compose_cmd(
-                    node_type=NodeType.REGULAR, services=NOTIFICATION_COMPOSE_SERVICES
+                    node_type=NodeType.REGULAR, services=list(NOTIFICATION_COMPOSE_SERVICES)
                 ),
                 env=env,
             )
@@ -335,7 +347,7 @@ def compose_up(env, node_type: NodeType, is_mirage_boot: bool = False):
         logger.info('Running monitoring containers')
         run_cmd(
             cmd=get_up_compose_cmd(
-                node_type=NodeType.REGULAR, services=MONITORING_COMPOSE_SERVICES
+                node_type=NodeType.REGULAR, services=list(MONITORING_COMPOSE_SERVICES)
             ),
             env=env,
         )

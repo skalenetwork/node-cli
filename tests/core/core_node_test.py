@@ -9,15 +9,16 @@ import mock
 import pytest
 import requests
 
-from node_cli.configs import NODE_DATA_PATH
+from node_cli.configs import NODE_DATA_PATH, SCHAINS_MNT_DIR_REGULAR, SCHAINS_MNT_DIR_SINGLE_CHAIN
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.core.node import (
-    get_base_containers_amount,
+    get_expected_container_names,
     is_base_containers_alive,
     init,
     pack_dir,
     update,
     is_update_safe,
+    compose_node_env,
 )
 from node_cli.utils.meta import CliMeta
 from node_cli.utils.node_type import NodeType
@@ -28,42 +29,186 @@ from tests.resources_test import BIG_DISK_SIZE
 dclient = docker.from_env()
 
 ALPINE_IMAGE_NAME = 'alpine:3.12'
-HELLO_WORLD_IMAGE_NAME = 'hello-world'
-CMD = 'sleep 10'
+CMD = 'sleep 60'
+
+WRONG_CONTAINERS = [
+    'WRONG_CONTAINER_1',
+    'WRONG_CONTAINER_2',
+    'WRONG_CONTAINER_3',
+    'skale_WRONG_CONTAINER_4',
+    'skale_WRONG_CONTAINER_5',
+    'mirage_WRONG_CONTAINER_6',
+    'mirage_WRONG_CONTAINER_7',
+    'sync_WRONG_CONTAINER_8',
+    'sync_WRONG_CONTAINER_9',
+]
 
 
 @pytest.fixture
-def skale_base_containers():
-    containers = [
-        dclient.containers.run(ALPINE_IMAGE_NAME, detach=True, name=f'skale_test{i}', command=CMD)
-        for i in range(get_base_containers_amount(node_type=NodeType.REGULAR))
-    ]
-    yield containers
-    for c in containers:
-        c.remove(force=True)
+def manage_node_containers(request):
+    container_names_to_create = request.param
+    created_containers = []
+    try:
+        for name in container_names_to_create:
+            container = dclient.containers.run(
+                ALPINE_IMAGE_NAME, detach=True, name=name, command=CMD
+            )
+            created_containers.append(container)
+        if created_containers:
+            time.sleep(2)
+        yield created_containers
+    finally:
+        all_containers = dclient.containers.list(all=True)
+        for created_name in container_names_to_create:
+            for container in all_containers:
+                if container.name == created_name:
+                    try:
+                        container.remove(force=True)
+                    except docker.errors.NotFound:
+                        pass
 
 
-@pytest.fixture
-def skale_base_containers_without_one():
-    containers = [
-        dclient.containers.run(ALPINE_IMAGE_NAME, detach=True, name=f'skale_test{i}', command=CMD)
-        for i in range(get_base_containers_amount(node_type=NodeType.REGULAR) - 1)
-    ]
-    yield containers
-    for c in containers:
-        c.remove(force=True)
+@pytest.mark.parametrize(
+    'node_type, is_boot',
+    [
+        (NodeType.REGULAR, False),
+        (NodeType.SYNC, False),
+        (NodeType.MIRAGE, True),
+        (NodeType.MIRAGE, False),
+    ],
+)
+@pytest.mark.parametrize('manage_node_containers', [[]], indirect=True)
+def test_is_base_containers_alive(manage_node_containers, node_type, is_boot, request):
+    expected_names = get_expected_container_names(node_type, is_boot)
+
+    request.node.callspec.params['manage_node_containers'] = expected_names
+    request.getfixturevalue('manage_node_containers')  # Trigger fixture
+
+    dclient = docker.from_env()
+    running_container_names = [container.name for container in dclient.containers.list()]
+    print(f'Running containers: {running_container_names}')
+
+    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot)
 
 
-@pytest.fixture
-def skale_base_containers_exited():
-    containers = [
-        dclient.containers.run(HELLO_WORLD_IMAGE_NAME, detach=True, name=f'skale_test{i}')
-        for i in range(get_base_containers_amount(node_type=NodeType.REGULAR))
-    ]
-    time.sleep(10)
-    yield containers
-    for c in containers:
-        c.remove(force=True)
+@pytest.mark.parametrize(
+    'node_type, is_boot',
+    [
+        (NodeType.REGULAR, False),
+        (NodeType.SYNC, False),
+        (NodeType.MIRAGE, True),
+        (NodeType.MIRAGE, False),
+    ],
+)
+@pytest.mark.parametrize('manage_node_containers', [[]], indirect=True)
+def test_is_base_containers_alive_wrong(manage_node_containers, node_type, is_boot, request):
+    request.node.callspec.params['manage_node_containers'] = WRONG_CONTAINERS
+    request.getfixturevalue('manage_node_containers')  # Trigger fixture
+
+    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
+
+
+@pytest.mark.parametrize(
+    'node_type, is_boot',
+    [
+        (NodeType.REGULAR, False),
+        (NodeType.SYNC, False),
+        (NodeType.MIRAGE, True),
+        (NodeType.MIRAGE, False),
+    ],
+)
+@pytest.mark.parametrize('manage_node_containers', [[]], indirect=True)
+def test_is_base_containers_alive_missing(manage_node_containers, node_type, is_boot, request):
+    expected_names = get_expected_container_names(node_type, is_boot)
+
+    containers_to_create = expected_names[1:]
+    request.node.callspec.params['manage_node_containers'] = containers_to_create
+    request.getfixturevalue('manage_node_containers')  # Trigger fixture
+
+    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
+
+
+@pytest.mark.parametrize(
+    'node_type, is_boot',
+    [
+        (NodeType.REGULAR, False),
+        (NodeType.SYNC, False),
+        (NodeType.MIRAGE, True),
+        (NodeType.MIRAGE, False),
+    ],
+)
+@pytest.mark.parametrize('manage_node_containers', [[]], indirect=True)
+def test_is_base_containers_alive_empty(manage_node_containers, node_type, is_boot, request):
+    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
+
+
+@pytest.mark.parametrize(
+    (
+        'node_type, is_boot, inited_node, sync_schains, expected_mnt_dir, '
+        'expect_flask_key, expect_backup_run'
+    ),
+    [
+        (NodeType.REGULAR, False, True, False, SCHAINS_MNT_DIR_REGULAR, True, False),
+        (NodeType.REGULAR, False, True, True, SCHAINS_MNT_DIR_REGULAR, True, True),
+        (NodeType.SYNC, False, False, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, False, False),
+        (NodeType.MIRAGE, True, True, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, True, False),
+        (NodeType.MIRAGE, False, True, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, True, False),
+    ],
+    ids=[
+        'regular',
+        'regular_sync_flag',
+        'sync',
+        'mirage_boot',
+        'mirage_regular',
+    ],
+)
+@mock.patch('node_cli.core.node.get_validated_env_config')
+@mock.patch('node_cli.core.node.save_env_params')
+@mock.patch('node_cli.core.node.get_flask_secret_key', return_value='mock_secret')
+def test_compose_node_env(
+    mock_get_secret,
+    mock_save_params,
+    mock_get_validated,
+    node_type,
+    is_boot,
+    inited_node,
+    sync_schains,
+    expected_mnt_dir,
+    expect_flask_key,
+    expect_backup_run,
+    valid_env_file,
+    valid_env_params,
+):
+    mock_get_validated.return_value = valid_env_params.copy()
+    if node_type == NodeType.SYNC:
+        mock_get_validated.return_value['ENV_TYPE'] = 'devnet'
+    elif node_type == NodeType.MIRAGE:
+        mock_get_validated.return_value['ENV_TYPE'] = 'mainnet-mirage'
+    else:
+        mock_get_validated.return_value['ENV_TYPE'] = 'mainnet'
+
+    result_env = compose_node_env(
+        env_filepath=valid_env_file,
+        inited_node=inited_node,
+        sync_schains=sync_schains,
+        node_type=node_type,
+        is_mirage_boot=is_boot,
+        save=True,
+    )
+
+    mock_save_params.assert_called_once_with(valid_env_file)
+    mock_get_validated.assert_called_once_with(
+        valid_env_file, node_type=node_type, is_mirage_boot=is_boot
+    )
+    assert result_env['SCHAINS_MNT_DIR'] == expected_mnt_dir
+    assert (
+        'FLASK_SECRET_KEY' in result_env and result_env['FLASK_SECRET_KEY'] is not None
+    ) == expect_flask_key
+    if expect_flask_key:
+        assert result_env['FLASK_SECRET_KEY'] == 'mock_secret'
+    should_have_backup = sync_schains and node_type != NodeType.SYNC
+    assert ('BACKUP_RUN' in result_env and result_env['BACKUP_RUN'] == 'True') == should_have_backup
+    assert result_env['ENDPOINT'] == valid_env_params['ENDPOINT']
 
 
 @pytest.fixture
@@ -106,24 +251,6 @@ def test_pack_dir(tmp_dir):
     # Not absolute or unrelated path in exclude raises ValueError
     with pytest.raises(ValueError):
         pack_dir(backup_dir, cleaned_archive_path, exclude=('trash_data',))
-
-
-def test_is_base_containers_alive(skale_base_containers):
-    cont = skale_base_containers
-    print([c.name for c in cont])
-    assert is_base_containers_alive(node_type=NodeType.REGULAR)
-
-
-def test_is_base_containers_alive_one_failed(skale_base_containers_without_one):
-    assert not is_base_containers_alive(node_type=NodeType.REGULAR)
-
-
-def test_is_base_containers_alive_exited(skale_base_containers_exited):
-    assert not is_base_containers_alive(node_type=NodeType.REGULAR)
-
-
-def test_is_base_containers_alive_empty():
-    assert not is_base_containers_alive(node_type=NodeType.REGULAR)
 
 
 @pytest.fixture

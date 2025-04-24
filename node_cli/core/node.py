@@ -79,6 +79,7 @@ from node_cli.utils.docker_utils import (
     BASE_SKALE_COMPOSE_SERVICES,
     BASE_SYNC_COMPOSE_SERVICES,
     BASE_MIRAGE_COMPOSE_SERVICES,
+    BASE_MIRAGE_BOOT_COMPOSE_SERVICES,
 )
 from node_cli.utils.node_type import NodeType
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
@@ -427,31 +428,30 @@ def turn_on(maintenance_off, sync_schains, env_file, node_type: NodeType) -> Non
         set_maintenance_mode_off()
 
 
-def get_base_containers_amount(node_type: NodeType):
-    if node_type == NodeType.SYNC:
-        return len(BASE_SYNC_COMPOSE_SERVICES)
-    elif node_type == NodeType.MIRAGE:
-        return len(BASE_MIRAGE_COMPOSE_SERVICES)
+def get_expected_container_names(node_type: NodeType, is_mirage_boot: bool) -> list[str]:
+    if node_type == NodeType.MIRAGE and is_mirage_boot:
+        return list(BASE_MIRAGE_BOOT_COMPOSE_SERVICES.values())
+    elif node_type == NodeType.MIRAGE and not is_mirage_boot:
+        return list(BASE_MIRAGE_COMPOSE_SERVICES.values())
+    elif node_type == NodeType.SYNC:
+        return list(BASE_SYNC_COMPOSE_SERVICES.values())
     else:
-        return len(BASE_SKALE_COMPOSE_SERVICES)
+        return list(BASE_SKALE_COMPOSE_SERVICES.values())
 
 
-def is_base_containers_alive(node_type: NodeType) -> bool:
-    if node_type == NodeType.MIRAGE:
-        prefixes = ['mirage_', 'skale_']
-    else:
-        prefixes = ['skale_']
+def is_base_containers_alive(node_type: NodeType, is_mirage_boot: bool = False) -> bool:
+    base_container_names = get_expected_container_names(node_type, is_mirage_boot)
 
     dclient = docker.from_env()
-    containers = dclient.containers.list()
+    running_container_names = [container.name for container in dclient.containers.list()]
 
-    alive_containers = []
-    for prefix in prefixes:
-        prefix_containers = list(filter(lambda c: c.name.startswith(prefix), containers))
-        alive_containers.extend(prefix_containers)
+    for base_container in base_container_names:
+        if base_container in running_container_names:
+            continue
+        else:
+            return False
 
-    containers_amount = get_base_containers_amount(node_type)
-    return len(alive_containers) >= containers_amount
+    return True
 
 
 def get_node_info_plain():
