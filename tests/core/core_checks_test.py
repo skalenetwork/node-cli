@@ -1,7 +1,6 @@
 import os
 import shutil
-import time
-from pip._internal import main as pipmain
+import subprocess
 
 import mock
 import pytest
@@ -36,6 +35,13 @@ def requirements_data():
         'package': {'iptables_persistant': '0.0.0', 'lvm2': '0.0.0', 'test-package': '2.2.2'},
         'docker': {'docker-engine': '0.0.0', 'docker-api': '0.0.0', 'docker-compose': '1.27.4'},
     }
+
+
+@pytest.fixture
+def mirage_requirements_data(requirements_data):
+    reqs = {k: v.copy() for k, v in requirements_data.items()}
+    reqs['package']['lvm2'] = 'disabled'
+    return reqs
 
 
 @pytest.fixture
@@ -195,41 +201,27 @@ def test_checks_docker_api(docker_req):
     assert r.info['expected_version'] == '111.111.111'
 
 
-@pytest.fixture
-def docker_compose_pkg_1_27_4():
-    pipmain(['install', 'docker-compose==1.27.4'])
-    time.sleep(10)
-    yield
-    pipmain(['uninstall', 'docker-compose', '-y'])
-
-
-@pytest.fixture
-def docker_compose_pkg_1_24_1():
-    pipmain(['install', 'docker-compose==1.24.1'])
-    time.sleep(10)
-    yield
-    pipmain(['uninstall', 'docker-compose', '-y'])
-
-
-def test_checks_docker_compose_good_pkg(docker_req, docker_compose_pkg_1_27_4):
-    checker = DockerChecker(package_req)
-    r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
-
-
-def test_checks_docker_compose_no_pkg(docker_req):
-    checker = DockerChecker(package_req)
-    r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
-
-
-def test_checks_docker_compose_invalid_version(docker_req, docker_compose_pkg_1_24_1):
+@mock.patch('node_cli.utils.helper.subprocess.run')
+@mock.patch('node_cli.core.checks.shutil.which', return_value='/usr/bin/docker')
+def test_checks_docker_compose_version_mocked(mock_shutil_which, mock_subprocess_run, docker_req):
     checker = DockerChecker(docker_req)
+    expected_version = docker_req['docker-compose']
+
+    mock_output = f'Docker Compose version v{expected_version}, build somehash'.encode('utf-8')
+    mock_result = mock.Mock(spec=subprocess.CompletedProcess)
+    mock_result.stdout = mock_output
+    mock_result.stderr = None
+    mock_result.returncode = 0
+
+    mock_subprocess_run.return_value = mock_result
+
     r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
+
+    assert r.name == 'docker'
+    assert r.status == 'ok', f'Check failed: {r}'
+    assert isinstance(r.info, str)
+    assert f'expected docker compose version {expected_version}' in r.info.lower()
+    assert f'actual v{expected_version}' in r.info.lower()
 
 
 def test_checks_docker_config(docker_req):
@@ -342,6 +334,18 @@ def test_get_checks(requirements_data):
     assert len(checks) == 14
     checks = get_checks(checkers, check_type=CheckType.POSTINSTALL)
     assert len(checks) == 2
+
+
+def test_get_checks_mirage(mirage_requirements_data):
+    disk = 'test-disk'
+    mirage_checkers = get_all_checkers(disk, mirage_requirements_data)
+
+    mirage_all_checks = get_checks(mirage_checkers, CheckType.ALL)
+    mirage_all_names = {f.func.__name__ for f in mirage_all_checks}
+    assert 'network' in mirage_all_names
+    assert 'lvm2' not in mirage_all_names
+    assert 'cpu_total' in mirage_all_names
+    assert 'btrfs_progs' in mirage_all_names
 
 
 def test_get_save_report(tmp_dir_path):
