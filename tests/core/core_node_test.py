@@ -33,15 +33,50 @@ CMD = 'sleep 60'
 
 WRONG_CONTAINERS = [
     'WRONG_CONTAINER_1',
-    'WRONG_CONTAINER_2',
-    'WRONG_CONTAINER_3',
     'skale_WRONG_CONTAINER_4',
-    'skale_WRONG_CONTAINER_5',
     'mirage_WRONG_CONTAINER_6',
-    'mirage_WRONG_CONTAINER_7',
     'sync_WRONG_CONTAINER_8',
-    'sync_WRONG_CONTAINER_9',
 ]
+
+NODE_TYPE_BOOT_COMBINATIONS: list[tuple[NodeType, bool]] = [
+    (NodeType.REGULAR, False),
+    (NodeType.SYNC, False),
+    (NodeType.MIRAGE, True),
+    (NodeType.MIRAGE, False),
+]
+
+alive_test_params = [
+    pytest.param(
+        node_type,
+        is_boot,
+        get_expected_container_names(node_type, is_boot),
+        id=f'{node_type.name}-boot_{is_boot}-correct_containers',
+    )
+    for node_type, is_boot in NODE_TYPE_BOOT_COMBINATIONS
+]
+
+wrong_test_params = [
+    pytest.param(
+        node_type,
+        is_boot,
+        WRONG_CONTAINERS,
+        id=f'{node_type.name}-boot_{is_boot}-wrong_containers',
+    )
+    for node_type, is_boot in NODE_TYPE_BOOT_COMBINATIONS
+]
+
+missing_test_params = []
+for node_type, is_boot in NODE_TYPE_BOOT_COMBINATIONS:
+    expected_names = get_expected_container_names(node_type, is_boot)
+    containers_to_create = expected_names[1:]
+    missing_test_params.append(
+        pytest.param(
+            node_type,
+            is_boot,
+            containers_to_create,
+            id=f'{node_type.name}-boot_{is_boot}-missing_containers',
+        )
+    )
 
 
 @pytest.fixture
@@ -50,95 +85,65 @@ def manage_node_containers(request):
     created_containers = []
     try:
         for name in container_names_to_create:
+            try:
+                existing_container = dclient.containers.get(name)
+                existing_container.remove(force=True)
+            except docker.errors.NotFound:
+                pass
             container = dclient.containers.run(
-                ALPINE_IMAGE_NAME, detach=True, name=name, command=CMD
+                ALPINE_IMAGE_NAME,
+                detach=True,
+                name=name,
+                command=CMD,
             )
             created_containers.append(container)
+
         if created_containers:
             time.sleep(2)
+
         yield created_containers
+
     finally:
-        all_containers = dclient.containers.list(all=True)
-        for created_name in container_names_to_create:
-            for container in all_containers:
-                if container.name == created_name:
-                    try:
-                        container.remove(force=True)
-                    except docker.errors.NotFound:
-                        pass
+        all_containers_now = dclient.containers.list(all=True)
+        cleaned_count = 0
+        for container_obj in all_containers_now:
+            if container_obj.name in container_names_to_create:
+                try:
+                    container_obj.remove(force=True)
+                    cleaned_count += 1
+                except docker.errors.NotFound:
+                    pass
 
 
 @pytest.mark.parametrize(
-    'node_type, is_boot',
-    [
-        (NodeType.REGULAR, False),
-        (NodeType.SYNC, False),
-        (NodeType.MIRAGE, True),
-        (NodeType.MIRAGE, False),
-    ],
+    'node_type, is_boot, manage_node_containers',
+    alive_test_params,
+    indirect=['manage_node_containers'],
 )
-@pytest.mark.parametrize('manage_node_containers', [[]], indirect=True)
-def test_is_base_containers_alive(manage_node_containers, node_type, is_boot, request):
-    expected_names = get_expected_container_names(node_type, is_boot)
-
-    request.node.callspec.params['manage_node_containers'] = expected_names
-    request.getfixturevalue('manage_node_containers')  # Trigger fixture
-
-    dclient = docker.from_env()
-    running_container_names = [container.name for container in dclient.containers.list()]
-    print(f'Running containers: {running_container_names}')
-
-    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot)
+def test_is_base_containers_alive(manage_node_containers, node_type, is_boot):
+    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is True
 
 
 @pytest.mark.parametrize(
-    'node_type, is_boot',
-    [
-        (NodeType.REGULAR, False),
-        (NodeType.SYNC, False),
-        (NodeType.MIRAGE, True),
-        (NodeType.MIRAGE, False),
-    ],
+    'node_type, is_boot, manage_node_containers',
+    wrong_test_params,
+    indirect=['manage_node_containers'],
 )
-@pytest.mark.parametrize('manage_node_containers', [[]], indirect=True)
-def test_is_base_containers_alive_wrong(manage_node_containers, node_type, is_boot, request):
-    request.node.callspec.params['manage_node_containers'] = WRONG_CONTAINERS
-    request.getfixturevalue('manage_node_containers')  # Trigger fixture
-
+def test_is_base_containers_alive_wrong(manage_node_containers, node_type, is_boot):
     assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
 
 
 @pytest.mark.parametrize(
-    'node_type, is_boot',
-    [
-        (NodeType.REGULAR, False),
-        (NodeType.SYNC, False),
-        (NodeType.MIRAGE, True),
-        (NodeType.MIRAGE, False),
-    ],
+    'node_type, is_boot, manage_node_containers',
+    missing_test_params,
+    indirect=['manage_node_containers'],
 )
-@pytest.mark.parametrize('manage_node_containers', [[]], indirect=True)
-def test_is_base_containers_alive_missing(manage_node_containers, node_type, is_boot, request):
-    expected_names = get_expected_container_names(node_type, is_boot)
-
-    containers_to_create = expected_names[1:]
-    request.node.callspec.params['manage_node_containers'] = containers_to_create
-    request.getfixturevalue('manage_node_containers')  # Trigger fixture
-
+def test_is_base_containers_alive_missing(manage_node_containers, node_type, is_boot):
     assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
 
 
-@pytest.mark.parametrize(
-    'node_type, is_boot',
-    [
-        (NodeType.REGULAR, False),
-        (NodeType.SYNC, False),
-        (NodeType.MIRAGE, True),
-        (NodeType.MIRAGE, False),
-    ],
-)
-@pytest.mark.parametrize('manage_node_containers', [[]], indirect=True)
-def test_is_base_containers_alive_empty(manage_node_containers, node_type, is_boot, request):
+@pytest.mark.parametrize('node_type, is_boot', NODE_TYPE_BOOT_COMBINATIONS)
+def test_is_base_containers_alive_empty(node_type, is_boot):
     assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
 
 
@@ -198,7 +203,7 @@ def test_compose_node_env(
 
     mock_save_params.assert_called_once_with(valid_env_file)
     mock_get_validated.assert_called_once_with(
-        valid_env_file, node_type=node_type, is_mirage_boot=is_boot
+        env_filepath=valid_env_file, node_type=node_type, is_mirage_boot=is_boot
     )
     assert result_env['SCHAINS_MNT_DIR'] == expected_mnt_dir
     assert (
