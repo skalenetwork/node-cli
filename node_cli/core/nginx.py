@@ -33,10 +33,6 @@ SSL_KEY_NAME = 'ssl_key'
 SSL_CRT_NAME = 'ssl_cert'
 
 
-def is_regular_node_nginx() -> bool:
-    return TYPE != NodeType.MIRAGE
-
-
 def generate_nginx_config() -> None:
     ssl_on = check_ssl_certs()
     regular_node = is_regular_node_nginx()
@@ -52,6 +48,10 @@ def check_ssl_certs():
     crt_path = os.path.join(NODE_CERTS_PATH, SSL_CRT_NAME)
     key_path = os.path.join(NODE_CERTS_PATH, SSL_KEY_NAME)
     return os.path.exists(crt_path) and os.path.exists(key_path)
+
+
+def is_regular_node_nginx() -> bool:
+    return TYPE != NodeType.MIRAGE
 
 
 def reload_nginx() -> None:
