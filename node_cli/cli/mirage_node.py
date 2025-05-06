@@ -34,7 +34,6 @@ def mirage_node_cli():
 @check_inited
 def init_node():
     click.echo("Placeholder: Command 'mirage node init' is not yet implemented.")
-    pass
 
 
 @mirage_node_cli.command(
@@ -43,7 +42,6 @@ def init_node():
 @check_inited
 def register_node():
     click.echo("Placeholder: Command 'mirage node register' is not yet implemented.")
-    pass
 
 
 @mirage_node_cli.command('update', help='Update Mirage.')
@@ -60,7 +58,6 @@ def register_node():
 @streamed_cmd
 def update_node(env_file, pull_config_for_schain, unsafe_ok):
     click.echo("Placeholder: Command 'mirage node update' is not yet implemented.")
-    pass
 
 
 @mirage_node_cli.command('signature', help='Get mirage node signature for a validator ID.')
