@@ -430,25 +430,25 @@ def turn_on(maintenance_off, sync_schains, env_file, node_type: NodeType) -> Non
 
 def get_expected_container_names(node_type: NodeType, is_mirage_boot: bool) -> list[str]:
     if node_type == NodeType.MIRAGE and is_mirage_boot:
-        return list(BASE_MIRAGE_BOOT_COMPOSE_SERVICES.values())
+        services = BASE_MIRAGE_BOOT_COMPOSE_SERVICES
     elif node_type == NodeType.MIRAGE and not is_mirage_boot:
-        return list(BASE_MIRAGE_COMPOSE_SERVICES.values())
+        services = BASE_MIRAGE_COMPOSE_SERVICES
     elif node_type == NodeType.SYNC:
-        return list(BASE_SYNC_COMPOSE_SERVICES.values())
+        services = BASE_SYNC_COMPOSE_SERVICES
     else:
-        return list(BASE_SKALE_COMPOSE_SERVICES.values())
+        services = BASE_SKALE_COMPOSE_SERVICES
+
+    return list(services.values())
 
 
 def is_base_containers_alive(node_type: NodeType, is_mirage_boot: bool = False) -> bool:
     base_container_names = get_expected_container_names(node_type, is_mirage_boot)
 
     dclient = docker.from_env()
-    running_container_names = [container.name for container in dclient.containers.list()]
+    running_container_names = set(container.name for container in dclient.containers.list())
 
     for base_container in base_container_names:
-        if base_container in running_container_names:
-            continue
-        else:
+        if base_container not in running_container_names:
             return False
 
     return True

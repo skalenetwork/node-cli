@@ -291,11 +291,13 @@ def get_compose_path(node_type: NodeType) -> str:
 
 def get_compose_services(node_type: NodeType) -> list[str]:
     if node_type == NodeType.SYNC:
-        return list(BASE_SYNC_COMPOSE_SERVICES)
+        result = list(BASE_SYNC_COMPOSE_SERVICES)
     elif node_type == NodeType.MIRAGE:
-        return list(BASE_MIRAGE_COMPOSE_SERVICES)
+        result = list(BASE_MIRAGE_COMPOSE_SERVICES)
     else:
-        return list(BASE_SKALE_COMPOSE_SERVICES)
+        result = list(BASE_SKALE_COMPOSE_SERVICES)
+
+    return result
 
 
 def get_up_compose_cmd(node_type: NodeType, services: Optional[list[str]] = None) -> tuple:
@@ -396,11 +398,13 @@ def is_api_running(node_type: NodeType, dclient: Optional[DockerClient] = None) 
 
 def is_admin_running(node_type: NodeType, client: Optional[DockerClient] = None) -> bool:
     if node_type == NodeType.MIRAGE:
-        return is_container_running(name='mirage_admin', dclient=client)
+        result = is_container_running(name='mirage_admin', dclient=client)
     elif node_type == NodeType.SYNC:
-        return is_container_running(name='skale_sync_admin', dclient=client)
+        result = is_container_running(name='skale_sync_admin', dclient=client)
     else:
-        return is_container_running(name='skale_admin', dclient=client)
+        result = is_container_running(name='skale_admin', dclient=client)
+
+    return result
 
 
 def system_prune():

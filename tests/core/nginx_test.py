@@ -47,12 +47,13 @@ def nginx_template():
     os.makedirs(os.path.dirname(NGINX_TEMPLATE_FILEPATH), exist_ok=True)
     with open(NGINX_TEMPLATE_FILEPATH, 'w') as f:
         f.write(TEST_NGINX_TEMPLATE)
-    yield
     try:
-        os.remove(NGINX_TEMPLATE_FILEPATH)
-        os.remove(NGINX_CONFIG_FILEPATH)
-    except FileNotFoundError:
-        pass
+        yield
+    finally:
+        if os.path.isfile(NGINX_TEMPLATE_FILEPATH):
+            os.remove(NGINX_TEMPLATE_FILEPATH)
+        if os.path.isfile(NGINX_CONFIG_FILEPATH):
+            os.remove(NGINX_CONFIG_FILEPATH)
 
 
 @pytest.mark.parametrize(
