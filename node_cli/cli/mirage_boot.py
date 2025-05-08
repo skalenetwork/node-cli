@@ -95,13 +95,10 @@ def migrate_boot(env_file, pull_config_for_schain):
     prompt='Are you sure you want to update Mirage node software?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
-@click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
 @click.argument('env_file')
 @streamed_cmd
-def update_node(env_file, pull_config_for_schain, unsafe_ok):
+def update_node(env_file, pull_config_for_schain):
     update(
         env_filepath=env_file,
         pull_config_for_schain=pull_config_for_schain,
-        node_type=TYPE,
-        unsafe_ok=unsafe_ok,
     )
