@@ -23,6 +23,7 @@ from node_cli.operations.base import (  # noqa
     init_sync as init_sync_op,
     init_mirage_boot as init_mirage_boot_op,
     migrate_mirage_boot as migrate_mirage_boot_op,
+    update_mirage_boot as update_mirage_boot_op,
     update_sync as update_sync_op,
     turn_off as turn_off_op,
     turn_on as turn_on_op,

@@ -1,7 +1,7 @@
 from unittest import mock
 
 from node_cli.configs import SKALE_DIR
-from node_cli.core.mirage_boot import init as init_boot, migrate
+from node_cli.core.mirage_boot import init as init_boot, migrate, update
 from node_cli.core.mirage_node import restore_mirage
 from node_cli.utils.node_type import NodeType
 
@@ -77,7 +77,7 @@ def test_migrate_mirage_boot(
     mock_env = {'ENV_TYPE': 'devnet-mirage'}
     mock_compose_env.return_value = mock_env
     mock_migrate_op.return_value = True
-    pull_config_for_schain = 'some_schain'
+    pull_config_for_schain = 'mirage'
 
     migrate(valid_env_file, pull_config_for_schain)
 
@@ -89,5 +89,40 @@ def test_migrate_mirage_boot(
         node_type=NodeType.MIRAGE,
     )
     mock_migrate_op.assert_called_once_with(valid_env_file, mock_env)
+    mock_sleep.assert_called_once()
+    mock_is_alive.assert_called_once_with(node_type=NodeType.MIRAGE)
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.core.mirage_boot.is_base_containers_alive', return_value=True)
+@mock.patch('node_cli.core.mirage_boot.time.sleep')
+@mock.patch('node_cli.core.mirage_boot.update_mirage_boot_op')
+@mock.patch('node_cli.core.mirage_boot.compose_node_env')
+def test_update_mirage_boot(
+    mock_compose_env,
+    mock_update_op,
+    mock_sleep,
+    mock_is_alive,
+    mock_is_user_valid,
+    valid_env_file,
+    resource_alloc,
+    meta_file_v3,
+):
+    mock_env = {'ENV_TYPE': 'devnet-mirage'}
+    mock_compose_env.return_value = mock_env
+    mock_update_op.return_value = True
+    pull_config_for_schain = 'mirage'
+
+    update(valid_env_file, pull_config_for_schain)
+
+    mock_compose_env.assert_called_once_with(
+        valid_env_file,
+        inited_node=True,
+        sync_schains=False,
+        pull_config_for_schain=pull_config_for_schain,
+        node_type=NodeType.MIRAGE,
+        is_mirage_boot=True,
+    )
+    mock_update_op.assert_called_once_with(valid_env_file, mock_env)
     mock_sleep.assert_called_once()
     mock_is_alive.assert_called_once_with(node_type=NodeType.MIRAGE, is_mirage_boot=True)

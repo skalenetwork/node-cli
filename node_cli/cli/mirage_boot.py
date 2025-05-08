@@ -20,7 +20,7 @@
 import click
 
 from node_cli.core.node import get_node_signature, register_node as register
-from node_cli.core.mirage_boot import init, migrate
+from node_cli.core.mirage_boot import init, migrate, update
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.utils.helper import streamed_cmd, IP_TYPE, error_exit, abort_if_false
 
@@ -84,3 +84,24 @@ def signature_boot(validator_id):
 @streamed_cmd
 def migrate_boot(env_file, pull_config_for_schain):
     migrate(env_file, pull_config_for_schain)
+
+
+@mirage_boot_cli.command('update', help='Update Mirage node from .env file')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to update Mirage node software?',
+)
+@click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
+@click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
+@click.argument('env_file')
+@streamed_cmd
+def update_node(env_file, pull_config_for_schain, unsafe_ok):
+    update(
+        env_filepath=env_file,
+        pull_config_for_schain=pull_config_for_schain,
+        node_type=TYPE,
+        unsafe_ok=unsafe_ok,
+    )

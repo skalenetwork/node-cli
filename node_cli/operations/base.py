@@ -187,6 +187,46 @@ def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
 
 
 @checked_host
+def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
+    compose_rm(node_type=NodeType.MIRAGE, env=env)
+    remove_dynamic_containers()
+
+    sync_skale_node()
+    ensure_btrfs_kernel_module_autoloaded()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
+
+    generate_nginx_config()
+
+    prepare_host(env_filepath, env['ENV_TYPE'])
+
+    current_stream = get_meta_info().config_stream
+    skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
+    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+        logger.info(
+            'Stream version was changed from %s to %s',
+            current_stream,
+            env['CONTAINER_CONFIGS_STREAM'],
+        )
+        docker_cleanup()
+
+    update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        env['DOCKER_LVMPY_STREAM'],
+        distro.id(),
+        distro.version(),
+    )
+    update_images(env=env)
+    compose_up(env=env, node_type=NodeType.MIRAGE)
+    return True
+
+
+@checked_host
 def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
     sync_skale_node()
 
