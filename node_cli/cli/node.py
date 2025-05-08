@@ -42,7 +42,6 @@ from node_cli.utils.decorators import check_inited
 from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd, IP_TYPE
 from node_cli.utils.meta import get_meta_info
 from node_cli.utils.print_formatters import print_meta_info
-from node_cli.utils.node_type import NodeType
 
 
 TEXTS = safe_load_texts()
@@ -104,7 +103,7 @@ def update_node(env_file, pull_config_for_schain, unsafe_ok):
     update(
         env_filepath=env_file,
         pull_config_for_schain=pull_config_for_schain,
-        node_type=NodeType.REGULAR,
+        node_type=TYPE,
         unsafe_ok=unsafe_ok,
     )
 
@@ -228,7 +227,7 @@ def _set_domain_name(domain):
     help='Network to check',
 )
 def check(network):
-    run_checks(node_type=NodeType.REGULAR, network=network)
+    run_checks(node_type=TYPE, network=network)
 
 
 @node.command(help='Reconfigure nftables rules')

@@ -32,7 +32,6 @@ def test_restore_mirage(
     mock_sleep.assert_called_once()
 
 
-@mock.patch('node_cli.core.mirage_boot.update_resource_allocation')
 @mock.patch('node_cli.core.mirage_boot.is_base_containers_alive', return_value=True)
 @mock.patch('node_cli.core.mirage_boot.time.sleep')
 @mock.patch('node_cli.core.mirage_boot.init_mirage_boot_op')
@@ -42,7 +41,6 @@ def test_init_mirage_boot(
     mock_init_op,
     mock_sleep,
     mock_is_alive,
-    mock_update_alloc,
     valid_env_file,
     ensure_meta_removed,
 ):
@@ -59,7 +57,6 @@ def test_init_mirage_boot(
     mock_init_op.assert_called_once_with(valid_env_file, mock_env)
     mock_sleep.assert_called_once()
     mock_is_alive.assert_called_once_with(node_type=NodeType.MIRAGE, is_mirage_boot=True)
-    mock_update_alloc.assert_called_once_with(mock_env['ENV_TYPE'])
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)

@@ -22,7 +22,6 @@ import logging
 import time
 
 from node_cli.configs import TM_INIT_TIMEOUT
-from node_cli.core.resources import update_resource_allocation
 from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.operations import init_mirage_boot_op, migrate_mirage_boot_op
 from node_cli.utils.decorators import check_not_inited, check_inited, check_user
@@ -50,8 +49,6 @@ def init(env_filepath: str) -> None:
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=NodeType.MIRAGE, is_mirage_boot=True):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    logger.info('Generating mirage resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
     logger.info('Init mirage procedure finished')
 
 
