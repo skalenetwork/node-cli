@@ -12,8 +12,7 @@ from node_cli.configs.env import (
     get_validated_env_config,
     validate_env_params,
     validate_env_type,
-    ALLOWED_SKALE_ENV_TYPES,
-    ALLOWED_MIRAGE_ENV_TYPES,
+    ALLOWED_ENV_TYPES,
     REQUIRED_PARAMS_SKALE,
     REQUIRED_PARAMS_SYNC,
     REQUIRED_PARAMS_MIRAGE_BOOT,
@@ -112,43 +111,23 @@ def test_build_env_params_keys(node_type, is_mirage_boot, expected_keys, unexpec
 
 
 @pytest.mark.parametrize(
-    'node_type, env_types, should_fail',
+    'env_types, should_fail',
     [
-        (NodeType.REGULAR, ALLOWED_SKALE_ENV_TYPES, False),
-        (NodeType.REGULAR, ALLOWED_MIRAGE_ENV_TYPES, True),
-        (NodeType.SYNC, ALLOWED_SKALE_ENV_TYPES, False),
-        (NodeType.SYNC, ALLOWED_MIRAGE_ENV_TYPES, True),
-        (NodeType.MIRAGE, ALLOWED_MIRAGE_ENV_TYPES, False),
-        (NodeType.MIRAGE, ALLOWED_SKALE_ENV_TYPES, True),
-        (NodeType.REGULAR, ['invalid'], True),
-        (NodeType.SYNC, ['invalid'], True),
-        (NodeType.MIRAGE, ['invalid'], True),
+        (ALLOWED_ENV_TYPES, False),
+        (['invalid'], True),
     ],
     ids=[
-        'correct_env_regular',
-        'incorrect_env_regular',
-        'correct_env_sync',
-        'incorrect_env_sync',
-        'correct_env_mirage',
-        'incorrect_env_mirage',
-        'invalid_regular',
-        'invalid_sync',
-        'invalid_mirage',
+        'correct_env',
+        'invalid_env',
     ],
 )
-def test_valid_env_types(node_type, env_types, should_fail):
+def test_env_types(env_types, should_fail):
     for env_type in env_types:
         if should_fail:
             with pytest.raises(SystemExit):
-                validate_env_type(node_type=node_type, env_type=env_type)
+                validate_env_type(env_type=env_type)
         else:
-            validate_env_type(node_type=node_type, env_type=env_type)
-
-
-def test_invalid_env_type():
-    with pytest.raises(SystemExit) as excinfo:
-        validate_env_type(node_type=NodeType.REGULAR, env_type='invalid')
-    assert excinfo.value.code == CLIExitCodes.FAILURE.value
+            validate_env_type(env_type=env_type)
 
 
 def test_get_chain_id_success(monkeypatch):
@@ -244,7 +223,7 @@ def test_validate_env_alias_or_address_with_alias(requests_mock):
     validate_env_alias_or_address('test-alias', ContractType.IMA, ENDPOINT)
 
 
-@pytest.mark.parametrize('env_type', ALLOWED_MIRAGE_ENV_TYPES)
+@pytest.mark.parametrize('env_type', ALLOWED_ENV_TYPES)
 @pytest.mark.parametrize(
     'required_params, key_to_remove, should_fail',
     [
@@ -280,9 +259,9 @@ def test_validate_env_params_mirage(
 
     if should_fail:
         with pytest.raises(SystemExit):
-            validate_env_params(node_type=NodeType.MIRAGE, params=params)
+            validate_env_params(params=params)
     else:
-        validate_env_params(node_type=NodeType.MIRAGE, params=params)
+        validate_env_params(params=params)
 
 
 @pytest.mark.parametrize(
