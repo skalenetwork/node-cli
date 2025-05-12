@@ -504,7 +504,7 @@ def run_checks(
     if disk is None:
         env = get_validated_env_config(node_type=node_type)
         disk = env['DISK_MOUNTPOINT']
-    failed_checks = run_host_checks(disk, network, container_config_path)
+    failed_checks = run_host_checks(disk, node_type, network, container_config_path)
     if not failed_checks:
         print('Requirements checking successfully finished!')
     else:

@@ -30,9 +30,7 @@ from node_cli.utils.helper import error_exit
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
 
-ALLOWED_SKALE_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
-ALLOWED_MIRAGE_ENV_TYPES = ['mainnet-mirage', 'devnet-mirage']
-ALLOWED_ENV_TYPES = [*ALLOWED_SKALE_ENV_TYPES, *ALLOWED_MIRAGE_ENV_TYPES]
+ALLOWED_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
 
 CORE_REQUIRED_PARAMS: Dict[str, str] = {
     'CONTAINER_CONFIGS_STREAM': '',
@@ -96,7 +94,7 @@ def get_validated_env_config(
     load_env_file(env_filepath)
     params = build_env_params(node_type=node_type, is_mirage_boot=is_mirage_boot)
     populate_env_params(params)
-    validate_env_params(node_type=node_type, params=params)
+    validate_env_params(params=params)
     return params
 
 
@@ -130,13 +128,12 @@ def populate_env_params(params: Dict[str, str]) -> None:
 
 
 def validate_env_params(
-    node_type: NodeType,
     params: Dict[str, str],
 ) -> None:
     missing = absent_required_params(params)
     if missing:
         error_exit(f'Missing required parameters: {missing}')
-    validate_env_type(node_type=node_type, env_type=params['ENV_TYPE'])
+    validate_env_type(env_type=params['ENV_TYPE'])
     endpoint = params['ENDPOINT']
     validate_env_alias_or_address(params['MANAGER_CONTRACTS'], ContractType.MANAGER, endpoint)
 
@@ -144,14 +141,6 @@ def validate_env_params(
         validate_env_alias_or_address(params['IMA_CONTRACTS'], ContractType.IMA, endpoint)
 
 
-def validate_env_type(node_type: NodeType, env_type: str) -> None:
-    allowed_env_types_for_node_type = list()
-    if node_type == NodeType.MIRAGE:
-        allowed_env_types_for_node_type = ALLOWED_MIRAGE_ENV_TYPES
-    else:
-        allowed_env_types_for_node_type = ALLOWED_SKALE_ENV_TYPES
-
-    if env_type not in allowed_env_types_for_node_type:
-        error_exit(
-            f'Allowed ENV_TYPE values are {allowed_env_types_for_node_type}. Actual: "{env_type}"'
-        )
+def validate_env_type(env_type: str) -> None:
+    if env_type not in ALLOWED_ENV_TYPES:
+        error_exit(f'Allowed ENV_TYPE values are {ALLOWED_ENV_TYPES}. Actual: "{env_type}"')

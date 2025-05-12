@@ -45,7 +45,7 @@ from node_cli.core.schains import (
     update_node_cli_schain_status,
     cleanup_sync_datadir,
 )
-from node_cli.cli.info import VERSION
+from node_cli.cli.info import VERSION, TYPE
 from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
 from node_cli.operations.docker_lvmpy import lvmpy_install
 from node_cli.operations.skale_node import (
@@ -79,6 +79,7 @@ def checked_host(func):
         download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
+            TYPE,
             env['ENV_TYPE'],
             CONTAINER_CONFIG_TMP_PATH,
             check_type=CheckType.PREINSTALL,
@@ -93,6 +94,7 @@ def checked_host(func):
 
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
+            TYPE,
             env['ENV_TYPE'],
             CONTAINER_CONFIG_PATH,
             check_type=CheckType.POSTINSTALL,
@@ -285,7 +287,6 @@ def init_mirage_boot(env_filepath: str, env: dict) -> None:
         distro.id(),
         distro.version(),
     )
-    update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env=env)
 
     compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
@@ -407,6 +408,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
+        TYPE,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.PREINSTALL,
@@ -441,6 +443,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
+        TYPE,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.POSTINSTALL,
@@ -455,6 +458,7 @@ def restore_mirage(env, backup_path, config_only=False):
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
+        TYPE,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.PREINSTALL,
@@ -486,6 +490,7 @@ def restore_mirage(env, backup_path, config_only=False):
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
+        TYPE,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.POSTINSTALL,
