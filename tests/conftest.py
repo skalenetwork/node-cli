@@ -37,6 +37,7 @@ from node_cli.configs import (
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
     STATIC_PARAMS_FILEPATH,
+    MIRAGE_STATIC_PARAMS_FILEPATH,
     SCHAIN_NODE_DATA_PATH,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
@@ -49,46 +50,6 @@ from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_
 
 
 TEST_ENV_PARAMS = """
-mainnet-mirage:
-    server:
-      cpu_total: 8
-      cpu_physical: 1
-      memory: 32000000000
-      swap: 16000000000
-      disk: 500000000000
-
-    package:
-      iptables-persistent: 1.0.4
-      btrfs-progs: 4.15.1
-      lsof: "4.89"
-      psmisc: 23.1-1
-      lvm2: disabled
-
-    docker:
-      docker-api: 1.41.0
-      docker-engine: 20.10.7
-      docker-compose: 1.27.4
-
-  devnet-mirage:
-    server:
-      cpu_total: 1
-      cpu_physical: 1
-      memory: 2000000000
-      swap: 2000000000
-      disk: 80000000000
-
-    package:
-      iptables-persistent: 1.0.4
-      btrfs-progs: 4.15.1
-      lsof: "4.89"
-      psmisc: 23.1-1
-      lvm2: disabled
-
-    docker:
-      docker-api: 1.41.0
-      docker-engine: 20.10.7
-      docker-compose: 1.27.4
-
 mainnet:
   server:
     cpu_total: 4
@@ -149,6 +110,197 @@ devnet:
     docker-engine: 1.1.3
 """
 
+MIRAGE_TEST_ENV_PARAMS = """
+common:
+  schain:
+    shared_space_coefficient: 1
+envs:
+  mainnet:
+    server:
+      cpu_total: 8
+      cpu_physical: 1
+      memory: 32000000000
+      swap: 16000000000
+      disk: 1900000000000
+
+    package:
+      iptables-persistent: 1.0.4
+      lvm2: disabled
+      btrfs-progs: 4.15.1
+      lsof: "4.89"
+      psmisc: 23.1-1
+
+    docker:
+      docker-api: 1.41.0
+      docker-engine: 20.10.7
+      docker-compose: 1.27.4
+
+    schain:
+      snapshotIntervalSec: 86400
+      emptyBlockIntervalMs: 10000
+      snapshotDownloadTimeout: 18000
+      snapshotDownloadInactiveTimeout: 120
+      contractStorageLimit: 1000000000000000000
+      dbStorageLimit: 1000000000000000000
+      maxConsensusStorageBytes: 1000000000000000000
+
+    skaled_cmd: ["-v 2", "--aa no"]
+
+    node:
+      bindIP: "0.0.0.0"
+      logLevel: "info"
+      logLevelConfig: "info"
+      pg-threads: 10
+      pg-threads-limit: 10
+      minCacheSize: 8000000
+      maxCacheSize: 16000000
+      collectionQueueSize: 20
+      collectionDuration: 60
+      transactionQueueSize: 1000
+      transactionQueueLimitBytes: 69206016
+      futureTransactionQueueLimitBytes: 140509184
+      maxOpenLeveldbFiles: 1000
+
+  testnet:
+    server:
+      cpu_total: 8
+      cpu_physical: 1
+      memory: 32000000000
+      swap: 16000000000
+      disk: 200000000000
+
+    package:
+      iptables-persistent: 1.0.4
+      lvm2: disabled
+      btrfs-progs: 4.15.1
+      lsof: "4.89"
+      psmisc: 23.1-1
+
+    docker:
+      docker-api: 1.41.0
+      docker-engine: 20.10.7
+      docker-compose: 1.27.4
+
+    schain:
+      snapshotIntervalSec: 86400
+      emptyBlockIntervalMs: 10000
+      snapshotDownloadTimeout: 18000
+      snapshotDownloadInactiveTimeout: 120
+      contractStorageLimit: 1000000000000000000
+      dbStorageLimit: 1000000000000000000
+      maxConsensusStorageBytes: 1000000000000000000
+
+    skaled_cmd: ["-v 2", "--aa no"]
+
+    node:
+      bindIP: "0.0.0.0"
+      logLevel: "info"
+      logLevelConfig: "info"
+      pg-threads: 10
+      pg-threads-limit: 10
+      minCacheSize: 8000000
+      maxCacheSize: 16000000
+      collectionQueueSize: 20
+      collectionDuration: 60
+      transactionQueueSize: 1000
+      transactionQueueLimitBytes: 69206016
+      futureTransactionQueueLimitBytes: 140509184
+      maxOpenLeveldbFiles: 1000
+
+  qanet:
+    server:
+      cpu_total: 8
+      cpu_physical: 1
+      memory: 32000000000
+      swap: 16000000000
+      disk: 200000000000
+
+    package:
+      iptables-persistent: 1.0.4
+      lvm2: disabled
+      btrfs-progs: 4.15.1
+      lsof: "4.89"
+      psmisc: 23.1-1
+
+    docker:
+      docker-api: 1.41.0
+      docker-engine: 20.10.7
+      docker-compose: 1.27.4
+
+    schain:
+      snapshotIntervalSec: 3600
+      emptyBlockIntervalMs: 10000
+      snapshotDownloadTimeout: 18000
+      snapshotDownloadInactiveTimeout: 120
+      contractStorageLimit: 1000000000000000000
+      dbStorageLimit: 1000000000000000000
+      maxConsensusStorageBytes: 1000000000000000000
+
+    skaled_cmd: ["-v 2", "--aa no"]
+
+    node:
+      bindIP: "0.0.0.0"
+      logLevel: "info"
+      logLevelConfig: "info"
+      pg-threads: 10
+      pg-threads-limit: 10
+      minCacheSize: 8000000
+      maxCacheSize: 16000000
+      collectionQueueSize: 20
+      collectionDuration: 60
+      transactionQueueSize: 1000
+      transactionQueueLimitBytes: 69206016
+      futureTransactionQueueLimitBytes: 140509184
+      maxOpenLeveldbFiles: 1000
+
+  devnet:
+    server:
+      cpu_total: 1
+      cpu_physical: 1
+      memory: 2000000000
+      swap: 2000000000
+      disk: 80000000000
+
+    package:
+      iptables-persistent: 1.0.4
+      lvm2: disabled
+      btrfs-progs: 4.15.1
+      lsof: "4.89"
+      psmisc: 23.1-1
+
+    docker:
+      docker-api: 1.41.0
+      docker-engine: 20.10.7
+      docker-compose: 1.27.4
+
+    schain:
+      snapshotIntervalSec: 3600
+      emptyBlockIntervalMs: 10000
+      snapshotDownloadTimeout: 18000
+      snapshotDownloadInactiveTimeout: 120
+      contractStorageLimit: 1000000000000000000
+      dbStorageLimit: 1000000000000000000
+      maxConsensusStorageBytes: 1000000000000000000
+
+    skaled_cmd:
+      ["-v 3", "--web3-trace", "--enable-debug-behavior-apis", "--aa no"]
+
+    node:
+      bindIP: "0.0.0.0"
+      logLevel: "info"
+      logLevelConfig: "info"
+      pg-threads: 10
+      pg-threads-limit: 10
+      minCacheSize: 8000000
+      maxCacheSize: 16000000
+      collectionQueueSize: 20
+      collectionDuration: 60
+      transactionQueueSize: 1000
+      transactionQueueLimitBytes: 69206016
+      futureTransactionQueueLimitBytes: 140509184
+      maxOpenLeveldbFiles: 1000
+"""
+
 
 @pytest.fixture
 def net_params_file():
@@ -156,6 +308,16 @@ def net_params_file():
         yaml.dump(yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader), stream=f, Dumper=yaml.Dumper)
     yield STATIC_PARAMS_FILEPATH
     os.remove(STATIC_PARAMS_FILEPATH)
+
+
+@pytest.fixture
+def mirage_net_params_file():
+    with open(MIRAGE_STATIC_PARAMS_FILEPATH, 'w') as f:
+        yaml.dump(
+            yaml.load(MIRAGE_TEST_ENV_PARAMS, Loader=yaml.Loader), stream=f, Dumper=yaml.Dumper
+        )
+    yield MIRAGE_STATIC_PARAMS_FILEPATH
+    os.remove(MIRAGE_STATIC_PARAMS_FILEPATH)
 
 
 @pytest.fixture()

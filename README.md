@@ -700,7 +700,7 @@ Required environment variables in `ENV_FILE`:
 - `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 - `IMA_CONTRACTS` - IMA alias or address (_Note: Required by boot service, may not be used by Mirage itself_).
 - `FILEBEAT_HOST` - URL/IP:Port of the Filebeat log server.
-- `ENV_TYPE` - Environment type (e.g., 'mainnet-mirage', 'devnet-mirage').
+- `ENV_TYPE` - Environment type (e.g., 'mainnet', 'devnet').
 
 Optional variables:
 

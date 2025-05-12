@@ -188,7 +188,7 @@ def test_compose_node_env(
     if node_type == NodeType.SYNC:
         mock_get_validated.return_value['ENV_TYPE'] = 'devnet'
     elif node_type == NodeType.MIRAGE:
-        mock_get_validated.return_value['ENV_TYPE'] = 'mainnet-mirage'
+        mock_get_validated.return_value['ENV_TYPE'] = 'mainnet'
     else:
         mock_get_validated.return_value['ENV_TYPE'] = 'mainnet'
 
