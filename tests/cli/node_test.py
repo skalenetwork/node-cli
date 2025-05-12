@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 init_default_logger()
 
 
-def test_register_node(resource_alloc, mocked_g_config):
+def test_register_node(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
@@ -70,7 +70,7 @@ def test_register_node(resource_alloc, mocked_g_config):
     )  # noqa
 
 
-def test_register_node_with_error(resource_alloc, mocked_g_config):
+def test_register_node_with_error(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'error', 'payload': ['Strange error']},
@@ -89,7 +89,7 @@ def test_register_node_with_error(resource_alloc, mocked_g_config):
     )
 
 
-def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
+def test_register_node_with_prompted_ip(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
@@ -106,7 +106,7 @@ def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
     )
 
 
-def test_register_node_with_default_port(resource_alloc, mocked_g_config):
+def test_register_node_with_default_port(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(

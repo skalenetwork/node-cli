@@ -21,6 +21,8 @@ from node_cli.core.checks import (
     save_report,
 )
 
+from node_cli.utils.node_type import NodeType
+
 
 @pytest.fixture
 def requirements_data():
@@ -377,8 +379,8 @@ def test_merge_report():
 
 
 def test_get_static_params(tmp_config_dir):
-    params = get_static_params()
+    params = get_static_params(NodeType.REGULAR)
     shutil.copy(STATIC_PARAMS_FILEPATH, tmp_config_dir)
-    tmp_params = get_static_params(config_path=tmp_config_dir)
+    tmp_params = get_static_params(NodeType.REGULAR, config_path=tmp_config_dir)
     assert params['server']['cpu_total'] == 8
     assert params == tmp_params

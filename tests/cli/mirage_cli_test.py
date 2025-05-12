@@ -84,8 +84,7 @@ def test_mirage_node_signature_error(mock_signature_core):
     assert error_msg in result.output
 
 
-@mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True)
-def test_mirage_node_init_placeholder(mock_is_inited, resource_alloc):
+def test_mirage_node_init_placeholder():
     runner = CliRunner()
     result = runner.invoke(init_node_placeholder, [])
 
@@ -93,8 +92,7 @@ def test_mirage_node_init_placeholder(mock_is_inited, resource_alloc):
     assert "Placeholder: Command 'mirage node init' is not yet implemented." in result.output
 
 
-@mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True)
-def test_mirage_node_register_placeholder(mock_is_inited, resource_alloc):
+def test_mirage_node_register_placeholder():
     runner = CliRunner()
     result = runner.invoke(register_node_placeholder, [])
 
@@ -102,8 +100,7 @@ def test_mirage_node_register_placeholder(mock_is_inited, resource_alloc):
     assert "Placeholder: Command 'mirage node register' is not yet implemented." in result.output
 
 
-@mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True)
-def test_mirage_node_update_placeholder(mock_is_inited, resource_alloc, valid_env_file):
+def test_mirage_node_update_placeholder(valid_env_file):
     runner = CliRunner()
     result = runner.invoke(update_node_placeholder, ['--yes', valid_env_file])
 

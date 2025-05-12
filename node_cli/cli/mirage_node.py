@@ -22,7 +22,6 @@ import click
 from node_cli.core.node import get_node_signature, backup
 from node_cli.core.mirage_node import restore_mirage
 from node_cli.utils.helper import error_exit, streamed_cmd, abort_if_false
-from node_cli.utils.decorators import check_inited
 
 
 @click.group('node', help='Commands for regular Mirage Node operations.')
@@ -31,7 +30,6 @@ def mirage_node_cli():
 
 
 @mirage_node_cli.command('init', help='Initialize regular Mirage node operations (Placeholder).')
-@check_inited
 def init_node():
     click.echo("Placeholder: Command 'mirage node init' is not yet implemented.")
 
@@ -39,7 +37,6 @@ def init_node():
 @mirage_node_cli.command(
     'register', help='Register Mirage node (Placeholder for regular operations).'
 )
-@check_inited
 def register_node():
     click.echo("Placeholder: Command 'mirage node register' is not yet implemented.")
 

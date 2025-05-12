@@ -39,6 +39,7 @@ from node_cli.configs import (
     STATIC_PARAMS_FILEPATH,
     MIRAGE_STATIC_PARAMS_FILEPATH,
     SCHAIN_NODE_DATA_PATH,
+    NGINX_CONFIG_FILEPATH,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -391,6 +392,17 @@ def resource_alloc():
         json.dump({}, alloc_file)
     yield RESOURCE_ALLOCATION_FILEPATH
     os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+@pytest.fixture
+def inited_node():
+    path = pathlib.Path(NGINX_CONFIG_FILEPATH)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch()
+    try:
+        yield
+    finally:
+        os.remove(NGINX_CONFIG_FILEPATH)
 
 
 @pytest.fixture

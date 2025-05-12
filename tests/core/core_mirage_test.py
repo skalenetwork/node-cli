@@ -71,6 +71,7 @@ def test_migrate_mirage_boot(
     mock_is_alive,
     mock_is_user_valid,
     valid_env_file,
+    inited_node,
     resource_alloc,
     meta_file_v3,
 ):
@@ -105,6 +106,7 @@ def test_update_mirage_boot(
     mock_is_alive,
     mock_is_user_valid,
     valid_env_file,
+    inited_node,
     resource_alloc,
     meta_file_v3,
 ):

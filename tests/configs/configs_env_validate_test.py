@@ -297,7 +297,7 @@ def test_get_validated_env_config_mirage_success(
         if key == 'ENDPOINT':
             env_value = ENDPOINT
         if key == 'ENV_TYPE':
-            env_value = 'devnet-mirage'
+            env_value = 'devnet'
         if key == 'MANAGER_CONTRACTS':
             env_value = '0x' + '1' * 40
         if key == 'IMA_CONTRACTS':

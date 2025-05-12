@@ -297,7 +297,7 @@ def test_init_node(no_resource_file):  # todo: write new init node test
 
 
 @pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
-def test_update_node(node_type, mocked_g_config, resource_file):
+def test_update_node(node_type, mocked_g_config, resource_file, inited_node):
     env_filepath = './tests/test-env'
     resp_mock = response_mock(requests.codes.created)
     os.makedirs(NODE_DATA_PATH, exist_ok=True)
