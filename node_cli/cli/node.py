@@ -37,7 +37,7 @@ from node_cli.core.node import (
     run_checks,
 )
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
-from node_cli.configs.env import ALLOWED_SKALE_ENV_TYPES
+from node_cli.configs.env import ALLOWED_ENV_TYPES
 from node_cli.utils.decorators import check_inited
 from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd, IP_TYPE
 from node_cli.utils.meta import get_meta_info
@@ -222,7 +222,7 @@ def _set_domain_name(domain):
 @click.option(
     '--network',
     '-n',
-    type=click.Choice(ALLOWED_SKALE_ENV_TYPES),
+    type=click.Choice(ALLOWED_ENV_TYPES),
     default='mainnet',
     help='Network to check',
 )
