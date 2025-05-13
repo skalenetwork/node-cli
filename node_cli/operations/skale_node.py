@@ -27,17 +27,18 @@ from node_cli.utils.helper import rm_dir, rsync_dirs, safe_mkdir, error_exit
 from node_cli.utils.git_utils import clone_repo
 from node_cli.utils.docker_utils import compose_pull, compose_build
 from node_cli.configs import CONTAINER_CONFIG_PATH, CONTAINER_CONFIG_TMP_PATH, SKALE_NODE_REPO_URL
+from node_cli.utils.node_type import NodeType
 
 
 logger = logging.getLogger(__name__)
 
 
-def update_images(env: dict, sync_node: bool = False) -> None:
+def update_images(env: dict, node_type: NodeType) -> None:
     local = env.get('CONTAINER_CONFIGS_DIR') != ''
     if local:
-        compose_build(env=env, sync_node=sync_node)
+        compose_build(env=env, node_type=node_type)
     else:
-        compose_pull(env=env, sync_node=sync_node)
+        compose_pull(env=env, node_type=node_type)
 
 
 def download_skale_node(stream: Optional[str] = None, src: Optional[str] = None) -> None:
