@@ -19,7 +19,7 @@
 
 import click
 
-from node_cli.core.node import get_node_signature, backup
+from node_cli.core.node import get_node_signature, backup, get_node_info
 from node_cli.core.mirage_node import restore_mirage
 from node_cli.utils.helper import error_exit, streamed_cmd, abort_if_false
 
@@ -32,6 +32,12 @@ def mirage_node_cli():
 @mirage_node_cli.group(help='Commands for regular Mirage Node operations.')
 def node():
     pass
+
+
+@node.command('info', help='Get info about Mirage node.')
+@click.option('--format', '-f', type=click.Choice(['json', 'text']))
+def mirage_node_info(format):
+    get_node_info(format)
 
 
 @node.command('init', help='Initialize regular Mirage node operations (Placeholder).')
