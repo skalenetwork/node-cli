@@ -17,7 +17,6 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from encodings.punycode import T
 from functools import wraps
 
 from node_cli.core.host import is_node_inited
