@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import time
+from tkinter import N
 
 import distro
 import functools
@@ -144,7 +145,7 @@ def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env)
+    update_images(env=env, node_type=node_type)
     compose_up(env=env, node_type=node_type)
     return True
 
@@ -184,7 +185,7 @@ def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env)
+    update_images(env=env, node_type=NodeType.MIRAGE)
     compose_up(env=env, node_type=NodeType.MIRAGE)
     return True
 
@@ -226,7 +227,7 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env)
+    update_images(env=env, node_type=NodeType.MIRAGE)
     compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
     return True
 
@@ -260,7 +261,7 @@ def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
         distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
-    update_images(env=env)
+    update_images(env=env, node_type=node_type)
 
     compose_up(env=env, node_type=node_type)
 
@@ -292,7 +293,7 @@ def init_mirage_boot(env_filepath: str, env: dict) -> None:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env)
+    update_images(env=env, node_type=NodeType.MIRAGE)
 
     compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
 
@@ -345,7 +346,7 @@ def init_sync(
         ts = int(time.time())
         update_node_cli_schain_status(schain_name, repair_ts=ts, snapshot_from=snapshot_from)
 
-    update_images(env=env, sync_node=True)
+    update_images(env=env, node_type=NodeType.SYNC)
 
     compose_up(env=env, node_type=NodeType.SYNC)
 
@@ -377,7 +378,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, sync_node=True)
+    update_images(env=env, node_type=NodeType.SYNC)
 
     compose_up(env=env, node_type=NodeType.SYNC)
     return True

@@ -268,15 +268,15 @@ def compose_rm(node_type: NodeType, env={}):
     logger.info('Compose containers removed')
 
 
-def compose_pull(env: dict, sync_node: bool = False):
+def compose_pull(env: dict, node_type: NodeType):
     logger.info('Pulling compose containers')
-    compose_path = get_compose_path(NodeType.SYNC)
+    compose_path = get_compose_path(node_type)
     run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'pull'), env=env)
 
 
-def compose_build(env: dict, sync_node: bool = False):
+def compose_build(env: dict, node_type: NodeType):
     logger.info('Building compose containers')
-    compose_path = get_compose_path(NodeType.SYNC)
+    compose_path = get_compose_path(node_type)
     run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'build'), env=env)
 
 
