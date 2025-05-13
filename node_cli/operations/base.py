@@ -152,6 +152,7 @@ def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
 @checked_host
 def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
     compose_rm(node_type=NodeType.MIRAGE, env=env)
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
@@ -192,6 +193,7 @@ def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
 def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
     compose_rm(node_type=NodeType.MIRAGE, env=env)
     remove_dynamic_containers()
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
@@ -266,6 +268,7 @@ def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
 @checked_host
 def init_mirage_boot(env_filepath: str, env: dict) -> None:
     sync_skale_node()
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
     ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
