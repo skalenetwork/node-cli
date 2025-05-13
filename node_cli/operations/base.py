@@ -227,7 +227,7 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
         distro.version(),
     )
     update_images(env=env)
-    compose_up(env=env, node_type=NodeType.MIRAGE)
+    compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
     return True
 
 
