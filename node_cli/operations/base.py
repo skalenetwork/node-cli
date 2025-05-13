@@ -179,7 +179,7 @@ def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        None,
         distro.id(),
         distro.version(),
     )
@@ -219,7 +219,7 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        None,
         distro.id(),
         distro.version(),
     )
@@ -283,7 +283,7 @@ def init_mirage_boot(env_filepath: str, env: dict) -> None:
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        None,
         distro.id(),
         distro.version(),
     )
@@ -480,7 +480,7 @@ def restore_mirage(env, backup_path, config_only=False):
     update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        None,
         distro.id(),
         distro.version(),
     )
