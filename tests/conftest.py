@@ -27,7 +27,6 @@ from contextlib import contextmanager
 import docker
 import mock
 import pytest
-import yaml
 
 from node_cli.configs import (
     CONTAINER_CONFIG_TMP_PATH,
@@ -36,8 +35,6 @@ from node_cli.configs import (
     META_FILEPATH,
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
-    STATIC_PARAMS_FILEPATH,
-    MIRAGE_STATIC_PARAMS_FILEPATH,
     SCHAIN_NODE_DATA_PATH,
     NGINX_CONFIG_FILEPATH,
 )
