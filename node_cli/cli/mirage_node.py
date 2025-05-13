@@ -24,24 +24,27 @@ from node_cli.core.mirage_node import restore_mirage
 from node_cli.utils.helper import error_exit, streamed_cmd, abort_if_false
 
 
-@click.group('node', help='Commands for regular Mirage Node operations.')
+@click.group()
 def mirage_node_cli():
     pass
 
 
-@mirage_node_cli.command('init', help='Initialize regular Mirage node operations (Placeholder).')
+@mirage_node_cli.group(help='Commands for regular Mirage Node operations.')
+def node():
+    pass
+
+
+@node.command('init', help='Initialize regular Mirage node operations (Placeholder).')
 def init_node():
     click.echo("Placeholder: Command 'mirage node init' is not yet implemented.")
 
 
-@mirage_node_cli.command(
-    'register', help='Register Mirage node (Placeholder for regular operations).'
-)
+@node.command('register', help='Register Mirage node (Placeholder for regular operations).')
 def register_node():
     click.echo("Placeholder: Command 'mirage node register' is not yet implemented.")
 
 
-@mirage_node_cli.command('update', help='Update Mirage.')
+@node.command('update', help='Update Mirage.')
 @click.option(
     '--yes',
     is_flag=True,
@@ -57,7 +60,7 @@ def update_node(env_file, pull_config_for_schain, unsafe_ok):
     click.echo("Placeholder: Command 'mirage node update' is not yet implemented.")
 
 
-@mirage_node_cli.command('signature', help='Get mirage node signature for a validator ID.')
+@node.command('signature', help='Get mirage node signature for a validator ID.')
 @click.argument('validator_id')
 def signature_node(validator_id):
     res = get_node_signature(validator_id)
@@ -66,14 +69,14 @@ def signature_node(validator_id):
     print(f'Signature: {res}')
 
 
-@mirage_node_cli.command('backup', help='Generate backup file for the Mirage node.')
+@node.command('backup', help='Generate backup file for the Mirage node.')
 @click.argument('backup_folder_path')
 @streamed_cmd
 def backup_node(backup_folder_path):
     backup(backup_folder_path)
 
 
-@mirage_node_cli.command('restore', help='Restore Mirage node from a backup file.')
+@node.command('restore', help='Restore Mirage node from a backup file.')
 @click.argument('backup_path')
 @click.argument('env_file')
 @click.option(
