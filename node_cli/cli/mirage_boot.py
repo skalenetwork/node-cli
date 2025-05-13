@@ -25,21 +25,24 @@ from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.utils.helper import streamed_cmd, IP_TYPE, error_exit, abort_if_false
 
 
-@click.group('boot', help='Commands for the Mirage Boot phase.')
+@click.group()
 def mirage_boot_cli():
     pass
 
 
-@mirage_boot_cli.command('init', help='Initialize Mirage node (Boot Phase).')
+@mirage_boot_cli.group(help='Commands for the Mirage Boot phase.')
+def boot():
+    pass
+
+
+@boot.command('init', help='Initialize Mirage node (Boot Phase).')
 @click.argument('env_file')
 @streamed_cmd
 def init_boot(env_file):
     init(env_file)
 
 
-@mirage_boot_cli.command(
-    'register', help='Register Mirage node in SKALE Manager (during Boot Phase).'
-)
+@boot.command('register', help='Register Mirage node in SKALE Manager (during Boot Phase).')
 @click.option(
     '--name', '-n', required=True, prompt='Enter mirage node name', help='Mirage node name'
 )
@@ -58,9 +61,7 @@ def register_boot(name, ip, port, domain):
     register(name=name, p2p_ip=ip, public_ip=ip, port=port, domain_name=domain)
 
 
-@mirage_boot_cli.command(
-    'signature', help='Get mirage node signature for a validator ID (during Boot Phase).'
-)
+@boot.command('signature', help='Get mirage node signature for a validator ID (during Boot Phase).')
 @click.argument('validator_id')
 def signature_boot(validator_id):
     res = get_node_signature(validator_id)
@@ -69,9 +70,7 @@ def signature_boot(validator_id):
     print(f'Signature: {res}')
 
 
-@mirage_boot_cli.command(
-    'migrate', help='Migrate mirage node from Mirage Boot Phase to Mirage Main Phase.'
-)
+@boot.command('migrate', help='Migrate mirage node from Mirage Boot Phase to Mirage Main Phase.')
 @click.option(
     '--yes',
     is_flag=True,
@@ -86,7 +85,7 @@ def migrate_boot(env_file, pull_config_for_schain):
     migrate(env_file, pull_config_for_schain)
 
 
-@mirage_boot_cli.command('update', help='Update Mirage node from .env file')
+@boot.command('update', help='Update Mirage node from .env file')
 @click.option(
     '--yes',
     is_flag=True,
