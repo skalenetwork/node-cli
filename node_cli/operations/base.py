@@ -203,6 +203,7 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
     configure_nftables(enable_monitoring=enable_monitoring)
 
     generate_nginx_config()
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
     prepare_host(env_filepath, env['ENV_TYPE'])
 
@@ -279,6 +280,7 @@ def init_mirage_boot(env_filepath: str, env: dict) -> None:
     configure_filebeat()
     configure_flask()
     generate_nginx_config()
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
     update_meta(
         VERSION,
