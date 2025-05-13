@@ -19,7 +19,7 @@
 
 import click
 
-from node_cli.core.node import get_node_signature, register_node as register
+from node_cli.core.node import get_node_signature, register_node as register, get_node_info
 from node_cli.core.mirage_boot import init, migrate, update
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.utils.helper import streamed_cmd, IP_TYPE, error_exit, abort_if_false
@@ -33,6 +33,12 @@ def mirage_boot_cli():
 @mirage_boot_cli.group(help='Commands for the Mirage Boot phase.')
 def boot():
     pass
+
+
+@boot.command('info', help='Get info about Mirage node (Boot Phase).')
+@click.option('--format', '-f', type=click.Choice(['json', 'text']))
+def mirage_boot_info(format):
+    get_node_info(format)
 
 
 @boot.command('init', help='Initialize Mirage node (Boot Phase).')
