@@ -187,14 +187,6 @@ def safe_get_config(config, key):
         return None
 
 
-def safe_load_texts():
-    with open(TEXT_FILE, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-
-
 def safe_load_yml(filepath):
     with open(filepath, 'r') as stream:
         try:

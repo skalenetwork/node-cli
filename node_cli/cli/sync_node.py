@@ -25,10 +25,10 @@ from node_cli.core.node import init_sync, update_sync, cleanup_sync
 from node_cli.utils.helper import (
     abort_if_false,
     error_exit,
-    safe_load_texts,
     streamed_cmd,
     URL_TYPE,
 )
+from node_cli.utils.texts import safe_load_texts
 
 
 G_TEXTS = safe_load_texts()

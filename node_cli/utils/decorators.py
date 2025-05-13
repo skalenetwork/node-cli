@@ -22,11 +22,11 @@ from functools import wraps
 from node_cli.core.host import is_node_inited
 from node_cli.utils.global_config import get_system_user
 from node_cli.utils.helper import error_exit, is_user_valid, get_g_conf_user
-from node_cli.utils.texts import Texts
+from node_cli.utils.texts import safe_load_texts
 from node_cli.utils.exit_codes import CLIExitCodes
 
 
-TEXTS = Texts()
+TEXTS = safe_load_texts()
 
 
 def check_not_inited(f):

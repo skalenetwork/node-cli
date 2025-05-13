@@ -24,7 +24,8 @@ from node_cli.core.resources import (
     get_resource_allocation_info,
     generate_resource_allocation_config,
 )
-from node_cli.utils.helper import abort_if_false, safe_load_texts
+from node_cli.utils.helper import abort_if_false
+from node_cli.utils.texts import safe_load_texts
 from node_cli.utils.node_type import NodeType
 
 TEXTS = safe_load_texts()

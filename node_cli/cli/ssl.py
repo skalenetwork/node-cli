@@ -21,7 +21,8 @@ import click
 from terminaltables import SingleTable
 
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.helper import safe_load_texts, error_exit
+from node_cli.utils.helper import error_exit
+from node_cli.utils.texts import safe_load_texts
 from node_cli.configs.ssl import DEFAULT_SSL_CHECK_PORT, SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
 from node_cli.core.ssl import check_cert, upload_cert, cert_status
 

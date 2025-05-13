@@ -29,9 +29,9 @@ import inspect
 from node_cli.configs import LONG_LINE
 from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
 from node_cli.utils.meta import CliMeta
-from node_cli.utils.texts import Texts
+from node_cli.utils.texts import safe_load_texts
 
-TEXTS = Texts()
+TEXTS = safe_load_texts()
 
 
 def print_wallet_info(wallet):

@@ -18,12 +18,12 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from node_cli.utils.texts import Texts
+from node_cli.utils.texts import safe_load_texts
 
 from node_cli.core.health import get_containers, get_schains_checks, get_sgx_info
 
 
-G_TEXTS = Texts()
+G_TEXTS = safe_load_texts()
 TEXTS = G_TEXTS['health']
 
 
