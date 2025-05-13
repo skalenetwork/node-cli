@@ -24,7 +24,6 @@ COPY . .
 ENV PATH=/app/buildvenv/bin:$PATH
 ENV PYTHONPATH="{PYTHONPATH}:/usr/lib/python3/dist-packages"
 
-RUN python3.11 -m venv /app/buildvenv && \
-    pip install --upgrade pip && \
+RUN pip install --upgrade pip && \
     pip install wheel setuptools==63.2.0 && \
     pip install -e '.[dev]' 

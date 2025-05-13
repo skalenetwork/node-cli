@@ -28,6 +28,7 @@ from node_cli.configs.env import get_validated_env_config
 from node_cli.utils.docker_utils import ensure_volume
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import write_json, read_json, run_cmd, safe_load_yml
+from node_cli.utils.node_type import NodeType
 from node_cli.configs import ALLOCATION_FILEPATH, STATIC_PARAMS_FILEPATH, SNAPSHOTS_SHARED_VOLUME
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH,
@@ -91,13 +92,17 @@ def compose_resource_allocation_config(env_type: str, params_by_env_type: Dict =
     }
 
 
-def generate_resource_allocation_config(env_file, force=False) -> None:
+def generate_resource_allocation_config(
+    env_file,
+    node_type: NodeType,
+    force=False,
+) -> None:
     if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
         msg = 'Resource allocation file already exists'
         logger.debug(msg)
         print(msg)
         return
-    env_params = get_validated_env_config(env_file)
+    env_params = get_validated_env_config(node_type=node_type, env_filepath=env_file)
     if env_params is None:
         return
     logger.info('Generating resource allocation file ...')

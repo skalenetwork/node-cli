@@ -19,8 +19,9 @@
 
 import click
 
-from node_cli.core.node import configure_firewall_rules
+from node_cli.cli.info import TYPE
 from node_cli.core.node import (
+    configure_firewall_rules,
     get_node_signature,
     init,
     restore,
@@ -83,7 +84,7 @@ def register_node(name, ip, port, domain):
 @click.argument('env_file')
 @streamed_cmd
 def init_node(env_file):
-    init(env_file)
+    init(env_filepath=env_file, node_type=TYPE)
 
 
 @node.command('update', help='Update node from .env file')
@@ -99,7 +100,12 @@ def init_node(env_file):
 @click.argument('env_file')
 @streamed_cmd
 def update_node(env_file, pull_config_for_schain, unsafe_ok):
-    update(env_file, pull_config_for_schain, unsafe_ok)
+    update(
+        env_filepath=env_file,
+        pull_config_for_schain=pull_config_for_schain,
+        node_type=TYPE,
+        unsafe_ok=unsafe_ok,
+    )
 
 
 @node.command('signature', help='Get node signature for given validator id')
@@ -130,7 +136,13 @@ def backup_node(backup_folder_path):
 )
 @streamed_cmd
 def restore_node(backup_path, env_file, no_snapshot, config_only):
-    restore(backup_path, env_file, no_snapshot, config_only)
+    restore(
+        backup_path=backup_path,
+        env_filepath=env_file,
+        no_snapshot=no_snapshot,
+        config_only=config_only,
+        node_type=TYPE,
+    )
 
 
 @node.command('maintenance-on', help='Set SKALE node into maintenance mode')
@@ -166,7 +178,7 @@ def remove_node_from_maintenance():
 @click.option('--unsafe', 'unsafe_ok', help='Allow unsafe turn-off', hidden=True, is_flag=True)
 @streamed_cmd
 def _turn_off(maintenance_on, unsafe_ok):
-    turn_off(maintenance_on, unsafe_ok)
+    turn_off(node_type=TYPE, maintenance_on=maintenance_on, unsafe_ok=unsafe_ok)
 
 
 @node.command('turn-on', help='Turn on the node')
@@ -189,7 +201,7 @@ def _turn_off(maintenance_on, unsafe_ok):
 @click.argument('env_file')
 @streamed_cmd
 def _turn_on(maintenance_off, sync_schains, env_file):
-    turn_on(maintenance_off, sync_schains, env_file)
+    turn_on(maintenance_off, sync_schains, env_file, node_type=TYPE)
 
 
 @node.command('set-domain', help='Set node domain name')
@@ -206,7 +218,7 @@ def _set_domain_name(domain):
     set_domain_name(domain)
 
 
-@node.command(help='Check if node meet network requirements')
+@node.command(help='Check if node meets network requirements')
 @click.option(
     '--network',
     '-n',
@@ -215,7 +227,7 @@ def _set_domain_name(domain):
     help='Network to check',
 )
 def check(network):
-    run_checks(network)
+    run_checks(node_type=TYPE, network=network)
 
 
 @node.command(help='Reconfigure nftables rules')

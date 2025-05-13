@@ -47,8 +47,8 @@ from node_cli.configs import (
     SKALE_TMP_DIR,
     UFW_CONFIG_PATH,
     UFW_IPV6_BEFORE_INPUT_CHAIN,
+    NGINX_CONFIG_FILEPATH,
 )
-from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
 from node_cli.core.nftables import NFTablesManager
@@ -103,7 +103,7 @@ def prepare_host(env_filepath: str, env_type: str, allocation: bool = False) -> 
 
 
 def is_node_inited() -> bool:
-    return os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
+    return os.path.isfile(NGINX_CONFIG_FILEPATH)
 
 
 def make_dirs():

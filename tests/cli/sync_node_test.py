@@ -45,7 +45,7 @@ def test_init_sync(mocked_g_config, clean_node_options):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
-        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
+        mock.patch('node_cli.configs.env.validate_env_params'),
     ):
         result = run_command(_init_sync, ['./tests/test-env'])
 
@@ -78,7 +78,7 @@ def test_init_sync_archive(mocked_g_config, clean_node_options):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
-        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
+        mock.patch('node_cli.configs.env.validate_env_params'),
     ):
         result = run_command(_init_sync, ['./tests/test-env', '--archive'])
         node_options = NodeOptions()
@@ -121,7 +121,7 @@ def test_update_sync(mocked_g_config):
             'node_cli.core.node.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
-        mock.patch('node_cli.configs.env.validate_env_params', lambda params: None),
+        mock.patch('node_cli.configs.env.validate_env_params'),
     ):
         result = run_command(_update_sync, ['./tests/test-env', '--yes'])
         assert result.exit_code == 0

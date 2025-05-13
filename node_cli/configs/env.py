@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 
 from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
 from node_cli.configs.alias_address_validation import validate_env_alias_or_address, ContractType
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.helper import error_exit
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
@@ -31,27 +32,37 @@ CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
 
 ALLOWED_ENV_TYPES = ['mainnet', 'testnet', 'qanet', 'devnet']
 
-REQUIRED_PARAMS: Dict[str, str] = {
+CORE_REQUIRED_PARAMS: Dict[str, str] = {
     'CONTAINER_CONFIGS_STREAM': '',
     'ENDPOINT': '',
     'MANAGER_CONTRACTS': '',
-    'IMA_CONTRACTS': '',
-    'FILEBEAT_HOST': '',
     'DISK_MOUNTPOINT': '',
     'SGX_SERVER_URL': '',
-    'DOCKER_LVMPY_STREAM': '',
     'ENV_TYPE': '',
 }
 
-REQUIRED_PARAMS_SYNC: Dict[str, str] = {
-    'SCHAIN_NAME': '',
-    'CONTAINER_CONFIGS_STREAM': '',
-    'ENDPOINT': '',
-    'MANAGER_CONTRACTS': '',
+REQUIRED_PARAMS_SKALE: Dict[str, str] = {
+    **CORE_REQUIRED_PARAMS,
     'IMA_CONTRACTS': '',
-    'DISK_MOUNTPOINT': '',
     'DOCKER_LVMPY_STREAM': '',
-    'ENV_TYPE': '',
+    'FILEBEAT_HOST': '',
+}
+
+REQUIRED_PARAMS_MIRAGE_BOOT: Dict[str, str] = {
+    **CORE_REQUIRED_PARAMS,
+    'IMA_CONTRACTS': '',
+    'FILEBEAT_HOST': '',
+}
+REQUIRED_PARAMS_MIRAGE: Dict[str, str] = {
+    **CORE_REQUIRED_PARAMS,
+    'FILEBEAT_HOST': '',
+}
+
+REQUIRED_PARAMS_SYNC: Dict[str, str] = {
+    **CORE_REQUIRED_PARAMS,
+    'SCHAIN_NAME': '',
+    'IMA_CONTRACTS': '',
+    'DOCKER_LVMPY_STREAM': '',
 }
 
 OPTIONAL_PARAMS: Dict[str, str] = {
@@ -76,12 +87,14 @@ def absent_required_params(params: Dict[str, str]) -> List[str]:
 
 
 def get_validated_env_config(
-    env_filepath: str = SKALE_DIR_ENV_FILEPATH, sync_node: bool = False
+    node_type: NodeType,
+    env_filepath: str = SKALE_DIR_ENV_FILEPATH,
+    is_mirage_boot: bool = False,
 ) -> Dict[str, str]:
     load_env_file(env_filepath)
-    params = build_env_params(sync_node)
+    params = build_env_params(node_type=node_type, is_mirage_boot=is_mirage_boot)
     populate_env_params(params)
-    validate_env_params(params)
+    validate_env_params(params=params)
     return params
 
 
@@ -90,9 +103,19 @@ def load_env_file(env_filepath: str) -> None:
         error_exit(f'Failed to load environment from {env_filepath}')
 
 
-def build_env_params(sync_node: bool = False) -> Dict[str, str]:
-    """Return environment variables dictionary with keys based on node type."""
-    params = REQUIRED_PARAMS_SYNC.copy() if sync_node else REQUIRED_PARAMS.copy()
+def build_env_params(
+    node_type: NodeType,
+    is_mirage_boot: bool = False,
+) -> Dict[str, str]:
+    if node_type == NodeType.MIRAGE and is_mirage_boot:
+        params = REQUIRED_PARAMS_MIRAGE_BOOT.copy()
+    elif node_type == NodeType.MIRAGE:
+        params = REQUIRED_PARAMS_MIRAGE.copy()
+    elif node_type == NodeType.SYNC:
+        params = REQUIRED_PARAMS_SYNC.copy()
+    else:
+        params = REQUIRED_PARAMS_SKALE.copy()
+
     params.update(OPTIONAL_PARAMS)
     return params
 
@@ -104,14 +127,18 @@ def populate_env_params(params: Dict[str, str]) -> None:
             params[key] = str(env_value)
 
 
-def validate_env_params(params: Dict[str, str]) -> None:
+def validate_env_params(
+    params: Dict[str, str],
+) -> None:
     missing = absent_required_params(params)
     if missing:
         error_exit(f'Missing required parameters: {missing}')
-    validate_env_type(params['ENV_TYPE'])
+    validate_env_type(env_type=params['ENV_TYPE'])
     endpoint = params['ENDPOINT']
-    validate_env_alias_or_address(params['IMA_CONTRACTS'], ContractType.IMA, endpoint)
     validate_env_alias_or_address(params['MANAGER_CONTRACTS'], ContractType.MANAGER, endpoint)
+
+    if 'IMA_CONTRACTS' in params.keys():
+        validate_env_alias_or_address(params['IMA_CONTRACTS'], ContractType.IMA, endpoint)
 
 
 def validate_env_type(env_type: str) -> None:

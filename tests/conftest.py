@@ -27,7 +27,6 @@ from contextlib import contextmanager
 import docker
 import mock
 import pytest
-import yaml
 
 from node_cli.configs import (
     CONTAINER_CONFIG_TMP_PATH,
@@ -36,8 +35,8 @@ from node_cli.configs import (
     META_FILEPATH,
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
-    STATIC_PARAMS_FILEPATH,
     SCHAIN_NODE_DATA_PATH,
+    NGINX_CONFIG_FILEPATH,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -45,77 +44,7 @@ from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 
-from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SYNC
-
-
-TEST_ENV_PARAMS = """
-mainnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 2000000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-testnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-qanet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-devnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 80000000000
-
-  packages:
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-    docker-compose: 1.1.3
-
-  docker:
-    docker-api: 1.1.3
-    docker-engine: 1.1.3
-"""
-
-
-@pytest.fixture
-def net_params_file():
-    with open(STATIC_PARAMS_FILEPATH, 'w') as f:
-        yaml.dump(yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader), stream=f, Dumper=yaml.Dumper)
-    yield STATIC_PARAMS_FILEPATH
-    os.remove(STATIC_PARAMS_FILEPATH)
+from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
 
 @pytest.fixture()
@@ -189,6 +118,17 @@ def resource_alloc():
         json.dump({}, alloc_file)
     yield RESOURCE_ALLOCATION_FILEPATH
     os.remove(RESOURCE_ALLOCATION_FILEPATH)
+
+
+@pytest.fixture
+def inited_node():
+    path = pathlib.Path(NGINX_CONFIG_FILEPATH)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch()
+    try:
+        yield
+    finally:
+        os.remove(NGINX_CONFIG_FILEPATH)
 
 
 @pytest.fixture
@@ -286,11 +226,11 @@ def tmp_schains_dir():
 
 @pytest.fixture
 def tmp_sync_datadir():
-    os.makedirs(TEST_SCHAINS_MNT_DIR_SYNC, exist_ok=True)
+    os.makedirs(TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN, exist_ok=True)
     try:
-        yield TEST_SCHAINS_MNT_DIR_SYNC
+        yield TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
     finally:
-        shutil.rmtree(TEST_SCHAINS_MNT_DIR_SYNC)
+        shutil.rmtree(TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN)
 
 
 @pytest.fixture
@@ -316,7 +256,6 @@ def valid_env_params():
 
 @pytest.fixture
 def valid_env_file(valid_env_params):
-    """Create a temporary .env file whose contents mimic test-env."""
     file_name = None
     try:
         with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:

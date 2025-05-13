@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 init_default_logger()
 
 
-def test_register_node(resource_alloc, mocked_g_config):
+def test_register_node(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
@@ -70,7 +70,7 @@ def test_register_node(resource_alloc, mocked_g_config):
     )  # noqa
 
 
-def test_register_node_with_error(resource_alloc, mocked_g_config):
+def test_register_node_with_error(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
         {'status': 'error', 'payload': ['Strange error']},
@@ -89,7 +89,7 @@ def test_register_node_with_error(resource_alloc, mocked_g_config):
     )
 
 
-def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
+def test_register_node_with_prompted_ip(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
@@ -106,7 +106,7 @@ def test_register_node_with_prompted_ip(resource_alloc, mocked_g_config):
     )
 
 
-def test_register_node_with_default_port(resource_alloc, mocked_g_config):
+def test_register_node_with_default_port(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
@@ -338,7 +338,7 @@ def test_restore(mocked_g_config):
             return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
         ),
         patch('node_cli.operations.base.configure_nftables'),
-        patch('node_cli.configs.env.validate_env_params', lambda params: None),
+        patch('node_cli.configs.env.validate_env_params'),
     ):
         result = run_command(restore_node, [backup_path, './tests/test-env'])
         assert result.exit_code == 0
@@ -364,7 +364,7 @@ def test_restore_no_snapshot(mocked_g_config):
             return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
         ),
         patch('node_cli.operations.base.configure_nftables'),
-        patch('node_cli.configs.env.validate_env_params', lambda params: None),
+        patch('node_cli.configs.env.validate_env_params'),
     ):
         result = run_command(restore_node, [backup_path, './tests/test-env', '--no-snapshot'])
         assert result.exit_code == 0
@@ -403,7 +403,7 @@ def test_turn_off_maintenance_on(mocked_g_config):
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        patch('node_cli.configs.env.validate_env_params', lambda params: None),
+        patch('node_cli.configs.env.validate_env_params'),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
@@ -435,7 +435,7 @@ def test_turn_on_maintenance_off(mocked_g_config):
         mock.patch('node_cli.core.node.turn_on_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        patch('node_cli.configs.env.validate_env_params', lambda params: None),
+        patch('node_cli.configs.env.validate_env_params'),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',

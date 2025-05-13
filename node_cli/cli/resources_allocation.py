@@ -25,6 +25,7 @@ from node_cli.core.resources import (
     generate_resource_allocation_config,
 )
 from node_cli.utils.helper import abort_if_false, safe_load_texts
+from node_cli.utils.node_type import NodeType
 
 TEXTS = safe_load_texts()
 
@@ -59,4 +60,4 @@ def show():
 )
 @click.option('--force', '-f', is_flag=True, help='Rewrite if already exists')
 def generate(env_file, force):
-    generate_resource_allocation_config(env_file=env_file, force=force)
+    generate_resource_allocation_config(node_type=NodeType.REGULAR, env_file=env_file, force=force)

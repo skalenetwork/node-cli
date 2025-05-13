@@ -18,7 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from node_cli.main import version
+from node_cli.main import version, info
 from tests.helper import run_command
 
 
@@ -28,3 +28,15 @@ def test_version():
     assert result.output == expected
     result = run_command(version, ['--short'])
     assert result.output == 'test\n'
+
+
+def test_info_command():
+    result = run_command(info, [])
+
+    assert result.exit_code == 0
+
+    expected_line = 'Full version: test'
+    assert expected_line in result.output
+
+    assert 'Version:' in result.output
+    assert 'Build time:' in result.output

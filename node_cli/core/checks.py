@@ -56,9 +56,11 @@ from node_cli.configs import (
     DOCKER_DAEMON_HOSTS,
     REPORTS_PATH,
     STATIC_PARAMS_FILEPATH,
+    MIRAGE_STATIC_PARAMS_FILEPATH,
 )
 from node_cli.core.host import is_ufw_ipv6_chain_exists, is_ufw_ipv6_option_enabled
 from node_cli.core.resources import get_disk_size
+from node_cli.utils.docker_utils import NodeType
 from node_cli.utils.helper import run_cmd, safe_mkdir
 
 logger = logging.getLogger(__name__)
@@ -76,9 +78,18 @@ Func = TypeVar('Func', bound=Callable[..., Any])
 FuncList = List[Func]
 
 
-def get_static_params(env_type: str = 'mainnet', config_path: str = CONTAINER_CONFIG_PATH) -> Dict:
-    status_params_filename = os.path.basename(STATIC_PARAMS_FILEPATH)
-    static_params_filepath = os.path.join(config_path, status_params_filename)
+def get_static_params(
+    node_type: NodeType,
+    env_type: str = 'mainnet',
+    config_path: str = CONTAINER_CONFIG_PATH,
+) -> Dict:
+    if node_type == NodeType.MIRAGE:
+        static_params_base_filepath = MIRAGE_STATIC_PARAMS_FILEPATH
+    else:
+        static_params_base_filepath = STATIC_PARAMS_FILEPATH
+
+    static_params_filename = os.path.basename(static_params_base_filepath)
+    static_params_filepath = os.path.join(config_path, static_params_filename)
     with open(static_params_filepath) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata['envs'][env_type]
@@ -154,6 +165,9 @@ def merge_reports(
 
 
 class BaseChecker:
+    def __init__(self, requirements: Dict) -> None:
+        self.requirements = requirements
+
     def _ok(self, name: str, info: Optional[Union[str, Dict]] = None) -> CheckResult:
         return CheckResult(name=name, status='ok', info=info)
 
@@ -169,7 +183,8 @@ class BaseChecker:
         methods = inspect.getmembers(
             type(self),
             predicate=lambda m: inspect.isfunction(m)
-            and getattr(m, '_check_type', None) in allowed_types,
+            and getattr(m, '_check_type', None) in allowed_types
+            and self.requirements.get(m.__name__, None) != 'disabled',
         )
         return [functools.partial(m[1], self) for m in methods]
 
@@ -190,9 +205,9 @@ class MachineChecker(BaseChecker):
     def __init__(
         self, requirements: Dict, disk_device: str, network_timeout: Optional[int] = None
     ) -> None:
-        self.requirements = requirements
         self.disk_device = disk_device
         self.network_timeout = network_timeout or NETWORK_CHECK_TIMEOUT
+        super().__init__(requirements=requirements)
 
     @preinstall
     def cpu_total(self) -> CheckResult:
@@ -274,7 +289,7 @@ class MachineChecker(BaseChecker):
 
 class PackageChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
-        self.requirements = requirements
+        super().__init__(requirements=requirements)
 
     def _check_apt_package(self, package_name: str, version: str = None) -> CheckResult:
         # TODO: check versions
@@ -327,7 +342,7 @@ class PackageChecker(BaseChecker):
 class DockerChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         self.docker_client = docker.from_env()
-        self.requirements = requirements
+        super().__init__(requirements=requirements)
 
     def _check_docker_command(self) -> Optional[str]:
         return shutil.which('docker')
@@ -471,12 +486,13 @@ def get_all_checkers(disk: str, requirements: Dict) -> List[BaseChecker]:
 
 def run_checks(
     disk: str,
+    node_type: NodeType,
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH,
     check_type: CheckType = CheckType.ALL,
 ) -> ResultList:
     logger.info('Executing checks. Type: %s', check_type)
-    requirements = get_static_params(env_type, config_path)
+    requirements = get_static_params(node_type, env_type, config_path)
     checkers = get_all_checkers(disk, requirements)
     checks = get_checks(checkers, check_type)
     results = [check() for check in checks]
