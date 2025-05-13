@@ -18,7 +18,7 @@ def test_restore_mirage(
     valid_env_file,
     ensure_meta_removed,
 ):
-    mock_env = {'ENV_TYPE': 'devnet-mirage'}
+    mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
     mock_restore_op.return_value = True
     backup_path = '/fake/backup'
@@ -44,7 +44,7 @@ def test_init_mirage_boot(
     valid_env_file,
     ensure_meta_removed,
 ):
-    mock_env = {'ENV_TYPE': 'devnet-mirage'}
+    mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
 
     init_boot(valid_env_file)
@@ -75,7 +75,7 @@ def test_migrate_mirage_boot(
     resource_alloc,
     meta_file_v3,
 ):
-    mock_env = {'ENV_TYPE': 'devnet-mirage'}
+    mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
     mock_migrate_op.return_value = True
     pull_config_for_schain = 'mirage'
@@ -110,7 +110,7 @@ def test_update_mirage_boot(
     resource_alloc,
     meta_file_v3,
 ):
-    mock_env = {'ENV_TYPE': 'devnet-mirage'}
+    mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
     mock_update_op.return_value = True
     pull_config_for_schain = 'mirage'

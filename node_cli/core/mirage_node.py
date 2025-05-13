@@ -28,12 +28,10 @@ from node_cli.utils.decorators import check_not_inited
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeType
-from node_cli.utils.texts import Texts
 from node_cli.operations import restore_mirage_op
 
 
 logger = logging.getLogger(__name__)
-TEXTS = Texts()
 
 
 @check_not_inited

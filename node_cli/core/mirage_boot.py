@@ -29,11 +29,9 @@ from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
-from node_cli.utils.texts import Texts
 
 
 logger = logging.getLogger(__name__)
-TEXTS = Texts()
 
 
 @check_not_inited
