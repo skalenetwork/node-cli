@@ -50,7 +50,6 @@ from jinja2 import Environment
 from node_cli.utils.print_formatters import print_err_response
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.configs import (
-    TEXT_FILE,
     ADMIN_HOST,
     ADMIN_PORT,
     HIDE_STREAM_LOG,
@@ -185,14 +184,6 @@ def safe_get_config(config, key):
     except KeyError as e:
         logger.error(e)
         return None
-
-
-def safe_load_texts():
-    with open(TEXT_FILE, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
 
 
 def safe_load_yml(filepath):

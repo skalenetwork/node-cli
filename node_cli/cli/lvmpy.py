@@ -20,11 +20,11 @@
 import click
 
 from node_cli.utils.helper import abort_if_false
-from node_cli.utils.texts import Texts
+from node_cli.utils.texts import safe_load_texts
 from lvmpy.src.app import run as run_lvmpy
 from lvmpy.src.health import heal_service
 
-G_TEXTS = Texts()
+G_TEXTS = safe_load_texts()
 TEXTS = G_TEXTS['lvmpy']
 
 

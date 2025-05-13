@@ -70,7 +70,7 @@ from node_cli.utils.helper import (
     post_request,
 )
 from node_cli.utils.meta import get_meta_info
-from node_cli.utils.texts import Texts
+from node_cli.utils.texts import safe_load_texts
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.decorators import check_not_inited, check_inited, check_user
 from node_cli.utils.docker_utils import (
@@ -86,7 +86,7 @@ from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 
 
 logger = logging.getLogger(__name__)
-TEXTS = Texts()
+TEXTS = safe_load_texts()
 
 BASE_CONTAINERS_AMOUNT = 5
 BLUEPRINT_NAME = 'node'

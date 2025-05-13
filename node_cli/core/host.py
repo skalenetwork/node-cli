@@ -54,7 +54,7 @@ from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
 from node_cli.core.nftables import NFTablesManager
 from node_cli.utils.helper import safe_mkdir
 
-from node_cli.utils.helper import safe_load_texts
+from node_cli.utils.texts import safe_load_texts
 
 TEXTS = safe_load_texts()
 

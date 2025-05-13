@@ -39,7 +39,8 @@ from node_cli.core.node import (
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.configs.env import ALLOWED_ENV_TYPES
 from node_cli.utils.decorators import check_inited
-from node_cli.utils.helper import abort_if_false, safe_load_texts, streamed_cmd, IP_TYPE
+from node_cli.utils.helper import abort_if_false, streamed_cmd, IP_TYPE
+from node_cli.utils.texts import safe_load_texts
 from node_cli.utils.meta import get_meta_info
 from node_cli.utils.print_formatters import print_meta_info
 
