@@ -16,6 +16,12 @@ node:
   registered: |-
     Node registered in SKALE manager.
     For more info run < skale node info >
+  registered_mirage: |-
+    Node registered in SKALE manager.
+    For more info run < mirage node info >
+  registered_mirage_boot: |-
+    Node registered in SKALE manager.
+    For more info run < mirage boot info >
   status:
     ACTIVE: Active
     LEAVING: Leaving
@@ -27,24 +33,36 @@ node:
   not_inited: |-
     Node hasn't been inited before.
     You should run < skale node init >
+  not_inited_mirage: |-
+    Node hasn't been inited before.
+    You should run < mirage node init >
   already_inited: Node was already inited before.
   cmd_failed: |-
     Command failed. Please, check out < skale logs cli >
+    and logs from docker containers for more information
+  cmd_failed_mirage: |-
+    Command failed. Please, check out < mirage logs cli >
     and logs from docker containers for more information
   domain_name_changed: Domain name successfully changed
 wallet:
   successful_transfer: "Funds were successfully transferred"
 
 service:
-  node_not_registered: This SKALE node is not registered on SKALE Manager yet
+  node_not_registered: This node is not registered on SKALE Manager yet
 
 ssl:
   no_cert: |-
     No SSL certificates on the node. 
     Run < skale ssl upload > to add new certificates.
+  no_cert_mirage: |-
+    No SSL certificates on the node. 
+    Run < mirage ssl upload > to add new certificates.
   uploaded: |-
     Certificates are successfully uploaded.
     You can check status by running < skale ssl status >
+  uploaded_mirage: |-
+    Certificates are successfully uploaded.
+    You can check status by running < mirage ssl status >
   check_passed: |-
     Check passed
 

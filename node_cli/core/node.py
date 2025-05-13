@@ -42,6 +42,7 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
 )
 from node_cli.cli import __version__
+from node_cli.cli.info import TYPE
 from node_cli.configs.env import get_validated_env_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
@@ -120,9 +121,15 @@ def is_update_safe(node_type: NodeType) -> bool:
 
 @check_inited
 @check_user
-def register_node(name, p2p_ip, public_ip, port, domain_name):
+def register_node(name, p2p_ip, public_ip, port, domain_name, is_mirage_boot: bool = False) -> None:
     if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
+        if TYPE == NodeType.MIRAGE:
+            if is_mirage_boot:
+                print(TEXTS['node']['not_inited_mirage_boot'])
+            else:
+                print(TEXTS['node']['not_inited_mirage'])
+        else:
+            print(TEXTS['node']['not_inited'])
         return
 
     # todo: add name, ips and port checks
@@ -135,7 +142,13 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
     }
     status, payload = post_request(blueprint=BLUEPRINT_NAME, method='register', json=json_data)
     if status == 'ok':
-        msg = TEXTS['node']['registered']
+        if TYPE == NodeType.MIRAGE:
+            if is_mirage_boot:
+                msg = TEXTS['node']['registered_mirage_boot']
+            else:
+                msg = TEXTS['node']['registered_mirage']
+        else:
+            msg = TEXTS['node']['registered']
         logger.info(msg)
         print(msg)
     else:
@@ -498,7 +511,10 @@ def run_checks(
     disk: Optional[str] = None,
 ) -> None:
     if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
+        if TYPE == NodeType.MIRAGE:
+            print(TEXTS['node']['not_inited_mirage'])
+        else:
+            print(TEXTS['node']['not_inited'])
         return
 
     if disk is None:

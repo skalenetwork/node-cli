@@ -64,7 +64,7 @@ def init_boot(env_file):
 @click.option('--domain', '-d', prompt='Enter node domain name', type=str, help='Node domain name')
 @streamed_cmd
 def register_boot(name, ip, port, domain):
-    register(name=name, p2p_ip=ip, public_ip=ip, port=port, domain_name=domain)
+    register(name=name, p2p_ip=ip, public_ip=ip, port=port, domain_name=domain, is_mirage_boot=True)
 
 
 @boot.command('signature', help='Get mirage node signature for a validator ID (during Boot Phase).')

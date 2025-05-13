@@ -37,13 +37,13 @@ def wallet():
     pass
 
 
-@wallet.command('info', help='Get info about SKALE node wallet')
+@wallet.command('info', help='Get info about node wallet')
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 def wallet_info(format):
     get_wallet_info(format)
 
 
-@wallet.command('send', help='Send ETH from SKALE node wallet to address')
+@wallet.command('send', help='Send ETH from node wallet to address')
 @click.argument('address')
 @click.argument('amount', type=float)
 @click.option(

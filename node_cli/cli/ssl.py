@@ -25,6 +25,8 @@ from node_cli.utils.helper import error_exit
 from node_cli.utils.texts import safe_load_texts
 from node_cli.configs.ssl import DEFAULT_SSL_CHECK_PORT, SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
 from node_cli.core.ssl import check_cert, upload_cert, cert_status
+from node_cli.cli.info import TYPE
+from node_cli.utils.node_type import NodeType
 
 
 TEXTS = safe_load_texts()
@@ -46,7 +48,10 @@ def status():
     status, payload = cert_status()
     if status == 'ok':
         if payload.get('is_empty'):
-            print(TEXTS['ssl']['no_cert'])
+            if TYPE == NodeType.MIRAGE:
+                print(TEXTS['ssl']['no_cert_mirage'])
+            else:
+                print(TEXTS['ssl']['no_cert'])
         else:
             table_data = [
                 ['Issued to', payload['issued_to']],
@@ -71,7 +76,10 @@ def status():
 def upload(key_path, cert_path, force):
     status, payload = upload_cert(cert_path, key_path, force)
     if status == 'ok':
-        print(TEXTS['ssl']['uploaded'])
+        if TYPE == NodeType.MIRAGE:
+            print(TEXTS['ssl']['uploaded_mirage'])
+        else:
+            print(TEXTS['ssl']['uploaded'])
     else:
         error_exit(payload)
 

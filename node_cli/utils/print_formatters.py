@@ -26,10 +26,12 @@ from dateutil import parser
 
 import inspect
 
+from node_cli.cli.info import TYPE
 from node_cli.configs import LONG_LINE
 from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
 from node_cli.utils.meta import CliMeta
 from node_cli.utils.texts import safe_load_texts
+from node_cli.utils.node_type import NodeType
 
 TEXTS = safe_load_texts()
 
@@ -226,7 +228,10 @@ def print_schain_info(info: dict, raw: bool = False) -> None:
 
 
 def print_node_cmd_error():
-    print(TEXTS['node']['cmd_failed'].format(DEBUG_LOG_FILEPATH))
+    if TYPE == NodeType.MIRAGE:
+        print(TEXTS['node']['cmd_failed_mirage'].format(DEBUG_LOG_FILEPATH))
+    else:
+        print(TEXTS['node']['cmd_failed'].format(DEBUG_LOG_FILEPATH))
 
 
 def print_node_info(node, node_status):

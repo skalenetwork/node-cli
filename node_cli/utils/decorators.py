@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from encodings.punycode import T
 from functools import wraps
 
 from node_cli.core.host import is_node_inited
@@ -24,6 +25,8 @@ from node_cli.utils.global_config import get_system_user
 from node_cli.utils.helper import error_exit, is_user_valid, get_g_conf_user
 from node_cli.utils.texts import safe_load_texts
 from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.cli.info import TYPE
+from node_cli.utils.node_type import NodeType
 
 
 TEXTS = safe_load_texts()
@@ -45,7 +48,12 @@ def check_inited(f):
     @wraps(f)
     def inner(*args, **kwargs):
         if not is_node_inited():
-            error_exit(TEXTS['node']['not_inited'], exit_code=CLIExitCodes.NODE_STATE_ERROR)
+            if TYPE == NodeType.MIRAGE:
+                error_exit(
+                    TEXTS['node']['not_inited_mirage'], exit_code=CLIExitCodes.NODE_STATE_ERROR
+                )
+            else:
+                error_exit(TEXTS['node']['not_inited'], exit_code=CLIExitCodes.NODE_STATE_ERROR)
         return f(*args, **kwargs)
 
     return inner

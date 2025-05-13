@@ -189,7 +189,7 @@ def test_node_info_node_info_not_created():
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
     assert result.exit_code == 0
-    assert result.output == 'This SKALE node is not registered on SKALE Manager yet\n'
+    assert result.output == 'This node is not registered on SKALE Manager yet\n'
 
 
 def test_node_info_node_info_frozen():

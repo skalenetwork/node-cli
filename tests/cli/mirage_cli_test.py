@@ -122,7 +122,7 @@ def test_mirage_boot_register(mock_register_core):
 
     assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
     mock_register_core.assert_called_once_with(
-        name=name, p2p_ip=ip, public_ip=ip, port=port, domain_name=domain
+        name=name, p2p_ip=ip, public_ip=ip, port=port, domain_name=domain, is_mirage_boot=True
     )
 
 
