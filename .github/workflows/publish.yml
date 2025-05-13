@@ -108,7 +108,7 @@ jobs:
             scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} ${{ matrix.build_type }}
           echo "Contents of dist directory:"
           ls -altr ${{ github.workspace }}/dist/
-          docker rm -f $(docker ps -aq)
+          docker rm -f $(docker ps -aq) || true
 
       - name: Save sha512sum for ${{ steps.asset_details.outputs.FINAL_ASSET_NAME }}
         run: |
