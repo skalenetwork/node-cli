@@ -55,7 +55,7 @@ def restore_mirage(backup_path, env_filepath, config_only=False):
 
 
 @check_inited
-def toggle_mirage_repair(snapshot_from: str | None = None) -> None:
+def request_repair(snapshot_from: str | None = None) -> None:
     node_type = NodeType.MIRAGE
     env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=node_type)
     params = get_static_params(node_type, env['ENV_TYPE'])
@@ -64,4 +64,4 @@ def toggle_mirage_repair(snapshot_from: str | None = None) -> None:
     if snapshot_from:
         record.set_snapshot_from(snapshot_from)
 
-    print(TEXTS['mirage']['toggle_repair'])
+    print(TEXTS['mirage']['node']['repair']['repair_requested'])

@@ -83,4 +83,4 @@ mirage:
       help: Repair mirage chain node
       warning: Are you sure you want to repair mirage chain node? In rare cases may cause data loss and require additional maintenance
       snapshot_from: IP of the node to take snapshot from
-      toggle_repair: Repair mode is toggled
+      toggle_repair: Repair mode is requested
