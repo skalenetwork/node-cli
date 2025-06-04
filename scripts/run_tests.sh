@@ -10,4 +10,4 @@ LVMPY_LOG_DIR="$PROJECT_DIR/tests/" \
     TEST_HOME_DIR="$PROJECT_DIR/tests/" \
     GLOBAL_SKALE_DIR="$PROJECT_DIR/tests/etc/skale" \
     DOTENV_FILEPATH='tests/test-env' \
-    py.test --cov=$PROJECT_DIR/ --ignore=tests/core/nftables_test.py --ignore=tests/core/migration_test.py tests $@
+    py.test --cov=$PROJECT_DIR/ --ignore=tests/core/nftables_test.py --ignore=tests/core/migration_test.py tests/mirage $@
