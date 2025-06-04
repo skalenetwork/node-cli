@@ -60,6 +60,7 @@ from node_cli.configs import (
 )
 from node_cli.core.host import is_ufw_ipv6_chain_exists, is_ufw_ipv6_option_enabled
 from node_cli.core.resources import get_disk_size
+from node_cli.core.static_config import get_static_params
 from node_cli.utils.docker_utils import NodeType
 from node_cli.utils.helper import run_cmd, safe_mkdir
 
@@ -76,23 +77,6 @@ CLOUDFLARE_DNS_HOST_PORT = 443
 
 Func = TypeVar('Func', bound=Callable[..., Any])
 FuncList = List[Func]
-
-
-def get_static_params(
-    node_type: NodeType,
-    env_type: str = 'mainnet',
-    config_path: str = CONTAINER_CONFIG_PATH,
-) -> Dict:
-    if node_type == NodeType.MIRAGE:
-        static_params_base_filepath = MIRAGE_STATIC_PARAMS_FILEPATH
-    else:
-        static_params_base_filepath = STATIC_PARAMS_FILEPATH
-
-    static_params_filename = os.path.basename(static_params_base_filepath)
-    static_params_filepath = os.path.join(config_path, static_params_filename)
-    with open(static_params_filepath) as requirements_file:
-        ydata = yaml.load(requirements_file, Loader=yaml.Loader)
-        return ydata['envs'][env_type]
 
 
 def check_quietly(check: Func, *args, **kwargs) -> CheckResult:

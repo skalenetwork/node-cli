@@ -3,6 +3,8 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 PROJECT_DIR=$(dirname $DIR)
 
+bash scripts/run_redis.sh
+
 LVMPY_LOG_DIR="$PROJECT_DIR/tests/" \
     HIDE_STREAM_LOG=true \
     TEST_HOME_DIR="$PROJECT_DIR/tests/" \

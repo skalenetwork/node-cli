@@ -40,7 +40,7 @@ service:
 
 ssl:
   no_cert: |-
-    No SSL certificates on the node. 
+    No SSL certificates on the node.
     Run < skale ssl upload > to add new certificates.
   uploaded: |-
     Certificates are successfully uploaded.
@@ -76,3 +76,11 @@ lvmpy:
   heal:
     help: Run healing procedure for lvmpy server
     prompt: Are you sure you want run healing procedure?
+
+mirage:
+  node:
+    repair:
+      help: Repair mirage chain node
+      warning: Are you sure you want to repair mirage chain node? In rare cases may cause data loss and require additional maintenance
+      snapshot_from: IP of the node to take snapshot from
+      toggle_repair: Repair mode is toggled

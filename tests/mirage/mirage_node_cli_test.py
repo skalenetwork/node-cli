@@ -1,15 +1,15 @@
 from unittest import mock
 
 from node_cli.configs import SKALE_DIR
-from node_cli.core.mirage_boot import init as init_boot, migrate, update
-from node_cli.core.mirage_node import restore_mirage
+from node_cli.mirage.mirage_boot import init as init_boot, migrate, update
+from node_cli.mirage.mirage_node import restore_mirage
 from node_cli.utils.node_type import NodeType
 
 
-@mock.patch('node_cli.core.mirage_node.time.sleep')
-@mock.patch('node_cli.core.mirage_node.restore_mirage_op')
-@mock.patch('node_cli.core.mirage_node.save_env_params')
-@mock.patch('node_cli.core.mirage_node.compose_node_env')
+@mock.patch('node_cli.mirage.mirage_node.time.sleep')
+@mock.patch('node_cli.mirage.mirage_node.restore_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.save_env_params')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
 def test_restore_mirage(
     mock_compose_env,
     mock_save_env,
@@ -32,10 +32,10 @@ def test_restore_mirage(
     mock_sleep.assert_called_once()
 
 
-@mock.patch('node_cli.core.mirage_boot.is_base_containers_alive', return_value=True)
-@mock.patch('node_cli.core.mirage_boot.time.sleep')
-@mock.patch('node_cli.core.mirage_boot.init_mirage_boot_op')
-@mock.patch('node_cli.core.mirage_boot.compose_node_env')
+@mock.patch('node_cli.mirage.mirage_boot.is_base_containers_alive', return_value=True)
+@mock.patch('node_cli.mirage.mirage_boot.time.sleep')
+@mock.patch('node_cli.mirage.mirage_boot.init_mirage_boot_op')
+@mock.patch('node_cli.mirage.mirage_boot.compose_node_env')
 def test_init_mirage_boot(
     mock_compose_env,
     mock_init_op,
@@ -60,10 +60,10 @@ def test_init_mirage_boot(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.core.mirage_boot.is_base_containers_alive', return_value=True)
-@mock.patch('node_cli.core.mirage_boot.time.sleep')
-@mock.patch('node_cli.core.mirage_boot.migrate_mirage_boot_op')
-@mock.patch('node_cli.core.mirage_boot.compose_node_env')
+@mock.patch('node_cli.mirage.mirage_boot.is_base_containers_alive', return_value=True)
+@mock.patch('node_cli.mirage.mirage_boot.time.sleep')
+@mock.patch('node_cli.mirage.mirage_boot.migrate_mirage_boot_op')
+@mock.patch('node_cli.mirage.mirage_boot.compose_node_env')
 def test_migrate_mirage_boot(
     mock_compose_env,
     mock_migrate_op,
@@ -95,10 +95,10 @@ def test_migrate_mirage_boot(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.core.mirage_boot.is_base_containers_alive', return_value=True)
-@mock.patch('node_cli.core.mirage_boot.time.sleep')
-@mock.patch('node_cli.core.mirage_boot.update_mirage_boot_op')
-@mock.patch('node_cli.core.mirage_boot.compose_node_env')
+@mock.patch('node_cli.mirage.mirage_boot.is_base_containers_alive', return_value=True)
+@mock.patch('node_cli.mirage.mirage_boot.time.sleep')
+@mock.patch('node_cli.mirage.mirage_boot.update_mirage_boot_op')
+@mock.patch('node_cli.mirage.mirage_boot.compose_node_env')
 def test_update_mirage_boot(
     mock_compose_env,
     mock_update_op,
@@ -128,3 +128,7 @@ def test_update_mirage_boot(
     mock_update_op.assert_called_once_with(valid_env_file, mock_env)
     mock_sleep.assert_called_once()
     mock_is_alive.assert_called_once_with(node_type=NodeType.MIRAGE, is_mirage_boot=True)
+
+
+def test_mirage_repair():
+    pass

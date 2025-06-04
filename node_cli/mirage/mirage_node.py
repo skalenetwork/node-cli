@@ -22,16 +22,21 @@ import logging
 import time
 
 from node_cli.configs import SKALE_DIR, RESTORE_SLEEP_TIMEOUT
-from node_cli.core.host import save_env_params
+from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.node import compose_node_env
-from node_cli.utils.decorators import check_not_inited
+from node_cli.core.host import save_env_params
+from node_cli.core.static_config import get_static_params
+from node_cli.mirage.record.chain_record import ChainRecord
+from node_cli.operations import restore_mirage_op
+from node_cli.utils.decorators import check_inited, check_not_inited
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeType
-from node_cli.operations import restore_mirage_op
+from node_cli.utils.texts import safe_load_texts
 
 
 logger = logging.getLogger(__name__)
+TEXTS = safe_load_texts()
 
 
 @check_not_inited
@@ -47,3 +52,16 @@ def restore_mirage(backup_path, env_filepath, config_only=False):
         error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     print('Mirage node is restored from backup')
+
+
+@check_inited
+def toggle_mirage_repair(snapshot_from: str | None = None) -> None:
+    node_type = NodeType.MIRAGE
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=node_type)
+    params = get_static_params(node_type, env['ENV_TYPE'])
+    record = ChainRecord(params['info']['chain_name'])
+    record.set_repair_ts(int(time.time()))
+    if snapshot_from:
+        record.set_snapshot_from(snapshot_from)
+
+    print(TEXTS['mirage']['toggle_repair'])
