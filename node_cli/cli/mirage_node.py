@@ -111,9 +111,9 @@ def restore_node(backup_path, env_file, config_only):
 @click.option(
     '--snapshot-from',
     type=URL_TYPE,
-    default=None,
+    default='',
     hidden=True,
     help=TEXTS['mirage']['node']['repair']['snapshot_from']
 )
-def repair(snapshot_from: str | None = None) -> None:
+def repair(snapshot_from: str = '') -> None:
     request_repair(snapshot_from=snapshot_from)
