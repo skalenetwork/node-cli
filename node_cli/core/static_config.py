@@ -1,7 +1,11 @@
 import os
 import yaml
 
-from node_cli.configs import CONTAINER_CONFIG_PATH, MIRAGE_STATIC_PARAMS_FILEPATH, STATIC_PARAMS_FILEPATH
+from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
+    MIRAGE_STATIC_PARAMS_FILEPATH,
+    STATIC_PARAMS_FILEPATH,
+)
 from node_cli.utils.node_type import NodeType
 
 

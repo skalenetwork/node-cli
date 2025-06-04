@@ -2,7 +2,6 @@ import os
 import time
 import shlex
 import shutil
-from datetime import datetime
 
 import pytest
 import freezegun
@@ -11,7 +10,7 @@ from node_cli.core.logs import create_dump_dir, create_logs_dump
 from node_cli.configs import G_CONF_HOME, SKALE_TMP_DIR
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.helper import run_cmd, safe_mkdir
-from tests.helper import CURRENT_TIMESTAMP, CURRENT_DATETIME
+from tests.helper import CURRENT_DATETIME
 
 TEST_DUMP_DIR_PATH = os.path.join(SKALE_TMP_DIR, 'skale-logs-dump-2020-07-16--12-38-00')
 

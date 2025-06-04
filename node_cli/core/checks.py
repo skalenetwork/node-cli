@@ -45,7 +45,6 @@ from typing import (
 
 import docker  # type: ignore
 import psutil  # type: ignore
-import yaml
 from debian import debian_support
 from packaging.version import parse as version_parse
 
@@ -55,8 +54,6 @@ from node_cli.configs import (
     DOCKER_CONFIG_FILEPATH,
     DOCKER_DAEMON_HOSTS,
     REPORTS_PATH,
-    STATIC_PARAMS_FILEPATH,
-    MIRAGE_STATIC_PARAMS_FILEPATH,
 )
 from node_cli.core.host import is_ufw_ipv6_chain_exists, is_ufw_ipv6_option_enabled
 from node_cli.core.resources import get_disk_size
