@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 CHAIN_RECORD_FIELDS: dict[str, FieldInfo] = {
+    'name': FieldInfo('name', str, ''),
     'repair_date': FieldInfo('repair_date', datetime, datetime.fromtimestamp(0)),
     'repair_ts': FieldInfo('repair_ts', int, None),
     'snapshot_from': FieldInfo('snapshot_from', str, None),
