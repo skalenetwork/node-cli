@@ -28,7 +28,11 @@ from node_cli.operations.base import (  # noqa
     turn_off as turn_off_op,
     turn_on as turn_on_op,
     restore as restore_op,
-    restore_mirage as restore_mirage_op,
     cleanup_sync as cleanup_sync_op,
     configure_nftables,
+)
+from node_cli.operations.mirage import (  # noqa
+    update_mirage as update_mirage_op,
+    MirageUpdateType,
+    restore_mirage as restore_mirage_op,
 )

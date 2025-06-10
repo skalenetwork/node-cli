@@ -23,13 +23,13 @@ import time
 
 from node_cli.configs import SKALE_DIR, RESTORE_SLEEP_TIMEOUT
 from node_cli.core.host import save_env_params
-from node_cli.core.node import compose_node_env
-from node_cli.utils.decorators import check_not_inited
+from node_cli.core.node import compose_node_env, is_base_containers_alive
+from node_cli.operations import update_mirage_op, restore_mirage_op, MirageUpdateType
+from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeType
-from node_cli.operations import restore_mirage_op
-
+from node_cli.utils.print_formatters import print_node_cmd_error
 
 logger = logging.getLogger(__name__)
 
@@ -47,3 +47,24 @@ def restore_mirage(backup_path, env_filepath, config_only=False):
         error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     print('Mirage node is restored from backup')
+
+
+@check_inited
+@check_user
+def migrate_from_boot(
+    env_filepath: str,
+) -> None:
+    logger.info('Node update started')
+    env = compose_node_env(
+        env_filepath,
+        inited_node=True,
+        sync_schains=False,
+        node_type=NodeType.MIRAGE,
+    )
+    migrate_ok = update_mirage_op(env_filepath, env, update_type=MirageUpdateType.INFRA_ONLY)
+    alive = is_base_containers_alive(node_type=NodeType.MIRAGE)
+    if not migrate_ok or not alive:
+        print_node_cmd_error()
+        return
+    else:
+        logger.info('Mirgration from boot to mirage completed successfully')

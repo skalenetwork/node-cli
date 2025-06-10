@@ -20,7 +20,7 @@
 import click
 
 from node_cli.core.node import get_node_signature, backup, get_node_info
-from node_cli.core.mirage_node import restore_mirage
+from node_cli.core.mirage_node import migrate_from_boot, restore_mirage
 from node_cli.utils.helper import error_exit, streamed_cmd, abort_if_false
 
 
@@ -94,3 +94,18 @@ def backup_node(backup_folder_path):
 @streamed_cmd
 def restore_node(backup_path, env_file, config_only):
     restore_mirage(backup_path, env_file, config_only)
+
+
+@node.command('migrate', help='Switch from boot to regular Mirage node.')
+@click.argument('env_filepath')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to migrate to regular Mirage node? The action cannot be undone',
+)
+@streamed_cmd
+def migrate_node(env_filepath: str) -> None:
+    click.echo("Placeholder: Command 'mirage node migrate' is not yet implemented.")
+    migrate_from_boot(env_filepath=env_filepath)

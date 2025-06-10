@@ -41,7 +41,7 @@ from node_cli.configs.env import ALLOWED_ENV_TYPES
 from node_cli.utils.decorators import check_inited
 from node_cli.utils.helper import abort_if_false, streamed_cmd, IP_TYPE
 from node_cli.utils.texts import safe_load_texts
-from node_cli.utils.meta import get_meta_info
+from node_cli.utils.meta import CliMetaManager
 from node_cli.utils.print_formatters import print_meta_info
 
 
@@ -248,7 +248,7 @@ def configure_firewall(monitoring):
 @check_inited
 @click.option('--json', 'raw', is_flag=True, help=TEXTS['common']['json'])
 def version(raw: bool) -> None:
-    meta_info = get_meta_info(raw=raw)
+    meta_info = CliMetaManager().get_meta_info(raw=raw)
     if raw:
         print(meta_info)
     else:

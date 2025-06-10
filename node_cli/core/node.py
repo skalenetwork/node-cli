@@ -69,7 +69,7 @@ from node_cli.utils.helper import (
     get_request,
     post_request,
 )
-from node_cli.utils.meta import get_meta_info
+from node_cli.utils.meta import CliMetaManager
 from node_cli.utils.texts import safe_load_texts
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.decorators import check_not_inited, check_inited, check_user
@@ -198,7 +198,7 @@ def init_sync(
 @check_user
 def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
-    prev_version = get_meta_info().version
+    prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     env = compose_node_env(env_filepath, node_type=NodeType.SYNC)
@@ -284,7 +284,7 @@ def update(
         error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
-    prev_version = get_meta_info().version
+    prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     logger.info('Node update started')
