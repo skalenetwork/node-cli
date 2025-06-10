@@ -2,7 +2,8 @@ from unittest import mock
 
 from node_cli.configs import SKALE_DIR
 from node_cli.core.mirage_boot import init as init_boot, migrate, update
-from node_cli.core.mirage_node import restore_mirage
+from node_cli.core.mirage_node import restore_mirage, migrate_from_boot
+from node_cli.operations.mirage import MirageUpdateType
 from node_cli.utils.node_type import NodeType
 
 
@@ -128,3 +129,32 @@ def test_update_mirage_boot(
     mock_update_op.assert_called_once_with(valid_env_file, mock_env)
     mock_sleep.assert_called_once()
     mock_is_alive.assert_called_once_with(node_type=NodeType.MIRAGE, is_mirage_boot=True)
+
+
+@mock.patch('node_cli.core.mirage_node.update_mirage_op')
+@mock.patch('node_cli.core.mirage_node.compose_node_env')
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+def test_migrate_from_boot(
+    mock_is_user_valid,
+    mock_compose_env,
+    mock_migrate_op,
+    valid_env_file,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    mock_env = {'ENV_TYPE': 'devnet'}
+    mock_compose_env.return_value = mock_env
+    mock_migrate_op.return_value = True
+
+    migrate_from_boot(valid_env_file)
+
+    mock_compose_env.assert_called_once_with(
+        valid_env_file,
+        inited_node=True,
+        sync_schains=False,
+        node_type=NodeType.MIRAGE,
+    )
+    mock_migrate_op.assert_called_once_with(
+        valid_env_file, mock_env, update_type=MirageUpdateType.INFRA_ONLY
+    )

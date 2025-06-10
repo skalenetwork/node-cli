@@ -25,6 +25,7 @@ class CliMetaBase(abc.ABC):
         pass
 
 
+@dataclass
 class CliMeta(CliMetaBase):
     docker_lvmpy_stream: str = DEFAULT_DOCKER_LVMPY_STREAM
 
@@ -38,6 +39,7 @@ class CliMeta(CliMetaBase):
         }
 
 
+@dataclass
 class MirageCliMeta(CliMetaBase):
     def asdict(self) -> dict:
         return {
@@ -49,7 +51,7 @@ class MirageCliMeta(CliMetaBase):
 
 
 class BaseCliMetaManager(abc.ABC):
-    def __init__(self, meta_filepath: str = META_FILEPATH):
+    def __init__(self, meta_filepath: str = META_FILEPATH) -> None:
         self.meta_filepath = meta_filepath
 
     def _get_plain_meta(self) -> dict:
@@ -59,7 +61,7 @@ class BaseCliMetaManager(abc.ABC):
             return json.load(meta_file)
 
     @abc.abstractmethod
-    def get_meta_info(self, raw: bool = False) -> CliMetaBase | dict:
+    def get_meta_info(self, raw: bool = False) -> CliMetaBase | dict | None:
         pass
 
     def save_meta(self, meta: CliMetaBase) -> None:
@@ -81,10 +83,13 @@ class BaseCliMetaManager(abc.ABC):
 
 
 class CliMetaManager(BaseCliMetaManager):
-    def get_meta_info(self, raw: bool = False) -> CliMeta | dict:
+    def get_meta_info(self, raw: bool = False) -> CliMeta | dict | None:
         plain_meta = self._get_plain_meta()
-        required_fields = set(CliMeta.__dataclass_fields__.keys())
-        clean_plain_meta = {k: v for k, v in plain_meta.items() if k in required_fields}
+        if not raw and not plain_meta:
+            return None
+        allowed_fields = set(CliMeta.__dataclass_fields__.keys())
+        clean_plain_meta = {k: v for k, v in plain_meta.items() if k in allowed_fields}
+
         if raw:
             return clean_plain_meta
         return CliMeta(**clean_plain_meta)
@@ -107,15 +112,23 @@ class CliMetaManager(BaseCliMetaManager):
         os_version: str,
     ) -> None:
         self.ensure_meta()
-        meta = CliMeta(version, config_stream, docker_lvmpy_stream, os_id, os_version)
+        meta = CliMeta(
+            version,
+            config_stream,
+            os_id,
+            os_version,
+            docker_lvmpy_stream,
+        )
         self.save_meta(meta)
 
 
 class MirageCliMetaManager(BaseCliMetaManager):
-    def get_meta_info(self, raw: bool = False) -> MirageCliMeta | dict:
+    def get_meta_info(self, raw: bool = False) -> MirageCliMeta | dict | None:
         plain_meta = self._get_plain_meta()
-        required_fields = set(MirageCliMeta.__dataclass_fields__.keys())
-        clean_plain_meta = {k: v for k, v in plain_meta.items() if k in required_fields}
+        if not raw and not plain_meta:
+            return None
+        allowed_fields = set(MirageCliMeta.__dataclass_fields__.keys())
+        clean_plain_meta = {k: v for k, v in plain_meta.items() if k in allowed_fields}
         if raw:
             return clean_plain_meta
         return MirageCliMeta(**clean_plain_meta)

@@ -311,7 +311,7 @@ def test_update_node(node_type, mocked_g_config, resource_file, inited_node):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.core.host.init_data_dir'),
         mock.patch(
-            'node_cli.core.node.get_meta_info',
+            'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
         mock.patch('node_cli.configs.env.validate_env_params'),

@@ -59,7 +59,6 @@ def test_init_sync(mocked_g_config, clean_node_options):
 
 def test_init_sync_archive(mocked_g_config, clean_node_options):
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
-    #     with mock.patch('subprocess.run', new=subprocess_run_mock), \
     with (
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.operations.base.cleanup_volume_artifacts'),
@@ -71,7 +70,7 @@ def test_init_sync_archive(mocked_g_config, clean_node_options):
         mock.patch('node_cli.operations.base.link_env_file'),
         mock.patch('node_cli.operations.base.generate_nginx_config'),
         mock.patch('node_cli.operations.base.prepare_block_device'),
-        mock.patch('node_cli.operations.base.update_meta'),
+        mock.patch('node_cli.operations.base.CliMetaManager.update_meta'),
         mock.patch('node_cli.operations.base.update_resource_allocation'),
         mock.patch('node_cli.operations.base.update_images'),
         mock.patch('node_cli.operations.base.compose_up'),
@@ -118,7 +117,7 @@ def test_update_sync(mocked_g_config):
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch(
-            'node_cli.core.node.get_meta_info',
+            'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
         mock.patch('node_cli.configs.env.validate_env_params'),
@@ -139,7 +138,7 @@ def test_cleanup_sync(mocked_g_config):
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.core.node.compose_node_env', return_value={'SCHAIN_NAME': 'test'}),
         mock.patch(
-            'node_cli.core.node.get_meta_info',
+            'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):

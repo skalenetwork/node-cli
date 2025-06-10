@@ -334,9 +334,13 @@ def test_restore(mocked_g_config):
         patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         patch('node_cli.utils.decorators.is_node_inited', return_value=False),
         patch(
-            'node_cli.core.node.get_meta_info',
+            'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
         ),
+        # patch(
+        #     'node_cli.core.node.get_meta_info',
+        #     return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
+        # ),
         patch('node_cli.operations.base.configure_nftables'),
         patch('node_cli.configs.env.validate_env_params'),
     ):
@@ -360,7 +364,7 @@ def test_restore_no_snapshot(mocked_g_config):
         patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         patch('node_cli.utils.decorators.is_node_inited', return_value=False),
         patch(
-            'node_cli.core.node.get_meta_info',
+            'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
         ),
         patch('node_cli.operations.base.configure_nftables'),
