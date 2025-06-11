@@ -175,4 +175,4 @@ def test_mirage_node_migrate(mock_migrate_core, valid_env_file):
     result = runner.invoke(migrate_node, ['--yes', valid_env_file])
 
     assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    mock_migrate_core.assert_called_once_with(valid_env_file, None)
+    mock_migrate_core.assert_called_once_with(env_filepath=valid_env_file)
