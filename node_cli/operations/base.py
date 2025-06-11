@@ -211,7 +211,7 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
 
     prepare_host(env_filepath, env['ENV_TYPE'])
 
-    meta_manager = CliMetaManager()
+    meta_manager = MirageCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
     if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
