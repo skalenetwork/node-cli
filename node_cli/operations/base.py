@@ -65,7 +65,7 @@ from node_cli.utils.docker_utils import (
     remove_dynamic_containers,
 )
 from node_cli.utils.helper import str_to_bool, rm_dir
-from node_cli.utils.meta import CliMetaManager
+from node_cli.utils.meta import CliMetaManager, MirageCliMetaManager
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
@@ -225,7 +225,6 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
     meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        None,
         distro.id(),
         distro.version(),
     )
