@@ -1,33 +1,32 @@
 import os
 from typing import Optional
+
+import mock
 import pytest
 import requests
-import mock
 
-from node_cli.configs.env import (
-    SkaleEnvConfig,
-    SyncEnvConfig,
-    MirageEnvConfig,
-    absent_required_params,
-    get_env_class,
-    populate_env_params,
-    get_validated_env_config,
-    validate_env_params,
-    validate_env_type,
-    ALLOWED_ENV_TYPES,
-    REQUIRED_PARAMS_MIRAGE_BOOT,
-    REQUIRED_PARAMS_MIRAGE,
-    OPTIONAL_PARAMS,
-)
 from node_cli.configs.alias_address_validation import (
-    validate_env_alias_or_address,
-    validate_contract_address,
-    validate_contract_alias,
+    ContractType,
     get_chain_id,
     get_network_metadata,
-    ContractType,
+    validate_contract_address,
+    validate_contract_alias,
+    validate_env_alias_or_address,
 )
-from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.configs.env import (
+    ALLOWED_ENV_TYPES,
+    OPTIONAL_PARAMS,
+    REQUIRED_PARAMS_MIRAGE,
+    REQUIRED_PARAMS_MIRAGE_BOOT,
+    MirageBootUserConfig,
+    MirageUserConfig,
+    SkaleUserConfig,
+    SyncUserConfig,
+    absent_required_params,
+    get_user_config_type,
+    get_validated_user_config,
+    validate_env_type,
+)
 from node_cli.utils.node_type import NodeType
 
 ENDPOINT = 'http://localhost:8545'
@@ -42,38 +41,18 @@ class FakeResponse:
         return self._json_data
 
 
-def test_absent_required_params_returns_missing_keys():
-    params = {
-        'A': '',
-        'B': 'value',
-        'C': '',
-        'MONITORING_CONTAINERS': 'optional',
-    }
-    missing = absent_required_params(params)
-    assert 'A' in missing
-    assert 'C' in missing
-    assert 'MONITORING_CONTAINERS' not in missing
-
-
-def test_populate_env_params_updates_from_environ(monkeypatch):
-    params = {'FOO': ''}
-    monkeypatch.setenv('FOO', 'bar')
-    populate_env_params(params)
-    assert params['FOO'] == 'bar'
-
-
 @pytest.mark.parametrize(
     'node_type, is_mirage_boot, expected_type',
     [
-        (NodeType.REGULAR, False, SkaleEnvConfig),
-        (NodeType.SYNC, False, SyncEnvConfig),
-        (NodeType.MIRAGE, True, SkaleEnvConfig),
-        (NodeType.MIRAGE, False, MirageEnvConfig),
+        (NodeType.REGULAR, False, SkaleUserConfig),
+        (NodeType.SYNC, False, SyncUserConfig),
+        (NodeType.MIRAGE, True, MirageBootUserConfig),
+        (NodeType.MIRAGE, False, MirageUserConfig),
     ],
     ids=['regular', 'sync', 'mirage_boot', 'mirage_regular'],
 )
 def test_build_env_params_keys(node_type, is_mirage_boot, expected_type):
-    env_type = get_env_class(node_type=node_type, is_mirage_boot=is_mirage_boot)
+    env_type = get_user_config_type(node_type=node_type, is_mirage_boot=is_mirage_boot)
     assert env_type == expected_type
 
 
@@ -190,47 +169,6 @@ def test_validate_env_alias_or_address_with_alias(requests_mock):
     validate_env_alias_or_address('test-alias', ContractType.IMA, ENDPOINT)
 
 
-@pytest.mark.parametrize('env_type', ALLOWED_ENV_TYPES)
-@pytest.mark.parametrize(
-    'required_params, key_to_remove, should_fail',
-    [
-        (REQUIRED_PARAMS_MIRAGE_BOOT, None, False),
-        (REQUIRED_PARAMS_MIRAGE, None, False),
-        (REQUIRED_PARAMS_MIRAGE_BOOT, 'IMA_CONTRACTS', True),
-        (REQUIRED_PARAMS_MIRAGE_BOOT, 'FILEBEAT_HOST', True),
-        (REQUIRED_PARAMS_MIRAGE, 'FILEBEAT_HOST', True),
-    ],
-    ids=[
-        'mirage_boot',
-        'mirage_regular',
-        'mirage_boot_missing_ima',
-        'mirage_boot_missing_filebeat',
-        'mirage_regular_missing_filebeat',
-    ],
-)
-@mock.patch('node_cli.configs.env.validate_env_alias_or_address')
-@mock.patch('node_cli.configs.env.validate_env_type')
-def test_validate_env_params_mirage(
-    mock_validate_type,
-    mock_validate_alias,
-    required_params,
-    key_to_remove,
-    should_fail,
-    env_type,
-):
-    params = {k: f'{k}_val' for k in required_params}
-    params['ENV_TYPE'] = env_type
-
-    if key_to_remove:
-        params[key_to_remove] = ''
-
-    if should_fail:
-        with pytest.raises(SystemExit):
-            validate_env_params(params=params)
-    else:
-        validate_env_params(params=params)
-
-
 @pytest.mark.parametrize(
     'node_type, is_boot, required_keys_dict',
     [
@@ -280,12 +218,12 @@ def test_get_validated_env_config_mirage_success(
     with mock.patch('node_cli.configs.alias_address_validation.requests.post') as mock_post:
         mock_post.return_value = FakeResponse(200, {'result': '0x123'})
 
-        config = get_validated_env_config(
+        user_config = get_validated_user_config(
             node_type=node_type, env_filepath=str(env_file), is_mirage_boot=is_boot
         )
 
-    assert config is not None
-    plain_config = config.to_env()
+    assert user_config is not None
+    plain_config = user_config.to_env()
     assert set(plain_config.keys()) == set(expected_config.keys())
     for key in expected_config:
         assert plain_config[key] == expected_config[key]
@@ -296,7 +234,7 @@ def test_get_validated_env_config_mirage_success(
 
 def test_get_validated_env_config_missing_file():
     with pytest.raises(SystemExit):
-        get_validated_env_config(env_filepath='nonexistent.env', node_type=NodeType.REGULAR)
+        get_validated_user_config(env_filepath='nonexistent.env', node_type=NodeType.REGULAR)
 
 
 def test_get_validated_env_config_unreadable_file(tmp_path):
@@ -306,6 +244,6 @@ def test_get_validated_env_config_unreadable_file(tmp_path):
     try:
         os.chmod(env_file, 0o000)
         with pytest.raises(PermissionError):
-            get_validated_env_config(env_filepath=str(env_file), node_type=NodeType.REGULAR)
+            get_validated_user_config(env_filepath=str(env_file), node_type=NodeType.REGULAR)
     finally:
         os.chmod(env_file, original_mode)

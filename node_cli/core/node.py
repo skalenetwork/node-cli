@@ -42,7 +42,7 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
 )
 from node_cli.cli import __version__
-from node_cli.configs.env import get_validated_env_config, SKALE_DIR_ENV_FILEPATH
+from node_cli.configs.env import get_validated_user_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
@@ -233,7 +233,7 @@ def compose_node_env(
     is_mirage_boot: bool = False,
 ) -> dict[str, str]:
     if env_filepath is not None:
-        env_config = get_validated_env_config(
+        user_config = get_validated_user_config(
             node_type=node_type,
             env_filepath=env_filepath,
             is_mirage_boot=is_mirage_boot,
@@ -241,7 +241,7 @@ def compose_node_env(
         if save:
             save_env_params(env_filepath)
     else:
-        env_config = get_validated_env_config(
+        user_config = get_validated_user_config(
             node_type=node_type,
             env_filepath=INIT_ENV_FILEPATH,
             is_mirage_boot=is_mirage_boot,
@@ -257,7 +257,7 @@ def compose_node_env(
         'SCHAINS_MNT_DIR': mnt_dir,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
         'SKALE_LIB_PATH': SKALE_STATE_DIR,
-        **env_config.to_env(),
+        **user_config.to_env(),
     }
 
     if inited_node and not node_type == NodeType.SYNC:
@@ -502,7 +502,7 @@ def run_checks(
         return
 
     if disk is None:
-        env_config = get_validated_env_config(node_type=node_type)
+        env_config = get_validated_user_config(node_type=node_type)
         disk = env_config.disk_mountpoint
     failed_checks = run_host_checks(disk, node_type, network, container_config_path)
     if not failed_checks:

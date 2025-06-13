@@ -43,7 +43,7 @@ class ValidationResult(NamedTuple):
 
 
 @dataclass(kw_only=True)
-class BaseEnvConfig(ABC):
+class BaseUserConfig(ABC):
     container_configs_stream: str
     endpoint: str
     sgx_server_url: str
@@ -84,20 +84,20 @@ class BaseEnvConfig(ABC):
 
 
 @dataclass
-class MirageEnvConfig(BaseEnvConfig):
+class MirageUserConfig(BaseUserConfig):
     mirage_contracts: str
     enforce_btrfs: str = ''
 
 
 @dataclass
-class MirageBootEnvConfig(BaseEnvConfig):
+class MirageBootUserConfig(BaseUserConfig):
     manager_contracts: str
     ima_contracts: str
     enforce_btrfs: str = ''
 
 
 @dataclass
-class SkaleEnvConfig(BaseEnvConfig):
+class SkaleUserConfig(BaseUserConfig):
     manager_contracts: str
     ima_contracts: str
     docker_lvmpy_stream: str
@@ -113,7 +113,7 @@ class SkaleEnvConfig(BaseEnvConfig):
 
 
 @dataclass
-class SyncEnvConfig(BaseEnvConfig):
+class SyncUserConfig(BaseUserConfig):
     manager_contracts: str
     schain_name: str = ''
     ima_contracts: str = ''
@@ -174,14 +174,14 @@ def absent_required_params(params: Dict[str, str]) -> List[str]:
     return [key for key in params if key not in OPTIONAL_PARAMS and not params[key]]
 
 
-def get_validated_env_config(
+def get_validated_user_config(
     node_type: NodeType,
     env_filepath: str = SKALE_DIR_ENV_FILEPATH,
     is_mirage_boot: bool = False,
-) -> BaseEnvConfig:
+) -> BaseUserConfig:
     params = parse_env_file(env_filepath)
-    EnvType = get_env_class(node_type, is_mirage_boot)
-    _, missing_params, extra_params = EnvType.validate_params(params)
+    UserConfigType = get_user_config_type(node_type, is_mirage_boot)
+    _, missing_params, extra_params = UserConfigType.validate_params(params)
 
     if len(missing_params) > 0:
         error_exit(f'Missing required parameters: {missing_params}')
@@ -191,19 +191,19 @@ def get_validated_env_config(
 
     validate_env_type(env_type=params['ENV_TYPE'])
     params = to_lower_keys(params)
-    env = EnvType(**params)
+    user_config = UserConfigType(**params)
 
     if node_type == NodeType.MIRAGE and not is_mirage_boot:
-        contract_alias_or_address = env.mirage_contracts
+        contract_alias_or_address = user_config.mirage_contracts
     else:
         contract_alias_or_address = params.get('MANAGER_CONTRACTS', '')
-        contract_alias_or_address = env.manager_contracts
-    validate_env_alias_or_address(contract_alias_or_address, ContractType.MANAGER, env.endpoint)
+        contract_alias_or_address = user_config.manager_contracts
+    validate_env_alias_or_address(contract_alias_or_address, ContractType.MANAGER, user_config.endpoint)
 
     if 'IMA_CONTRACTS' in params:
-        validate_env_alias_or_address(env.ima_contracts, ContractType.IMA, env.endpoint)
+        validate_env_alias_or_address(user_config.ima_contracts, ContractType.IMA, user_config.endpoint)
 
-    return env
+    return user_config
 
 
 def to_lower_keys(params: Dict[str, str]) -> Dict[str, str]:
@@ -216,26 +216,19 @@ def parse_env_file(env_filepath: str) -> Dict:
     return DotEnv(env_filepath).dict()
 
 
-def get_env_class(
+def get_user_config_type(
     node_type: NodeType,
     is_mirage_boot: bool = False,
-) -> type[BaseEnvConfig]:
+) -> type[BaseUserConfig]:
     if node_type == NodeType.MIRAGE and is_mirage_boot:
-        env_type = MirageBootEnvConfig
+        user_config_type = MirageBootUserConfig
     elif node_type == NodeType.MIRAGE:
-        env_type = MirageEnvConfig
+        user_config_type = MirageUserConfig
     elif node_type == NodeType.SYNC:
-        env_type = SyncEnvConfig
+        user_config_type = SyncUserConfig
     else:
-        env_type = SkaleEnvConfig
-    return env_type
-
-
-def populate_env_params(params: Dict[str, str]) -> None:
-    for key in params:
-        env_value = os.getenv(key)
-        if env_value is not None:
-            params[key] = str(env_value)
+        user_config_type = SkaleUserConfig
+    return user_config_type
 
 
 def validate_env_type(env_type: str) -> None:
