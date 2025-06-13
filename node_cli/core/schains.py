@@ -191,7 +191,7 @@ def restore_schain_from_snapshot(
 ) -> None:
     if env_type is None:
         env_config = get_validated_env_config(node_type=node_type)
-        env_type = env_config['ENV_TYPE']
+        env_type = env_config.env_type
     ensure_schain_volume(schain, schain_type, env_type)
     block_number = get_block_number_from_path(snapshot_path)
     if block_number == -1:

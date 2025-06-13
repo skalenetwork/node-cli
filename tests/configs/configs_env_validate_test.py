@@ -5,16 +5,16 @@ import requests
 import mock
 
 from node_cli.configs.env import (
+    SkaleEnvConfig,
+    SyncEnvConfig,
+    MirageEnvConfig,
     absent_required_params,
-    load_env_file,
-    build_env_params,
+    get_env_class,
     populate_env_params,
     get_validated_env_config,
     validate_env_params,
     validate_env_type,
     ALLOWED_ENV_TYPES,
-    REQUIRED_PARAMS_SKALE,
-    REQUIRED_PARAMS_SYNC,
     REQUIRED_PARAMS_MIRAGE_BOOT,
     REQUIRED_PARAMS_MIRAGE,
     OPTIONAL_PARAMS,
@@ -55,12 +55,6 @@ def test_absent_required_params_returns_missing_keys():
     assert 'MONITORING_CONTAINERS' not in missing
 
 
-def test_load_env_file_nonexistent():
-    with pytest.raises(SystemExit) as excinfo:
-        load_env_file('nonexistent.env')
-    assert excinfo.value.code == CLIExitCodes.FAILURE.value
-
-
 def test_populate_env_params_updates_from_environ(monkeypatch):
     params = {'FOO': ''}
     monkeypatch.setenv('FOO', 'bar')
@@ -69,45 +63,18 @@ def test_populate_env_params_updates_from_environ(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    'node_type, is_mirage_boot, expected_keys, unexpected_keys',
+    'node_type, is_mirage_boot, expected_type',
     [
-        (
-            NodeType.REGULAR,
-            False,
-            REQUIRED_PARAMS_SKALE.keys(),
-            {'SCHAIN_NAME'},
-        ),
-        (
-            NodeType.SYNC,
-            False,
-            REQUIRED_PARAMS_SYNC.keys(),
-            set(),
-        ),
-        (
-            NodeType.MIRAGE,
-            True,
-            REQUIRED_PARAMS_MIRAGE_BOOT.keys(),
-            {'DOCKER_LVMPY_STREAM', 'SCHAIN_NAME'},
-        ),
-        (
-            NodeType.MIRAGE,
-            False,
-            REQUIRED_PARAMS_MIRAGE.keys(),
-            {'IMA_CONTRACTS', 'DOCKER_LVMPY_STREAM', 'SCHAIN_NAME'},
-        ),
+        (NodeType.REGULAR, False, SkaleEnvConfig),
+        (NodeType.SYNC, False, SyncEnvConfig),
+        (NodeType.MIRAGE, True, SkaleEnvConfig),
+        (NodeType.MIRAGE, False, MirageEnvConfig),
     ],
     ids=['regular', 'sync', 'mirage_boot', 'mirage_regular'],
 )
-def test_build_env_params_keys(node_type, is_mirage_boot, expected_keys, unexpected_keys):
-    params = build_env_params(node_type=node_type, is_mirage_boot=is_mirage_boot)
-    param_keys = set(params.keys())
-
-    all_expected = set(expected_keys) | set(OPTIONAL_PARAMS.keys())
-    missing_expected = all_expected - param_keys
-    assert not missing_expected, f'Missing expected keys: {missing_expected}'
-
-    found_unexpected = set(unexpected_keys) & param_keys
-    assert not found_unexpected, f'Found unexpected keys: {found_unexpected}'
+def test_build_env_params_keys(node_type, is_mirage_boot, expected_type):
+    env_type = get_env_class(node_type=node_type, is_mirage_boot=is_mirage_boot)
+    assert env_type == expected_type
 
 
 @pytest.mark.parametrize(
@@ -318,9 +285,10 @@ def test_get_validated_env_config_mirage_success(
         )
 
     assert config is not None
-    assert set(config.keys()) == set(expected_config.keys())
+    plain_config = config.to_env()
+    assert set(plain_config.keys()) == set(expected_config.keys())
     for key in expected_config:
-        assert config[key] == expected_config[key]
+        assert plain_config[key] == expected_config[key]
 
     for key in {**required_keys_dict, **OPTIONAL_PARAMS}:
         monkeypatch.delenv(key, raising=False)

@@ -107,5 +107,4 @@ def restore_node(backup_path, env_file, config_only):
 )
 @streamed_cmd
 def migrate_node(env_filepath: str) -> None:
-    click.echo("Placeholder: Command 'mirage node migrate' is not yet implemented.")
     migrate_from_boot(env_filepath=env_filepath)

@@ -102,12 +102,10 @@ def generate_resource_allocation_config(
         logger.debug(msg)
         print(msg)
         return
-    env_params = get_validated_env_config(node_type=node_type, env_filepath=env_file)
-    if env_params is None:
-        return
+    env_config = get_validated_env_config(node_type=node_type, env_filepath=env_file)
     logger.info('Generating resource allocation file ...')
     try:
-        update_resource_allocation(env_params['ENV_TYPE'])
+        update_resource_allocation(env_config.env_type)
     except Exception as e:
         logger.exception(e)
         print("Can't generate resource allocation file, check out CLI logs")
