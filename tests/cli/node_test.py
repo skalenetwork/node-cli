@@ -17,34 +17,32 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import pathlib
-import mock
 from unittest.mock import MagicMock, patch
 
-import requests
-import logging
+import mock
 import pytest
+import requests
 
-from node_cli.utils.node_type import NodeType
-
-from node_cli.configs import INIT_ENV_FILEPATH, SKALE_DIR, G_CONF_HOME
 from node_cli.cli.node import (
-    node_info,
-    register_node,
-    signature,
-    backup_node,
-    restore_node,
-    set_node_in_maintenance,
-    remove_node_from_maintenance,
-    version,
+    _set_domain_name,
     _turn_off,
     _turn_on,
-    _set_domain_name,
+    backup_node,
+    node_info,
+    register_node,
+    remove_node_from_maintenance,
+    restore_node,
+    set_node_in_maintenance,
+    signature,
+    version,
 )
+from node_cli.configs import G_CONF_HOME, SKALE_DIR
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import init_default_logger
 from node_cli.utils.meta import CliMeta
-
+from node_cli.utils.node_type import NodeType
 from tests.helper import (
     response_mock,
     run_command,

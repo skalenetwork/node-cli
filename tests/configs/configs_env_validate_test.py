@@ -1,7 +1,6 @@
 import os
 from typing import Optional
 
-import mock
 import pytest
 import requests
 
@@ -9,9 +8,9 @@ from node_cli.configs.alias_address_validation import (
     ContractType,
     get_chain_id,
     get_network_metadata,
+    validate_alias_or_address,
     validate_contract_address,
     validate_contract_alias,
-    validate_alias_or_address,
 )
 from node_cli.configs.user import (
     ALLOWED_ENV_TYPES,
