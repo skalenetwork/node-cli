@@ -18,9 +18,9 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import abc
-from typing import Any
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
 import redis
 
@@ -28,6 +28,7 @@ from node_cli.configs import REDIS_URI
 
 cpool: redis.ConnectionPool = redis.ConnectionPool.from_url(REDIS_URI)
 rs: redis.Redis = redis.Redis(connection_pool=cpool)
+
 
 @dataclass
 class FieldInfo:
@@ -77,8 +78,6 @@ class FlatRedisRecord:
     def _get_field(self, field_name: str):
         key = self._get_field_key(field_name)
         value = rs.get(key)
-        if value is None:
-            raise ValueError(f"Field '{field_name}' not found in record '{self.name}'")
         return self._deserialize_field(value, self._record_fields()[field_name].type)
 
     def _set_field(self, field_name: str, value) -> None:
