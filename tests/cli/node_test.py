@@ -390,7 +390,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.INIT_ENV_FILEPATH', regular_user_conf.as_posix()),
+        mock.patch('node_cli.core.node.SKALE_DIR_ENV_FILEPATH', regular_user_conf.as_posix()),
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
@@ -426,7 +426,8 @@ def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.turn_on_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        patch('node_cli.configs.user.validate_alias_or_address'),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR)
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
