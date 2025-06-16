@@ -42,7 +42,7 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
 )
 from node_cli.cli import __version__
-from node_cli.configs.env import get_validated_user_config, SKALE_DIR_ENV_FILEPATH
+from node_cli.configs.user import get_validated_user_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
@@ -173,7 +173,7 @@ def restore(backup_path, env_filepath, node_type: NodeType, no_snapshot=False, c
     restored_ok = restore_op(env, backup_path, node_type=node_type, config_only=config_only)
     if not restored_ok:
         error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    time.sleep(RESTORE_SLEEP_TIMEOUT)
+    # time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
     print('Node is restored from backup')

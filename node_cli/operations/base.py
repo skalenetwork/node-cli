@@ -339,7 +339,7 @@ def init_sync(
     meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        None,
         distro.id(),
         distro.version(),
     )
@@ -449,8 +449,6 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
         distro.id(),
         distro.version(),
     )
-    update_resource_allocation(env_type=env['ENV_TYPE'])
-
     if not config_only:
         compose_up(env=env, node_type=node_type)
 

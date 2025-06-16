@@ -298,3 +298,88 @@ def set_env_var(name, value):
             del os.environ[name]
         else:
             os.environ[name] = old_value
+
+
+@pytest.fixture
+def regular_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        CONTAINER_CONFIGS_STREAM='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        DISK_MOUNTPOINT=/dev/sss
+        DOCKER_LVMPY_STREAM='master'
+        ENV_TYPE='devnet'
+        MANAGER_CONTRACTS='test-manager'
+        IMA_CONTRACTS='test-ima'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def mirage_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        CONTAINER_CONFIGS_STREAM='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        DISK_MOUNTPOINT=/dev/sss
+        ENV_TYPE='devnet'
+        ENFORCE_BTRFS=False
+        MIRAGE_CONTRACTS='test-mirage'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def mirage_boot_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        CONTAINER_CONFIGS_STREAM='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        DISK_MOUNTPOINT=/dev/sss
+        ENV_TYPE='devnet'
+        MANAGER_CONTRACTS='test-manager'
+        IMA_CONTRACTS='test-ima'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def sync_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        CONTAINER_CONFIGS_STREAM='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        DISK_MOUNTPOINT=/dev/sss
+        ENV_TYPE='devnet'
+        SCHAIN_NAME='test-schain'
+        ENFORCE_BTRFS=False
+        MANAGER_CONTRACTS='test-manager'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()

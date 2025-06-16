@@ -19,14 +19,14 @@
 
 import inspect
 import os
-from typing import Dict, List, NamedTuple
+from typing import Dict, NamedTuple
 from dataclasses import dataclass
 from abc import ABC
 
 from dotenv.main import DotEnv
 
 from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
-from node_cli.configs.alias_address_validation import validate_env_alias_or_address, ContractType
+from node_cli.configs.alias_address_validation import validate_alias_or_address, ContractType
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.helper import error_exit
 
@@ -46,7 +46,6 @@ class ValidationResult(NamedTuple):
 class BaseUserConfig(ABC):
     container_configs_stream: str
     endpoint: str
-    sgx_server_url: str
     env_type: str
     filebeat_host: str
     disk_mountpoint: str
@@ -79,13 +78,13 @@ class BaseUserConfig(ABC):
         }
         missing = expected_keys - keys
         extra = keys - expected_keys - optional_keys
-        print('HEREC', params, parameters.items())
         return ValidationResult(missing == set() and extra == set(), missing, extra)
 
 
 @dataclass
 class MirageUserConfig(BaseUserConfig):
     mirage_contracts: str
+    sgx_server_url: str
     enforce_btrfs: str = ''
 
 
@@ -93,6 +92,7 @@ class MirageUserConfig(BaseUserConfig):
 class MirageBootUserConfig(BaseUserConfig):
     manager_contracts: str
     ima_contracts: str
+    sgx_server_url: str
     enforce_btrfs: str = ''
 
 
@@ -101,6 +101,7 @@ class SkaleUserConfig(BaseUserConfig):
     manager_contracts: str
     ima_contracts: str
     docker_lvmpy_stream: str
+    sgx_server_url: str
     monitoring_containers: str = ''
     telegraf: str = ''
     influx_token: str = ''
@@ -120,68 +121,14 @@ class SyncUserConfig(BaseUserConfig):
     enforce_btrfs: str = ''
 
 
-CORE_REQUIRED_PARAMS: Dict[str, str] = {
-    'CONTAINER_CONFIGS_STREAM': '',
-    'ENDPOINT': '',
-    'MANAGER_CONTRACTS': '',
-    'DISK_MOUNTPOINT': '',
-    'SGX_SERVER_URL': '',
-    'ENV_TYPE': '',
-}
-
-REQUIRED_PARAMS_SKALE: Dict[str, str] = {
-    **CORE_REQUIRED_PARAMS,
-    'IMA_CONTRACTS': '',
-    'DOCKER_LVMPY_STREAM': '',
-    'FILEBEAT_HOST': '',
-}
-
-REQUIRED_PARAMS_MIRAGE_BOOT: Dict[str, str] = {
-    **CORE_REQUIRED_PARAMS,
-    'IMA_CONTRACTS': '',
-    'FILEBEAT_HOST': '',
-}
-REQUIRED_PARAMS_MIRAGE: Dict[str, str] = {
-    **CORE_REQUIRED_PARAMS,
-    'FILEBEAT_HOST': '',
-}
-
-REQUIRED_PARAMS_SYNC: Dict[str, str] = {
-    **CORE_REQUIRED_PARAMS,
-    'SCHAIN_NAME': '',
-    'IMA_CONTRACTS': '',
-    'DOCKER_LVMPY_STREAM': '',
-}
-
-OPTIONAL_PARAMS: Dict[str, str] = {
-    'MONITORING_CONTAINERS': '',
-    'TELEGRAF': '',
-    'INFLUX_TOKEN': '',
-    'INFLUX_URL': '',
-    'TG_API_KEY': '',
-    'TG_CHAT_ID': '',
-    'CONTAINER_CONFIGS_DIR': '',
-    'DISABLE_DRY_RUN': '',
-    'DEFAULT_GAS_LIMIT': '',
-    'DEFAULT_GAS_PRICE_WEI': '',
-    'SKIP_DOCKER_CONFIG': '',
-    'ENFORCE_BTRFS': '',
-    'SKIP_DOCKER_CLEANUP': '',
-}
-
-
-def absent_required_params(params: Dict[str, str]) -> List[str]:
-    return [key for key in params if key not in OPTIONAL_PARAMS and not params[key]]
-
-
 def get_validated_user_config(
     node_type: NodeType,
     env_filepath: str = SKALE_DIR_ENV_FILEPATH,
     is_mirage_boot: bool = False,
 ) -> BaseUserConfig:
     params = parse_env_file(env_filepath)
-    UserConfigType = get_user_config_type(node_type, is_mirage_boot)
-    _, missing_params, extra_params = UserConfigType.validate_params(params)
+    user_config_type = get_user_config_type(node_type, is_mirage_boot)
+    _, missing_params, extra_params = user_config_type.validate_params(params)
 
     if len(missing_params) > 0:
         error_exit(f'Missing required parameters: {missing_params}')
@@ -189,21 +136,25 @@ def get_validated_user_config(
     if len(extra_params) > 0:
         error_exit(f'Extra parameters: {extra_params}')
 
-    validate_env_type(env_type=params['ENV_TYPE'])
     params = to_lower_keys(params)
-    user_config = UserConfigType(**params)
-
-    if node_type == NodeType.MIRAGE and not is_mirage_boot:
-        contract_alias_or_address = user_config.mirage_contracts
-    else:
-        contract_alias_or_address = params.get('MANAGER_CONTRACTS', '')
-        contract_alias_or_address = user_config.manager_contracts
-    validate_env_alias_or_address(contract_alias_or_address, ContractType.MANAGER, user_config.endpoint)
-
-    if 'IMA_CONTRACTS' in params:
-        validate_env_alias_or_address(user_config.ima_contracts, ContractType.IMA, user_config.endpoint)
+    user_config = user_config_type(**params)
+    validate_user_config(user_config)
 
     return user_config
+
+
+def validate_user_config(user_config: BaseUserConfig) -> None:
+    validate_env_type(env_type=user_config.env_type)
+
+    if  isinstance(user_config, MirageUserConfig):
+        contract_alias_or_address = user_config.mirage_contracts
+    else:
+        contract_alias_or_address = user_config.manager_contracts
+
+    validate_alias_or_address(contract_alias_or_address, ContractType.MANAGER, user_config.endpoint)
+
+    if isinstance(user_config, (SkaleUserConfig, MirageBootUserConfig)):
+        validate_alias_or_address(user_config.ima_contracts, ContractType.IMA, user_config.endpoint)
 
 
 def to_lower_keys(params: Dict[str, str]) -> Dict[str, str]:

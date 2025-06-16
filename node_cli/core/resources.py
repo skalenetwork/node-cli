@@ -24,7 +24,7 @@ from typing import Dict
 
 import psutil
 
-from node_cli.configs.env import get_validated_user_config
+from node_cli.configs.user import get_validated_user_config
 from node_cli.utils.docker_utils import ensure_volume
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import write_json, read_json, run_cmd, safe_load_yml

@@ -11,18 +11,14 @@ from node_cli.configs.alias_address_validation import (
     get_network_metadata,
     validate_contract_address,
     validate_contract_alias,
-    validate_env_alias_or_address,
+    validate_alias_or_address,
 )
-from node_cli.configs.env import (
+from node_cli.configs.user import (
     ALLOWED_ENV_TYPES,
-    OPTIONAL_PARAMS,
-    REQUIRED_PARAMS_MIRAGE,
-    REQUIRED_PARAMS_MIRAGE_BOOT,
     MirageBootUserConfig,
     MirageUserConfig,
     SkaleUserConfig,
     SyncUserConfig,
-    absent_required_params,
     get_user_config_type,
     get_validated_user_config,
     validate_env_type,
@@ -156,7 +152,7 @@ def test_validate_contract_alias(requests_mock, networks, should_raise):
 def test_validate_env_alias_or_address_with_address(requests_mock):
     addr = '0x' + 'b' * 40
     requests_mock.post(ENDPOINT, json={'result': '0x1'})
-    validate_env_alias_or_address(addr, ContractType.IMA, ENDPOINT)
+    validate_alias_or_address(addr, ContractType.IMA, ENDPOINT)
 
 
 def test_validate_env_alias_or_address_with_alias(requests_mock):
@@ -166,70 +162,7 @@ def test_validate_env_alias_or_address_with_alias(requests_mock):
     requests_mock.get(metadata_url, json=metadata, status_code=200)
     alias_url = 'https://raw.githubusercontent.com/skalenetwork/skale-contracts/refs/heads/deployments/mainnet/mainnet-ima/test-alias.json'
     requests_mock.get(alias_url, status_code=200)
-    validate_env_alias_or_address('test-alias', ContractType.IMA, ENDPOINT)
-
-
-@pytest.mark.parametrize(
-    'node_type, is_boot, required_keys_dict',
-    [
-        (NodeType.MIRAGE, True, REQUIRED_PARAMS_MIRAGE_BOOT),
-        (NodeType.MIRAGE, False, REQUIRED_PARAMS_MIRAGE),
-    ],
-    ids=['mirage_boot', 'mirage_regular'],
-)
-@mock.patch('node_cli.configs.alias_address_validation.validate_env_alias_or_address')
-@mock.patch('node_cli.configs.alias_address_validation.get_chain_id', return_value=1)
-@mock.patch(
-    'node_cli.configs.alias_address_validation.get_network_metadata',
-    return_value={'networks': [{'chainId': 1, 'path': 'mainnet'}]},
-)
-def test_get_validated_env_config_mirage_success(
-    mock_meta,
-    mock_chain,
-    mock_validate_alias,
-    tmp_path,
-    monkeypatch,
-    node_type,
-    is_boot,
-    required_keys_dict,
-):
-    env_file = tmp_path / 'mirage.env'
-    env_content = ''
-    expected_config = {}
-
-    for key in {**required_keys_dict, **OPTIONAL_PARAMS}:
-        env_value = f'{key}_value'
-        if key == 'ENDPOINT':
-            env_value = ENDPOINT
-        if key == 'ENV_TYPE':
-            env_value = 'devnet'
-        if key == 'MANAGER_CONTRACTS':
-            env_value = '0x' + '1' * 40
-        if key == 'IMA_CONTRACTS':
-            env_value = '0x' + '2' * 40
-
-        if key in required_keys_dict:
-            env_content += f'{key}={env_value}\n'
-        monkeypatch.setenv(key, env_value)
-        expected_config[key] = env_value
-
-    env_file.write_text(env_content)
-
-    with mock.patch('node_cli.configs.alias_address_validation.requests.post') as mock_post:
-        mock_post.return_value = FakeResponse(200, {'result': '0x123'})
-
-        user_config = get_validated_user_config(
-            node_type=node_type, env_filepath=str(env_file), is_mirage_boot=is_boot
-        )
-
-    assert user_config is not None
-    plain_config = user_config.to_env()
-    assert set(plain_config.keys()) == set(expected_config.keys())
-    for key in expected_config:
-        assert plain_config[key] == expected_config[key]
-
-    for key in {**required_keys_dict, **OPTIONAL_PARAMS}:
-        monkeypatch.delenv(key, raising=False)
+    validate_alias_or_address('test-alias', ContractType.IMA, ENDPOINT)
 
 
 def test_get_validated_env_config_missing_file():

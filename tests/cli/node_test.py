@@ -18,13 +18,16 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import pathlib
-
 import mock
 from unittest.mock import MagicMock, patch
+
 import requests
 import logging
+import pytest
 
-from node_cli.configs import SKALE_DIR, G_CONF_HOME
+from node_cli.utils.node_type import NodeType
+
+from node_cli.configs import INIT_ENV_FILEPATH, SKALE_DIR, G_CONF_HOME
 from node_cli.cli.node import (
     node_info,
     register_node,
@@ -321,44 +324,20 @@ def test_backup():
     assert 'Backup archive succesfully created ' in result.output
 
 
-def test_restore(mocked_g_config):
+@pytest.mark.parametrize("node_type,test_user_conf", [
+    (NodeType.REGULAR, "regular_user_conf"),
+    (NodeType.MIRAGE, "mirage_user_conf"),
+    (NodeType.SYNC, "sync_user_conf")
+])
+def test_restore(request, node_type, test_user_conf, mocked_g_config, tmp_path):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
-    result = run_command(backup_node, ['/tmp'])
+    result = run_command(backup_node, [tmp_path])
     backup_path = result.output.replace('Backup archive successfully created: ', '').replace(
         '\n', ''
     )
 
     with (
-        patch('node_cli.core.node.restore_op', MagicMock()) as mock_restore_op,
-        patch('subprocess.run', new=subprocess_run_mock),
-        patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
-        patch('node_cli.utils.decorators.is_node_inited', return_value=False),
-        patch(
-            'node_cli.core.node.CliMetaManager.get_meta_info',
-            return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
-        ),
-        # patch(
-        #     'node_cli.core.node.get_meta_info',
-        #     return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
-        # ),
-        patch('node_cli.operations.base.configure_nftables'),
-        patch('node_cli.configs.env.validate_env_params'),
-    ):
-        result = run_command(restore_node, [backup_path, './tests/test-env'])
-        assert result.exit_code == 0
-        assert 'Node is restored from backup\n' in result.output  # noqa
-
-    assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') == 'True'
-
-
-def test_restore_no_snapshot(mocked_g_config):
-    pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
-    result = run_command(backup_node, ['/tmp'])
-    backup_path = result.output.replace('Backup archive successfully created: ', '').replace(
-        '\n', ''
-    )
-
-    with (
+        patch('node_cli.cli.node.TYPE', node_type),
         patch('node_cli.core.node.restore_op', MagicMock()) as mock_restore_op,
         patch('subprocess.run', new=subprocess_run_mock),
         patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
@@ -368,13 +347,19 @@ def test_restore_no_snapshot(mocked_g_config):
             return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
         ),
         patch('node_cli.operations.base.configure_nftables'),
-        patch('node_cli.configs.env.validate_env_params'),
+        patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        result = run_command(restore_node, [backup_path, './tests/test-env', '--no-snapshot'])
+        user_conf_path = request.getfixturevalue(test_user_conf).as_posix()
+
+        result = run_command(restore_node, [backup_path, user_conf_path])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
+        assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') == 'True'
 
-    assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') is None
+        result = run_command(restore_node, [backup_path, user_conf_path, '--no-snapshot'])
+        assert result.exit_code == 0
+        assert 'Node is restored from backup\n' in result.output  # noqa
+        assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') is None
 
 
 def test_maintenance_on():
@@ -401,13 +386,15 @@ def test_maintenance_off(mocked_g_config):
     )
 
 
-def test_turn_off_maintenance_on(mocked_g_config):
+def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
+        mock.patch('node_cli.core.node.INIT_ENV_FILEPATH', regular_user_conf.as_posix()),
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        patch('node_cli.configs.env.validate_env_params'),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR)
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
@@ -431,7 +418,7 @@ def test_turn_off_maintenance_on(mocked_g_config):
             assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
-def test_turn_on_maintenance_off(mocked_g_config):
+def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -439,13 +426,13 @@ def test_turn_on_maintenance_off(mocked_g_config):
         mock.patch('node_cli.core.node.turn_on_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        patch('node_cli.configs.env.validate_env_params'),
+        patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
             _turn_on,
-            ['./tests/test-env', '--maintenance-off', '--sync-schains', '--yes'],
+            [regular_user_conf.as_posix(), '--maintenance-off', '--sync-schains', '--yes'],
         )
 
     assert result.exit_code == 0

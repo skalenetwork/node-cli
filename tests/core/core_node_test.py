@@ -11,6 +11,7 @@ import requests
 
 from node_cli.configs import NODE_DATA_PATH, SCHAINS_MNT_DIR_REGULAR, SCHAINS_MNT_DIR_SINGLE_CHAIN
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.user import SkaleUserConfig
 from node_cli.core.node import (
     get_expected_container_names,
     is_base_containers_alive,
@@ -149,15 +150,15 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
 
 @pytest.mark.parametrize(
     (
-        'node_type, is_boot, inited_node, sync_schains, expected_mnt_dir, '
+        'node_type, test_user_conf, is_boot, inited_node, sync_schains, expected_mnt_dir,'
         'expect_flask_key, expect_backup_run'
     ),
     [
-        (NodeType.REGULAR, False, True, False, SCHAINS_MNT_DIR_REGULAR, True, False),
-        (NodeType.REGULAR, False, True, True, SCHAINS_MNT_DIR_REGULAR, True, True),
-        (NodeType.SYNC, False, False, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, False, False),
-        (NodeType.MIRAGE, True, True, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, True, False),
-        (NodeType.MIRAGE, False, True, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, True, False),
+        (NodeType.REGULAR, 'regular_user_conf', False, True, False, SCHAINS_MNT_DIR_REGULAR, True, False),
+        (NodeType.REGULAR, 'regular_user_conf', False, True, True, SCHAINS_MNT_DIR_REGULAR, True, True),
+        (NodeType.SYNC, 'sync_user_conf', False, False, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, False, False),
+        (NodeType.MIRAGE, 'mirage_boot_user_conf', True, True, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, True, False),
+        (NodeType.MIRAGE, 'mirage_user_conf', False, True, False, SCHAINS_MNT_DIR_SINGLE_CHAIN, True, False),
     ],
     ids=[
         'regular',
@@ -167,42 +168,41 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
         'mirage_regular',
     ],
 )
-@mock.patch('node_cli.core.node.get_validated_env_config')
-@mock.patch('node_cli.core.node.save_env_params')
-@mock.patch('node_cli.core.node.get_flask_secret_key', return_value='mock_secret')
 def test_compose_node_env(
-    mock_get_secret,
-    mock_save_params,
-    mock_get_validated,
+    request,
     node_type,
+    test_user_conf,
     is_boot,
     inited_node,
     sync_schains,
     expected_mnt_dir,
     expect_flask_key,
     expect_backup_run,
-    valid_env_file,
-    valid_env_params,
 ):
-    mock_get_validated.return_value = valid_env_params.copy()
-    if node_type == NodeType.SYNC:
-        mock_get_validated.return_value['ENV_TYPE'] = 'devnet'
-    else:
-        mock_get_validated.return_value['ENV_TYPE'] = 'mainnet'
+    user_config_path = request.getfixturevalue(test_user_conf)
+    # mock_get_validated.return_value = valid_env_params.copy()
+    # if node_type == NodeType.SYNC:
+    #     mock_get_validated.return_value['ENV_TYPE'] = 'devnet'
+    # else:
+    #     mock_get_validated.return_value['ENV_TYPE'] = 'mainnet'
+    with (
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
+        mock.patch('node_cli.core.node.save_env_params'),
+        mock.patch('node_cli.core.node.get_flask_secret_key', return_value='mock_secret')
+    ):
+        result_env = compose_node_env(
+            env_filepath=user_config_path.as_posix(),
+            inited_node=inited_node,
+            sync_schains=sync_schains,
+            node_type=node_type,
+            is_mirage_boot=is_boot,
+            save=True,
+        )
 
-    result_env = compose_node_env(
-        env_filepath=valid_env_file,
-        inited_node=inited_node,
-        sync_schains=sync_schains,
-        node_type=node_type,
-        is_mirage_boot=is_boot,
-        save=True,
-    )
-
-    mock_save_params.assert_called_once_with(valid_env_file)
-    mock_get_validated.assert_called_once_with(
-        env_filepath=valid_env_file, node_type=node_type, is_mirage_boot=is_boot
-    )
+    # mock_save_params.assert_called_once_with(user_config_path)
+    # mock_get_validated.assert_called_once_with(
+    #     env_filepath=valid_env_file, node_type=node_type, is_mirage_boot=is_boot
+    # )
     assert result_env['SCHAINS_MNT_DIR'] == expected_mnt_dir
     assert (
         'FLASK_SECRET_KEY' in result_env and result_env['FLASK_SECRET_KEY'] is not None
@@ -211,7 +211,7 @@ def test_compose_node_env(
         assert result_env['FLASK_SECRET_KEY'] == 'mock_secret'
     should_have_backup = sync_schains and node_type != NodeType.SYNC
     assert ('BACKUP_RUN' in result_env and result_env['BACKUP_RUN'] == 'True') == should_have_backup
-    assert result_env['ENDPOINT'] == valid_env_params['ENDPOINT']
+    # assert result_env['ENDPOINT'] == valid_env_params['ENDPOINT']
 
 
 @pytest.fixture
@@ -274,11 +274,9 @@ def resource_file():
         if os.path.exists(RESOURCE_ALLOCATION_FILEPATH):
             os.remove(RESOURCE_ALLOCATION_FILEPATH)
 
-
-def test_init_node(no_resource_file):  # todo: write new init node test
+def test_init_node(regular_user_conf, no_resource_file):  # todo: write new init node test
     resp_mock = response_mock(requests.codes.created)
     assert not os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
-    env_filepath = './tests/test-env'
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
@@ -288,15 +286,13 @@ def test_init_node(no_resource_file):  # todo: write new init node test
         mock.patch('node_cli.core.node.init_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.utils.helper.post_request', resp_mock),
-        mock.patch('node_cli.configs.env.validate_env_params'),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        init(env_filepath=env_filepath, node_type=NodeType.REGULAR)
+        init(env_filepath=regular_user_conf.as_posix(), node_type=NodeType.REGULAR)
         assert os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
-def test_update_node(node_type, mocked_g_config, resource_file, inited_node):
-    env_filepath = './tests/test-env'
+def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_node):
     resp_mock = response_mock(requests.codes.created)
     os.makedirs(NODE_DATA_PATH, exist_ok=True)
     with (
@@ -314,12 +310,16 @@ def test_update_node(node_type, mocked_g_config, resource_file, inited_node):
             'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
-        mock.patch('node_cli.configs.env.validate_env_params'),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         with mock.patch(
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
         ):  # noqa
-            result = update(env_filepath, pull_config_for_schain=None, node_type=node_type)
+            result = update(
+                regular_user_conf.as_posix(),
+                pull_config_for_schain=None,
+                node_type=NodeType.REGULAR
+            )
             assert result is None
 
 

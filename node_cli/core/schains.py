@@ -15,7 +15,7 @@ from node_cli.configs import (
     SCHAIN_NODE_DATA_PATH,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
 )
-from node_cli.configs.env import get_validated_user_config
+from node_cli.configs.user import get_validated_user_config
 
 from node_cli.utils.helper import get_request, error_exit, safe_load_yml
 from node_cli.utils.exit_codes import CLIExitCodes
