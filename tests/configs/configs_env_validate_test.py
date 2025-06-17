@@ -18,7 +18,7 @@ from node_cli.configs.user import (
     MirageUserConfig,
     SkaleUserConfig,
     SyncUserConfig,
-    get_user_config_type,
+    get_user_config_class,
     get_validated_user_config,
     validate_env_type,
 )
@@ -47,7 +47,7 @@ class FakeResponse:
     ids=['regular', 'sync', 'mirage_boot', 'mirage_regular'],
 )
 def test_build_env_params_keys(node_type, is_mirage_boot, expected_type):
-    env_type = get_user_config_type(node_type=node_type, is_mirage_boot=is_mirage_boot)
+    env_type = get_user_config_class(node_type=node_type, is_mirage_boot=is_mirage_boot)
     assert env_type == expected_type
 
 
