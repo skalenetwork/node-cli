@@ -19,16 +19,16 @@
 
 import inspect
 import os
-from typing import Dict, NamedTuple
-from dataclasses import dataclass
 from abc import ABC
+from dataclasses import dataclass
+from typing import Dict, NamedTuple
 
 from dotenv.main import DotEnv
 
-from node_cli.configs import SKALE_DIR, CONTAINER_CONFIG_PATH
-from node_cli.configs.alias_address_validation import validate_alias_or_address, ContractType
-from node_cli.utils.node_type import NodeType
+from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_DIR
+from node_cli.configs.alias_address_validation import ContractType, validate_alias_or_address
 from node_cli.utils.helper import error_exit
+from node_cli.utils.node_type import NodeType
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
@@ -149,15 +149,17 @@ def get_validated_user_config(
 def validate_user_config(user_config: BaseUserConfig) -> None:
     validate_env_type(env_type=user_config.env_type)
 
-    if  isinstance(user_config, MirageUserConfig):
+    if isinstance(user_config, MirageUserConfig):
         contract_alias_or_address = user_config.mirage_contracts
+        endpoint = user_config.boot_endpoint
     else:
         contract_alias_or_address = user_config.manager_contracts
+        endpoint = user_config.endpoint
 
-    validate_alias_or_address(contract_alias_or_address, ContractType.MANAGER, user_config.endpoint)
+    validate_alias_or_address(contract_alias_or_address, ContractType.MANAGER, endpoint)
 
     if isinstance(user_config, (SkaleUserConfig, MirageBootUserConfig)):
-        validate_alias_or_address(user_config.ima_contracts, ContractType.IMA, user_config.endpoint)
+        validate_alias_or_address(user_config.ima_contracts, ContractType.IMA, endpoint)
 
 
 def to_lower_keys(params: Dict[str, str]) -> Dict[str, str]:

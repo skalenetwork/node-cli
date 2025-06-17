@@ -223,11 +223,7 @@ def test_compose_node_env(
     expect_backup_run,
 ):
     user_config_path = request.getfixturevalue(test_user_conf)
-    # mock_get_validated.return_value = valid_env_params.copy()
-    # if node_type == NodeType.SYNC:
-    #     mock_get_validated.return_value['ENV_TYPE'] = 'devnet'
-    # else:
-    #     mock_get_validated.return_value['ENV_TYPE'] = 'mainnet'
+
     with (
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
         mock.patch('node_cli.core.node.save_env_params'),
@@ -242,10 +238,6 @@ def test_compose_node_env(
             save=True,
         )
 
-    # mock_save_params.assert_called_once_with(user_config_path)
-    # mock_get_validated.assert_called_once_with(
-    #     env_filepath=valid_env_file, node_type=node_type, is_mirage_boot=is_boot
-    # )
     assert result_env['SCHAINS_MNT_DIR'] == expected_mnt_dir
     assert (
         'FLASK_SECRET_KEY' in result_env and result_env['FLASK_SECRET_KEY'] is not None
@@ -254,7 +246,6 @@ def test_compose_node_env(
         assert result_env['FLASK_SECRET_KEY'] == 'mock_secret'
     should_have_backup = sync_schains and node_type != NodeType.SYNC
     assert ('BACKUP_RUN' in result_env and result_env['BACKUP_RUN'] == 'True') == should_have_backup
-    # assert result_env['ENDPOINT'] == valid_env_params['ENDPOINT']
 
 
 @pytest.fixture
