@@ -21,10 +21,10 @@
 import logging
 import time
 
-from node_cli.configs import SKALE_DIR, RESTORE_SLEEP_TIMEOUT
+from node_cli.configs import RESTORE_SLEEP_TIMEOUT, SKALE_DIR
 from node_cli.core.host import save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
-from node_cli.operations import update_mirage_op, restore_mirage_op, MirageUpdateType
+from node_cli.operations import MirageUpdateType, restore_mirage_op, update_mirage_op
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
@@ -54,7 +54,7 @@ def restore_mirage(backup_path, env_filepath, config_only=False):
 def migrate_from_boot(
     env_filepath: str,
 ) -> None:
-    logger.info('Node update started')
+    logger.info('Migrating from boot to mirage node...')
     env = compose_node_env(
         env_filepath,
         inited_node=True,
@@ -67,4 +67,4 @@ def migrate_from_boot(
         print_node_cmd_error()
         return
     else:
-        logger.info('Mirgration from boot to mirage completed successfully')
+        logger.info('Migration from boot to mirage completed successfully')

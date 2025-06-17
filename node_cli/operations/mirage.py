@@ -81,7 +81,7 @@ def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -
         )
         docker_cleanup()
 
-    MirageCliMetaManager().update_meta(
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         distro.id(),

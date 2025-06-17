@@ -2,7 +2,6 @@ import abc
 import json
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 from node_cli.configs import META_FILEPATH
 
@@ -107,7 +106,7 @@ class CliMetaManager(BaseCliMetaManager):
         self,
         version: str,
         config_stream: str,
-        docker_lvmpy_stream: Optional[str],
+        docker_lvmpy_stream: str | None,
         os_id: str,
         os_version: str,
     ) -> None:

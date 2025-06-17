@@ -130,8 +130,8 @@ def get_validated_user_config(
     is_mirage_boot: bool = False,
 ) -> BaseUserConfig:
     params = parse_env_file(env_filepath)
-    user_config_type = get_user_config_type(node_type, is_mirage_boot)
-    _, missing_params, extra_params = user_config_type.validate_params(params)
+    user_config_class = get_user_config_class(node_type, is_mirage_boot)
+    _, missing_params, extra_params = user_config_class.validate_params(params)
 
     if len(missing_params) > 0:
         error_exit(f'Missing required parameters: {missing_params}')
@@ -140,7 +140,7 @@ def get_validated_user_config(
         error_exit(f'Extra parameters: {extra_params}')
 
     params = to_lower_keys(params)
-    user_config = user_config_type(**params)
+    user_config = user_config_class(**params)
     validate_user_config(user_config)
 
     return user_config
@@ -155,8 +155,7 @@ def validate_user_config(user_config: BaseUserConfig) -> None:
     else:
         contract_alias_or_address = user_config.manager_contracts
         endpoint = user_config.endpoint
-
-    validate_alias_or_address(contract_alias_or_address, ContractType.MANAGER, endpoint)
+        validate_alias_or_address(contract_alias_or_address, ContractType.MANAGER, endpoint)
 
     if isinstance(user_config, (SkaleUserConfig, MirageBootUserConfig)):
         validate_alias_or_address(user_config.ima_contracts, ContractType.IMA, endpoint)
@@ -172,19 +171,19 @@ def parse_env_file(env_filepath: str) -> Dict:
     return DotEnv(env_filepath).dict()
 
 
-def get_user_config_type(
+def get_user_config_class(
     node_type: NodeType,
     is_mirage_boot: bool = False,
 ) -> type[BaseUserConfig]:
     if node_type == NodeType.MIRAGE and is_mirage_boot:
-        user_config_type = MirageBootUserConfig
+        user_config_class = MirageBootUserConfig
     elif node_type == NodeType.MIRAGE:
-        user_config_type = MirageUserConfig
+        user_config_class = MirageUserConfig
     elif node_type == NodeType.SYNC:
-        user_config_type = SyncUserConfig
+        user_config_class = SyncUserConfig
     else:
-        user_config_type = SkaleUserConfig
-    return user_config_type
+        user_config_class = SkaleUserConfig
+    return user_config_class
 
 
 def validate_env_type(env_type: str) -> None:
