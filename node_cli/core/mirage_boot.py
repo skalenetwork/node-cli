@@ -52,29 +52,6 @@ def init(env_filepath: str) -> None:
 
 @check_inited
 @check_user
-def migrate(env_filepath: str, pull_config_for_schain: str) -> None:
-    logger.info('Mirage node migration started')
-    env = compose_node_env(
-        env_filepath,
-        inited_node=True,
-        sync_schains=False,
-        pull_config_for_schain=pull_config_for_schain,
-        node_type=NodeType.MIRAGE,
-    )
-    migrate_ok = migrate_mirage_boot_op(env_filepath, env)
-    if migrate_ok:
-        logger.info('Waiting for containers initialization')
-        time.sleep(TM_INIT_TIMEOUT)
-    alive = is_base_containers_alive(node_type=NodeType.MIRAGE)
-    if not migrate_ok or not alive:
-        print_node_cmd_error()
-        return
-    else:
-        logger.info('Node migration from Mirage Boot to Mirage Main finished successfully!')
-
-
-@check_inited
-@check_user
 def update(env_filepath: str, pull_config_for_schain: str) -> None:
     logger.info('Mirage boot node update started')
     env = compose_node_env(
