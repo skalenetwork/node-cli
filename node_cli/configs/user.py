@@ -149,13 +149,8 @@ def get_validated_user_config(
 def validate_user_config(user_config: BaseUserConfig) -> None:
     validate_env_type(env_type=user_config.env_type)
 
-    if isinstance(user_config, MirageUserConfig):
-        contract_alias_or_address = user_config.mirage_contracts
-        endpoint = user_config.boot_endpoint
-    else:
-        contract_alias_or_address = user_config.manager_contracts
-        endpoint = user_config.endpoint
-        validate_alias_or_address(contract_alias_or_address, ContractType.MANAGER, endpoint)
+    if not isinstance(user_config, MirageUserConfig):
+        validate_alias_or_address(user_config.manager_contracts, ContractType.MANAGER, user_config.endpoint)
 
     if isinstance(user_config, (SkaleUserConfig, MirageBootUserConfig)):
         validate_alias_or_address(user_config.ima_contracts, ContractType.IMA, endpoint)
