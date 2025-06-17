@@ -327,7 +327,7 @@ def mirage_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
     try:
         test_env = """
-        ENDPOINT=http://localhost:8545
+        BOOT_ENDPOINT=http://localhost:8545
         CONTAINER_CONFIGS_STREAM='main'
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1
