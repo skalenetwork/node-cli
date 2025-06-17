@@ -201,8 +201,15 @@ def check_ssl_connection(host, port, silent=False):
     ]
     expose_output = not silent
     with detached_subprocess(ssl_check_cmd, expose_output=expose_output) as dp:
-        time.sleep(1)
-        code = dp.poll()
-        if code is not None:
+        for _ in range(10):
+            code = dp.poll()
+            if code is None:
+                logger.info('Healthcheck process still running...')
+                time.sleep(2)
+                continue
+            elif code == 0:
+                return
             logger.error('Healthcheck connection failed')
             raise SSLHealthcheckError('OpenSSL connection verification failed')
+        logger.error('Healthcheck timed-out')
+        raise SSLHealthcheckError('OpenSSL connection verification timed-out')
