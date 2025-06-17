@@ -45,7 +45,6 @@ class ValidationResult(NamedTuple):
 @dataclass(kw_only=True)
 class BaseUserConfig(ABC):
     container_configs_stream: str
-    endpoint: str
     env_type: str
     filebeat_host: str
     disk_mountpoint: str
@@ -84,12 +83,14 @@ class BaseUserConfig(ABC):
 @dataclass
 class MirageUserConfig(BaseUserConfig):
     mirage_contracts: str
+    boot_endpoint: str
     sgx_server_url: str
     enforce_btrfs: str = ''
 
 
 @dataclass
 class MirageBootUserConfig(BaseUserConfig):
+    endpoint: str
     manager_contracts: str
     ima_contracts: str
     sgx_server_url: str
@@ -98,6 +99,7 @@ class MirageBootUserConfig(BaseUserConfig):
 
 @dataclass
 class SkaleUserConfig(BaseUserConfig):
+    endpoint: str
     manager_contracts: str
     ima_contracts: str
     docker_lvmpy_stream: str
@@ -115,6 +117,7 @@ class SkaleUserConfig(BaseUserConfig):
 
 @dataclass
 class SyncUserConfig(BaseUserConfig):
+    endpoint: str
     manager_contracts: str
     schain_name: str = ''
     ima_contracts: str = ''
