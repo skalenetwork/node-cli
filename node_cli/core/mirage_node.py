@@ -61,7 +61,7 @@ def migrate_from_boot(
         sync_schains=False,
         node_type=NodeType.MIRAGE,
     )
-    migrate_ok = update_mirage_op(env_filepath, env, update_type=MirageUpdateType.INFRA_ONLY)
+    migrate_ok = update_mirage_op(env_filepath, env, update_type=MirageUpdateType.FROM_BOOT)
     alive = is_base_containers_alive(node_type=NodeType.MIRAGE)
     if not migrate_ok or not alive:
         print_node_cmd_error()

@@ -30,6 +30,7 @@ from node_cli.core.docker_config import configure_docker
 from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
+from node_cli.migrations.mirage.from_boot import migrate_nftables_from_boot
 from node_cli.operations.base import checked_host
 from node_cli.operations.common import unpack_backup_archive
 from node_cli.operations.config_repo import (
@@ -53,13 +54,15 @@ logger = logging.getLogger(__name__)
 class MirageUpdateType(Enum):
     REGULAR = 'regular'
     INFRA_ONLY = 'infra_only'
+    FROM_BOOT = 'from_boot'
 
 
 @checked_host
 def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -> bool:
     compose_rm(node_type=NodeType.MIRAGE, env=env)
-    if update_type != MirageUpdateType.INFRA_ONLY:
+    if update_type in (MirageUpdateType.INFRA_ONLY, MirageUpdateType.FROM_BOOT):
         remove_dynamic_containers()
+
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
 
@@ -87,6 +90,9 @@ def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -
         distro.id(),
         distro.version(),
     )
+
+    if update_type == MirageUpdateType.FROM_BOOT:
+        migrate_nftables_from_boot()
     update_images(env=env, node_type=NodeType.MIRAGE)
     compose_up(env=env, node_type=NodeType.MIRAGE)
     return True

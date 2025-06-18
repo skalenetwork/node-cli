@@ -150,10 +150,12 @@ def validate_user_config(user_config: BaseUserConfig) -> None:
     validate_env_type(env_type=user_config.env_type)
 
     if not isinstance(user_config, MirageUserConfig):
-        validate_alias_or_address(user_config.manager_contracts, ContractType.MANAGER, user_config.endpoint)
+        validate_alias_or_address(
+            user_config.manager_contracts, ContractType.MANAGER, user_config.endpoint
+        )
 
     if isinstance(user_config, (SkaleUserConfig, MirageBootUserConfig)):
-        validate_alias_or_address(user_config.ima_contracts, ContractType.IMA, endpoint)
+        validate_alias_or_address(user_config.ima_contracts, ContractType.IMA, user_config.endpoint)
 
 
 def to_lower_keys(params: Dict[str, str]) -> Dict[str, str]:
