@@ -60,7 +60,7 @@ class MirageUpdateType(Enum):
 @checked_host
 def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -> bool:
     compose_rm(node_type=NodeType.MIRAGE, env=env)
-    if update_type in (MirageUpdateType.INFRA_ONLY, MirageUpdateType.FROM_BOOT):
+    if update_type not in (MirageUpdateType.INFRA_ONLY, MirageUpdateType.FROM_BOOT):
         remove_dynamic_containers()
 
     sync_skale_node()
