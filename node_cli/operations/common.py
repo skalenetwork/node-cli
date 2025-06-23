@@ -17,19 +17,18 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import os
+import secrets
+import shutil
 import stat
 import tarfile
-import logging
-import shutil
-import secrets
-
 from shutil import copyfile
 
 from node_cli.configs import (
-    G_CONF_HOME,
     FILEBEAT_CONFIG_PATH,
     FLASK_SECRET_KEY_FILE,
+    G_CONF_HOME,
     SRC_FILEBEAT_CONFIG_PATH,
 )
 

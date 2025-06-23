@@ -21,19 +21,22 @@
 import logging
 import time
 
-from node_cli.configs import SKALE_DIR, RESTORE_SLEEP_TIMEOUT
+from node_cli.configs import RESTORE_SLEEP_TIMEOUT, SKALE_DIR
 from node_cli.configs.env import SKALE_DIR_ENV_FILEPATH
-from node_cli.core.node import compose_node_env
+from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.host import save_env_params
+from node_cli.core.node import compose_node_env
 from node_cli.core.static_config import get_static_params
 from node_cli.mirage.record.chain_record import ChainRecord
-from node_cli.operations import restore_mirage_op
-from node_cli.utils.decorators import check_inited, check_not_inited
+from node_cli.operations import (
+    cleanup_mirage_op,
+    restore_mirage_op,
+)
+from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.texts import safe_load_texts
-
 
 logger = logging.getLogger(__name__)
 TEXTS = safe_load_texts()
@@ -64,3 +67,13 @@ def request_repair(snapshot_from: str = '') -> None:
     record.set_snapshot_from(snapshot_from)
 
     print(TEXTS['mirage']['node']['repair']['repair_requested'])
+
+
+@check_inited
+@check_user
+def cleanup() -> None:
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.MIRAGE)
+    chain_name = env['SCHAIN_NAME']
+    cleanup_mirage_op(env, chain_name)
+    logger.info('Mirage node was cleaned up, all containers and data removed')
+    cleanup_docker_configuration()

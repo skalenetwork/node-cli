@@ -58,6 +58,12 @@ logger = logging.getLogger(__name__)
 BLUEPRINT_NAME = 'schains'
 
 
+class NoDataDirForChainError(Exception):
+    """Raised when no data directory is found"""
+
+    pass
+
+
 def get_schain_firewall_rules(schain: str) -> None:
     status, payload = get_request(
         blueprint=BLUEPRINT_NAME, method='firewall-rules', params={'schain_name': schain}
@@ -249,8 +255,17 @@ def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
         logger.warning('Volume %s already exists', schain)
 
 
-def cleanup_sync_datadir(schain_name: str, base_path: str = SCHAINS_MNT_DIR_SINGLE_CHAIN) -> None:
-    base_path = os.path.join(base_path, schain_name)
+def cleanup_datadir_for_single_chain_node(
+    chain_name: str = '', base_path: str = SCHAINS_MNT_DIR_SINGLE_CHAIN
+) -> None:
+    if not chain_name:
+        folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
+        if not folders:
+            raise NoDataDirForChainError(
+                f'No data directory found in {base_path}. Please check the path or specify a chain name.'
+            )
+        chain_name = folders[0]
+    base_path = os.path.join(base_path, chain_name)
     regular_folders_pattern = f'{base_path}/[!snapshots]*'
     logger.info('Removing regular folders')
     for filepath in glob.glob(regular_folders_pattern):

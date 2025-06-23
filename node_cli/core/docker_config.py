@@ -1,5 +1,5 @@
-import grp
 import enum
+import grp
 import json
 import logging
 import os
@@ -8,19 +8,17 @@ import time
 import typing
 from typing import Optional, Tuple
 
-
 from node_cli.configs import (
-    DOCKER_DEAMON_CONFIG_PATH,
     DOCKER_DAEMON_HOSTS,
+    DOCKER_DEAMON_CONFIG_PATH,
     DOCKER_SERVICE_CONFIG_DIR,
     DOCKER_SERVICE_CONFIG_PATH,
     DOCKER_SOCKET_PATH,
     NODE_DOCKER_CONFIG_PATH,
     SKALE_RUN_DIR,
 )
-from node_cli.utils.helper import run_cmd
 from node_cli.utils.docker_utils import docker_client, get_containers
-
+from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -184,3 +182,54 @@ def configure_docker() -> None:
     save_docker_group_id(group_id)
 
     logger.info('Docker configuration finished')
+
+
+def remove_docker_service_override_config() -> None:
+    if os.path.isfile(DOCKER_SERVICE_CONFIG_PATH):
+        logger.info('Removing docker service override config')
+        os.remove(DOCKER_SERVICE_CONFIG_PATH)
+
+
+def reset_docker_daemon_config() -> None:
+    if os.path.isfile(DOCKER_DEAMON_CONFIG_PATH):
+        logger.info('Resetting docker daemon config')
+        with open(DOCKER_DEAMON_CONFIG_PATH, 'r') as daemon_config:
+            config = json.load(daemon_config)
+
+        # Remove the keys we added
+        config.pop('live-restore', None)
+        config.pop('hosts', None)
+
+        if config:
+            # Write back remaining config
+            with open(DOCKER_DEAMON_CONFIG_PATH, 'w') as daemon_config:
+                json.dump(config, daemon_config)
+        else:
+            # Remove file if empty
+            os.remove(DOCKER_DEAMON_CONFIG_PATH)
+
+
+def remove_node_docker_config() -> None:
+    if os.path.isfile(NODE_DOCKER_CONFIG_PATH):
+        logger.info('Removing node docker config')
+        os.remove(NODE_DOCKER_CONFIG_PATH)
+
+
+def remove_skale_run_dir() -> None:
+    if os.path.isdir(SKALE_RUN_DIR):
+        os.rmdir(SKALE_RUN_DIR)
+        logger.info('Removed SKALE run directory')
+
+
+def cleanup_docker_configuration() -> None:
+    """Cleanup all skale specific docker configuration files and directories"""
+    logger.info('Cleaning up docker configuration')
+
+    remove_docker_service_override_config()
+    reset_docker_daemon_config()
+    remove_node_docker_config()
+    remove_skale_run_dir()
+    restart_docker_service()
+    wait_for_socket_initialization()
+
+    logger.info('Docker configuration cleanup finished')
