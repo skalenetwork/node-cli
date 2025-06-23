@@ -19,9 +19,9 @@
 
 import json
 import os
-import tempfile
 import pathlib
 import shutil
+import tempfile
 from contextlib import contextmanager
 
 import docker
@@ -34,18 +34,17 @@ from node_cli.configs import (
     GLOBAL_SKALE_CONF_FILEPATH,
     GLOBAL_SKALE_DIR,
     META_FILEPATH,
+    NGINX_CONFIG_FILEPATH,
     NGINX_CONTAINER_NAME,
+    REDIS_URI,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SCHAIN_NODE_DATA_PATH,
-    NGINX_CONFIG_FILEPATH,
-    REDIS_URI,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
-from node_cli.configs.ssl import SSL_FOLDER_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.ssl import SSL_FOLDER_PATH
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
-
 from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
 
@@ -385,8 +384,9 @@ def sync_user_conf(tmp_path):
         yield test_env_path
     finally:
         test_env_path.unlink()
-        
-        
+
+
+@pytest.fixture
 def redis_client():
     cpool = redis.ConnectionPool.from_url(REDIS_URI)
     return redis.Redis(connection_pool=cpool)

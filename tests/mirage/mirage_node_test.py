@@ -100,8 +100,8 @@ def test_update_mirage_boot(
     mock_is_alive.assert_called_once_with(node_type=NodeType.MIRAGE, is_mirage_boot=True)
 
 
-@mock.patch('node_cli.core.mirage_node.update_mirage_op')
-@mock.patch('node_cli.core.mirage_node.compose_node_env')
+@mock.patch('node_cli.mirage.mirage_node.update_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
 def test_migrate_from_boot(
     mock_is_user_valid,
@@ -125,7 +125,7 @@ def test_migrate_from_boot(
         node_type=NodeType.MIRAGE,
     )
     mock_migrate_op.assert_called_once_with(
-        valid_env_file, mock_env, update_type=MirageUpdateType.INFRA_ONLY
+        valid_env_file, mock_env, update_type=MirageUpdateType.FROM_BOOT
     )
 
 
