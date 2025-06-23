@@ -17,13 +17,13 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import os
 import shutil
-import logging
 import subprocess
 from contextlib import contextmanager
-from node_cli.configs.ssl import SSL_CERT_FILEPATH, SSL_KEY_FILEPATH, SSL_FOLDER_PATH
 
+from node_cli.configs.ssl import SSL_CERT_FILEPATH, SSL_FOLDER_PATH, SSL_KEY_FILEPATH
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,13 @@ def is_ssl_folder_empty(ssl_path=SSL_FOLDER_PATH):
 @contextmanager
 def detached_subprocess(cmd, expose_output=False):
     logger.debug(f'Starting detached subprocess: {cmd}')
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+    p = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        stdin=subprocess.DEVNULL,
+        encoding='utf-8',
+    )
     try:
         yield p
     finally:
