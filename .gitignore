@@ -123,3 +123,5 @@ nginx.conf
 tests/.skale/node_data/docker.json
 tests/.skale/node_data/node_options.json
 tests/.skale/config/nginx.conf.j2
+
+.zed

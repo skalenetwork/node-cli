@@ -27,6 +27,7 @@ from contextlib import contextmanager
 import docker
 import mock
 import pytest
+import redis
 
 from node_cli.configs import (
     CONTAINER_CONFIG_TMP_PATH,
@@ -37,6 +38,7 @@ from node_cli.configs import (
     REMOVED_CONTAINERS_FOLDER_PATH,
     SCHAIN_NODE_DATA_PATH,
     NGINX_CONFIG_FILEPATH,
+    REDIS_URI,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
@@ -298,3 +300,9 @@ def set_env_var(name, value):
             del os.environ[name]
         else:
             os.environ[name] = old_value
+
+
+@pytest.fixture
+def redis_client():
+    cpool = redis.ConnectionPool.from_url(REDIS_URI)
+    return redis.Redis(connection_pool=cpool)

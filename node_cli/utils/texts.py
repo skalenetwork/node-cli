@@ -17,13 +17,13 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Dict
+
 import yaml
+
 from node_cli.configs import TEXT_FILE
 
 
-def safe_load_texts():
+def safe_load_texts() -> Dict:
     with open(TEXT_FILE, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
+        return yaml.safe_load(stream)

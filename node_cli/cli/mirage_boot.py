@@ -20,7 +20,7 @@
 import click
 
 from node_cli.core.node import get_node_signature, register_node as register, get_node_info
-from node_cli.core.mirage_boot import init, migrate, update
+from node_cli.mirage.mirage_boot import init, migrate, update
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.utils.helper import streamed_cmd, IP_TYPE, error_exit, abort_if_false
 
