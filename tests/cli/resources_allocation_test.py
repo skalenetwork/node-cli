@@ -60,7 +60,7 @@ def test_generate(regular_user_conf):
             'node_cli.utils.helper.post_request',
             resp_mock,
             generate,
-            [regular_user_conf.as_posix(),  '--yes']
+            [regular_user_conf.as_posix(), '--yes'],
         )
     assert result.output == (
         f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}\n'
@@ -79,7 +79,7 @@ def test_generate_already_exists(regular_user_conf, resource_alloc_config):
             'node_cli.utils.helper.post_request',
             resp_mock,
             generate,
-            [regular_user_conf.as_posix(),  '--yes']
+            [regular_user_conf.as_posix(), '--yes'],
         )
         assert result.output == 'Resource allocation file already exists\n'
         assert result.exit_code == 0
@@ -88,7 +88,7 @@ def test_generate_already_exists(regular_user_conf, resource_alloc_config):
             'node_cli.utils.helper.post_request',
             resp_mock,
             generate,
-            [regular_user_conf.as_posix(),  '--yes', '--force']
+            [regular_user_conf.as_posix(), '--yes', '--force'],
         )
         assert result.output == (
             f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}\n'

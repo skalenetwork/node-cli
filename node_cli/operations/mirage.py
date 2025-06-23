@@ -31,6 +31,7 @@ from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_f
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.migrations.mirage.from_boot import migrate_nftables_from_boot
+from node_cli.mirage.record.chain_record import migrate_chain_record
 from node_cli.operations.base import checked_host
 from node_cli.operations.common import unpack_backup_archive
 from node_cli.operations.config_repo import (
@@ -93,6 +94,8 @@ def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -
 
     if update_type == MirageUpdateType.FROM_BOOT:
         migrate_nftables_from_boot()
+        migrate_chain_record(env)
+
     update_images(env=env, node_type=NodeType.MIRAGE)
     compose_up(env=env, node_type=NodeType.MIRAGE)
     return True

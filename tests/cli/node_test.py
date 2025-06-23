@@ -322,11 +322,14 @@ def test_backup():
     assert 'Backup archive succesfully created ' in result.output
 
 
-@pytest.mark.parametrize("node_type,test_user_conf", [
-    (NodeType.REGULAR, "regular_user_conf"),
-    (NodeType.MIRAGE, "mirage_user_conf"),
-    (NodeType.SYNC, "sync_user_conf")
-])
+@pytest.mark.parametrize(
+    'node_type,test_user_conf',
+    [
+        (NodeType.REGULAR, 'regular_user_conf'),
+        (NodeType.MIRAGE, 'mirage_user_conf'),
+        (NodeType.SYNC, 'sync_user_conf'),
+    ],
+)
 def test_restore(request, node_type, test_user_conf, mocked_g_config, tmp_path):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(backup_node, [tmp_path])
@@ -392,7 +395,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR)
+        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
@@ -425,7 +428,7 @@ def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR)
+        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',

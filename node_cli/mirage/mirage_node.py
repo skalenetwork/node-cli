@@ -25,8 +25,7 @@ from node_cli.configs import RESTORE_SLEEP_TIMEOUT, SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.host import save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
-from node_cli.core.static_config import get_static_params
-from node_cli.mirage.record.chain_record import ChainRecord
+from node_cli.mirage.record.chain_record import get_mirage_chain_record
 from node_cli.operations import MirageUpdateType, restore_mirage_op, update_mirage_op
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -76,11 +75,8 @@ def migrate_from_boot(
 
 
 def request_repair(snapshot_from: str = '') -> None:
-    node_type = NodeType.MIRAGE
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=node_type)
-    params = get_static_params(node_type, env['ENV_TYPE'])
-    record = ChainRecord(params['info']['chain_name'])
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.MIRAGE)
+    record = get_mirage_chain_record(env)
     record.set_repair_ts(int(time.time()))
     record.set_snapshot_from(snapshot_from)
-
     print(TEXTS['mirage']['node']['repair']['repair_requested'])

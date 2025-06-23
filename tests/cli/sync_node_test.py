@@ -56,6 +56,7 @@ def test_init_sync(mocked_g_config, clean_node_options, sync_user_conf):
 
         assert result.exit_code == 0
 
+
 def test_init_sync_archive(mocked_g_config, clean_node_options, sync_user_conf):
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
     with (
@@ -77,7 +78,7 @@ def test_init_sync_archive(mocked_g_config, clean_node_options, sync_user_conf):
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.SYNC)
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SYNC),
     ):
         result = run_command(_init_sync, [sync_user_conf.as_posix(), '--archive'])
         node_options = NodeOptions()
@@ -104,6 +105,7 @@ def test_init_archive_indexer_fail(mocked_g_config, clean_node_options):
         result = run_command(_init_sync, ['./tests/test-env', '--archive', '--indexer'])
         assert result.exit_code == 1
         assert 'Cannot use both' in result.output
+
 
 def test_update_sync(sync_user_conf, mocked_g_config):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
