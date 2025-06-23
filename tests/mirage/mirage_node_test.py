@@ -131,10 +131,8 @@ def test_migrate_from_boot(
 
 @freezegun.freeze_time(CURRENT_DATETIME)
 @mock.patch('node_cli.mirage.mirage_node.compose_node_env', return_value={'ENV_TYPE': 'devnet'})
-@mock.patch(
-    'node_cli.mirage.mirage_node.get_static_params', return_value={'info': {'chain_name': 'test'}}
-)
-def test_mirage_repair(compsoe_node_env_mock, get_statis_params_mock, redis_client, inited_node):
+@mock.patch('node_cli.mirage.record.chain_record.get_mirage_chain_name', return_value='test')
+def test_mirage_repair(compose_node_env_mock, get_static_params_mock, redis_client, inited_node):
     request_repair()
     assert redis_client.get('test_repair_ts') == f'{CURRENT_TIMESTAMP}'.encode('utf-8')
     assert redis_client.get('test_snapshot_from') == b''
