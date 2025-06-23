@@ -54,7 +54,6 @@ from node_cli.operations.skale_node import (
     sync_skale_node,
     update_images,
 )
-from node_cli.operations.docker_lvmpy import lvmpy_install
 from node_cli.operations.volume import (
     cleanup_volume_artifacts,
     ensure_filestorage_mapping,
@@ -66,13 +65,8 @@ from node_cli.utils.docker_utils import (
     docker_cleanup,
     remove_dynamic_containers,
 )
-<<<<<<< Updated upstream
-from node_cli.utils.helper import str_to_bool, rm_dir
-from node_cli.utils.meta import get_meta_info, update_meta
-=======
 from node_cli.utils.helper import rm_dir, str_to_bool
-from node_cli.utils.meta import CliMetaManager, MirageCliMetaManager
->>>>>>> Stashed changes
+from node_cli.utils.meta import get_meta_info, update_meta
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
