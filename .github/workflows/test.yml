@@ -71,6 +71,10 @@ jobs:
       run: |
         scripts/build.sh test test normal
 
+    - name: Run redis
+      run: |
+        ./helper-scripts/redis/run.sh
+
     - name: Run tests
       run: |
         export PYTHONPATH=${PYTHONPATH}:/usr/lib/python3/dist-packages/

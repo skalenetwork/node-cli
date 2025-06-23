@@ -19,10 +19,11 @@
 
 import click
 
-from node_cli.core.node import get_node_signature, register_node as register, get_node_info
-from node_cli.core.mirage_boot import init, update
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
-from node_cli.utils.helper import streamed_cmd, IP_TYPE, error_exit, abort_if_false
+from node_cli.core.node import get_node_info, get_node_signature
+from node_cli.core.node import register_node as register
+from node_cli.mirage.mirage_boot import init, update
+from node_cli.utils.helper import IP_TYPE, abort_if_false, error_exit, streamed_cmd
 
 
 @click.group()

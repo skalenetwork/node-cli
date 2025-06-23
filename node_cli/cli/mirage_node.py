@@ -20,9 +20,12 @@
 import click
 
 from node_cli.core.node import get_node_signature, backup, get_node_info
-from node_cli.core.mirage_node import migrate_from_boot, restore_mirage
+from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
 from node_cli.utils.helper import error_exit, streamed_cmd, abort_if_false
+from node_cli.utils.helper import URL_TYPE
+from node_cli.utils.texts import safe_load_texts
 
+TEXTS = safe_load_texts()
 
 @click.group()
 def mirage_node_cli():
@@ -108,3 +111,16 @@ def restore_node(backup_path, env_file, config_only):
 @streamed_cmd
 def migrate_node(env_filepath: str) -> None:
     migrate_from_boot(env_filepath=env_filepath)
+    prompt=TEXTS['mirage']['node']['repair']['warning'],
+)
+
+@node.command('repair', help='Toggle mirage chain repair mode')
+@click.option(
+    '--snapshot-from',
+    type=URL_TYPE,
+    default='',
+    hidden=True,
+    help=TEXTS['mirage']['node']['repair']['snapshot_from'],
+)
+def repair(snapshot_from: str = '') -> None:
+    request_repair(snapshot_from=snapshot_from)

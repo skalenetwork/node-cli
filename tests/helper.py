@@ -17,13 +17,16 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import mock
+import datetime
 import os
-
+from unittest import mock
+from unittest.mock import Mock, MagicMock
 
 import requests
 from click.testing import CliRunner
-from mock import Mock, MagicMock
+
+CURRENT_TIMESTAMP = 1594903080
+CURRENT_DATETIME = datetime.datetime.utcfromtimestamp(CURRENT_TIMESTAMP)
 
 BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
 

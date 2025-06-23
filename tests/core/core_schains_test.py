@@ -1,17 +1,13 @@
 import os
-import datetime
 from unittest import mock
 from pathlib import Path
-
 
 import freezegun
 
 from node_cli.core.schains import cleanup_sync_datadir, toggle_schain_repair_mode
 from node_cli.utils.helper import read_json
 
-
-CURRENT_TIMESTAMP = 1594903080
-CURRENT_DATETIME = datetime.datetime.utcfromtimestamp(CURRENT_TIMESTAMP)
+from tests.helper import CURRENT_TIMESTAMP, CURRENT_DATETIME
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)

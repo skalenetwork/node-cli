@@ -131,7 +131,7 @@ def container(dclient):
 
 
 def test_assert_no_containers():
-    assert_no_containers(ignore=('ganache',))
+    assert_no_containers(ignore=('redis',))
 
 
 def test_assert_no_containers_failed(container):

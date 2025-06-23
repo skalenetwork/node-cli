@@ -1,3 +1,22 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of node-cli
+#
+#   Copyright (C) 2025 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import glob
 import logging
 import os
@@ -5,31 +24,34 @@ import pprint
 import shutil
 import time
 from pathlib import Path
-
 from typing import Dict, Optional
 
+from lvmpy.src.core import mount, volume_mountpoint
 from node_cli.configs import (
     ALLOCATION_FILEPATH,
-    NODE_CONFIG_PATH,
     NODE_CLI_STATUS_FILENAME,
+    NODE_CONFIG_PATH,
     SCHAIN_NODE_DATA_PATH,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
 )
 from node_cli.configs.user import get_validated_user_config
-
-from node_cli.utils.helper import get_request, error_exit, safe_load_yml
+from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
 from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.helper import (
+    error_exit,
+    get_request,
+    read_json,
+    run_cmd,
+    safe_load_yml,
+    save_json,
+)
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import (
     print_dkg_statuses,
     print_firewall_rules,
     print_schain_info,
     print_schains,
 )
-from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
-from node_cli.utils.helper import read_json, run_cmd, save_json
-from node_cli.utils.node_type import NodeType
-from lvmpy.src.core import mount, volume_mountpoint
-
 
 logger = logging.getLogger(__name__)
 
