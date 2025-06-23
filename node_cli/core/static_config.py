@@ -44,3 +44,9 @@ def get_static_params(
     with open(static_params_filepath) as requirements_file:
         ydata = yaml.load(requirements_file, Loader=yaml.Loader)
         return ydata['envs'][env_type]
+
+
+def get_mirage_chain_name(env: dict) -> str:
+    node_type = NodeType.MIRAGE
+    params = get_static_params(node_type, env['ENV_TYPE'])
+    return params['info']['chain_name']

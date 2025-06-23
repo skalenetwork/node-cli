@@ -71,7 +71,7 @@ setup(
         'sh==1.14.2',
         'python-crontab==2.6.0',
         'requests-mock==1.12.1',
-        'redis==6.2.0'
+        'redis==6.2.0',
     ],
     python_requires='>=3.8,<4',
     extras_require=extras_require,

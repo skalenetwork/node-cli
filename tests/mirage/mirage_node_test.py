@@ -3,8 +3,10 @@ from unittest import mock
 import freezegun
 
 from node_cli.configs import SKALE_DIR
-from node_cli.mirage.mirage_boot import init as init_boot, migrate, update
-from node_cli.mirage.mirage_node import request_repair, restore_mirage
+from node_cli.mirage.mirage_boot import init as init_boot
+from node_cli.mirage.mirage_boot import update
+from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
+from node_cli.operations.mirage import MirageUpdateType
 from node_cli.utils.node_type import NodeType
 from tests.helper import CURRENT_DATETIME, CURRENT_TIMESTAMP
 
@@ -65,41 +67,6 @@ def test_init_mirage_boot(
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
 @mock.patch('node_cli.mirage.mirage_boot.is_base_containers_alive', return_value=True)
 @mock.patch('node_cli.mirage.mirage_boot.time.sleep')
-@mock.patch('node_cli.mirage.mirage_boot.migrate_mirage_boot_op')
-@mock.patch('node_cli.mirage.mirage_boot.compose_node_env')
-def test_migrate_mirage_boot(
-    mock_compose_env,
-    mock_migrate_op,
-    mock_sleep,
-    mock_is_alive,
-    mock_is_user_valid,
-    valid_env_file,
-    inited_node,
-    resource_alloc,
-    meta_file_v3,
-):
-    mock_env = {'ENV_TYPE': 'devnet'}
-    mock_compose_env.return_value = mock_env
-    mock_migrate_op.return_value = True
-    pull_config_for_schain = 'mirage'
-
-    migrate(valid_env_file, pull_config_for_schain)
-
-    mock_compose_env.assert_called_once_with(
-        valid_env_file,
-        inited_node=True,
-        sync_schains=False,
-        pull_config_for_schain=pull_config_for_schain,
-        node_type=NodeType.MIRAGE,
-    )
-    mock_migrate_op.assert_called_once_with(valid_env_file, mock_env)
-    mock_sleep.assert_called_once()
-    mock_is_alive.assert_called_once_with(node_type=NodeType.MIRAGE)
-
-
-@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.mirage.mirage_boot.is_base_containers_alive', return_value=True)
-@mock.patch('node_cli.mirage.mirage_boot.time.sleep')
 @mock.patch('node_cli.mirage.mirage_boot.update_mirage_boot_op')
 @mock.patch('node_cli.mirage.mirage_boot.compose_node_env')
 def test_update_mirage_boot(
@@ -133,12 +100,39 @@ def test_update_mirage_boot(
     mock_is_alive.assert_called_once_with(node_type=NodeType.MIRAGE, is_mirage_boot=True)
 
 
+@mock.patch('node_cli.mirage.mirage_node.update_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+def test_migrate_from_boot(
+    mock_is_user_valid,
+    mock_compose_env,
+    mock_migrate_op,
+    valid_env_file,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    mock_env = {'ENV_TYPE': 'devnet'}
+    mock_compose_env.return_value = mock_env
+    mock_migrate_op.return_value = True
+
+    migrate_from_boot(valid_env_file)
+
+    mock_compose_env.assert_called_once_with(
+        valid_env_file,
+        inited_node=True,
+        sync_schains=False,
+        node_type=NodeType.MIRAGE,
+    )
+    mock_migrate_op.assert_called_once_with(
+        valid_env_file, mock_env, update_type=MirageUpdateType.FROM_BOOT
+    )
+
+
 @freezegun.freeze_time(CURRENT_DATETIME)
 @mock.patch('node_cli.mirage.mirage_node.compose_node_env', return_value={'ENV_TYPE': 'devnet'})
-@mock.patch(
-    'node_cli.mirage.mirage_node.get_static_params', return_value={'info': {'chain_name': 'test'}}
-)
-def test_mirage_repair(compsoe_node_env_mock, get_statis_params_mock, redis_client, inited_node):
+@mock.patch('node_cli.mirage.record.chain_record.get_mirage_chain_name', return_value='test')
+def test_mirage_repair(compose_node_env_mock, get_static_params_mock, redis_client, inited_node):
     request_repair()
     assert redis_client.get('test_repair_ts') == f'{CURRENT_TIMESTAMP}'.encode('utf-8')
     assert redis_client.get('test_snapshot_from') == b''

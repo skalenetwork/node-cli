@@ -21,7 +21,7 @@ import click
 
 from node_cli.core.node import backup, get_node_info, get_node_signature
 from node_cli.mirage.mirage_node import cleanup as mirage_cleanup
-from node_cli.mirage.mirage_node import request_repair, restore_mirage
+from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
 from node_cli.utils.helper import URL_TYPE, abort_if_false, error_exit, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
@@ -100,20 +100,34 @@ def restore_node(backup_path, env_file, config_only):
     restore_mirage(backup_path, env_file, config_only)
 
 
-@node.command('repair', help='Toggle mirage chain repair mode')
+@node.command('migrate', help='Switch from boot to regular Mirage node.')
+@click.argument('env_filepath')
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt=TEXTS['mirage']['node']['repair']['warning'],
+    prompt='Are you sure you want to migrate to regular Mirage node? The action cannot be undone',
 )
+@streamed_cmd
+def migrate_node(env_filepath: str) -> None:
+    migrate_from_boot(env_filepath=env_filepath)
+
+
+@node.command('repair', help='Toggle mirage chain repair mode')
 @click.option(
     '--snapshot-from',
     type=URL_TYPE,
     default='',
     hidden=True,
     help=TEXTS['mirage']['node']['repair']['snapshot_from'],
+)
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt=TEXTS['mirage']['node']['repair']['warning'],
 )
 def repair(snapshot_from: str = '') -> None:
     request_repair(snapshot_from=snapshot_from)

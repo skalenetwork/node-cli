@@ -9,12 +9,12 @@ from node_cli.cli.mirage_node import (
     init_node as init_node_placeholder,
     register_node as register_node_placeholder,
     update_node as update_node_placeholder,
+    migrate_node,
 )
 from node_cli.cli.mirage_boot import (
     init_boot,
     register_boot,
     signature_boot,
-    migrate_boot,
 )
 
 
@@ -149,20 +149,10 @@ def test_mirage_boot_init(mock_init_core, valid_env_file):
     mock_init_core.assert_called_once_with(valid_env_file)
 
 
-@mock.patch('node_cli.cli.mirage_boot.migrate')
-def test_mirage_boot_migrate(mock_migrate_core, valid_env_file):
+@mock.patch('node_cli.cli.mirage_node.migrate_from_boot')
+def test_mirage_node_migrate(mock_migrate_core, valid_env_file):
     runner = CliRunner()
-    result = runner.invoke(migrate_boot, ['--yes', valid_env_file])
+    result = runner.invoke(migrate_node, ['--yes', valid_env_file])
 
     assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    mock_migrate_core.assert_called_once_with(valid_env_file, None)
-
-
-@mock.patch('node_cli.cli.mirage_boot.migrate')
-def test_mirage_boot_migrate_pull_config(mock_migrate_core, valid_env_file):
-    runner = CliRunner()
-    schain_name = 'my-schain-config'
-    result = runner.invoke(migrate_boot, ['--yes', '--pull-config', schain_name, valid_env_file])
-
-    assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    mock_migrate_core.assert_called_once_with(valid_env_file, schain_name)
+    mock_migrate_core.assert_called_once_with(env_filepath=valid_env_file)

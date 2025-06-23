@@ -17,26 +17,26 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import pathlib
 
 import mock
-import logging
 
-from node_cli.configs import SKALE_DIR, NODE_DATA_PATH
+from node_cli.cli.sync_node import _cleanup_sync, _init_sync, _update_sync
+from node_cli.configs import NODE_DATA_PATH, SKALE_DIR
 from node_cli.core.node_options import NodeOptions
-from node_cli.cli.sync_node import _init_sync, _update_sync, _cleanup_sync
-from node_cli.utils.meta import CliMeta
 from node_cli.utils.helper import init_default_logger
-
+from node_cli.utils.meta import CliMeta
+from node_cli.utils.node_type import NodeType
+from tests.conftest import set_env_var
 from tests.helper import run_command, subprocess_run_mock
 from tests.resources_test import BIG_DISK_SIZE
-from tests.conftest import set_env_var
 
 logger = logging.getLogger(__name__)
 init_default_logger()
 
 
-def test_init_sync(mocked_g_config, clean_node_options):
+def test_init_sync(mocked_g_config, clean_node_options, sync_user_conf):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -45,9 +45,9 @@ def test_init_sync(mocked_g_config, clean_node_options):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
-        mock.patch('node_cli.configs.env.validate_env_params'),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        result = run_command(_init_sync, ['./tests/test-env'])
+        result = run_command(_init_sync, [sync_user_conf.as_posix()])
 
         node_options = NodeOptions()
         assert not node_options.archive
@@ -57,9 +57,8 @@ def test_init_sync(mocked_g_config, clean_node_options):
         assert result.exit_code == 0
 
 
-def test_init_sync_archive(mocked_g_config, clean_node_options):
+def test_init_sync_archive(mocked_g_config, clean_node_options, sync_user_conf):
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
-    #     with mock.patch('subprocess.run', new=subprocess_run_mock), \
     with (
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.operations.base.cleanup_volume_artifacts'),
@@ -71,16 +70,17 @@ def test_init_sync_archive(mocked_g_config, clean_node_options):
         mock.patch('node_cli.operations.base.link_env_file'),
         mock.patch('node_cli.operations.base.generate_nginx_config'),
         mock.patch('node_cli.operations.base.prepare_block_device'),
-        mock.patch('node_cli.operations.base.update_meta'),
+        mock.patch('node_cli.operations.base.CliMetaManager.update_meta'),
         mock.patch('node_cli.operations.base.update_resource_allocation'),
         mock.patch('node_cli.operations.base.update_images'),
         mock.patch('node_cli.operations.base.compose_up'),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
-        mock.patch('node_cli.configs.env.validate_env_params'),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SYNC),
     ):
-        result = run_command(_init_sync, ['./tests/test-env', '--archive'])
+        result = run_command(_init_sync, [sync_user_conf.as_posix(), '--archive'])
         node_options = NodeOptions()
 
         assert node_options.archive
@@ -107,7 +107,7 @@ def test_init_archive_indexer_fail(mocked_g_config, clean_node_options):
         assert 'Cannot use both' in result.output
 
 
-def test_update_sync(mocked_g_config):
+def test_update_sync(sync_user_conf, mocked_g_config):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
 
     with (
@@ -118,12 +118,12 @@ def test_update_sync(mocked_g_config):
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch(
-            'node_cli.core.node.get_meta_info',
+            'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
-        mock.patch('node_cli.configs.env.validate_env_params'),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        result = run_command(_update_sync, ['./tests/test-env', '--yes'])
+        result = run_command(_update_sync, [sync_user_conf.as_posix(), '--yes'])
         assert result.exit_code == 0
 
 
@@ -139,7 +139,7 @@ def test_cleanup_sync(mocked_g_config):
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.core.node.compose_node_env', return_value={'SCHAIN_NAME': 'test'}),
         mock.patch(
-            'node_cli.core.node.get_meta_info',
+            'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):
