@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import time
 import logging
 from enum import Enum
 
@@ -39,11 +40,14 @@ from node_cli.operations.config_repo import (
     update_images,
 )
 from node_cli.utils.docker_utils import (
+    REDIS_SERVICE_DICT,
+    REDIS_START_TIMEOUT,
     NodeType,
     compose_rm,
     compose_up,
     docker_cleanup,
     remove_dynamic_containers,
+    wait_for_container,
 )
 from node_cli.utils.helper import str_to_bool
 from node_cli.utils.meta import MirageCliMetaManager
@@ -94,9 +98,15 @@ def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -
 
     if update_type == MirageUpdateType.FROM_BOOT:
         migrate_nftables_from_boot()
-        migrate_chain_record(env)
 
     update_images(env=env, node_type=NodeType.MIRAGE)
+
+    compose_up(env=env, node_type=NodeType.MIRAGE, services=list(REDIS_SERVICE_DICT))
+    wait_for_container(REDIS_SERVICE_DICT['redis'])
+    time.sleep(REDIS_START_TIMEOUT)
+    if update_type == MirageUpdateType.FROM_BOOT:
+        migrate_chain_record(env)
+
     compose_up(env=env, node_type=NodeType.MIRAGE)
     return True
 
