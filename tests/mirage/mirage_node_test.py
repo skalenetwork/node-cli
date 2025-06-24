@@ -1,11 +1,13 @@
 from unittest import mock
 
 import freezegun
+import pytest
 
 from node_cli.configs import SKALE_DIR
+from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.mirage.mirage_boot import init as init_boot
 from node_cli.mirage.mirage_boot import update
-from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
+from node_cli.mirage.mirage_node import cleanup, migrate_from_boot, request_repair, restore_mirage
 from node_cli.operations.mirage import MirageUpdateType
 from node_cli.utils.node_type import NodeType
 from tests.helper import CURRENT_DATETIME, CURRENT_TIMESTAMP
@@ -139,3 +141,211 @@ def test_mirage_repair(compose_node_env_mock, get_static_params_mock, redis_clie
     request_repair(snapshot_from='127.0.0.1')
     assert redis_client.get('test_repair_ts') == f'{CURRENT_TIMESTAMP}'.encode('utf-8')
     assert redis_client.get('test_snapshot_from') == b'127.0.0.1'
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.mirage.mirage_node.cleanup_docker_configuration')
+@mock.patch('node_cli.mirage.mirage_node.cleanup_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
+def test_cleanup_success(
+    mock_compose_env,
+    mock_cleanup_mirage_op,
+    mock_cleanup_docker_config,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    mock_env = {'ENV_TYPE': 'devnet', 'SCHAIN_NAME': 'test_chain'}
+    mock_compose_env.return_value = mock_env
+
+    cleanup()
+
+    mock_compose_env.assert_called_once_with(
+        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.MIRAGE
+    )
+    mock_cleanup_mirage_op.assert_called_once_with(mock_env, 'test_chain')
+    mock_cleanup_docker_config.assert_called_once()
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.mirage.mirage_node.cleanup_docker_configuration')
+@mock.patch('node_cli.mirage.mirage_node.cleanup_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
+def test_cleanup_calls_operations_in_correct_order(
+    mock_compose_env,
+    mock_cleanup_mirage_op,
+    mock_cleanup_docker_config,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    from node_cli.mirage.mirage_node import cleanup
+
+    mock_env = {'ENV_TYPE': 'devnet', 'SCHAIN_NAME': 'test_chain'}
+    mock_compose_env.return_value = mock_env
+
+    # Create a mock manager to track call order
+    manager = mock.Mock()
+    manager.attach_mock(mock_compose_env, 'compose_env')
+    manager.attach_mock(mock_cleanup_mirage_op, 'cleanup_mirage_op')
+    manager.attach_mock(mock_cleanup_docker_config, 'cleanup_docker_config')
+
+    cleanup()
+
+    # Verify the order of calls
+    expected_calls = [
+        mock.call.compose_env(mock.ANY, save=False, node_type=mock.ANY),
+        mock.call.cleanup_mirage_op(mock_env, 'test_chain'),
+        mock.call.cleanup_docker_config(),
+    ]
+    manager.assert_has_calls(expected_calls, any_order=False)
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.mirage.mirage_node.cleanup_docker_configuration')
+@mock.patch('node_cli.mirage.mirage_node.cleanup_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
+def test_cleanup_with_different_chain_names(
+    mock_compose_env,
+    mock_cleanup_mirage_op,
+    mock_cleanup_docker_config,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    test_cases = [
+        'simple_chain',
+        'chain-with-hyphens',
+        'chain_with_underscores',
+        'ChainWithMixedCase',
+    ]
+
+    for chain_name in test_cases:
+        mock_env = {'ENV_TYPE': 'devnet', 'SCHAIN_NAME': chain_name}
+        mock_compose_env.return_value = mock_env
+
+        cleanup()
+
+        mock_cleanup_mirage_op.assert_called_with(mock_env, chain_name)
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.mirage.mirage_node.cleanup_docker_configuration')
+@mock.patch(
+    'node_cli.mirage.mirage_node.cleanup_mirage_op', side_effect=Exception('Cleanup failed')
+)
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
+def test_cleanup_continues_after_mirage_op_error(
+    mock_compose_env,
+    mock_cleanup_mirage_op,
+    mock_cleanup_docker_config,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    mock_env = {'ENV_TYPE': 'devnet', 'SCHAIN_NAME': 'test_chain'}
+    mock_compose_env.return_value = mock_env
+
+    # The function should raise the exception from cleanup_mirage_op
+    with pytest.raises(Exception, match='Cleanup failed'):
+        cleanup()
+
+    # But we should still verify the calls were made in order
+    mock_compose_env.assert_called_once()
+    mock_cleanup_mirage_op.assert_called_once_with(mock_env, 'test_chain')
+    # cleanup_docker_configuration should not be called if cleanup_mirage_op fails
+    mock_cleanup_docker_config.assert_not_called()
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=False)
+def test_cleanup_fails_when_user_invalid(
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    """Test that cleanup fails when user validation fails"""
+    import pytest
+
+    from node_cli.mirage.mirage_node import cleanup
+
+    with pytest.raises(SystemExit):
+        cleanup()
+
+
+def test_cleanup_fails_when_not_inited(ensure_meta_removed):
+    import pytest
+
+    with pytest.raises(SystemExit):
+        cleanup()
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.mirage.mirage_node.cleanup_docker_configuration')
+@mock.patch('node_cli.mirage.mirage_node.cleanup_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
+@mock.patch('node_cli.mirage.mirage_node.logger')
+def test_cleanup_logs_success_message(
+    mock_logger,
+    mock_compose_env,
+    mock_cleanup_mirage_op,
+    mock_cleanup_docker_config,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    mock_env = {'ENV_TYPE': 'devnet', 'SCHAIN_NAME': 'test_chain'}
+    mock_compose_env.return_value = mock_env
+
+    cleanup()
+
+    mock_logger.info.assert_called_once_with(
+        'Mirage node was cleaned up, all containers and data removed'
+    )
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.mirage.mirage_node.cleanup_docker_configuration')
+@mock.patch('node_cli.mirage.mirage_node.cleanup_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
+def test_cleanup_with_missing_schain_name(
+    mock_compose_env,
+    mock_cleanup_mirage_op,
+    mock_cleanup_docker_config,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    mock_env = {'ENV_TYPE': 'devnet'}  # Missing SCHAIN_NAME
+    mock_compose_env.return_value = mock_env
+
+    with pytest.raises(KeyError):
+        cleanup()
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.mirage.mirage_node.cleanup_docker_configuration')
+@mock.patch('node_cli.mirage.mirage_node.cleanup_mirage_op')
+@mock.patch('node_cli.mirage.mirage_node.compose_node_env')
+def test_cleanup_with_empty_schain_name(
+    mock_compose_env,
+    mock_cleanup_mirage_op,
+    mock_cleanup_docker_config,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    mock_env = {'ENV_TYPE': 'devnet', 'SCHAIN_NAME': ''}
+    mock_compose_env.return_value = mock_env
+
+    cleanup()
+
+    mock_cleanup_mirage_op.assert_called_once_with(mock_env, '')
+    mock_cleanup_docker_config.assert_called_once()

@@ -262,7 +262,8 @@ def cleanup_datadir_for_single_chain_node(
         folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
         if not folders:
             raise NoDataDirForChainError(
-                f'No data directory found in {base_path}. Please check the path or specify a chain name.'
+                f'No data directory found in {base_path}. '
+                'Please check the path or specify a chain name.'
             )
         chain_name = folders[0]
     base_path = os.path.join(base_path, chain_name)
