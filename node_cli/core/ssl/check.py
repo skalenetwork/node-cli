@@ -20,6 +20,7 @@
 import time
 import socket
 import logging
+import subprocess
 from contextlib import contextmanager
 
 from node_cli.core.ssl.utils import detached_subprocess
@@ -201,8 +202,15 @@ def check_ssl_connection(host, port, silent=False):
     ]
     expose_output = not silent
     with detached_subprocess(ssl_check_cmd, expose_output=expose_output) as dp:
-        time.sleep(1)
-        code = dp.poll()
-        if code is not None:
-            logger.error('Healthcheck connection failed')
-            raise SSLHealthcheckError('OpenSSL connection verification failed')
+        timeout = 20
+        try:
+            dp.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            logger.error('Healthcheck timed-out after %s s', timeout)
+            raise SSLHealthcheckError('OpenSSL connection verification timed-out')
+
+        if dp.returncode == 0:  # success
+            return
+
+        logger.error('Healthcheck connection failed (code %s)', dp.returncode)
+        raise SSLHealthcheckError('OpenSSL connection verification failed')

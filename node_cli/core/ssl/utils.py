@@ -50,7 +50,7 @@ def detached_subprocess(cmd, expose_output=False):
     logger.debug(f'Starting detached subprocess: {cmd}')
     p = subprocess.Popen(
         cmd,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
         encoding='utf-8'
     )
     try:
