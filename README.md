@@ -29,7 +29,7 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 
 * Prerequisites
 
-Ensure that the following package is installed: **docker**, **docker-compose** (1.27.4+)
+Ensure that the following package is installed: **docker**, **docker-compose**
 
 * Download the executable
 
