@@ -42,7 +42,7 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
 )
 from node_cli.cli import __version__
-from node_cli.configs.env import get_validated_env_config, SKALE_DIR_ENV_FILEPATH
+from node_cli.configs.user import get_validated_user_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 
 from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
@@ -69,7 +69,7 @@ from node_cli.utils.helper import (
     get_request,
     post_request,
 )
-from node_cli.utils.meta import get_meta_info
+from node_cli.utils.meta import CliMetaManager
 from node_cli.utils.texts import safe_load_texts
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.decorators import check_not_inited, check_inited, check_user
@@ -198,7 +198,7 @@ def init_sync(
 @check_user
 def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
-    prev_version = get_meta_info().version
+    prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     env = compose_node_env(env_filepath, node_type=NodeType.SYNC)
@@ -233,7 +233,7 @@ def compose_node_env(
     is_mirage_boot: bool = False,
 ) -> dict[str, str]:
     if env_filepath is not None:
-        env_params = get_validated_env_config(
+        user_config = get_validated_user_config(
             node_type=node_type,
             env_filepath=env_filepath,
             is_mirage_boot=is_mirage_boot,
@@ -241,7 +241,7 @@ def compose_node_env(
         if save:
             save_env_params(env_filepath)
     else:
-        env_params = get_validated_env_config(
+        user_config = get_validated_user_config(
             node_type=node_type,
             env_filepath=INIT_ENV_FILEPATH,
             is_mirage_boot=is_mirage_boot,
@@ -257,7 +257,7 @@ def compose_node_env(
         'SCHAINS_MNT_DIR': mnt_dir,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
         'SKALE_LIB_PATH': SKALE_STATE_DIR,
-        **env_params,
+        **user_config.to_env(),
     }
 
     if inited_node and not node_type == NodeType.SYNC:
@@ -284,7 +284,7 @@ def update(
         error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
-    prev_version = get_meta_info().version
+    prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     logger.info('Node update started')
@@ -502,8 +502,8 @@ def run_checks(
         return
 
     if disk is None:
-        env = get_validated_env_config(node_type=node_type)
-        disk = env['DISK_MOUNTPOINT']
+        env_config = get_validated_user_config(node_type=node_type)
+        disk = env_config.disk_mountpoint
     failed_checks = run_host_checks(disk, node_type, network, container_config_path)
     if not failed_checks:
         print('Requirements checking successfully finished!')

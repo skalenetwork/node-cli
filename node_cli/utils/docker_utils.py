@@ -17,15 +17,17 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import io
-import itertools
 import os
+import io
+import time
+import itertools
 import logging
 from typing import Optional
 
 import docker
 from docker.client import DockerClient
 from docker.models.containers import Container
+from docker.errors import NotFound
 
 from node_cli.utils.helper import run_cmd, str_to_bool
 from node_cli.configs import (
@@ -44,8 +46,10 @@ logger = logging.getLogger(__name__)
 SCHAIN_REMOVE_TIMEOUT = 300
 IMA_REMOVE_TIMEOUT = 20
 TELEGRAF_REMOVE_TIMEOUT = 20
+REDIS_START_TIMEOUT = 10
 
-# Services have format <service_name>: <container_name>
+REDIS_SERVICE_DICT = {'redis': 'skale_redis'}
+
 CORE_COMMON_COMPOSE_SERVICES = {
     'transaction-manager': 'skale_transaction-manager',
     'redis': 'skale_redis',
@@ -245,7 +249,7 @@ def is_volume_exists(name: str, dutils=None):
     dutils = dutils or docker_client()
     try:
         dutils.volumes.get(name)
-    except docker.errors.NotFound:
+    except NotFound:
         return False
     return True
 
@@ -300,7 +304,7 @@ def get_compose_services(node_type: NodeType) -> list[str]:
     return result
 
 
-def get_up_compose_cmd(node_type: NodeType, services: Optional[list[str]] = None) -> tuple:
+def get_up_compose_cmd(node_type: NodeType, services: list[str] | None = None) -> tuple:
     compose_path = get_compose_path(node_type)
 
     if services is None:
@@ -309,7 +313,9 @@ def get_up_compose_cmd(node_type: NodeType, services: Optional[list[str]] = None
     return ('docker', 'compose', '-f', compose_path, 'up', '-d', *services)
 
 
-def compose_up(env, node_type: NodeType, is_mirage_boot: bool = False):
+def compose_up(
+    env, node_type: NodeType, is_mirage_boot: bool = False, services: list[str] | None = None
+):
     if node_type == NodeType.SYNC:
         logger.info('Running containers for sync node')
         run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.SYNC), env=env)
@@ -322,7 +328,7 @@ def compose_up(env, node_type: NodeType, is_mirage_boot: bool = False):
         logger.info('Running mirage base set of containers')
         if not is_mirage_boot:
             logger.debug('Launching mirage containers with env %s', env)
-            run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.MIRAGE), env=env)
+            run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.MIRAGE, services=services), env=env)
         else:
             logger.debug('Launching mirage boot containers with env %s', env)
             run_cmd(
@@ -385,7 +391,7 @@ def is_container_running(name: str, dclient: Optional[DockerClient] = None) -> b
     try:
         container = dc.containers.get(name)
         return container.status == 'running'
-    except docker.errors.NotFound:
+    except NotFound:
         return False
 
 
@@ -421,3 +427,19 @@ def docker_cleanup(dclient=None, ignore=None):
         system_prune()
     except Exception as e:
         logger.warning('Image cleanup errored with %s', e)
+
+
+def wait_for_container(container_name: str, attempts: int = 10, interval: int = 3) -> bool:
+    logger.info('Waiting for container %s to be up', container_name)
+    dc = docker_client()
+
+    for i in range(attempts):
+        try:
+            container = dc.containers.get(container_name)
+            if container.status == 'running':
+                logger.info('Container %s is up', container_name)
+                return True
+        except NotFound:
+            logger.warning('Container %s not found, retrying...', container_name)
+        time.sleep(interval)
+    return False

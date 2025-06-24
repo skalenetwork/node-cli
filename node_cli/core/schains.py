@@ -34,7 +34,7 @@ from node_cli.configs import (
     SCHAIN_NODE_DATA_PATH,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
 )
-from node_cli.configs.env import get_validated_env_config
+from node_cli.configs.user import get_validated_user_config
 from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import (
@@ -212,8 +212,8 @@ def restore_schain_from_snapshot(
     schain_type: str = 'medium',
 ) -> None:
     if env_type is None:
-        env_config = get_validated_env_config(node_type=node_type)
-        env_type = env_config['ENV_TYPE']
+        user_config = get_validated_user_config(node_type=node_type)
+        env_type = user_config.env_type
     ensure_schain_volume(schain, schain_type, env_type)
     block_number = get_block_number_from_path(snapshot_path)
     if block_number == -1:

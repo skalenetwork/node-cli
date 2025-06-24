@@ -19,10 +19,11 @@
 
 import click
 
-from node_cli.core.node import get_node_signature, register_node as register, get_node_info
-from node_cli.mirage.mirage_boot import init, migrate, update
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
-from node_cli.utils.helper import streamed_cmd, IP_TYPE, error_exit, abort_if_false
+from node_cli.core.node import get_node_info, get_node_signature
+from node_cli.core.node import register_node as register
+from node_cli.mirage.mirage_boot import init, update
+from node_cli.utils.helper import IP_TYPE, abort_if_false, error_exit, streamed_cmd
 
 
 @click.group()
@@ -74,21 +75,6 @@ def signature_boot(validator_id):
     if isinstance(res, dict) and 'error' in res:
         error_exit(f'Error getting signature: {res.get("message", res)}')
     print(f'Signature: {res}')
-
-
-@boot.command('migrate', help='Migrate mirage node from Mirage Boot Phase to Mirage Main Phase.')
-@click.option(
-    '--yes',
-    is_flag=True,
-    callback=abort_if_false,
-    expose_value=False,
-    prompt='Are you sure you want to mirage node from Mirage Boot Phase to Mirage Main Phase?',
-)
-@click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
-@click.argument('env_file')
-@streamed_cmd
-def migrate_boot(env_file, pull_config_for_schain):
-    migrate(env_file, pull_config_for_schain)
 
 
 @boot.command('update', help='Update Mirage node from .env file')

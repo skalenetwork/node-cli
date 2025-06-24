@@ -24,7 +24,7 @@ from typing import Dict
 
 import psutil
 
-from node_cli.configs.env import get_validated_env_config
+from node_cli.configs.user import get_validated_user_config
 from node_cli.utils.docker_utils import ensure_volume
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import write_json, read_json, run_cmd, safe_load_yml
@@ -102,12 +102,10 @@ def generate_resource_allocation_config(
         logger.debug(msg)
         print(msg)
         return
-    env_params = get_validated_env_config(node_type=node_type, env_filepath=env_file)
-    if env_params is None:
-        return
+    user_config = get_validated_user_config(node_type=node_type, env_filepath=env_file)
     logger.info('Generating resource allocation file ...')
     try:
-        update_resource_allocation(env_params['ENV_TYPE'])
+        update_resource_allocation(user_config.env_type)
     except Exception as e:
         logger.exception(e)
         print("Can't generate resource allocation file, check out CLI logs")
