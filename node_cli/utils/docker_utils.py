@@ -65,17 +65,16 @@ BASE_SKALE_COMPOSE_SERVICES = {
     'bounty': 'skale_bounty',
 }
 
-CORE_MIRAGE_COMPOSE_SERVICES = {
+BASE_MIRAGE_COMPOSE_SERVICES = {
     **CORE_COMMON_COMPOSE_SERVICES,
+    'mirage-admin': 'mirage_admin',
     'mirage-api': 'mirage_api',
 }
-BASE_MIRAGE_COMPOSE_SERVICES = {
-    **CORE_MIRAGE_COMPOSE_SERVICES,
-    'mirage-admin': 'mirage_admin',
-}
+
 BASE_MIRAGE_BOOT_COMPOSE_SERVICES = {
-    **CORE_MIRAGE_COMPOSE_SERVICES,
+    **CORE_COMMON_COMPOSE_SERVICES,
     'mirage-boot': 'mirage_boot_admin',
+    'mirage-boot-api': 'mirage_boot_api',
 }
 
 BASE_SYNC_COMPOSE_SERVICES = {
