@@ -163,7 +163,7 @@ def restore_mirage(env, backup_path, config_only=False):
     return True
 
 
-def cleanup(env, chain_name: str) -> None:
+def cleanup(env) -> None:
     turn_off(env, node_type=NodeType.MIRAGE)
     cleanup_datadir_for_single_chain_node()
     rm_dir(GLOBAL_SKALE_DIR)

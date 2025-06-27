@@ -92,7 +92,6 @@ def request_repair(snapshot_from: str = '') -> None:
 @check_user
 def cleanup() -> None:
     env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.MIRAGE)
-    chain_name = env['SCHAIN_NAME']
-    cleanup_mirage_op(env, chain_name)
+    cleanup_mirage_op(env)
     logger.info('Mirage node was cleaned up, all containers and data removed')
     cleanup_docker_configuration()
