@@ -9,8 +9,8 @@ import typing
 from typing import Optional, Tuple
 
 from node_cli.configs import (
+    DOCKER_DAEMON_CONFIG_PATH,
     DOCKER_DAEMON_HOSTS,
-    DOCKER_DEAMON_CONFIG_PATH,
     DOCKER_SERVICE_CONFIG_DIR,
     DOCKER_SERVICE_CONFIG_PATH,
     DOCKER_SOCKET_PATH,
@@ -107,7 +107,7 @@ def ensure_service_overriden_config(
 
 
 def ensure_docker_daemon_config(
-    daemon_config_path: Path = DOCKER_DEAMON_CONFIG_PATH, daemon_hosts: Path = DOCKER_DAEMON_HOSTS
+    daemon_config_path: Path = DOCKER_DAEMON_CONFIG_PATH, daemon_hosts: Path = DOCKER_DAEMON_HOSTS
 ) -> None:
     logger.info('Ensuring docker daemon config')
     config = {}
@@ -191,22 +191,19 @@ def remove_docker_service_override_config() -> None:
 
 
 def reset_docker_daemon_config() -> None:
-    if os.path.isfile(DOCKER_DEAMON_CONFIG_PATH):
+    if os.path.isfile(DOCKER_DAEMON_CONFIG_PATH):
         logger.info('Resetting docker daemon config')
-        with open(DOCKER_DEAMON_CONFIG_PATH, 'r') as daemon_config:
+        with open(DOCKER_DAEMON_CONFIG_PATH, 'r') as daemon_config:
             config = json.load(daemon_config)
 
-        # Remove the keys we added
         config.pop('live-restore', None)
         config.pop('hosts', None)
 
         if config:
-            # Write back remaining config
-            with open(DOCKER_DEAMON_CONFIG_PATH, 'w') as daemon_config:
+            with open(DOCKER_DAEMON_CONFIG_PATH, 'w') as daemon_config:
                 json.dump(config, daemon_config)
         else:
-            # Remove file if empty
-            os.remove(DOCKER_DEAMON_CONFIG_PATH)
+            os.remove(DOCKER_DAEMON_CONFIG_PATH)
 
 
 def remove_node_docker_config() -> None:

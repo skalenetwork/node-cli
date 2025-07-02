@@ -19,8 +19,8 @@
 
 import os
 import sys
-from node_cli.utils.global_config import read_g_config
 
+from node_cli.utils.global_config import read_g_config
 
 GLOBAL_SKALE_DIR = os.getenv('GLOBAL_SKALE_DIR') or '/etc/skale'
 GLOBAL_SKALE_CONF_FILENAME = 'conf.json'
@@ -146,7 +146,7 @@ META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
 SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'
 
-DOCKER_DEAMON_CONFIG_PATH = '/etc/docker/daemon.json'
+DOCKER_DAEMON_CONFIG_PATH = '/etc/docker/daemon.json'
 DOCKER_DAEMON_HOSTS = ('fd://', 'unix:///var/run/skale/docker.sock')
 DOCKER_SERVICE_CONFIG_DIR = '/etc/systemd/system/docker.service.d'
 DOCKER_SERVICE_CONFIG_PATH = '/etc/systemd/system/docker.service.d/no-host.conf'

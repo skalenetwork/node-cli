@@ -61,8 +61,6 @@ BLUEPRINT_NAME = 'schains'
 class NoDataDirForChainError(Exception):
     """Raised when no data directory is found"""
 
-    pass
-
 
 def get_schain_firewall_rules(schain: str) -> None:
     status, payload = get_request(
