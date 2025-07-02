@@ -1,13 +1,12 @@
 import os
-from unittest import mock
 from pathlib import Path
+from unittest import mock
 
 import freezegun
 
-from node_cli.core.schains import cleanup_sync_datadir, toggle_schain_repair_mode
+from node_cli.core.schains import cleanup_datadir_for_single_chain_node, toggle_schain_repair_mode
 from node_cli.utils.helper import read_json
-
-from tests.helper import CURRENT_TIMESTAMP, CURRENT_DATETIME
+from tests.helper import CURRENT_DATETIME, CURRENT_TIMESTAMP
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
@@ -82,5 +81,5 @@ def test_cleanup_sync_datadir(tmp_sync_datadir):
             hash_path.touch()
 
     with mock.patch('node_cli.core.schains.rm_btrfs_subvolume'):
-        cleanup_sync_datadir(schain_name, base_path=tmp_sync_datadir)
+        cleanup_datadir_for_single_chain_node(schain_name, base_path=tmp_sync_datadir)
         assert not os.path.isdir(base_folder)

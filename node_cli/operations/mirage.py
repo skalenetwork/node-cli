@@ -17,23 +17,28 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time
 import logging
+import time
 from enum import Enum
 
 import distro
 
 from node_cli.cli.info import TYPE, VERSION
-from node_cli.configs import CONTAINER_CONFIG_PATH
+from node_cli.configs import (
+    CONTAINER_CONFIG_PATH,
+    GLOBAL_SKALE_DIR,
+    SKALE_DIR,
+)
 from node_cli.core.checks import CheckType
 from node_cli.core.checks import run_checks as run_host_checks
-from node_cli.core.docker_config import configure_docker
+from node_cli.core.docker_config import cleanup_docker_configuration, configure_docker
 from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
+from node_cli.core.schains import cleanup_datadir_for_single_chain_node
 from node_cli.migrations.mirage.from_boot import migrate_nftables_from_boot
 from node_cli.mirage.record.chain_record import migrate_chain_record
-from node_cli.operations.base import checked_host
+from node_cli.operations.base import checked_host, turn_off
 from node_cli.operations.common import unpack_backup_archive
 from node_cli.operations.config_repo import (
     sync_skale_node,
@@ -49,7 +54,7 @@ from node_cli.utils.docker_utils import (
     remove_dynamic_containers,
     wait_for_container,
 )
-from node_cli.utils.helper import str_to_bool
+from node_cli.utils.helper import rm_dir, str_to_bool
 from node_cli.utils.meta import MirageCliMetaManager
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
@@ -156,3 +161,11 @@ def restore_mirage(env, backup_path, config_only=False):
         print_failed_requirements_checks(failed_checks)
         return False
     return True
+
+
+def cleanup(env) -> None:
+    turn_off(env, node_type=NodeType.MIRAGE)
+    cleanup_datadir_for_single_chain_node()
+    rm_dir(GLOBAL_SKALE_DIR)
+    rm_dir(SKALE_DIR)
+    cleanup_docker_configuration()

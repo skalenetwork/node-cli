@@ -17,29 +17,28 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import io
-import time
 import itertools
 import logging
+import os
+import time
 from typing import Optional
 
 import docker
 from docker.client import DockerClient
-from docker.models.containers import Container
 from docker.errors import NotFound
+from docker.models.containers import Container
 
-from node_cli.utils.helper import run_cmd, str_to_bool
 from node_cli.configs import (
     COMPOSE_PATH,
-    SYNC_COMPOSE_PATH,
     MIRAGE_COMPOSE_PATH,
+    NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    NGINX_CONTAINER_NAME,
+    SYNC_COMPOSE_PATH,
 )
+from node_cli.utils.helper import run_cmd, str_to_bool
 from node_cli.utils.node_type import NodeType
-
 
 logger = logging.getLogger(__name__)
 
@@ -325,10 +324,7 @@ def compose_up(
 
     if node_type == NodeType.MIRAGE:
         logger.info('Running mirage base set of containers')
-        if not is_mirage_boot:
-            logger.debug('Launching mirage containers with env %s', env)
-            run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.MIRAGE, services=services), env=env)
-        else:
+        if is_mirage_boot:
             logger.debug('Launching mirage boot containers with env %s', env)
             run_cmd(
                 cmd=get_up_compose_cmd(
@@ -336,6 +332,9 @@ def compose_up(
                 ),
                 env=env,
             )
+        else:
+            logger.debug('Launching mirage containers with env %s', env)
+            run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.MIRAGE, services=services), env=env)
     else:
         logger.info('Running skale node base set of containers')
         logger.debug('Launching skale node containers with env %s', env)

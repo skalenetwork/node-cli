@@ -20,6 +20,7 @@
 import click
 
 from node_cli.core.node import backup, get_node_info, get_node_signature
+from node_cli.mirage.mirage_node import cleanup as mirage_cleanup
 from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
 from node_cli.utils.helper import URL_TYPE, abort_if_false, error_exit, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
@@ -130,3 +131,16 @@ def migrate_node(env_filepath: str) -> None:
 )
 def repair(snapshot_from: str = '') -> None:
     request_repair(snapshot_from=snapshot_from)
+
+
+@node.command('cleanup', help='Cleanup Mirage node.')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to cleanup Mirage node?',
+)
+@streamed_cmd
+def cleanup_node():
+    mirage_cleanup()

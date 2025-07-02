@@ -34,4 +34,5 @@ from node_cli.operations.mirage import (  # noqa
     update_mirage as update_mirage_op,
     MirageUpdateType,
     restore_mirage as restore_mirage_op,
+    cleanup as cleanup_mirage_op,
 )
