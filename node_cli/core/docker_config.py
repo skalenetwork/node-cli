@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import pathlib
+import shutil
 import time
 import typing
 from typing import Optional, Tuple
@@ -214,7 +215,7 @@ def remove_node_docker_config() -> None:
 
 def remove_skale_run_dir() -> None:
     if os.path.isdir(SKALE_RUN_DIR):
-        os.rmdir(SKALE_RUN_DIR)
+        shutil.rmtree(SKALE_RUN_DIR)
         logger.info('Removed SKALE run directory')
 
 
@@ -227,6 +228,4 @@ def cleanup_docker_configuration() -> None:
     remove_node_docker_config()
     remove_skale_run_dir()
     restart_docker_service()
-    wait_for_socket_initialization()
-
     logger.info('Docker configuration cleanup finished')
