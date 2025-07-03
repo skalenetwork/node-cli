@@ -21,8 +21,9 @@ import click
 
 from node_cli.core.node import backup, get_node_info, get_node_signature
 from node_cli.mirage.mirage_node import cleanup as mirage_cleanup
-from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
-from node_cli.utils.helper import URL_TYPE, abort_if_false, error_exit, streamed_cmd
+from node_cli.mirage.mirage_node import migrate_from_boot, register, request_repair, restore_mirage
+from node_cli.mirage.wallet import get_wallet_info
+from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, error_exit, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
 TEXTS = safe_load_texts()
@@ -49,9 +50,11 @@ def init_node():
     click.echo("Placeholder: Command 'mirage node init' is not yet implemented.")
 
 
-@node.command('register', help='Register Mirage node (Placeholder for regular operations).')
-def register_node():
-    click.echo("Placeholder: Command 'mirage node register' is not yet implemented.")
+@node.command('register', help=TEXTS['mirage']['node']['register']['help'])
+@click.option('--name', '-n', required=True, help=TEXTS['mirage']['node']['register']['name'])
+@click.option('--ip', required=True, type=IP_TYPE, help=TEXTS['mirage']['node']['register']['ip'])
+def register_node(name: str, ip: str) -> None:
+    register(name=name, ip=ip)
 
 
 @node.command('update', help='Update Mirage.')
@@ -144,3 +147,9 @@ def repair(snapshot_from: str = '') -> None:
 @streamed_cmd
 def cleanup_node():
     mirage_cleanup()
+
+
+@node.command('info', help='Get info about MIRAGE node wallet')
+@click.option('--format', '-f', type=click.Choice(['json', 'text']))
+def wallet_info(format):
+    get_wallet_info(format)
