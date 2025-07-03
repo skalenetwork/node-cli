@@ -1,3 +1,22 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of node-cli
+#
+#   Copyright (C) 2025 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import glob
 import logging
 import os
@@ -5,35 +24,42 @@ import pprint
 import shutil
 import time
 from pathlib import Path
-
 from typing import Dict, Optional
 
+from lvmpy.src.core import mount, volume_mountpoint
 from node_cli.configs import (
     ALLOCATION_FILEPATH,
-    NODE_CONFIG_PATH,
     NODE_CLI_STATUS_FILENAME,
+    NODE_CONFIG_PATH,
     SCHAIN_NODE_DATA_PATH,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
 )
-from node_cli.configs.env import get_validated_env_config
-
-from node_cli.utils.helper import get_request, error_exit, safe_load_yml
+from node_cli.configs.user import get_validated_user_config
+from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
 from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.helper import (
+    error_exit,
+    get_request,
+    read_json,
+    run_cmd,
+    safe_load_yml,
+    save_json,
+)
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import (
     print_dkg_statuses,
     print_firewall_rules,
     print_schain_info,
     print_schains,
 )
-from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
-from node_cli.utils.helper import read_json, run_cmd, save_json
-from node_cli.utils.node_type import NodeType
-from lvmpy.src.core import mount, volume_mountpoint
-
 
 logger = logging.getLogger(__name__)
 
 BLUEPRINT_NAME = 'schains'
+
+
+class NoDataDirForChainError(Exception):
+    """Raised when no data directory is found"""
 
 
 def get_schain_firewall_rules(schain: str) -> None:
@@ -190,8 +216,8 @@ def restore_schain_from_snapshot(
     schain_type: str = 'medium',
 ) -> None:
     if env_type is None:
-        env_config = get_validated_env_config(node_type=node_type)
-        env_type = env_config['ENV_TYPE']
+        user_config = get_validated_user_config(node_type=node_type)
+        env_type = user_config.env_type
     ensure_schain_volume(schain, schain_type, env_type)
     block_number = get_block_number_from_path(snapshot_path)
     if block_number == -1:
@@ -227,8 +253,18 @@ def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
         logger.warning('Volume %s already exists', schain)
 
 
-def cleanup_sync_datadir(schain_name: str, base_path: str = SCHAINS_MNT_DIR_SINGLE_CHAIN) -> None:
-    base_path = os.path.join(base_path, schain_name)
+def cleanup_datadir_for_single_chain_node(
+    chain_name: str = '', base_path: str = SCHAINS_MNT_DIR_SINGLE_CHAIN
+) -> None:
+    if not chain_name:
+        folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
+        if not folders:
+            raise NoDataDirForChainError(
+                f'No data directory found in {base_path}. '
+                'Please check the path or specify a chain name.'
+            )
+        chain_name = folders[0]
+    base_path = os.path.join(base_path, chain_name)
     regular_folders_pattern = f'{base_path}/[!snapshots]*'
     logger.info('Removing regular folders')
     for filepath in glob.glob(regular_folders_pattern):

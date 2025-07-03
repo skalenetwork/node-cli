@@ -19,31 +19,32 @@
 
 import json
 import os
-import tempfile
 import pathlib
 import shutil
+import tempfile
 from contextlib import contextmanager
 
 import docker
 import mock
 import pytest
+import redis
 
 from node_cli.configs import (
     CONTAINER_CONFIG_TMP_PATH,
     GLOBAL_SKALE_CONF_FILEPATH,
     GLOBAL_SKALE_DIR,
     META_FILEPATH,
+    NGINX_CONFIG_FILEPATH,
     NGINX_CONTAINER_NAME,
+    REDIS_URI,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SCHAIN_NODE_DATA_PATH,
-    NGINX_CONFIG_FILEPATH,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
-from node_cli.configs.ssl import SSL_FOLDER_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.ssl import SSL_FOLDER_PATH
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
-
 from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
 
@@ -298,3 +299,94 @@ def set_env_var(name, value):
             del os.environ[name]
         else:
             os.environ[name] = old_value
+
+
+@pytest.fixture
+def regular_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        CONTAINER_CONFIGS_STREAM='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        DISK_MOUNTPOINT=/dev/sss
+        DOCKER_LVMPY_STREAM='master'
+        ENV_TYPE='devnet'
+        MANAGER_CONTRACTS='test-manager'
+        IMA_CONTRACTS='test-ima'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def mirage_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        BOOT_ENDPOINT=http://localhost:8545
+        CONTAINER_CONFIGS_STREAM='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        DISK_MOUNTPOINT=/dev/sss
+        ENV_TYPE='devnet'
+        ENFORCE_BTRFS=False
+        MIRAGE_CONTRACTS='test-mirage'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def mirage_boot_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        CONTAINER_CONFIGS_STREAM='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        DISK_MOUNTPOINT=/dev/sss
+        ENV_TYPE='devnet'
+        MANAGER_CONTRACTS='test-manager'
+        IMA_CONTRACTS='test-ima'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def sync_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        CONTAINER_CONFIGS_STREAM='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        DISK_MOUNTPOINT=/dev/sss
+        ENV_TYPE='devnet'
+        SCHAIN_NAME='test-schain'
+        ENFORCE_BTRFS=False
+        MANAGER_CONTRACTS='test-manager'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def redis_client():
+    cpool = redis.ConnectionPool.from_url(REDIS_URI)
+    return redis.Redis(connection_pool=cpool)

@@ -17,21 +17,19 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import json
+import os
+
 import mock
+import pytest
 import requests
 
-import pytest
-
-from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH, NODE_DATA_PATH
+from node_cli.cli.resources_allocation import generate, show
+from node_cli.configs.resource_allocation import NODE_DATA_PATH, RESOURCE_ALLOCATION_FILEPATH
 from node_cli.utils.helper import safe_mkdir, write_json
+from node_cli.utils.node_type import NodeType
 from tests.helper import response_mock, run_command_mock
-
-from node_cli.cli.resources_allocation import show, generate
-
 from tests.resources_test import BIG_DISK_SIZE
-
 
 TEST_CONFIG = {'test': 1}
 
@@ -51,15 +49,18 @@ def test_show(resource_alloc_config):
     assert result.exit_code == 0
 
 
-def test_generate():
+def test_generate(regular_user_conf):
     safe_mkdir(NODE_DATA_PATH)
     resp_mock = response_mock(requests.codes.created)
     with (
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
-        mock.patch('node_cli.configs.env.validate_env_params'),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         result = run_command_mock(
-            'node_cli.utils.helper.post_request', resp_mock, generate, ['./tests/test-env', '--yes']
+            'node_cli.utils.helper.post_request',
+            resp_mock,
+            generate,
+            [regular_user_conf.as_posix(), '--yes'],
         )
     assert result.output == (
         f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}\n'
@@ -67,14 +68,18 @@ def test_generate():
     assert result.exit_code == 0
 
 
-def test_generate_already_exists(resource_alloc_config):
+def test_generate_already_exists(regular_user_conf, resource_alloc_config):
     resp_mock = response_mock(requests.codes.created)
     with (
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
-        mock.patch('node_cli.configs.env.validate_env_params'),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         result = run_command_mock(
-            'node_cli.utils.helper.post_request', resp_mock, generate, ['./tests/test-env', '--yes']
+            'node_cli.utils.helper.post_request',
+            resp_mock,
+            generate,
+            [regular_user_conf.as_posix(), '--yes'],
         )
         assert result.output == 'Resource allocation file already exists\n'
         assert result.exit_code == 0
@@ -83,7 +88,7 @@ def test_generate_already_exists(resource_alloc_config):
             'node_cli.utils.helper.post_request',
             resp_mock,
             generate,
-            ['./tests/test-env', '--yes', '--force'],
+            [regular_user_conf.as_posix(), '--yes', '--force'],
         )
         assert result.output == (
             f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}\n'

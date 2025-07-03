@@ -38,7 +38,7 @@ class ContractType(Enum):
     MANAGER = 'skale-manager'
 
 
-def validate_env_alias_or_address(
+def validate_alias_or_address(
     alias_or_address: str, contract_type: ContractType, endpoint: str
 ) -> None:
     if is_contract_address(alias_or_address):

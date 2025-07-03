@@ -17,20 +17,22 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time
-
-import distro
 import functools
 import logging
+import time
 from typing import Dict, Optional
 
+import distro
+
+from node_cli.cli.info import TYPE, VERSION
 from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     CONTAINER_CONFIG_TMP_PATH,
-    SKALE_DIR,
     GLOBAL_SKALE_DIR,
+    SKALE_DIR,
 )
-from node_cli.core.checks import CheckType, run_checks as run_host_checks
+from node_cli.core.checks import CheckType
+from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.docker_config import configure_docker
 from node_cli.core.host import (
     ensure_btrfs_kernel_module_autoloaded,
@@ -40,19 +42,18 @@ from node_cli.core.host import (
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.node_options import NodeOptions
-from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
+from node_cli.core.resources import init_shared_space_volume, update_resource_allocation
 from node_cli.core.schains import (
+    cleanup_datadir_for_single_chain_node,
     update_node_cli_schain_status,
-    cleanup_sync_datadir,
 )
-from node_cli.cli.info import VERSION, TYPE
 from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
-from node_cli.operations.docker_lvmpy import lvmpy_install
-from node_cli.operations.skale_node import (
+from node_cli.operations.config_repo import (
     download_skale_node,
     sync_skale_node,
     update_images,
 )
+from node_cli.operations.docker_lvmpy import lvmpy_install
 from node_cli.operations.volume import (
     cleanup_volume_artifacts,
     ensure_filestorage_mapping,
@@ -64,11 +65,10 @@ from node_cli.utils.docker_utils import (
     docker_cleanup,
     remove_dynamic_containers,
 )
-from node_cli.utils.helper import str_to_bool, rm_dir
-from node_cli.utils.meta import get_meta_info, update_meta
+from node_cli.utils.helper import rm_dir, str_to_bool
+from node_cli.utils.meta import CliMetaManager, MirageCliMetaManager
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
-
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +127,8 @@ def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
     prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
     init_shared_space_volume(env['ENV_TYPE'])
 
-    current_stream = get_meta_info().config_stream
+    meta_manager = CliMetaManager()
+    current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
     if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
         logger.info(
@@ -137,7 +138,7 @@ def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
         )
         docker_cleanup()
 
-    update_meta(
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
@@ -146,46 +147,6 @@ def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
     )
     update_images(env=env, node_type=node_type)
     compose_up(env=env, node_type=node_type)
-    return True
-
-
-@checked_host
-def migrate_mirage_boot(env_filepath: str, env: Dict) -> bool:
-    compose_rm(node_type=NodeType.MIRAGE, env=env)
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-
-    sync_skale_node()
-    ensure_btrfs_kernel_module_autoloaded()
-
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
-        configure_docker()
-
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
-
-    generate_nginx_config()
-
-    prepare_host(env_filepath, env['ENV_TYPE'])
-
-    current_stream = get_meta_info().config_stream
-    skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
-        logger.info(
-            'Stream version was changed from %s to %s',
-            current_stream,
-            env['CONTAINER_CONFIGS_STREAM'],
-        )
-        docker_cleanup()
-
-    update_meta(
-        VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
-        None,
-        distro.id(),
-        distro.version(),
-    )
-    update_images(env=env, node_type=NodeType.MIRAGE)
-    compose_up(env=env, node_type=NodeType.MIRAGE)
     return True
 
 
@@ -209,7 +170,8 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
 
     prepare_host(env_filepath, env['ENV_TYPE'])
 
-    current_stream = get_meta_info().config_stream
+    meta_manager = MirageCliMetaManager()
+    current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
     if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
         logger.info(
@@ -219,10 +181,9 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
         )
         docker_cleanup()
 
-    update_meta(
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        None,
         distro.id(),
         distro.version(),
     )
@@ -252,7 +213,8 @@ def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
     lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
 
-    update_meta(
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
@@ -285,10 +247,10 @@ def init_mirage_boot(env_filepath: str, env: dict) -> None:
     generate_nginx_config()
     prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
-    update_meta(
+    meta_manager = MirageCliMetaManager()
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        None,
         distro.id(),
         distro.version(),
     )
@@ -331,10 +293,11 @@ def init_sync(
     generate_nginx_config()
     prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
-    update_meta(
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        None,
         distro.id(),
         distro.version(),
     )
@@ -370,7 +333,8 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
 
     prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
 
-    update_meta(
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
@@ -392,7 +356,8 @@ def turn_off(env: dict, node_type: NodeType) -> None:
 
 def turn_on(env: dict, node_type: NodeType) -> None:
     logger.info('Turning on the node...')
-    update_meta(
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
@@ -434,15 +399,14 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     lvmpy_install(env)
     init_shared_space_volume(env['ENV_TYPE'])
 
-    update_meta(
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
         distro.version(),
     )
-    update_resource_allocation(env_type=env['ENV_TYPE'])
-
     if not config_only:
         compose_up(env=env, node_type=node_type)
 
@@ -459,55 +423,8 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     return True
 
 
-def restore_mirage(env, backup_path, config_only=False):
-    unpack_backup_archive(backup_path)
-    failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
-        TYPE,
-        env['ENV_TYPE'],
-        CONTAINER_CONFIG_PATH,
-        check_type=CheckType.PREINSTALL,
-    )
-    if failed_checks:
-        print_failed_requirements_checks(failed_checks)
-        return False
-
-    ensure_btrfs_kernel_module_autoloaded()
-
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
-        configure_docker()
-
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
-
-    link_env_file()
-
-    update_meta(
-        VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
-        None,
-        distro.id(),
-        distro.version(),
-    )
-
-    if not config_only:
-        compose_up(env=env, node_type=NodeType.MIRAGE)
-
-    failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
-        TYPE,
-        env['ENV_TYPE'],
-        CONTAINER_CONFIG_PATH,
-        check_type=CheckType.POSTINSTALL,
-    )
-    if failed_checks:
-        print_failed_requirements_checks(failed_checks)
-        return False
-    return True
-
-
 def cleanup_sync(env, schain_name: str) -> None:
     turn_off(env, node_type=NodeType.SYNC)
-    cleanup_sync_datadir(schain_name=schain_name)
+    cleanup_datadir_for_single_chain_node(schain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
