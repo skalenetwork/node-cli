@@ -55,7 +55,6 @@ def init_node(env_filepath: str):
 
 @node.command('update', help='Update Mirage node')
 @click.argument('env_filepath')
-@click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
 @click.option(
     '--yes',
     is_flag=True,
@@ -64,6 +63,7 @@ def init_node(env_filepath: str):
     prompt='Are you sure you want to update Mirage node software?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
+@streamed_cmd
 def update_node(env_filepath: str, pull_config_for_schain):
     update_mirage(env_filepath=env_filepath, pull_config_for_schain=pull_config_for_schain)
 
