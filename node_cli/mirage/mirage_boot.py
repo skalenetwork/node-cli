@@ -23,13 +23,12 @@ import time
 
 from node_cli.configs import TM_INIT_TIMEOUT
 from node_cli.core.node import compose_node_env, is_base_containers_alive
-from node_cli.operations import init_mirage_boot_op, update_mirage_boot_op
-from node_cli.utils.decorators import check_not_inited, check_inited, check_user
+from node_cli.operations import init_mirage_op, update_mirage_boot_op
+from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
-
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +41,7 @@ def init(env_filepath: str) -> None:
         is_mirage_boot=True,
     )
 
-    init_mirage_boot_op(env_filepath, env)
+    init_mirage_op(env_filepath, env, is_boot=True)
     logger.info('Waiting for mirage containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=NodeType.MIRAGE, is_mirage_boot=True):

@@ -39,11 +39,12 @@ from node_cli.core.schains import cleanup_datadir_for_single_chain_node
 from node_cli.migrations.mirage.from_boot import migrate_nftables_from_boot
 from node_cli.mirage.record.chain_record import migrate_chain_record
 from node_cli.operations.base import checked_host, turn_off
-from node_cli.operations.common import unpack_backup_archive
+from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
 from node_cli.operations.config_repo import (
     sync_skale_node,
     update_images,
 )
+from node_cli.operations.volume import cleanup_volume_artifacts, prepare_block_device
 from node_cli.utils.docker_utils import (
     REDIS_SERVICE_DICT,
     REDIS_START_TIMEOUT,
@@ -65,6 +66,81 @@ class MirageUpdateType(Enum):
     REGULAR = 'regular'
     INFRA_ONLY = 'infra_only'
     FROM_BOOT = 'from_boot'
+
+
+@checked_host
+def init(env_filepath: str, env: dict) -> bool:
+    sync_skale_node()
+    ensure_btrfs_kernel_module_autoloaded()
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    configure_nftables()
+    configure_filebeat()
+    configure_flask()
+    generate_nginx_config()
+
+    prepare_host(env_filepath, env_type=env['ENV_TYPE'])
+    link_env_file()
+
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+
+    meta_manager = MirageCliMetaManager()
+    meta_manager.update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        distro.id(),
+        distro.version(),
+    )
+    update_images(env=env, node_type=NodeType.MIRAGE)
+    compose_up(env=env, node_type=NodeType.MIRAGE)
+    wait_for_container(REDIS_SERVICE_DICT['redis'])
+    time.sleep(REDIS_START_TIMEOUT)
+    return True
+
+
+@checked_host
+def update_mirage_boot(env_filepath: str, env: dict) -> bool:
+    compose_rm(node_type=NodeType.MIRAGE, env=env)
+    remove_dynamic_containers()
+    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+
+    sync_skale_node()
+    ensure_btrfs_kernel_module_autoloaded()
+
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
+
+    generate_nginx_config()
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+
+    prepare_host(env_filepath, env['ENV_TYPE'])
+
+    meta_manager = MirageCliMetaManager()
+    current_stream = meta_manager.get_meta_info().config_stream
+    skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
+    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+        logger.info(
+            'Stream version was changed from %s to %s',
+            current_stream,
+            env['CONTAINER_CONFIGS_STREAM'],
+        )
+        docker_cleanup()
+
+    meta_manager.update_meta(
+        VERSION,
+        env['CONTAINER_CONFIGS_STREAM'],
+        distro.id(),
+        distro.version(),
+    )
+    update_images(env=env, node_type=NodeType.MIRAGE)
+    compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
+    return True
 
 
 @checked_host
