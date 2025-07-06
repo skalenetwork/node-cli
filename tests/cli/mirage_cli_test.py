@@ -14,9 +14,6 @@ from node_cli.cli.mirage_node import (
     restore_node,
     signature_node,
 )
-from node_cli.cli.mirage_node import (
-    init_node as init_node_placeholder,
-)
 
 
 @mock.patch('node_cli.cli.mirage_node.restore_mirage')
@@ -83,14 +80,6 @@ def test_mirage_node_signature_error(mock_signature_core):
     assert result.exit_code != 0, f'Output: {result.output}\nException: {result.exception}'
     mock_signature_core.assert_called_once_with(validator_id)
     assert error_msg in result.output
-
-
-def test_mirage_node_init_placeholder():
-    runner = CliRunner()
-    result = runner.invoke(init_node_placeholder, [])
-
-    assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    assert "Placeholder: Command 'mirage node init' is not yet implemented." in result.output
 
 
 @mock.patch('node_cli.cli.mirage_boot.register')

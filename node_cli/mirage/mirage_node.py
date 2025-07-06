@@ -21,7 +21,7 @@
 import logging
 import time
 
-from node_cli.configs import RESTORE_SLEEP_TIMEOUT, SKALE_DIR
+from node_cli.configs import DEFAULT_SKALED_BASE_PORT, RESTORE_SLEEP_TIMEOUT, SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.host import is_node_inited, save_env_params
@@ -137,13 +137,12 @@ def init(env_filepath: str) -> None:
 
 @check_inited
 @check_user
-def register(name: str, ip: str) -> None:
+def register(ip: str) -> None:
     if not is_node_inited():
         print(TEXTS['mirage']['node']['not_inited'])
         return
 
-    # todo: add name, ips and port checks
-    json_data = {'name': name, 'ip': ip}
+    json_data = {'ip': ip, 'port': DEFAULT_SKALED_BASE_PORT}
     status, payload = post_request(blueprint=NODE_BLUEPRINT_NAME, method='register', json=json_data)
     if status == 'ok':
         msg = TEXTS['mirage']['node']['registered']

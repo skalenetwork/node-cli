@@ -56,10 +56,9 @@ def init_node(env_filepath: str):
 
 
 @node.command('register', help=TEXTS['mirage']['node']['register']['help'])
-@click.option('--name', '-n', required=True, help=TEXTS['mirage']['node']['register']['name'])
 @click.option('--ip', required=True, type=IP_TYPE, help=TEXTS['mirage']['node']['register']['ip'])
-def register(name: str, ip: str) -> None:
-    register_mirage(name=name, ip=ip)
+def register(ip: str) -> None:
+    register_mirage(ip=ip)
 
 
 @node.command('update', help='Update Mirage node')
