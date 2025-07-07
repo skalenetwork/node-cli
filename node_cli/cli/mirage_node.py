@@ -25,7 +25,6 @@ from node_cli.mirage.mirage_node import init as init_mirage
 from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
 from node_cli.mirage.mirage_node import register as register_mirage
 from node_cli.mirage.mirage_node import update as update_mirage
-from node_cli.mirage.wallet import get_wallet_info
 from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, error_exit, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
@@ -150,9 +149,3 @@ def repair(snapshot_from: str = '') -> None:
 @streamed_cmd
 def cleanup_node():
     mirage_cleanup()
-
-
-@node.command('info', help='Get info about MIRAGE node wallet')
-@click.option('--format', '-f', type=click.Choice(['json', 'text']))
-def wallet_info(format):
-    get_wallet_info(format)
