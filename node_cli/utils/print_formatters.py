@@ -17,14 +17,14 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import json
 import datetime
+import inspect
+import json
+import os
 from typing import Any
+
 import texttable
 from dateutil import parser
-
-import inspect
 
 from node_cli.configs import LONG_LINE
 from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
@@ -43,6 +43,18 @@ def print_wallet_info(wallet):
         SKALE balance: {wallet['skale_balance']} SKALE
         {LONG_LINE}
     """)
+    )
+
+
+def print_mirage_wallet_info(wallet):
+    print(
+        inspect.cleandoc(f"""
+        {LONG_LINE}
+        Address: {wallet['address'].lower()}
+        MIRAGE balance: {wallet['mirage_balance']} ETH
+        MIRAGE balance WEI: {wallet['mirage_balance_wei']} WEI
+        {LONG_LINE}
+        """)
     )
 
 
