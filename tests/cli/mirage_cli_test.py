@@ -1,20 +1,18 @@
-from click.testing import CliRunner
-from unittest import mock
 import pathlib
+from unittest import mock
 
-from node_cli.cli.mirage_node import (
-    restore_node,
-    backup_node,
-    signature_node,
-    init_node as init_node_placeholder,
-    register_node as register_node_placeholder,
-    update_node as update_node_placeholder,
-    migrate_node,
-)
+from click.testing import CliRunner
+
 from node_cli.cli.mirage_boot import (
     init_boot,
     register_boot,
     signature_boot,
+)
+from node_cli.cli.mirage_node import (
+    backup_node,
+    migrate_node,
+    restore_node,
+    signature_node,
 )
 
 
@@ -82,30 +80,6 @@ def test_mirage_node_signature_error(mock_signature_core):
     assert result.exit_code != 0, f'Output: {result.output}\nException: {result.exception}'
     mock_signature_core.assert_called_once_with(validator_id)
     assert error_msg in result.output
-
-
-def test_mirage_node_init_placeholder():
-    runner = CliRunner()
-    result = runner.invoke(init_node_placeholder, [])
-
-    assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    assert "Placeholder: Command 'mirage node init' is not yet implemented." in result.output
-
-
-def test_mirage_node_register_placeholder():
-    runner = CliRunner()
-    result = runner.invoke(register_node_placeholder, [])
-
-    assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    assert "Placeholder: Command 'mirage node register' is not yet implemented." in result.output
-
-
-def test_mirage_node_update_placeholder(valid_env_file):
-    runner = CliRunner()
-    result = runner.invoke(update_node_placeholder, ['--yes', valid_env_file])
-
-    assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    assert "Placeholder: Command 'mirage node update' is not yet implemented." in result.output
 
 
 @mock.patch('node_cli.cli.mirage_boot.register')

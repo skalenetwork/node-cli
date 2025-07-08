@@ -21,27 +21,30 @@
 import logging
 import time
 
-from node_cli.configs import RESTORE_SLEEP_TIMEOUT, SKALE_DIR
+from node_cli.configs import DEFAULT_SKALED_BASE_PORT, RESTORE_SLEEP_TIMEOUT, SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.docker_config import cleanup_docker_configuration
-from node_cli.core.host import save_env_params
+from node_cli.core.host import is_node_inited, save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.mirage.record.chain_record import get_mirage_chain_record
 from node_cli.operations import (
     MirageUpdateType,
     cleanup_mirage_op,
+    init_mirage_op,
     restore_mirage_op,
     update_mirage_op,
 )
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.helper import error_exit
+from node_cli.utils.helper import error_exit, post_request
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
 from node_cli.utils.texts import safe_load_texts
 
 logger = logging.getLogger(__name__)
 TEXTS = safe_load_texts()
+
+NODE_BLUEPRINT_NAME = 'mirage-node'
 
 
 @check_not_inited
@@ -80,6 +83,26 @@ def migrate_from_boot(
         logger.info('Migration from boot to mirage completed successfully')
 
 
+@check_inited
+@check_user
+def update(env_filepath: str, pull_config_for_schain: str | None = None) -> None:
+    logger.info('Updating mirage node...')
+    env = compose_node_env(
+        env_filepath,
+        inited_node=True,
+        sync_schains=False,
+        node_type=NodeType.MIRAGE,
+        pull_config_for_schain=pull_config_for_schain,
+    )
+    update_ok = update_mirage_op(env_filepath, env, update_type=MirageUpdateType.REGULAR)
+    alive = is_base_containers_alive(node_type=NodeType.MIRAGE)
+    if not update_ok or not alive:
+        print_node_cmd_error()
+        return
+    else:
+        logger.info('Mirage update completed successfully')
+
+
 def request_repair(snapshot_from: str = '') -> None:
     env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.MIRAGE)
     record = get_mirage_chain_record(env)
@@ -95,3 +118,37 @@ def cleanup() -> None:
     cleanup_mirage_op(env)
     logger.info('Mirage node was cleaned up, all containers and data removed')
     cleanup_docker_configuration()
+
+
+@check_not_inited
+def init(env_filepath: str) -> None:
+    env = compose_node_env(env_filepath, node_type=NodeType.MIRAGE)
+    if env is None:
+        return
+    save_env_params(env_filepath)
+    env['SKALE_DIR'] = SKALE_DIR
+
+    init_ok = init_mirage_op(env_filepath, env)
+    if not init_ok:
+        error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
+    time.sleep(RESTORE_SLEEP_TIMEOUT)
+    print('Mirage node is initialized')
+
+
+@check_inited
+@check_user
+def register(ip: str) -> None:
+    if not is_node_inited():
+        print(TEXTS['mirage']['node']['not_inited'])
+        return
+
+    json_data = {'ip': ip, 'port': DEFAULT_SKALED_BASE_PORT}
+    status, payload = post_request(blueprint=NODE_BLUEPRINT_NAME, method='register', json=json_data)
+    if status == 'ok':
+        msg = TEXTS['mirage']['node']['registered']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Registration error {error_msg}')
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)

@@ -17,58 +17,51 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import ipaddress
-import json
-import os
-import re
-import socket
-import sys
-import uuid
-from urllib.parse import urlparse
-from typing import Any, Optional, NoReturn
-
-import yaml
-import shutil
-import requests
-import subprocess
-import urllib.request
-
-import urllib.parse
-from functools import wraps
-
-import logging
-from logging import Formatter, StreamHandler
-import logging.handlers as py_handlers
-
 import distutils
 import distutils.util
+import ipaddress
+import json
+import logging
+import logging.handlers as py_handlers
+import os
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import urllib.parse
+import urllib.request
+import uuid
+from functools import wraps
+from logging import Formatter, StreamHandler
+from typing import Any, NoReturn, Optional
+from urllib.parse import urlparse
 
 import click
-
+import requests
+import yaml
 from jinja2 import Environment
 
-from node_cli.utils.print_formatters import print_err_response
-from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.configs import (
     ADMIN_HOST,
     ADMIN_PORT,
-    HIDE_STREAM_LOG,
-    GLOBAL_SKALE_DIR,
-    GLOBAL_SKALE_CONF_FILEPATH,
     DEFAULT_SSH_PORT,
+    GLOBAL_SKALE_CONF_FILEPATH,
+    GLOBAL_SKALE_DIR,
+    HIDE_STREAM_LOG,
 )
-from node_cli.configs.routes import get_route
-from node_cli.utils.global_config import read_g_config, get_system_user
-
 from node_cli.configs.cli_logger import (
+    DEBUG_LOG_FILEPATH,
     FILE_LOG_FORMAT,
     LOG_BACKUP_COUNT,
     LOG_FILE_SIZE_BYTES,
     LOG_FILEPATH,
     STREAM_LOG_FORMAT,
-    DEBUG_LOG_FILEPATH,
 )
-
+from node_cli.configs.routes import get_route
+from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.global_config import get_system_user, read_g_config
+from node_cli.utils.print_formatters import print_err_response
 
 logger = logging.getLogger(__name__)
 

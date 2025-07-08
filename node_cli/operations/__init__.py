@@ -31,6 +31,7 @@ from node_cli.operations.base import (  # noqa
     configure_nftables,
 )
 from node_cli.operations.mirage import (  # noqa
+    init as init_mirage_op,
     update_mirage as update_mirage_op,
     MirageUpdateType,
     restore_mirage as restore_mirage_op,
