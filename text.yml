@@ -84,3 +84,10 @@ mirage:
       warning: Are you sure you want to repair mirage chain node? In rare cases may cause data loss and require additional maintenance
       snapshot_from: IP of the node to take snapshot from
       repair_requested: Repair mode is requested
+    not_inited: Node should be initialized to proceed with operation
+
+    registered: Node is registered in mirage manager.
+    register:
+      help: Register node in mirage manager
+      name: Name of the node in mirage manager
+      ip: IP address of the node in mirage manager

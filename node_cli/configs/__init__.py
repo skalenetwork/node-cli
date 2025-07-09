@@ -171,3 +171,4 @@ UFW_CONFIG_PATH = '/etc/default/ufw'
 UFW_IPV6_BEFORE_INPUT_CHAIN = 'ufw6-before-input'
 
 REDIS_URI: str = os.getenv('REDIS_URI', 'redis://@127.0.0.1:6379')
+DEFAULT_SKALED_BASE_PORT: int = 10000

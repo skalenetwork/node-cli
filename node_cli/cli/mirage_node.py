@@ -21,8 +21,11 @@ import click
 
 from node_cli.core.node import backup, get_node_info, get_node_signature
 from node_cli.mirage.mirage_node import cleanup as mirage_cleanup
+from node_cli.mirage.mirage_node import init as init_mirage
 from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
-from node_cli.utils.helper import URL_TYPE, abort_if_false, error_exit, streamed_cmd
+from node_cli.mirage.mirage_node import register as register_mirage
+from node_cli.mirage.mirage_node import update as update_mirage
+from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, error_exit, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
 TEXTS = safe_load_texts()
@@ -44,17 +47,21 @@ def mirage_node_info(format):
     get_node_info(format)
 
 
-@node.command('init', help='Initialize regular Mirage node operations (Placeholder).')
-def init_node():
-    click.echo("Placeholder: Command 'mirage node init' is not yet implemented.")
+@node.command('init', help='Initialize regular Mirage node')
+@click.argument('env_filepath')
+@streamed_cmd
+def init_node(env_filepath: str):
+    init_mirage(env_filepath=env_filepath)
 
 
-@node.command('register', help='Register Mirage node (Placeholder for regular operations).')
-def register_node():
-    click.echo("Placeholder: Command 'mirage node register' is not yet implemented.")
+@node.command('register', help=TEXTS['mirage']['node']['register']['help'])
+@click.option('--ip', required=True, type=IP_TYPE, help=TEXTS['mirage']['node']['register']['ip'])
+def register(ip: str) -> None:
+    register_mirage(ip=ip)
 
 
-@node.command('update', help='Update Mirage.')
+@node.command('update', help='Update Mirage node')
+@click.argument('env_filepath')
 @click.option(
     '--yes',
     is_flag=True,
@@ -63,11 +70,9 @@ def register_node():
     prompt='Are you sure you want to update Mirage node software?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
-@click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
-@click.argument('env_file')
 @streamed_cmd
-def update_node(env_file, pull_config_for_schain, unsafe_ok):
-    click.echo("Placeholder: Command 'mirage node update' is not yet implemented.")
+def update_node(env_filepath: str, pull_config_for_schain):
+    update_mirage(env_filepath=env_filepath, pull_config_for_schain=pull_config_for_schain)
 
 
 @node.command('signature', help='Get mirage node signature for a validator ID.')

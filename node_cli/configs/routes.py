@@ -19,7 +19,6 @@
 
 import os
 
-
 CURRENT_API_VERSION = 'v1'
 API_PREFIX = '/api'
 
@@ -41,6 +40,7 @@ ROUTES = {
         'schains': ['config', 'list', 'dkg-statuses', 'firewall-rules', 'repair', 'get'],
         'ssl': ['status', 'upload'],
         'wallet': ['info', 'send-eth'],
+        'mirage-node': ['info', 'register'],
     }
 }
 
