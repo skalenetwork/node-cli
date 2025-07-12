@@ -12,7 +12,6 @@ from node_cli.cli.mirage_node import (
     backup_node,
     migrate_node,
     restore_node,
-    signature_node,
 )
 
 
@@ -52,34 +51,6 @@ def test_mirage_node_backup(mock_backup_core, tmp_path):
 
     assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
     mock_backup_core.assert_called_once_with(backup_folder)
-
-
-@mock.patch('node_cli.cli.mirage_node.get_node_signature')
-def test_mirage_node_signature(mock_signature_core):
-    runner = CliRunner()
-    validator_id = '42'
-    signature_val = '0xabc123'
-    mock_signature_core.return_value = signature_val
-
-    result = runner.invoke(signature_node, [validator_id])
-
-    assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    mock_signature_core.assert_called_once_with(validator_id)
-    assert f'Signature: {signature_val}' in result.output
-
-
-@mock.patch('node_cli.cli.mirage_node.get_node_signature')
-def test_mirage_node_signature_error(mock_signature_core):
-    runner = CliRunner()
-    validator_id = '43'
-    error_msg = 'Core layer error'
-    mock_signature_core.return_value = {'error': True, 'message': error_msg}
-
-    result = runner.invoke(signature_node, [validator_id])
-
-    assert result.exit_code != 0, f'Output: {result.output}\nException: {result.exception}'
-    mock_signature_core.assert_called_once_with(validator_id)
-    assert error_msg in result.output
 
 
 @mock.patch('node_cli.cli.mirage_boot.register')
