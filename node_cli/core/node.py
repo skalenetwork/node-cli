@@ -370,7 +370,7 @@ def create_backup_archive(backup_filepath):
     cli_log_path = CLI_LOG_DATA_PATH
     container_log_path = LOG_PATH
     pack_dir(SKALE_DIR, backup_filepath, exclude=(cli_log_path, container_log_path))
-    print(f'Backup archive succesfully created {backup_filepath}')
+    print(f'Backup archive successfully created {backup_filepath}')
 
 
 def set_maintenance_mode_on():
