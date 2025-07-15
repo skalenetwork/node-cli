@@ -19,13 +19,18 @@
 
 import click
 
-from node_cli.core.node import backup, get_node_info, get_node_signature
+from node_cli.core.node import backup
 from node_cli.mirage.mirage_node import cleanup as mirage_cleanup
 from node_cli.mirage.mirage_node import init as init_mirage
-from node_cli.mirage.mirage_node import migrate_from_boot, request_repair, restore_mirage
+from node_cli.mirage.mirage_node import (
+    migrate_from_boot,
+    request_repair,
+    restore_mirage,
+    get_node_info,
+)
 from node_cli.mirage.mirage_node import register as register_mirage
 from node_cli.mirage.mirage_node import update as update_mirage
-from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, error_exit, streamed_cmd
+from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
 TEXTS = safe_load_texts()
@@ -73,15 +78,6 @@ def register(ip: str) -> None:
 @streamed_cmd
 def update_node(env_filepath: str, pull_config_for_schain):
     update_mirage(env_filepath=env_filepath, pull_config_for_schain=pull_config_for_schain)
-
-
-@node.command('signature', help='Get mirage node signature for a validator ID.')
-@click.argument('validator_id')
-def signature_node(validator_id):
-    res = get_node_signature(validator_id)
-    if isinstance(res, dict) and 'error' in res:
-        error_exit(f'Error getting signature: {res.get("message", res)}')
-    print(f'Signature: {res}')
 
 
 @node.command('backup', help='Generate backup file for the Mirage node.')

@@ -51,8 +51,8 @@ def print_mirage_wallet_info(wallet):
         inspect.cleandoc(f"""
         {LONG_LINE}
         Address: {wallet['address'].lower()}
-        MIRAGE balance: {wallet['mirage_balance']} ETH
-        MIRAGE balance WEI: {wallet['mirage_balance_wei']} WEI
+        Node balance: {wallet['mirage_balance']} MIRAGE
+        Node balance WEI: {wallet['mirage_balance_wei']} MIRAGE WEI
         {LONG_LINE}
         """)
     )
@@ -253,6 +253,20 @@ def print_node_info(node, node_status):
         Port: {node['port']}
         Domain name: {node['domain_name']}
         Status: {node_status}
+        {LONG_LINE}
+    """)
+    )
+
+
+def print_node_info_mirage(node):
+    print(
+        inspect.cleandoc(f"""
+        {LONG_LINE}
+        Node info
+        ID: {node['id']}
+        IP: {node['ip_str']}
+        Port: {node['port']}
+        Domain name: {node['domain_name']}
         {LONG_LINE}
     """)
     )

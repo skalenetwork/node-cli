@@ -210,14 +210,16 @@ def post_request(blueprint, method, json=None, files=None):
     return status, payload
 
 
-def get_request(blueprint: str, method: str, params: Optional[dict] = None) -> tuple[str, str]:
+def get_request(
+    blueprint: str, method: str, params: Optional[dict] = None
+) -> tuple[str, str | dict]:
     route = get_route(blueprint, method)
     url = construct_url(route)
     try:
         response = requests.get(url, params=params)
         data = response.json()
     except Exception as err:
-        logger.error('Request failed', exc_info=err)
+        logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA
 
     status = data['status']

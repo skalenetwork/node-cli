@@ -20,6 +20,7 @@
 
 import logging
 import time
+from typing import cast
 
 from node_cli.configs import DEFAULT_SKALED_BASE_PORT, RESTORE_SLEEP_TIMEOUT, SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
@@ -36,15 +37,32 @@ from node_cli.operations import (
 )
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.helper import error_exit, post_request
+from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.node_type import NodeType
-from node_cli.utils.print_formatters import print_node_cmd_error
+from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info_mirage
 from node_cli.utils.texts import safe_load_texts
 
 logger = logging.getLogger(__name__)
 TEXTS = safe_load_texts()
 
-NODE_BLUEPRINT_NAME = 'mirage-node'
+BLUEPRINT_NAME = 'mirage-node'
+
+
+def get_node_info_plain() -> dict:
+    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='info')
+    node_payload: dict = cast(dict, payload)
+    if status == 'ok':
+        return node_payload['node']
+    else:
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def get_node_info(format):
+    node_info = get_node_info_plain()
+    if format == 'json':
+        print(node_info)
+    else:
+        print_node_info_mirage(node_info)
 
 
 @check_not_inited
@@ -143,7 +161,7 @@ def register(ip: str) -> None:
         return
 
     json_data = {'ip': ip, 'port': DEFAULT_SKALED_BASE_PORT}
-    status, payload = post_request(blueprint=NODE_BLUEPRINT_NAME, method='register', json=json_data)
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='register', json=json_data)
     if status == 'ok':
         msg = TEXTS['mirage']['node']['registered']
         logger.info(msg)
