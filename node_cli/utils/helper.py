@@ -324,6 +324,17 @@ def rm_dir(folder: str) -> None:
         logger.info(f"{folder} doesn't exist, skipping...")
 
 
+def cleanup_dir_content(folder: str) -> None:
+    if os.path.exists(folder):
+        logger.info('Removing contents of %s')
+        for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+
+
 def safe_mkdir(path: str, print_res: bool = False) -> None:
     if os.path.exists(path):
         logger.debug(f'Directory {path} already exists')

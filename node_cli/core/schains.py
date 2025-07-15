@@ -263,25 +263,26 @@ def cleanup_datadir_for_single_chain_node(
                 f'No data directory found in {base_path}. '
                 'Please check the path or specify a chain name.'
             )
-        chain_name = folders[0]
-    base_path = os.path.join(base_path, chain_name)
-    regular_folders_pattern = f'{base_path}/[!snapshots]*'
-    logger.info('Removing regular folders')
-    for filepath in glob.glob(regular_folders_pattern):
-        if os.path.isdir(filepath):
-            logger.debug('Removing recursively %s', filepath)
-            shutil.rmtree(filepath)
-        if os.path.isfile(filepath):
-            os.remove(filepath)
+    for folder_name in folders[0]:
+        base_path = os.path.join(base_path, folder_name)
+        if folder_name != 'shared-space':
+            regular_folders_pattern = f'{base_path}/[!snapshots]*'
+            logger.info('Removing regular folders')
+            for filepath in glob.glob(regular_folders_pattern):
+                if os.path.isdir(filepath):
+                    logger.debug('Removing recursively %s', filepath)
+                    shutil.rmtree(filepath)
+                    if os.path.isfile(filepath):
+                        os.remove(filepath)
 
-    logger.info('Removing subvolumes')
-    subvolumes_pattern = f'{base_path}/snapshots/*/*'
-    for filepath in glob.glob(subvolumes_pattern):
-        logger.debug('Deleting subvolume %s', filepath)
-        if os.path.isdir(filepath):
-            rm_btrfs_subvolume(filepath)
-        else:
-            os.remove(filepath)
-    logger.info('Cleaning up snapshots folder')
-    if os.path.isdir(base_path):
-        shutil.rmtree(base_path)
+            logger.info('Removing subvolumes')
+            subvolumes_pattern = f'{base_path}/snapshots/*/*'
+            for filepath in glob.glob(subvolumes_pattern):
+                logger.debug('Deleting subvolume %s', filepath)
+                if os.path.isdir(filepath):
+                    rm_btrfs_subvolume(filepath)
+                else:
+                    os.remove(filepath)
+                    logger.info('Cleaning up snapshots folder')
+        if os.path.isdir(base_path):
+            shutil.rmtree(base_path)
