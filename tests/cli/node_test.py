@@ -318,8 +318,7 @@ def test_backup():
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(backup_node, ['/tmp'])
     assert result.exit_code == 0
-    print(result.output)
-    assert 'Backup archive succesfully created ' in result.output
+    assert 'Backup archive successfully created ' in result.output
 
 
 @pytest.mark.parametrize(
