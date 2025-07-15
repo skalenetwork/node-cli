@@ -40,7 +40,7 @@ def requirements_data():
 
 
 @pytest.fixture
-def mirage_requirements_data(requirements_data):
+def fair_requirements_data(requirements_data):
     reqs = {k: v.copy() for k, v in requirements_data.items()}
     reqs['package']['lvm2'] = 'disabled'
     return reqs
@@ -338,16 +338,16 @@ def test_get_checks(requirements_data):
     assert len(checks) == 2
 
 
-def test_get_checks_mirage(mirage_requirements_data):
+def test_get_checks_fair(fair_requirements_data):
     disk = 'test-disk'
-    mirage_checkers = get_all_checkers(disk, mirage_requirements_data)
+    fair_checkers = get_all_checkers(disk, fair_requirements_data)
 
-    mirage_all_checks = get_checks(mirage_checkers, CheckType.ALL)
-    mirage_all_names = {f.func.__name__ for f in mirage_all_checks}
-    assert 'network' in mirage_all_names
-    assert 'lvm2' not in mirage_all_names
-    assert 'cpu_total' in mirage_all_names
-    assert 'btrfs_progs' in mirage_all_names
+    fair_all_checks = get_checks(fair_checkers, CheckType.ALL)
+    fair_all_names = {f.func.__name__ for f in fair_all_checks}
+    assert 'network' in fair_all_names
+    assert 'lvm2' not in fair_all_names
+    assert 'cpu_total' in fair_all_names
+    assert 'btrfs_progs' in fair_all_names
 
 
 def test_get_save_report(tmp_dir_path):

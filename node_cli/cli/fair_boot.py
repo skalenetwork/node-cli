@@ -22,36 +22,36 @@ import click
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.core.node import get_node_info, get_node_signature
 from node_cli.core.node import register_node as register
-from node_cli.mirage.mirage_boot import init, update
+from node_cli.fair.fair_boot import init, update
 from node_cli.utils.helper import IP_TYPE, abort_if_false, error_exit, streamed_cmd
 
 
 @click.group()
-def mirage_boot_cli():
+def fair_boot_cli():
     pass
 
 
-@mirage_boot_cli.group(help='Commands for the Mirage Boot phase.')
+@fair_boot_cli.group(help='Commands for the Fair Boot phase.')
 def boot():
     pass
 
 
-@boot.command('info', help='Get info about Mirage node (Boot Phase).')
+@boot.command('info', help='Get info about Fair node (Boot Phase).')
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
-def mirage_boot_info(format):
+def fair_boot_info(format):
     get_node_info(format)
 
 
-@boot.command('init', help='Initialize Mirage node (Boot Phase).')
+@boot.command('init', help='Initialize Fair node (Boot Phase).')
 @click.argument('env_file')
 @streamed_cmd
 def init_boot(env_file):
     init(env_file)
 
 
-@boot.command('register', help='Register Mirage node in SKALE Manager (during Boot Phase).')
+@boot.command('register', help='Register Fair node in SKALE Manager (during Boot Phase).')
 @click.option(
-    '--name', '-n', required=True, prompt='Enter mirage node name', help='Mirage node name'
+    '--name', '-n', required=True, prompt='Enter fair node name', help='Fair node name'
 )
 @click.option(
     '--ip',
@@ -68,7 +68,7 @@ def register_boot(name, ip, port, domain):
     register(name=name, p2p_ip=ip, public_ip=ip, port=port, domain_name=domain)
 
 
-@boot.command('signature', help='Get mirage node signature for a validator ID (during Boot Phase).')
+@boot.command('signature', help='Get fair node signature for a validator ID (during Boot Phase).')
 @click.argument('validator_id')
 def signature_boot(validator_id):
     res = get_node_signature(validator_id)
@@ -77,13 +77,13 @@ def signature_boot(validator_id):
     print(f'Signature: {res}')
 
 
-@boot.command('update', help='Update Mirage node from .env file')
+@boot.command('update', help='Update Fair node from .env file')
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to update Mirage node software?',
+    prompt='Are you sure you want to update Fair node software?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
 @click.argument('env_file')

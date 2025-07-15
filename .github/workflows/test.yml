@@ -57,15 +57,15 @@ jobs:
     - name: Check build - sync
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-sync
 
-    - name: Build binary - mirage
+    - name: Build binary - fair
       run: |
         mkdir -p ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test mirage
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test fair
         docker rm -f $(docker ps -aq)
 
-    - name: Check build - mirage
-      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-mirage
+    - name: Check build - fair
+      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-fair
 
     - name: Run prepare test build
       run: |

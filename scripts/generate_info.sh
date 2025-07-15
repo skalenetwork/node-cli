@@ -18,7 +18,7 @@ if [ -z "$BRANCH" ]; then
     exit 1
 fi
 if [ -z "$TYPE_STR" ]; then
-    (>&2 echo 'You should provide type: normal, sync or mirage')
+    (>&2 echo 'You should provide type: normal, sync or fair')
     echo $USAGE_MSG
     exit 1
 fi
@@ -38,11 +38,11 @@ case "$TYPE_STR" in
     sync)
         TYPE_ENUM="NodeType.SYNC"
         ;;
-    mirage)
-        TYPE_ENUM="NodeType.MIRAGE"
+    fair)
+        TYPE_ENUM="NodeType.FAIR"
         ;;
     *)
-        (>&2 echo "Error: Invalid type '$TYPE_STR'. Must be 'normal', 'sync', or 'mirage'")
+        (>&2 echo "Error: Invalid type '$TYPE_STR'. Must be 'normal', 'sync', or 'fair'")
         exit 1
         ;;
 esac

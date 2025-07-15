@@ -24,7 +24,7 @@ from node_cli.cli.info import TYPE
 from node_cli.core.node import NodeType
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit, get_request, post_request
-from node_cli.utils.print_formatters import TEXTS, print_mirage_wallet_info, print_wallet_info
+from node_cli.utils.print_formatters import TEXTS, print_fair_wallet_info, print_wallet_info
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +37,8 @@ def get_wallet_info(_format):
         if _format == 'json':
             print(json.dumps(payload))
         else:
-            if TYPE == NodeType.MIRAGE:
-                print_mirage_wallet_info(payload)
+            if TYPE == NodeType.FAIR:
+                print_fair_wallet_info(payload)
             else:
                 print_wallet_info(payload)
     else:

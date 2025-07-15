@@ -3,12 +3,12 @@ from unittest import mock
 
 from click.testing import CliRunner
 
-from node_cli.cli.mirage_boot import (
+from node_cli.cli.fair_boot import (
     init_boot,
     register_boot,
     signature_boot,
 )
-from node_cli.cli.mirage_node import (
+from node_cli.cli.fair_node import (
     backup_node,
     migrate_node,
     restore_node,
@@ -16,8 +16,8 @@ from node_cli.cli.mirage_node import (
 )
 
 
-@mock.patch('node_cli.cli.mirage_node.restore_mirage')
-def test_mirage_node_restore(mock_restore_core, valid_env_file, tmp_path):
+@mock.patch('node_cli.cli.fair_node.restore_fair')
+def test_fair_node_restore(mock_restore_core, valid_env_file, tmp_path):
     runner = CliRunner()
     backup_file = tmp_path / 'backup.tar.gz'
     backup_file.touch()
@@ -29,8 +29,8 @@ def test_mirage_node_restore(mock_restore_core, valid_env_file, tmp_path):
     mock_restore_core.assert_called_once_with(backup_path, valid_env_file, False)
 
 
-@mock.patch('node_cli.cli.mirage_node.restore_mirage')
-def test_mirage_node_restore_config_only(mock_restore_core, valid_env_file, tmp_path):
+@mock.patch('node_cli.cli.fair_node.restore_fair')
+def test_fair_node_restore_config_only(mock_restore_core, valid_env_file, tmp_path):
     runner = CliRunner()
     backup_file = tmp_path / 'backup_config.tar.gz'
     backup_file.touch()
@@ -42,8 +42,8 @@ def test_mirage_node_restore_config_only(mock_restore_core, valid_env_file, tmp_
     mock_restore_core.assert_called_once_with(backup_path, valid_env_file, True)
 
 
-@mock.patch('node_cli.cli.mirage_node.backup')
-def test_mirage_node_backup(mock_backup_core, tmp_path):
+@mock.patch('node_cli.cli.fair_node.backup')
+def test_fair_node_backup(mock_backup_core, tmp_path):
     runner = CliRunner()
     backup_folder = str(tmp_path / 'backups')
     pathlib.Path(backup_folder).mkdir(exist_ok=True)
@@ -54,8 +54,8 @@ def test_mirage_node_backup(mock_backup_core, tmp_path):
     mock_backup_core.assert_called_once_with(backup_folder)
 
 
-@mock.patch('node_cli.cli.mirage_node.get_node_signature')
-def test_mirage_node_signature(mock_signature_core):
+@mock.patch('node_cli.cli.fair_node.get_node_signature')
+def test_fair_node_signature(mock_signature_core):
     runner = CliRunner()
     validator_id = '42'
     signature_val = '0xabc123'
@@ -68,8 +68,8 @@ def test_mirage_node_signature(mock_signature_core):
     assert f'Signature: {signature_val}' in result.output
 
 
-@mock.patch('node_cli.cli.mirage_node.get_node_signature')
-def test_mirage_node_signature_error(mock_signature_core):
+@mock.patch('node_cli.cli.fair_node.get_node_signature')
+def test_fair_node_signature_error(mock_signature_core):
     runner = CliRunner()
     validator_id = '43'
     error_msg = 'Core layer error'
@@ -82,8 +82,8 @@ def test_mirage_node_signature_error(mock_signature_core):
     assert error_msg in result.output
 
 
-@mock.patch('node_cli.cli.mirage_boot.register')
-def test_mirage_boot_register(mock_register_core):
+@mock.patch('node_cli.cli.fair_boot.register')
+def test_fair_boot_register(mock_register_core):
     runner = CliRunner()
     name = 'test-boot-node'
     ip = '1.2.3.4'
@@ -100,8 +100,8 @@ def test_mirage_boot_register(mock_register_core):
     )
 
 
-@mock.patch('node_cli.cli.mirage_boot.get_node_signature')
-def test_mirage_boot_signature(mock_signature_core):
+@mock.patch('node_cli.cli.fair_boot.get_node_signature')
+def test_fair_boot_signature(mock_signature_core):
     runner = CliRunner()
     validator_id = '101'
     signature_val = '0xdef456'
@@ -114,8 +114,8 @@ def test_mirage_boot_signature(mock_signature_core):
     assert f'Signature: {signature_val}' in result.output
 
 
-@mock.patch('node_cli.cli.mirage_boot.init')
-def test_mirage_boot_init(mock_init_core, valid_env_file):
+@mock.patch('node_cli.cli.fair_boot.init')
+def test_fair_boot_init(mock_init_core, valid_env_file):
     runner = CliRunner()
     result = runner.invoke(init_boot, [valid_env_file])
 
@@ -123,8 +123,8 @@ def test_mirage_boot_init(mock_init_core, valid_env_file):
     mock_init_core.assert_called_once_with(valid_env_file)
 
 
-@mock.patch('node_cli.cli.mirage_node.migrate_from_boot')
-def test_mirage_node_migrate(mock_migrate_core, valid_env_file):
+@mock.patch('node_cli.cli.fair_node.migrate_from_boot')
+def test_fair_node_migrate(mock_migrate_core, valid_env_file):
     runner = CliRunner()
     result = runner.invoke(migrate_node, ['--yes', valid_env_file])
 

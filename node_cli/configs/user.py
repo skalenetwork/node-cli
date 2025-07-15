@@ -81,15 +81,15 @@ class BaseUserConfig(ABC):
 
 
 @dataclass
-class MirageUserConfig(BaseUserConfig):
-    mirage_contracts: str
+class FairUserConfig(BaseUserConfig):
+    fair_contracts: str
     boot_endpoint: str
     sgx_server_url: str
     enforce_btrfs: str = ''
 
 
 @dataclass
-class MirageBootUserConfig(BaseUserConfig):
+class FairBootUserConfig(BaseUserConfig):
     endpoint: str
     manager_contracts: str
     ima_contracts: str
@@ -127,10 +127,10 @@ class SyncUserConfig(BaseUserConfig):
 def get_validated_user_config(
     node_type: NodeType,
     env_filepath: str = SKALE_DIR_ENV_FILEPATH,
-    is_mirage_boot: bool = False,
+    is_fair_boot: bool = False,
 ) -> BaseUserConfig:
     params = parse_env_file(env_filepath)
-    user_config_class = get_user_config_class(node_type, is_mirage_boot)
+    user_config_class = get_user_config_class(node_type, is_fair_boot)
     _, missing_params, extra_params = user_config_class.validate_params(params)
 
     if len(missing_params) > 0:
@@ -149,12 +149,12 @@ def get_validated_user_config(
 def validate_user_config(user_config: BaseUserConfig) -> None:
     validate_env_type(env_type=user_config.env_type)
 
-    if not isinstance(user_config, MirageUserConfig):
+    if not isinstance(user_config, FairUserConfig):
         validate_alias_or_address(
             user_config.manager_contracts, ContractType.MANAGER, user_config.endpoint
         )
 
-    if isinstance(user_config, (SkaleUserConfig, MirageBootUserConfig)):
+    if isinstance(user_config, (SkaleUserConfig, FairBootUserConfig)):
         validate_alias_or_address(user_config.ima_contracts, ContractType.IMA, user_config.endpoint)
 
 
@@ -170,12 +170,12 @@ def parse_env_file(env_filepath: str) -> Dict:
 
 def get_user_config_class(
     node_type: NodeType,
-    is_mirage_boot: bool = False,
+    is_fair_boot: bool = False,
 ) -> type[BaseUserConfig]:
-    if node_type == NodeType.MIRAGE and is_mirage_boot:
-        user_config_class = MirageBootUserConfig
-    elif node_type == NodeType.MIRAGE:
-        user_config_class = MirageUserConfig
+    if node_type == NodeType.FAIR and is_fair_boot:
+        user_config_class = FairBootUserConfig
+    elif node_type == NodeType.FAIR:
+        user_config_class = FairUserConfig
     elif node_type == NodeType.SYNC:
         user_config_class = SyncUserConfig
     else:

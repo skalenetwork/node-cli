@@ -23,4 +23,4 @@ from enum import Enum
 class NodeType(Enum):
     REGULAR = 0
     SYNC = 1
-    MIRAGE = 2
+    FAIR = 2

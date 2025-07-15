@@ -78,8 +78,8 @@ from node_cli.utils.docker_utils import (
     is_api_running,
     BASE_SKALE_COMPOSE_SERVICES,
     BASE_SYNC_COMPOSE_SERVICES,
-    BASE_MIRAGE_COMPOSE_SERVICES,
-    BASE_MIRAGE_BOOT_COMPOSE_SERVICES,
+    BASE_FAIR_COMPOSE_SERVICES,
+    BASE_FAIR_BOOT_COMPOSE_SERVICES,
 )
 from node_cli.utils.node_type import NodeType
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
@@ -230,13 +230,13 @@ def compose_node_env(
     sync_schains: Optional[bool] = None,
     pull_config_for_schain: Optional[str] = None,
     save: bool = True,
-    is_mirage_boot: bool = False,
+    is_fair_boot: bool = False,
 ) -> dict[str, str]:
     if env_filepath is not None:
         user_config = get_validated_user_config(
             node_type=node_type,
             env_filepath=env_filepath,
-            is_mirage_boot=is_mirage_boot,
+            is_fair_boot=is_fair_boot,
         )
         if save:
             save_env_params(env_filepath)
@@ -244,10 +244,10 @@ def compose_node_env(
         user_config = get_validated_user_config(
             node_type=node_type,
             env_filepath=INIT_ENV_FILEPATH,
-            is_mirage_boot=is_mirage_boot,
+            is_fair_boot=is_fair_boot,
         )
 
-    if node_type == NodeType.SYNC or node_type == NodeType.MIRAGE:
+    if node_type == NodeType.SYNC or node_type == NodeType.FAIR:
         mnt_dir = SCHAINS_MNT_DIR_SINGLE_CHAIN
     else:
         mnt_dir = SCHAINS_MNT_DIR_REGULAR
@@ -428,11 +428,11 @@ def turn_on(maintenance_off, sync_schains, env_file, node_type: NodeType) -> Non
         set_maintenance_mode_off()
 
 
-def get_expected_container_names(node_type: NodeType, is_mirage_boot: bool) -> list[str]:
-    if node_type == NodeType.MIRAGE and is_mirage_boot:
-        services = BASE_MIRAGE_BOOT_COMPOSE_SERVICES
-    elif node_type == NodeType.MIRAGE and not is_mirage_boot:
-        services = BASE_MIRAGE_COMPOSE_SERVICES
+def get_expected_container_names(node_type: NodeType, is_fair_boot: bool) -> list[str]:
+    if node_type == NodeType.FAIR and is_fair_boot:
+        services = BASE_FAIR_BOOT_COMPOSE_SERVICES
+    elif node_type == NodeType.FAIR and not is_fair_boot:
+        services = BASE_FAIR_COMPOSE_SERVICES
     elif node_type == NodeType.SYNC:
         services = BASE_SYNC_COMPOSE_SERVICES
     else:
@@ -441,8 +441,8 @@ def get_expected_container_names(node_type: NodeType, is_mirage_boot: bool) -> l
     return list(services.values())
 
 
-def is_base_containers_alive(node_type: NodeType, is_mirage_boot: bool = False) -> bool:
-    base_container_names = get_expected_container_names(node_type, is_mirage_boot)
+def is_base_containers_alive(node_type: NodeType, is_fair_boot: bool = False) -> bool:
+    base_container_names = get_expected_container_names(node_type, is_fair_boot)
 
     dclient = docker.from_env()
     running_container_names = set(container.name for container in dclient.containers.list())

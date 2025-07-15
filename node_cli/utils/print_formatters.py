@@ -46,13 +46,13 @@ def print_wallet_info(wallet):
     )
 
 
-def print_mirage_wallet_info(wallet):
+def print_fair_wallet_info(wallet):
     print(
         inspect.cleandoc(f"""
         {LONG_LINE}
         Address: {wallet['address'].lower()}
-        MIRAGE balance: {wallet['mirage_balance']} ETH
-        MIRAGE balance WEI: {wallet['mirage_balance_wei']} WEI
+        FAIR balance: {wallet['fair_balance']} ETH
+        FAIR balance WEI: {wallet['fair_balance_wei']} WEI
         {LONG_LINE}
         """)
     )
