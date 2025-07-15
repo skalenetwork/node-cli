@@ -35,7 +35,7 @@ PARENT_DIR="$(dirname "$DIR")"
 OS=`uname -s`-`uname -m`
 
 # Use the new generate_info.sh script
-"${DIR}/generate_info.sh" "$VERSION" "$BRANCH" "$TYPE"
+bash "${DIR}/generate_info.sh" "$VERSION" "$BRANCH" "$TYPE"
 
 if [ "$TYPE" = "sync" ]; then
     EXECUTABLE_NAME=skale-$VERSION-$OS-sync
