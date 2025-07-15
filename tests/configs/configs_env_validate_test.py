@@ -14,8 +14,8 @@ from node_cli.configs.alias_address_validation import (
 )
 from node_cli.configs.user import (
     ALLOWED_ENV_TYPES,
-    MirageBootUserConfig,
-    MirageUserConfig,
+    FairBootUserConfig,
+    FairUserConfig,
     SkaleUserConfig,
     SyncUserConfig,
     get_user_config_class,
@@ -37,17 +37,17 @@ class FakeResponse:
 
 
 @pytest.mark.parametrize(
-    'node_type, is_mirage_boot, expected_type',
+    'node_type, is_fair_boot, expected_type',
     [
         (NodeType.REGULAR, False, SkaleUserConfig),
         (NodeType.SYNC, False, SyncUserConfig),
-        (NodeType.MIRAGE, True, MirageBootUserConfig),
-        (NodeType.MIRAGE, False, MirageUserConfig),
+        (NodeType.FAIR, True, FairBootUserConfig),
+        (NodeType.FAIR, False, FairUserConfig),
     ],
-    ids=['regular', 'sync', 'mirage_boot', 'mirage_regular'],
+    ids=['regular', 'sync', 'fair_boot', 'fair_regular'],
 )
-def test_build_env_params_keys(node_type, is_mirage_boot, expected_type):
-    env_type = get_user_config_class(node_type=node_type, is_mirage_boot=is_mirage_boot)
+def test_build_env_params_keys(node_type, is_fair_boot, expected_type):
+    env_type = get_user_config_class(node_type=node_type, is_fair_boot=is_fair_boot)
     assert env_type == expected_type
 
 

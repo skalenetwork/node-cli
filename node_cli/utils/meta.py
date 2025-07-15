@@ -39,7 +39,7 @@ class CliMeta(CliMetaBase):
 
 
 @dataclass
-class MirageCliMeta(CliMetaBase):
+class FairCliMeta(CliMetaBase):
     def asdict(self) -> dict:
         return {
             'version': self.version,
@@ -121,19 +121,19 @@ class CliMetaManager(BaseCliMetaManager):
         self.save_meta(meta)
 
 
-class MirageCliMetaManager(BaseCliMetaManager):
-    def get_meta_info(self, raw: bool = False) -> MirageCliMeta | dict | None:
+class FairCliMetaManager(BaseCliMetaManager):
+    def get_meta_info(self, raw: bool = False) -> FairCliMeta | dict | None:
         plain_meta = self._get_plain_meta()
         if not raw and not plain_meta:
             return None
-        allowed_fields = set(MirageCliMeta.__dataclass_fields__.keys())
+        allowed_fields = set(FairCliMeta.__dataclass_fields__.keys())
         clean_plain_meta = {k: v for k, v in plain_meta.items() if k in allowed_fields}
         if raw:
             return clean_plain_meta
-        return MirageCliMeta(**clean_plain_meta)
+        return FairCliMeta(**clean_plain_meta)
 
-    def compose_default_meta(self) -> MirageCliMeta:
-        return MirageCliMeta(
+    def compose_default_meta(self) -> FairCliMeta:
+        return FairCliMeta(
             version=DEFAULT_VERSION,
             config_stream=DEFAULT_CONFIG_STREAM,
             os_id=DEFAULT_OS_ID,
@@ -148,5 +148,5 @@ class MirageCliMetaManager(BaseCliMetaManager):
         os_version: str,
     ) -> None:
         self.ensure_meta()
-        meta = MirageCliMeta(version, config_stream, os_id, os_version)
+        meta = FairCliMeta(version, config_stream, os_id, os_version)
         self.save_meta(meta)

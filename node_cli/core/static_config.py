@@ -23,7 +23,7 @@ import yaml
 
 from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
-    MIRAGE_STATIC_PARAMS_FILEPATH,
+    FAIR_STATIC_PARAMS_FILEPATH,
     STATIC_PARAMS_FILEPATH,
 )
 from node_cli.utils.node_type import NodeType
@@ -34,8 +34,8 @@ def get_static_params(
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH,
 ) -> dict:
-    if node_type == NodeType.MIRAGE:
-        static_params_base_filepath = MIRAGE_STATIC_PARAMS_FILEPATH
+    if node_type == NodeType.FAIR:
+        static_params_base_filepath = FAIR_STATIC_PARAMS_FILEPATH
     else:
         static_params_base_filepath = STATIC_PARAMS_FILEPATH
 
@@ -46,7 +46,7 @@ def get_static_params(
         return ydata['envs'][env_type]
 
 
-def get_mirage_chain_name(env: dict) -> str:
-    node_type = NodeType.MIRAGE
+def get_fair_chain_name(env: dict) -> str:
+    node_type = NodeType.FAIR
     params = get_static_params(node_type, env['ENV_TYPE'])
     return params['info']['chain_name']

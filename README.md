@@ -4,14 +4,14 @@
 ![Test](https://github.com/skalenetwork/node-cli/workflows/Test/badge.svg)
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
-SKALE Node CLI, part of the SKALE suite of validator tools, is the command line interface to setup, register and maintain your SKALE node. It comes in three distinct build types: Standard (for validator nodes), Sync (for dedicated sChain synchronization), and Mirage (for the Mirage network).
+SKALE Node CLI, part of the SKALE suite of validator tools, is the command line interface to setup, register and maintain your SKALE node. It comes in three distinct build types: Standard (for validator nodes), Sync (for dedicated sChain synchronization), and Fair (for the Fair network).
 
 ## Table of Contents
 
 1. [Installation](#installation)
    1. [Standard Node Binary](#standard-node-binary)
    2. [Sync Node Binary](#sync-node-binary)
-   3. [Mirage Node Binary](#mirage-node-binary)
+   3. [Fair Node Binary](#fair-node-binary)
    4. [Permissions and Testing](#permissions-and-testing)
 2. [Standard Node Usage (`skale` - Normal Build)](#standard-node-usage-skale---normal-build)
    1. [Top level commands (Standard)](#top-level-commands-standard)
@@ -25,10 +25,10 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 3. [Sync Node Usage (`skale` - Sync Build)](#sync-node-usage-skale---sync-build)
    1. [Top level commands (Sync)](#top-level-commands-sync)
    2. [Sync node commands](#sync-node-commands)
-4. [Mirage Node Usage (`mirage`)](#mirage-node-usage-mirage)
-   1. [Top level commands (Mirage)](#top-level-commands-mirage)
-   2. [Mirage Boot commands](#mirage-boot-commands)
-   3. [Mirage Node commands](#mirage-node-commands)
+4. [Fair Node Usage (`fair`)](#fair-node-usage-fair)
+   1. [Top level commands (Fair)](#top-level-commands-fair)
+   2. [Fair Boot commands](#fair-boot-commands)
+   3. [Fair Node commands](#fair-node-commands)
 5. [Exit codes](#exit-codes)
 6. [Development](#development)
 
@@ -60,14 +60,14 @@ VERSION_NUM={version} && \
 sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m`-sync > /usr/local/bin/skale"
 ```
 
-### Mirage Node Binary
+### Fair Node Binary
 
-This binary (`skale-VERSION-OS-mirage`) is used specifically for managing nodes on the Mirage network. It is named `mirage`.
+This binary (`skale-VERSION-OS-fair`) is used specifically for managing nodes on the Fair network. It is named `fair`.
 
 ```shell
 # Replace {version} with the desired release version (e.g., 2.6.0)
 VERSION_NUM={version} && \
-sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m`-mirage > /usr/local/bin/mirage"
+sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m`-fair > /usr/local/bin/fair"
 ```
 
 ### Permissions and Testing
@@ -78,8 +78,8 @@ Apply executable permissions to the downloaded binary (adjust name accordingly):
 # For Standard or Sync binary
 sudo chmod +x /usr/local/bin/skale
 
-# For Mirage binary
-sudo chmod +x /usr/local/bin/mirage
+# For Fair binary
+sudo chmod +x /usr/local/bin/fair
 ```
 
 Test the installation:
@@ -88,8 +88,8 @@ Test the installation:
 # Standard or Sync build
 skale --help
 
-# Mirage build
-mirage --help
+# Fair build
+fair --help
 ```
 
 ---
@@ -647,44 +647,44 @@ Options:
 
 ---
 
-## Mirage Node Usage (`mirage`)
+## Fair Node Usage (`fair`)
 
-Commands available in the **`mirage` binary** for managing nodes on the Mirage network.
+Commands available in the **`fair` binary** for managing nodes on the Fair network.
 
-### Top level commands (Mirage)
+### Top level commands (Fair)
 
-#### Mirage Info
+#### Fair Info
 
-Print build info for the `mirage` binary.
+Print build info for the `fair` binary.
 
 ```shell
-mirage info
+fair info
 ```
 
-#### Mirage Version
+#### Fair Version
 
-Print version number for the `mirage` binary.
+Print version number for the `fair` binary.
 
 ```shell
-mirage version [--short]
+fair version [--short]
 ```
 
 Options:
 
 - `--short` - prints version only, without additional text.
 
-### Mirage Boot commands
+### Fair Boot commands
 
-> Prefix: `mirage boot`
+> Prefix: `fair boot`
 
-Commands for a Mirage node in the Boot phase.
+Commands for a Fair node in the Boot phase.
 
-#### Mirage Boot Initialization
+#### Fair Boot Initialization
 
-Initialize the Mirage node boot phase.
+Initialize the Fair node boot phase.
 
 ```shell
-mirage boot init [ENV_FILE]
+fair boot init [ENV_FILE]
 ```
 
 Arguments:
@@ -696,9 +696,9 @@ Required environment variables in `ENV_FILE`:
 - `SGX_SERVER_URL` - SGX server URL.
 - `DISK_MOUNTPOINT` - Mount point for storing data (BTRFS recommended).
 - `CONTAINER_CONFIGS_STREAM` - Stream of `skale-node` configs.
-- `ENDPOINT` - RPC endpoint of the network where Mirage Manager is deployed.
+- `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
 - `MANAGER_CONTRACTS` - SKALE Manager alias or address.
-- `IMA_CONTRACTS` - IMA alias or address (_Note: Required by boot service, may not be used by Mirage itself_).
+- `IMA_CONTRACTS` - IMA alias or address (_Note: Required by boot service, may not be used by Fair itself_).
 - `FILEBEAT_HOST` - URL/IP:Port of the Filebeat log server.
 - `ENV_TYPE` - Environment type (e.g., 'mainnet', 'devnet').
 
@@ -706,42 +706,42 @@ Optional variables:
 
 - `MONITORING_CONTAINERS` - Enable monitoring containers (`cadvisor`, `node-exporter`).
 
-#### Mirage Boot Registration
+#### Fair Boot Registration
 
-Register the Mirage node with Mirage Manager _during_ the boot phase.
+Register the Fair node with Fair Manager _during_ the boot phase.
 
 ```shell
-mirage boot register --name <NODE_NAME> --ip <PUBLIC_IP> --domain <DOMAIN_NAME> [--port <BASE_PORT>]
+fair boot register --name <NODE_NAME> --ip <PUBLIC_IP> --domain <DOMAIN_NAME> [--port <BASE_PORT>]
 ```
 
 Required arguments:
 
-- `--name`/`-n` - Mirage node name.
+- `--name`/`-n` - Fair node name.
 - `--ip` - Public IP for RPC connections and consensus.
-- `--domain`/`-d` - Mirage node domain name (e.g., `mirage1.example.com`).
+- `--domain`/`-d` - Fair node domain name (e.g., `fair1.example.com`).
 
 Optional arguments:
 
 - `--port`/`-p` - Base port for node sChains (default: `10000`).
 
-#### Mirage Boot Signature
+#### Fair Boot Signature
 
 Get the node signature for a validator ID _during_ the boot phase.
 
 ```shell
-mirage boot signature <VALIDATOR_ID>
+fair boot signature <VALIDATOR_ID>
 ```
 
 Arguments:
 
 - `VALIDATOR_ID` - The ID of the validator requesting the signature.
 
-#### Mirage Boot Migrate
+#### Fair Boot Migrate
 
-Migrate the Mirage node from the boot phase to the main phase (regular operation).
+Migrate the Fair node from the boot phase to the main phase (regular operation).
 
 ```shell
-mirage boot migrate [ENV_FILEPATH] [--yes]
+fair boot migrate [ENV_FILEPATH] [--yes]
 ```
 
 Arguments:
@@ -752,72 +752,72 @@ Options:
 
 - `--yes` - Migrate without confirmation.
 
-### Mirage Node commands
+### Fair Node commands
 
-> Prefix: `mirage node`
+> Prefix: `fair node`
 
-Commands for managing a Mirage node during its regular operation (main phase).
+Commands for managing a Fair node during its regular operation (main phase).
 
-#### Mirage Node Initialization (Placeholder)
+#### Fair Node Initialization (Placeholder)
 
-Initialize the regular operation phase of the Mirage node.
+Initialize the regular operation phase of the Fair node.
 
 ```shell
-mirage node init
+fair node init
 ```
 
 > **Note:** This command is currently a placeholder and not implemented.
 
-#### Mirage Node Registration (Placeholder)
+#### Fair Node Registration (Placeholder)
 
 Register the node during regular operation.
 
 ```shell
-mirage node register
+fair node register
 ```
 
 > **Note:** This command is currently a placeholder and not implemented.
 
-#### Mirage Node Update (Placeholder)
+#### Fair Node Update (Placeholder)
 
-Update the Mirage node during regular operation.
+Update the Fair node during regular operation.
 
 ```shell
-mirage node update [ENV_FILEPATH] [--yes] [--unsafe]
+fair node update [ENV_FILEPATH] [--yes] [--unsafe]
 ```
 
 > **Note:** This command is currently a placeholder and not implemented.
 
-#### Mirage Node Signature
+#### Fair Node Signature
 
 Get the node signature for a validator ID during regular operation.
 
 ```shell
-mirage node signature <VALIDATOR_ID>
+fair node signature <VALIDATOR_ID>
 ```
 
 Arguments:
 
 - `VALIDATOR_ID` - The ID of the validator requesting the signature.
 
-#### Mirage Node Backup
+#### Fair Node Backup
 
-Generate a backup archive of the Mirage node's state.
+Generate a backup archive of the Fair node's state.
 
 ```shell
-mirage node backup <BACKUP_FOLDER_PATH>
+fair node backup <BACKUP_FOLDER_PATH>
 ```
 
 Arguments:
 
 - `BACKUP_FOLDER_PATH` - Path to the folder where the backup file will be saved.
 
-#### Mirage Node Restore
+#### Fair Node Restore
 
-Restore a Mirage node from a backup archive.
+Restore a Fair node from a backup archive.
 
 ```shell
-mirage node restore <BACKUP_PATH> <ENV_FILE> [--config-only]
+fair node restore <BACKUP_PATH> <ENV_FILE> [--config-only]
 ```
 
 Arguments:
@@ -887,7 +887,7 @@ pip install -e ".[dev]"
 
 #### Generate info.py locally
 
-Specify the build type (`normal`, `sync`, or `mirage`):
+Specify the build type (`normal`, `sync`, or `fair`):
 
 ```shell
 # Example for Standard build
@@ -896,8 +896,8 @@ Specify the build type (`normal`, `sync`, or `mirage`):
 # Example for Sync build
 ./scripts/generate_info.sh 1.0.0 my-branch sync
 
-# Example for Mirage build
-./scripts/generate_info.sh 1.0.0 my-branch mirage
+# Example for Fair build
+./scripts/generate_info.sh 1.0.0 my-branch fair
 ```
 
 #### Add linting git hook

@@ -56,9 +56,9 @@ SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
 SYNC_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-sync.yml')
-MIRAGE_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-mirage.yml')
+FAIR_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-fair.yml')
 STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
-MIRAGE_STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'mirage_static_params.yaml')
+FAIR_STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'fair_static_params.yaml')
 
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
 NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')

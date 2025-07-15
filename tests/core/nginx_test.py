@@ -63,16 +63,16 @@ def nginx_template():
         (NodeType.REGULAR, False, True, False),
         (NodeType.SYNC, True, True, True),
         (NodeType.SYNC, False, True, False),
-        (NodeType.MIRAGE, True, False, True),
-        (NodeType.MIRAGE, False, False, False),
+        (NodeType.FAIR, True, False, True),
+        (NodeType.FAIR, False, False, False),
     ],
     ids=[
         'regular_ssl_on',
         'regular_ssl_off',
         'regular_ssl_on',
         'regular_ssl_off',
-        'mirage_ssl_on',
-        'mirage_ssl_off',
+        'fair_ssl_on',
+        'fair_ssl_off',
     ],
 )
 @mock.patch('node_cli.core.nginx.check_ssl_certs')
@@ -134,7 +134,7 @@ def test_check_ssl_certs_missing_both(ssl_folder):
     [
         (NodeType.REGULAR, True),
         (NodeType.SYNC, True),
-        (NodeType.MIRAGE, False),
+        (NodeType.FAIR, False),
     ],
 )
 @mock.patch('node_cli.core.nginx.TYPE')

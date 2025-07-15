@@ -20,16 +20,16 @@
 import click
 
 from node_cli.core.node import backup
-from node_cli.mirage.mirage_node import cleanup as mirage_cleanup
-from node_cli.mirage.mirage_node import init as init_mirage
-from node_cli.mirage.mirage_node import (
+from node_cli.fair.fair_node import cleanup as fair_cleanup
+from node_cli.fair.fair_node import init as init_fair
+from node_cli.fair.fair_node import (
     migrate_from_boot,
     request_repair,
-    restore_mirage,
+    restore_fair,
     get_node_info,
 )
-from node_cli.mirage.mirage_node import register as register_mirage
-from node_cli.mirage.mirage_node import update as update_mirage
+from node_cli.fair.fair_node import register as register_fair
+from node_cli.fair.fair_node import update as update_fair
 from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
@@ -37,57 +37,57 @@ TEXTS = safe_load_texts()
 
 
 @click.group()
-def mirage_node_cli():
+def fair_node_cli():
     pass
 
 
-@mirage_node_cli.group(help='Commands for regular Mirage Node operations.')
+@fair_node_cli.group(help='Commands for regular Fair Node operations.')
 def node():
     pass
 
 
-@node.command('info', help='Get info about Mirage node.')
+@node.command('info', help='Get info about Fair node.')
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
-def mirage_node_info(format):
+def fair_node_info(format):
     get_node_info(format)
 
 
-@node.command('init', help='Initialize regular Mirage node')
+@node.command('init', help='Initialize regular Fair node')
 @click.argument('env_filepath')
 @streamed_cmd
 def init_node(env_filepath: str):
-    init_mirage(env_filepath=env_filepath)
+    init_fair(env_filepath=env_filepath)
 
 
-@node.command('register', help=TEXTS['mirage']['node']['register']['help'])
-@click.option('--ip', required=True, type=IP_TYPE, help=TEXTS['mirage']['node']['register']['ip'])
+@node.command('register', help=TEXTS['fair']['node']['register']['help'])
+@click.option('--ip', required=True, type=IP_TYPE, help=TEXTS['fair']['node']['register']['ip'])
 def register(ip: str) -> None:
-    register_mirage(ip=ip)
+    register_fair(ip=ip)
 
 
-@node.command('update', help='Update Mirage node')
+@node.command('update', help='Update Fair node')
 @click.argument('env_filepath')
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to update Mirage node software?',
+    prompt='Are you sure you want to update Fair node software?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
 @streamed_cmd
 def update_node(env_filepath: str, pull_config_for_schain):
-    update_mirage(env_filepath=env_filepath, pull_config_for_schain=pull_config_for_schain)
+    update_fair(env_filepath=env_filepath, pull_config_for_schain=pull_config_for_schain)
 
 
-@node.command('backup', help='Generate backup file for the Mirage node.')
+@node.command('backup', help='Generate backup file for the Fair node.')
 @click.argument('backup_folder_path')
 @streamed_cmd
 def backup_node(backup_folder_path):
     backup(backup_folder_path)
 
 
-@node.command('restore', help='Restore Mirage node from a backup file.')
+@node.command('restore', help='Restore Fair node from a backup file.')
 @click.argument('backup_path')
 @click.argument('env_file')
 @click.option(
@@ -98,50 +98,50 @@ def backup_node(backup_folder_path):
 )
 @streamed_cmd
 def restore_node(backup_path, env_file, config_only):
-    restore_mirage(backup_path, env_file, config_only)
+    restore_fair(backup_path, env_file, config_only)
 
 
-@node.command('migrate', help='Switch from boot to regular Mirage node.')
+@node.command('migrate', help='Switch from boot to regular Fair node.')
 @click.argument('env_filepath')
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to migrate to regular Mirage node? The action cannot be undone',
+    prompt='Are you sure you want to migrate to regular Fair node? The action cannot be undone',
 )
 @streamed_cmd
 def migrate_node(env_filepath: str) -> None:
     migrate_from_boot(env_filepath=env_filepath)
 
 
-@node.command('repair', help='Toggle mirage chain repair mode')
+@node.command('repair', help='Toggle fair chain repair mode')
 @click.option(
     '--snapshot-from',
     type=URL_TYPE,
     default='',
     hidden=True,
-    help=TEXTS['mirage']['node']['repair']['snapshot_from'],
+    help=TEXTS['fair']['node']['repair']['snapshot_from'],
 )
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt=TEXTS['mirage']['node']['repair']['warning'],
+    prompt=TEXTS['fair']['node']['repair']['warning'],
 )
 def repair(snapshot_from: str = '') -> None:
     request_repair(snapshot_from=snapshot_from)
 
 
-@node.command('cleanup', help='Cleanup Mirage node.')
+@node.command('cleanup', help='Cleanup Fair node.')
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to cleanup Mirage node?',
+    prompt='Are you sure you want to cleanup Fair node?',
 )
 @streamed_cmd
 def cleanup_node():
-    mirage_cleanup()
+    fair_cleanup()

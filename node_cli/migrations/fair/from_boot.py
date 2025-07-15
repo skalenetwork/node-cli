@@ -9,7 +9,7 @@ from node_cli.utils.helper import run_cmd
 logger = logging.getLogger(__name__)
 
 NFT_CHAIN_BASE_PATH = '/etc/nft.conf.d/skale/chains'
-NFT_COMMITTEE_SCOPE_CHAIN_NAME = 'mirage-committee'
+NFT_COMMITTEE_SCOPE_CHAIN_NAME = 'fair-committee'
 
 
 class NoLegacyNFTChainConfigError(Exception):

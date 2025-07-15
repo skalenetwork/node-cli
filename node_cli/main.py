@@ -38,8 +38,8 @@ from node_cli.cli.wallet import wallet_cli
 from node_cli.cli.ssl import ssl_cli
 from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.cli.sync_node import sync_node_cli
-from node_cli.cli.mirage_boot import mirage_boot_cli
-from node_cli.cli.mirage_node import mirage_node_cli
+from node_cli.cli.fair_boot import fair_boot_cli
+from node_cli.cli.fair_node import fair_node_cli
 from node_cli.core.host import init_logs_dir
 from node_cli.utils.node_type import NodeType
 from node_cli.configs import LONG_LINE
@@ -85,12 +85,12 @@ def info():
 def get_sources_list() -> List[click.MultiCommand]:
     if TYPE == NodeType.SYNC:
         return [cli, sync_node_cli, ssl_cli]
-    elif TYPE == NodeType.MIRAGE:
+    elif TYPE == NodeType.FAIR:
         return [
             cli,
             logs_cli,
-            mirage_boot_cli,
-            mirage_node_cli,
+            fair_boot_cli,
+            fair_node_cli,
             wallet_cli,
             ssl_cli,
         ]

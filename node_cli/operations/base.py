@@ -66,7 +66,7 @@ from node_cli.utils.docker_utils import (
     remove_dynamic_containers,
 )
 from node_cli.utils.helper import rm_dir, str_to_bool
-from node_cli.utils.meta import CliMetaManager, MirageCliMetaManager
+from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
@@ -151,8 +151,8 @@ def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
 
 
 @checked_host
-def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
-    compose_rm(node_type=NodeType.MIRAGE, env=env)
+def update_fair_boot(env_filepath: str, env: Dict) -> bool:
+    compose_rm(node_type=NodeType.FAIR, env=env)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
@@ -170,7 +170,7 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
 
     prepare_host(env_filepath, env['ENV_TYPE'])
 
-    meta_manager = MirageCliMetaManager()
+    meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
     if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
@@ -187,8 +187,8 @@ def update_mirage_boot(env_filepath: str, env: Dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.MIRAGE)
-    compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
+    update_images(env=env, node_type=NodeType.FAIR)
+    compose_up(env=env, node_type=NodeType.FAIR, is_fair_boot=True)
     return True
 
 
@@ -228,7 +228,7 @@ def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
 
 
 @checked_host
-def init_mirage_boot(env_filepath: str, env: dict) -> None:
+def init_fair_boot(env_filepath: str, env: dict) -> None:
     sync_skale_node()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
@@ -247,16 +247,16 @@ def init_mirage_boot(env_filepath: str, env: dict) -> None:
     generate_nginx_config()
     prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
-    meta_manager = MirageCliMetaManager()
+    meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.MIRAGE)
+    update_images(env=env, node_type=NodeType.FAIR)
 
-    compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
+    compose_up(env=env, node_type=NodeType.FAIR, is_fair_boot=True)
 
 
 def init_sync(

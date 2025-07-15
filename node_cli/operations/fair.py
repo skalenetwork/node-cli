@@ -36,8 +36,8 @@ from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_f
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_datadir_for_single_chain_node
-from node_cli.migrations.mirage.from_boot import migrate_nftables_from_boot
-from node_cli.mirage.record.chain_record import migrate_chain_record
+from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
+from node_cli.fair.record.chain_record import migrate_chain_record
 from node_cli.operations.base import checked_host, turn_off
 from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
 from node_cli.operations.config_repo import (
@@ -56,13 +56,13 @@ from node_cli.utils.docker_utils import (
     wait_for_container,
 )
 from node_cli.utils.helper import rm_dir, str_to_bool
-from node_cli.utils.meta import MirageCliMetaManager
+from node_cli.utils.meta import FairCliMetaManager
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 logger = logging.getLogger(__name__)
 
 
-class MirageUpdateType(Enum):
+class FairUpdateType(Enum):
     REGULAR = 'regular'
     INFRA_ONLY = 'infra_only'
     FROM_BOOT = 'from_boot'
@@ -87,23 +87,23 @@ def init(env_filepath: str, env: dict) -> bool:
 
     prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
-    meta_manager = MirageCliMetaManager()
+    meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.MIRAGE)
-    compose_up(env=env, node_type=NodeType.MIRAGE)
+    update_images(env=env, node_type=NodeType.FAIR)
+    compose_up(env=env, node_type=NodeType.FAIR)
     wait_for_container(REDIS_SERVICE_DICT['redis'])
     time.sleep(REDIS_START_TIMEOUT)
     return True
 
 
 @checked_host
-def update_mirage_boot(env_filepath: str, env: dict) -> bool:
-    compose_rm(node_type=NodeType.MIRAGE, env=env)
+def update_fair_boot(env_filepath: str, env: dict) -> bool:
+    compose_rm(node_type=NodeType.FAIR, env=env)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
@@ -121,7 +121,7 @@ def update_mirage_boot(env_filepath: str, env: dict) -> bool:
 
     prepare_host(env_filepath, env['ENV_TYPE'])
 
-    meta_manager = MirageCliMetaManager()
+    meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
     if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
@@ -138,15 +138,15 @@ def update_mirage_boot(env_filepath: str, env: dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.MIRAGE)
-    compose_up(env=env, node_type=NodeType.MIRAGE, is_mirage_boot=True)
+    update_images(env=env, node_type=NodeType.FAIR)
+    compose_up(env=env, node_type=NodeType.FAIR, is_fair_boot=True)
     return True
 
 
 @checked_host
-def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -> bool:
-    compose_rm(node_type=NodeType.MIRAGE, env=env)
-    if update_type not in (MirageUpdateType.INFRA_ONLY, MirageUpdateType.FROM_BOOT):
+def update_fair(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
+    compose_rm(node_type=NodeType.FAIR, env=env)
+    if update_type not in (FairUpdateType.INFRA_ONLY, FairUpdateType.FROM_BOOT):
         remove_dynamic_containers()
 
     sync_skale_node()
@@ -159,7 +159,7 @@ def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -
     generate_nginx_config()
 
     prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
-    meta_manager = MirageCliMetaManager()
+    meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
     if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
@@ -177,22 +177,22 @@ def update_mirage(env_filepath: str, env: dict, update_type: MirageUpdateType) -
         distro.version(),
     )
 
-    if update_type == MirageUpdateType.FROM_BOOT:
+    if update_type == FairUpdateType.FROM_BOOT:
         migrate_nftables_from_boot()
 
-    update_images(env=env, node_type=NodeType.MIRAGE)
+    update_images(env=env, node_type=NodeType.FAIR)
 
-    compose_up(env=env, node_type=NodeType.MIRAGE, services=list(REDIS_SERVICE_DICT))
+    compose_up(env=env, node_type=NodeType.FAIR, services=list(REDIS_SERVICE_DICT))
     wait_for_container(REDIS_SERVICE_DICT['redis'])
     time.sleep(REDIS_START_TIMEOUT)
-    if update_type == MirageUpdateType.FROM_BOOT:
+    if update_type == FairUpdateType.FROM_BOOT:
         migrate_chain_record(env)
 
-    compose_up(env=env, node_type=NodeType.MIRAGE)
+    compose_up(env=env, node_type=NodeType.FAIR)
     return True
 
 
-def restore_mirage(env, backup_path, config_only=False):
+def restore_fair(env, backup_path, config_only=False):
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -215,7 +215,7 @@ def restore_mirage(env, backup_path, config_only=False):
 
     link_env_file()
 
-    meta_manager = MirageCliMetaManager()
+    meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
         VERSION,
         env['CONTAINER_CONFIGS_STREAM'],
@@ -224,7 +224,7 @@ def restore_mirage(env, backup_path, config_only=False):
     )
 
     if not config_only:
-        compose_up(env=env, node_type=NodeType.MIRAGE)
+        compose_up(env=env, node_type=NodeType.FAIR)
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -240,7 +240,7 @@ def restore_mirage(env, backup_path, config_only=False):
 
 
 def cleanup(env) -> None:
-    turn_off(env, node_type=NodeType.MIRAGE)
+    turn_off(env, node_type=NodeType.FAIR)
     cleanup_datadir_for_single_chain_node()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
