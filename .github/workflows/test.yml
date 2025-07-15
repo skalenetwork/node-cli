@@ -41,7 +41,7 @@ jobs:
       run: |
         mkdir -p ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test normal
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test normal
         docker rm -f $(docker ps -aq)
 
     - name: Check build - normal
@@ -51,7 +51,7 @@ jobs:
       run: |
         mkdir -p ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test sync
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test sync
         docker rm -f $(docker ps -aq)
 
     - name: Check build - sync
@@ -61,7 +61,7 @@ jobs:
       run: |
         mkdir -p ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder scripts/build.sh test test fair
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test fair
         docker rm -f $(docker ps -aq)
 
     - name: Check build - fair
@@ -69,11 +69,11 @@ jobs:
 
     - name: Run prepare test build
       run: |
-        scripts/build.sh test test normal
+        bash scripts/build.sh test test normal
 
     - name: Run redis
       run: |
-        ./helper-scripts/redis/run.sh
+        bash ./helper-scripts/redis/run.sh
 
     - name: Run tests
       run: |
