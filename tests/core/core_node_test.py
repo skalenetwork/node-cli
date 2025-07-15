@@ -33,15 +33,15 @@ CMD = 'sleep 60'
 WRONG_CONTAINERS = [
     'WRONG_CONTAINER_1',
     'skale_WRONG_CONTAINER_4',
-    'mirage_WRONG_CONTAINER_6',
+    'fair_WRONG_CONTAINER_6',
     'sync_WRONG_CONTAINER_8',
 ]
 
 NODE_TYPE_BOOT_COMBINATIONS: list[tuple[NodeType, bool]] = [
     (NodeType.REGULAR, False),
     (NodeType.SYNC, False),
-    (NodeType.MIRAGE, True),
-    (NodeType.MIRAGE, False),
+    (NodeType.FAIR, True),
+    (NodeType.FAIR, False),
 ]
 
 alive_test_params = [
@@ -120,7 +120,7 @@ def manage_node_containers(request):
     indirect=['manage_node_containers'],
 )
 def test_is_base_containers_alive(manage_node_containers, node_type, is_boot):
-    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is True
+    assert is_base_containers_alive(node_type=node_type, is_fair_boot=is_boot) is True
 
 
 @pytest.mark.parametrize(
@@ -129,7 +129,7 @@ def test_is_base_containers_alive(manage_node_containers, node_type, is_boot):
     indirect=['manage_node_containers'],
 )
 def test_is_base_containers_alive_wrong(manage_node_containers, node_type, is_boot):
-    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
+    assert is_base_containers_alive(node_type=node_type, is_fair_boot=is_boot) is False
 
 
 @pytest.mark.parametrize(
@@ -138,12 +138,12 @@ def test_is_base_containers_alive_wrong(manage_node_containers, node_type, is_bo
     indirect=['manage_node_containers'],
 )
 def test_is_base_containers_alive_missing(manage_node_containers, node_type, is_boot):
-    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
+    assert is_base_containers_alive(node_type=node_type, is_fair_boot=is_boot) is False
 
 
 @pytest.mark.parametrize('node_type, is_boot', NODE_TYPE_BOOT_COMBINATIONS)
 def test_is_base_containers_alive_empty(node_type, is_boot):
-    assert is_base_containers_alive(node_type=node_type, is_mirage_boot=is_boot) is False
+    assert is_base_containers_alive(node_type=node_type, is_fair_boot=is_boot) is False
 
 
 @pytest.mark.parametrize(
@@ -183,8 +183,8 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
             False,
         ),
         (
-            NodeType.MIRAGE,
-            'mirage_boot_user_conf',
+            NodeType.FAIR,
+            'fair_boot_user_conf',
             True,
             True,
             False,
@@ -193,8 +193,8 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
             False,
         ),
         (
-            NodeType.MIRAGE,
-            'mirage_user_conf',
+            NodeType.FAIR,
+            'fair_user_conf',
             False,
             True,
             False,
@@ -207,8 +207,8 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
         'regular',
         'regular_sync_flag',
         'sync',
-        'mirage_boot',
-        'mirage_regular',
+        'fair_boot',
+        'fair_regular',
     ],
 )
 def test_compose_node_env(
@@ -234,7 +234,7 @@ def test_compose_node_env(
             inited_node=inited_node,
             sync_schains=sync_schains,
             node_type=node_type,
-            is_mirage_boot=is_boot,
+            is_fair_boot=is_boot,
             save=True,
         )
 
@@ -358,7 +358,7 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
             assert result is None
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.FAIR])
 @mock.patch('node_cli.core.node.is_admin_running', return_value=False)
 @mock.patch('node_cli.core.node.is_api_running', return_value=False)
 @mock.patch('node_cli.utils.helper.requests.get')
@@ -379,7 +379,7 @@ def test_is_update_safe_when_admin_not_running_for_sync(
     mock_requests_get.assert_not_called()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.FAIR])
 @pytest.mark.parametrize(
     'api_is_safe, expected_result',
     [(True, True), (False, False)],
@@ -395,7 +395,7 @@ def test_is_update_safe_when_admin_running(
     mock_requests_get.assert_called_once()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.MIRAGE])
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.FAIR])
 @pytest.mark.parametrize(
     'api_is_safe, expected_result',
     [(True, True), (False, False)],
@@ -417,7 +417,7 @@ def test_is_update_safe_when_only_api_running_for_regular(
     mock_requests_get.assert_called_once()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.MIRAGE])
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.FAIR])
 @mock.patch('node_cli.core.node.is_admin_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_api_call_fails(mock_requests_get, mock_is_admin_running, node_type):

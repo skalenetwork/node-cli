@@ -326,7 +326,7 @@ def test_backup():
     'node_type,test_user_conf',
     [
         (NodeType.REGULAR, 'regular_user_conf'),
-        (NodeType.MIRAGE, 'mirage_user_conf'),
+        (NodeType.FAIR, 'fair_user_conf'),
         (NodeType.SYNC, 'sync_user_conf'),
     ],
 )

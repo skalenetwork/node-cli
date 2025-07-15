@@ -24,7 +24,7 @@ fi
 
 if [ -z "$3" ]
 then
-    (>&2 echo 'You should provide type: normal, sync or mirage')
+    (>&2 echo 'You should provide type: normal, sync or fair')
     echo $USAGE_MSG
     exit 1
 fi
@@ -39,8 +39,8 @@ OS=`uname -s`-`uname -m`
 
 if [ "$TYPE" = "sync" ]; then
     EXECUTABLE_NAME=skale-$VERSION-$OS-sync
-elif [ "$TYPE" = "mirage" ]; then
-    EXECUTABLE_NAME=skale-$VERSION-$OS-mirage
+elif [ "$TYPE" = "fair" ]; then
+    EXECUTABLE_NAME=skale-$VERSION-$OS-fair
 else
     EXECUTABLE_NAME=skale-$VERSION-$OS
 fi

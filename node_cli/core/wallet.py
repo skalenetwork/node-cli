@@ -22,7 +22,7 @@ import logging
 
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit, get_request, post_request
-from node_cli.utils.print_formatters import TEXTS, print_mirage_wallet_info, print_wallet_info
+from node_cli.utils.print_formatters import TEXTS, print_fair_wallet_info, print_wallet_info
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ def get_wallet_info(_format):
                 if payload.get('skale_balance'):
                     print_wallet_info(payload)
                 else:
-                    print_mirage_wallet_info(payload)
+                    print_fair_wallet_info(payload)
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 

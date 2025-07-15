@@ -324,7 +324,7 @@ def regular_user_conf(tmp_path):
 
 
 @pytest.fixture
-def mirage_user_conf(tmp_path):
+def fair_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
     try:
         test_env = """
@@ -335,7 +335,7 @@ def mirage_user_conf(tmp_path):
         DISK_MOUNTPOINT=/dev/sss
         ENV_TYPE='devnet'
         ENFORCE_BTRFS=False
-        MIRAGE_CONTRACTS='test-mirage'
+        FAIR_CONTRACTS='test-fair'
         """
         with open(test_env_path, 'w') as env_file:
             env_file.write(test_env)
@@ -345,7 +345,7 @@ def mirage_user_conf(tmp_path):
 
 
 @pytest.fixture
-def mirage_boot_user_conf(tmp_path):
+def fair_boot_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
     try:
         test_env = """

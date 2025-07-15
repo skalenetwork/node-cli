@@ -21,8 +21,8 @@ from node_cli.operations.base import (  # noqa
     update as update_op,
     init as init_op,
     init_sync as init_sync_op,
-    init_mirage_boot as init_mirage_boot_op,
-    update_mirage_boot as update_mirage_boot_op,
+    init_fair_boot as init_fair_boot_op,
+    update_fair_boot as update_fair_boot_op,
     update_sync as update_sync_op,
     turn_off as turn_off_op,
     turn_on as turn_on_op,
@@ -30,10 +30,10 @@ from node_cli.operations.base import (  # noqa
     cleanup_sync as cleanup_sync_op,
     configure_nftables,
 )
-from node_cli.operations.mirage import (  # noqa
-    init as init_mirage_op,
-    update_mirage as update_mirage_op,
-    MirageUpdateType,
-    restore_mirage as restore_mirage_op,
-    cleanup as cleanup_mirage_op,
+from node_cli.operations.fair import (  # noqa
+    init as init_fair_op,
+    update_fair as update_fair_op,
+    FairUpdateType,
+    restore_fair as restore_fair_op,
+    cleanup as cleanup_fair_op,
 )

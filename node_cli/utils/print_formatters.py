@@ -46,13 +46,13 @@ def print_wallet_info(wallet):
     )
 
 
-def print_mirage_wallet_info(wallet):
+def print_fair_wallet_info(wallet):
     print(
         inspect.cleandoc(f"""
         {LONG_LINE}
         Address: {wallet['address'].lower()}
-        Node balance: {wallet['mirage_balance']} MIRAGE
-        Node balance WEI: {wallet['mirage_balance_wei']} MIRAGE WEI
+        Node balance: {wallet['fair_balance']} FAIR
+        Node balance WEI: {wallet['fair_balance_wei']} FAIR WEI
         {LONG_LINE}
         """)
     )
@@ -258,7 +258,7 @@ def print_node_info(node, node_status):
     )
 
 
-def print_node_info_mirage(node):
+def print_node_info_fair(node):
     print(
         inspect.cleandoc(f"""
         {LONG_LINE}

@@ -22,8 +22,8 @@ import logging
 from typing import cast
 from datetime import datetime
 
-from node_cli.core.static_config import get_mirage_chain_name
-from node_cli.mirage.record.redis_record import FlatRedisRecord, FieldInfo
+from node_cli.core.static_config import get_fair_chain_name
+from node_cli.fair.record.redis_record import FlatRedisRecord, FieldInfo
 
 logger = logging.getLogger(__name__)
 
@@ -70,12 +70,12 @@ class ChainRecord(FlatRedisRecord):
         self._set_field('repair_ts', value)
 
 
-def get_mirage_chain_record(env: dict) -> ChainRecord:
-    return ChainRecord(get_mirage_chain_name(env))
+def get_fair_chain_record(env: dict) -> ChainRecord:
+    return ChainRecord(get_fair_chain_name(env))
 
 
 def migrate_chain_record(env: dict) -> None:
     version = env['CONTAINER_CONFIGS_STREAM']
-    logger.info('Migrating mirage chain record, setting config version to %s', version)
-    record = get_mirage_chain_record(env)
+    logger.info('Migrating fair chain record, setting config version to %s', version)
+    record = get_fair_chain_record(env)
     record.set_config_version(version)

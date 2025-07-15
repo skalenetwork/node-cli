@@ -77,17 +77,17 @@ lvmpy:
     help: Run healing procedure for lvmpy server
     prompt: Are you sure you want run healing procedure?
 
-mirage:
+fair:
   node:
     repair:
-      help: Repair mirage chain node
-      warning: Are you sure you want to repair mirage chain node? In rare cases may cause data loss and require additional maintenance
+      help: Repair fair chain node
+      warning: Are you sure you want to repair fair chain node? In rare cases may cause data loss and require additional maintenance
       snapshot_from: IP of the node to take snapshot from
       repair_requested: Repair mode is requested
     not_inited: Node should be initialized to proceed with operation
 
-    registered: Node is registered in mirage manager.
+    registered: Node is registered in fair manager.
     register:
-      help: Register node in mirage manager
-      name: Name of the node in mirage manager
-      ip: IP address of the node in mirage manager
+      help: Register node in fair manager
+      name: Name of the node in fair manager
+      ip: IP address of the node in fair manager
