@@ -107,7 +107,7 @@ jobs:
           mkdir -p ${{ github.workspace }}/dist
           docker build . -t node-cli-builder
           docker run --rm -v ${{ github.workspace }}/dist:/app/dist node-cli-builder \
-            scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} ${{ matrix.build_type }}
+            bash scripts/build.sh ${{ needs.create_release.outputs.version }} ${{ needs.create_release.outputs.branch }} ${{ matrix.build_type }}
           echo "Contents of dist directory:"
           ls -altr ${{ github.workspace }}/dist/
           docker rm -f $(docker ps -aq) || true
