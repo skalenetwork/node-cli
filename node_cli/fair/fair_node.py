@@ -129,7 +129,6 @@ def request_repair(snapshot_from: str = '') -> None:
     print(TEXTS['fair']['node']['repair']['repair_requested'])
 
 
-@check_inited
 @check_user
 def cleanup() -> None:
     env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
