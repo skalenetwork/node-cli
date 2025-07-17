@@ -36,7 +36,7 @@ from node_cli.core.docker_config import cleanup_docker_configuration, configure_
 from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
-from node_cli.core.schains import cleanup_datadir_for_single_chain_node
+from node_cli.core.schains import cleanup_no_lvm_datadir
 from node_cli.fair.record.chain_record import migrate_chain_record
 from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
 from node_cli.operations.base import checked_host, turn_off
@@ -242,7 +242,7 @@ def restore_fair(env, backup_path, config_only=False):
 
 def cleanup(env) -> None:
     turn_off(env, node_type=NodeType.FAIR)
-    cleanup_datadir_for_single_chain_node()
+    cleanup_no_lvm_datadir()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
     cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)

@@ -253,36 +253,44 @@ def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
         logger.warning('Volume %s already exists', schain)
 
 
-def cleanup_datadir_for_single_chain_node(
+def cleanup_datadir_content(datadir_path: str) -> None:
+    regular_folders_pattern = f'{datadir_path}/[!snapshots]*'
+    logger.info('Removing regular folders')
+    for path in glob.glob(regular_folders_pattern):
+        if os.path.isdir(path):
+            logger.debug('Removing recursively %s', path)
+            shutil.rmtree(path)
+            if os.path.isfile(path):
+                os.remove(path)
+
+    logger.info('Removing subvolumes')
+    subvolumes_pattern = f'{datadir_path}/snapshots/*/*'
+    for path in glob.glob(subvolumes_pattern):
+        logger.debug('Deleting subvolume %s', path)
+        if os.path.isdir(path):
+            rm_btrfs_subvolume(path)
+        else:
+            os.remove(path)
+
+    logger.info('Removing snapshots folder')
+    shutil.rmtree(os.path.join(datadir_path, 'snapshots'), ignore_errors=True)
+
+
+def cleanup_no_lvm_datadir(
     chain_name: str = '', base_path: str = SCHAINS_MNT_DIR_SINGLE_CHAIN
 ) -> None:
-    if not chain_name:
+    if chain_name:
+        folders = [chain_name]
+    else:
         folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
         if not folders:
             raise NoDataDirForChainError(
                 f'No data directory found in {base_path}. '
                 'Please check the path or specify a chain name.'
             )
-    for folder_name in folders[0]:
-        base_path = os.path.join(base_path, folder_name)
+    for folder_name in folders:
+        folder_path = os.path.join(base_path, folder_name)
         if folder_name != 'shared-space':
-            regular_folders_pattern = f'{base_path}/[!snapshots]*'
-            logger.info('Removing regular folders')
-            for filepath in glob.glob(regular_folders_pattern):
-                if os.path.isdir(filepath):
-                    logger.debug('Removing recursively %s', filepath)
-                    shutil.rmtree(filepath)
-                    if os.path.isfile(filepath):
-                        os.remove(filepath)
-
-            logger.info('Removing subvolumes')
-            subvolumes_pattern = f'{base_path}/snapshots/*/*'
-            for filepath in glob.glob(subvolumes_pattern):
-                logger.debug('Deleting subvolume %s', filepath)
-                if os.path.isdir(filepath):
-                    rm_btrfs_subvolume(filepath)
-                else:
-                    os.remove(filepath)
-                    logger.info('Cleaning up snapshots folder')
-        if os.path.isdir(base_path):
-            shutil.rmtree(base_path)
+            cleanup_datadir_content(folder_path)
+        if os.path.isdir(folder_path):
+            shutil.rmtree(folder_path)

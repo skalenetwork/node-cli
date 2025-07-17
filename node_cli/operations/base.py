@@ -44,7 +44,7 @@ from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.node_options import NodeOptions
 from node_cli.core.resources import init_shared_space_volume, update_resource_allocation
 from node_cli.core.schains import (
-    cleanup_datadir_for_single_chain_node,
+    cleanup_no_lvm_datadir,
     update_node_cli_schain_status,
 )
 from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
@@ -425,6 +425,6 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
 
 def cleanup_sync(env, schain_name: str) -> None:
     turn_off(env, node_type=NodeType.SYNC)
-    cleanup_datadir_for_single_chain_node(schain_name=schain_name)
+    cleanup_no_lvm_datadir(schain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
