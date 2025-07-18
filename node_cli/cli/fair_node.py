@@ -21,13 +21,13 @@ import click
 
 from node_cli.core.node import backup
 from node_cli.fair.fair_node import cleanup as fair_cleanup
-from node_cli.fair.fair_node import init as init_fair
 from node_cli.fair.fair_node import (
-    migrate_from_boot,
-    request_repair,
-    restore_fair,
     get_node_info,
+    migrate_from_boot,
+    repair_chain,
+    restore_fair,
 )
+from node_cli.fair.fair_node import init as init_fair
 from node_cli.fair.fair_node import register as register_fair
 from node_cli.fair.fair_node import update as update_fair
 from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, streamed_cmd
@@ -119,7 +119,7 @@ def migrate_node(env_filepath: str) -> None:
 @click.option(
     '--snapshot-from',
     type=URL_TYPE,
-    default='',
+    default=None,
     hidden=True,
     help=TEXTS['fair']['node']['repair']['snapshot_from'],
 )
@@ -130,8 +130,9 @@ def migrate_node(env_filepath: str) -> None:
     expose_value=False,
     prompt=TEXTS['fair']['node']['repair']['warning'],
 )
-def repair(snapshot_from: str = '') -> None:
-    request_repair(snapshot_from=snapshot_from)
+@streamed_cmd
+def repair(snapshot_from: str | None = None) -> None:
+    repair_chain(snapshot_from=snapshot_from)
 
 
 @node.command('cleanup', help='Cleanup Fair node.')

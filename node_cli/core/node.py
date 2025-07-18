@@ -28,6 +28,7 @@ from typing import Optional, Tuple
 
 import docker
 
+from node_cli.cli import __version__
 from node_cli.configs import (
     BACKUP_ARCHIVE_NAME,
     CONTAINER_CONFIG_PATH,
@@ -41,49 +42,46 @@ from node_cli.configs import (
     SKALE_STATE_DIR,
     TM_INIT_TIMEOUT,
 )
-from node_cli.cli import __version__
-from node_cli.configs.user import get_validated_user_config, SKALE_DIR_ENV_FILEPATH
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
-
-from node_cli.core.host import is_node_inited, save_env_params, get_flask_secret_key
+from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH, get_validated_user_config
 from node_cli.core.checks import run_checks as run_host_checks
+from node_cli.core.host import get_flask_secret_key, is_node_inited, save_env_params
 from node_cli.core.resources import update_resource_allocation
+from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
+    cleanup_sync_op,
     configure_nftables,
-    update_op,
     init_op,
+    init_sync_op,
+    restore_op,
     turn_off_op,
     turn_on_op,
-    restore_op,
-    init_sync_op,
+    update_op,
     update_sync_op,
-    cleanup_sync_op,
 )
-from node_cli.utils.print_formatters import (
-    print_failed_requirements_checks,
-    print_node_cmd_error,
-    print_node_info,
+from node_cli.utils.decorators import check_inited, check_not_inited, check_user
+from node_cli.utils.docker_utils import (
+    BASE_FAIR_BOOT_COMPOSE_SERVICES,
+    BASE_FAIR_COMPOSE_SERVICES,
+    BASE_SKALE_COMPOSE_SERVICES,
+    BASE_SYNC_COMPOSE_SERVICES,
+    is_admin_running,
+    is_api_running,
 )
+from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import (
     error_exit,
     get_request,
     post_request,
 )
 from node_cli.utils.meta import CliMetaManager
-from node_cli.utils.texts import safe_load_texts
-from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.decorators import check_not_inited, check_inited, check_user
-from node_cli.utils.docker_utils import (
-    is_admin_running,
-    is_api_running,
-    BASE_SKALE_COMPOSE_SERVICES,
-    BASE_SYNC_COMPOSE_SERVICES,
-    BASE_FAIR_COMPOSE_SERVICES,
-    BASE_FAIR_BOOT_COMPOSE_SERVICES,
-)
 from node_cli.utils.node_type import NodeType
-from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
-
+from node_cli.utils.print_formatters import (
+    print_failed_requirements_checks,
+    print_node_cmd_error,
+    print_node_info,
+)
+from node_cli.utils.texts import safe_load_texts
 
 logger = logging.getLogger(__name__)
 TEXTS = safe_load_texts()
