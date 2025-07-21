@@ -252,9 +252,8 @@ def cleanup(env: dict) -> None:
     cleanup_docker_configuration()
 
 
-def request_repair(env: dict, snapshot_from: str = 'any') -> None:
+def trigger_skaled_snapshot_mode(env: dict, snapshot_from: str = 'any') -> None:
     record = get_fair_chain_record(env)
-    # record.set_repair_ts(int(time.time()))
     if not snapshot_from:
         snapshot_from = 'any'
     record.set_snapshot_from(snapshot_from)
@@ -272,7 +271,7 @@ def repair(env: dict, snapshot_from: str = 'any') -> None:
     logger.info('Cleaning up datadir')
     cleanup_no_lvm_datadir()
     logger.info('Requesting fair node repair')
-    request_repair(env=env, snapshot_from=snapshot_from)
+    trigger_skaled_snapshot_mode(env=env, snapshot_from=snapshot_from)
     logger.info('Starting admin')
     start_container_by_name(container_name=container_name)
     logger.info('Fair node repair completed successfully')
