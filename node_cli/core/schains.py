@@ -40,6 +40,7 @@ from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import (
     error_exit,
     get_request,
+    is_btrfs_subvolume,
     read_json,
     run_cmd,
     safe_load_yml,
@@ -253,35 +254,51 @@ def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
         logger.warning('Volume %s already exists', schain)
 
 
-def cleanup_datadir_for_single_chain_node(
+def cleanup_datadir_content(datadir_path: str) -> None:
+    regular_folders_pattern = f'{datadir_path}/[!snapshots]*'
+    logger.info('Removing regular folders of %s', datadir_path)
+    for path in glob.glob(regular_folders_pattern):
+        logger.debug('Removing recursively %s', path)
+        if os.path.isfile(path):
+            logger.debug('Deleting file in datadir: %s', path)
+            os.remove(path)
+        if os.path.isdir(path):
+            logger.debug('Deleting folder in datadir: %s', path)
+            shutil.rmtree(path)
+
+    logger.info('Removing subvolumes of %s', datadir_path)
+    subvolumes_pattern = f'{datadir_path}/snapshots/*/*'
+    for path in glob.glob(subvolumes_pattern):
+        if is_btrfs_subvolume(path):
+            logger.debug('Deleting subvolume %s', path)
+            rm_btrfs_subvolume(path)
+        if os.path.isfile(path):
+            logger.debug('Deleting file in snapshots directory: %s', path)
+            os.remove(path)
+        if os.path.isdir(path):
+            logger.debug('Deleting folder in snapshots directory %s', path)
+            shutil.rmtree(path)
+
+    shutil.rmtree(os.path.join(datadir_path, 'snapshots'), ignore_errors=True)
+
+
+def cleanup_no_lvm_datadir(
     chain_name: str = '', base_path: str = SCHAINS_MNT_DIR_SINGLE_CHAIN
 ) -> None:
-    if not chain_name:
+    if chain_name:
+        folders = [chain_name]
+    else:
         folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
         if not folders:
             raise NoDataDirForChainError(
                 f'No data directory found in {base_path}. '
                 'Please check the path or specify a chain name.'
             )
-        chain_name = folders[0]
-    base_path = os.path.join(base_path, chain_name)
-    regular_folders_pattern = f'{base_path}/[!snapshots]*'
-    logger.info('Removing regular folders')
-    for filepath in glob.glob(regular_folders_pattern):
-        if os.path.isdir(filepath):
-            logger.debug('Removing recursively %s', filepath)
-            shutil.rmtree(filepath)
-        if os.path.isfile(filepath):
-            os.remove(filepath)
-
-    logger.info('Removing subvolumes')
-    subvolumes_pattern = f'{base_path}/snapshots/*/*'
-    for filepath in glob.glob(subvolumes_pattern):
-        logger.debug('Deleting subvolume %s', filepath)
-        if os.path.isdir(filepath):
-            rm_btrfs_subvolume(filepath)
-        else:
-            os.remove(filepath)
-    logger.info('Cleaning up snapshots folder')
-    if os.path.isdir(base_path):
-        shutil.rmtree(base_path)
+    for folder_name in folders:
+        folder_path = os.path.join(base_path, folder_name)
+        if folder_name != 'shared-space':
+            logger.info('Removing datadir content for %s', folder_path)
+            cleanup_datadir_content(folder_path)
+        logger.info('Removing datadir content for %s', folder_path)
+        if os.path.isdir(folder_path):
+            shutil.rmtree(folder_path)

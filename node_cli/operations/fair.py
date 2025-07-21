@@ -27,6 +27,7 @@ from node_cli.cli.info import TYPE, VERSION
 from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     GLOBAL_SKALE_DIR,
+    NFTABLES_CHAIN_FOLDER_PATH,
     SKALE_DIR,
 )
 from node_cli.core.checks import CheckType
@@ -35,9 +36,9 @@ from node_cli.core.docker_config import cleanup_docker_configuration, configure_
 from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
-from node_cli.core.schains import cleanup_datadir_for_single_chain_node
-from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
+from node_cli.core.schains import cleanup_no_lvm_datadir
 from node_cli.fair.record.chain_record import migrate_chain_record
+from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
 from node_cli.operations.base import checked_host, turn_off
 from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
 from node_cli.operations.config_repo import (
@@ -55,7 +56,7 @@ from node_cli.utils.docker_utils import (
     remove_dynamic_containers,
     wait_for_container,
 )
-from node_cli.utils.helper import rm_dir, str_to_bool
+from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
 from node_cli.utils.meta import FairCliMetaManager
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
@@ -241,7 +242,8 @@ def restore_fair(env, backup_path, config_only=False):
 
 def cleanup(env) -> None:
     turn_off(env, node_type=NodeType.FAIR)
-    cleanup_datadir_for_single_chain_node()
+    cleanup_no_lvm_datadir()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
+    cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
     cleanup_docker_configuration()
