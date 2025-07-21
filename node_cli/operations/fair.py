@@ -252,16 +252,16 @@ def cleanup(env: dict) -> None:
     cleanup_docker_configuration()
 
 
-def request_repair(env: dict, snapshot_from: str | None = None) -> None:
+def request_repair(env: dict, snapshot_from: str = 'any') -> None:
     record = get_fair_chain_record(env)
-    record.set_repair_ts(int(time.time()))
+    # record.set_repair_ts(int(time.time()))
     if not snapshot_from:
-        snapshot_from = ''
+        snapshot_from = 'any'
     record.set_snapshot_from(snapshot_from)
     print(TEXTS['fair']['node']['repair']['repair_requested'])
 
 
-def repair(env: dict, snapshot_from: str | None = None) -> None:
+def repair(env: dict, snapshot_from: str = 'any') -> None:
     logger.info('Starting fair node repair')
     container_name = 'fair_admin'
     if is_admin_running(node_type=NodeType.FAIR):

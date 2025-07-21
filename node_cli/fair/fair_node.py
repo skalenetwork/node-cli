@@ -163,6 +163,6 @@ def register(ip: str) -> None:
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-def repair_chain(snapshot_from: str | None = None) -> None:
+def repair_chain(snapshot_from: str = 'any') -> None:
     env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
     repair_fair_op(env=env, snapshot_from=snapshot_from)

@@ -119,7 +119,7 @@ def migrate_node(env_filepath: str) -> None:
 @click.option(
     '--snapshot-from',
     type=URL_TYPE,
-    default=None,
+    default='any',
     hidden=True,
     help=TEXTS['fair']['node']['repair']['snapshot_from'],
 )
@@ -131,7 +131,7 @@ def migrate_node(env_filepath: str) -> None:
     prompt=TEXTS['fair']['node']['repair']['warning'],
 )
 @streamed_cmd
-def repair(snapshot_from: str | None = None) -> None:
+def repair(snapshot_from: str = 'any') -> None:
     repair_chain(snapshot_from=snapshot_from)
 
 
