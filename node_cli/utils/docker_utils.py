@@ -160,7 +160,7 @@ def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs)
     logger.info(f'Container removed: {container_name}')
 
 
-def stop_container(
+def stop_container_by_name(
     container_name: str,
     timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
     dclient: Optional[DockerClient] = None,
@@ -171,7 +171,7 @@ def stop_container(
     container.stop(timeout=timeout)
 
 
-def rm_container(
+def remove_container_by_name(
     container_name: str,
     timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
     dclient: Optional[DockerClient] = None,
@@ -180,19 +180,21 @@ def rm_container(
     container_names = [container.name for container in get_containers()]
     if container_name in container_names:
         container = dc.containers.get(container_name)
-        safe_rm(container)
+        safe_rm(container, timeout=timeout)
 
 
-def start_container(container_name: str, dclient: Optional[DockerClient] = None) -> None:
+def start_container_by_name(container_name: str, dclient: Optional[DockerClient] = None) -> None:
     dc = dclient or docker_client()
     container = dc.containers.get(container_name)
     logger.info('Starting container %s', container_name)
     container.start()
 
 
-def remove_schain_container(schain_name: str, dclient: Optional[DockerClient] = None) -> None:
+def remove_schain_container_by_name(
+    schain_name: str, dclient: Optional[DockerClient] = None
+) -> None:
     container_name = f'skale_schain_{schain_name}'
-    rm_container(container_name, timeout=SCHAIN_REMOVE_TIMEOUT, dclient=dclient)
+    remove_container_by_name(container_name, timeout=SCHAIN_REMOVE_TIMEOUT, dclient=dclient)
 
 
 def backup_container_logs(
@@ -401,14 +403,12 @@ def is_api_running(node_type: NodeType, dclient: Optional[DockerClient] = None) 
 
 
 def is_admin_running(node_type: NodeType, client: Optional[DockerClient] = None) -> bool:
+    container_name = 'skale_admin'
     if node_type == NodeType.FAIR:
-        result = is_container_running(name='fair_admin', dclient=client)
+        container_name = 'fair_admin'
     elif node_type == NodeType.SYNC:
-        result = is_container_running(name='skale_sync_admin', dclient=client)
-    else:
-        result = is_container_running(name='skale_admin', dclient=client)
-
-    return result
+        container_name = 'skale_sync_admin'
+    return is_container_running(name=container_name, dclient=client)
 
 
 def system_prune():
