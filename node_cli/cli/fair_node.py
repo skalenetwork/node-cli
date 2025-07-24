@@ -30,6 +30,7 @@ from node_cli.fair.fair_node import (
 from node_cli.fair.fair_node import init as init_fair
 from node_cli.fair.fair_node import register as register_fair
 from node_cli.fair.fair_node import update as update_fair
+from node_cli.fair.fair_node import change_ip as change_ip_fair
 from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
@@ -146,3 +147,13 @@ def repair(snapshot_from: str = 'any') -> None:
 @streamed_cmd
 def cleanup_node():
     fair_cleanup()
+
+
+@node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])
+@click.option('--ip',
+              required=True,
+              type=IP_TYPE,
+              help=TEXTS['fair']['node']['change-ip']['ip']
+)
+def change_ip(ip: str) -> None:
+    change_ip_fair(ip=ip)
