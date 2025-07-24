@@ -150,10 +150,11 @@ def cleanup_node():
 
 
 @node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])
-@click.option('--ip',
-              required=True,
-              type=IP_TYPE,
-              help=TEXTS['fair']['node']['change-ip']['ip']
+@click.option(
+    '--ip',
+    required=True,
+    type=IP_TYPE,
+    help=TEXTS['fair']['node']['change-ip']['ip']
 )
 def change_ip(ip: str) -> None:
     change_ip_fair(ip=ip)
