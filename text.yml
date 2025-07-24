@@ -91,3 +91,7 @@ fair:
       help: Register node in fair manager
       name: Name of the node in fair manager
       ip: IP address of the node in fair manager
+    ip_changed: Node IP changed in fair manager
+    change-ip:
+      help: Change the node IP in fair manager
+      ip: New IP address of the node in fair manager
