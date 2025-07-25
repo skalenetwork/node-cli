@@ -27,6 +27,7 @@ from node_cli.cli.info import TYPE, VERSION
 from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     GLOBAL_SKALE_DIR,
+    NFTABLES_CHAIN_FOLDER_PATH,
     SKALE_DIR,
 )
 from node_cli.core.checks import CheckType
@@ -35,9 +36,9 @@ from node_cli.core.docker_config import cleanup_docker_configuration, configure_
 from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_file, prepare_host
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
-from node_cli.core.schains import cleanup_datadir_for_single_chain_node
+from node_cli.core.schains import cleanup_no_lvm_datadir
+from node_cli.fair.record.chain_record import get_fair_chain_record, migrate_chain_record
 from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
-from node_cli.fair.record.chain_record import migrate_chain_record
 from node_cli.operations.base import checked_host, turn_off
 from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
 from node_cli.operations.config_repo import (
@@ -52,12 +53,15 @@ from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
     docker_cleanup,
+    is_admin_running,
     remove_dynamic_containers,
+    start_container_by_name,
+    stop_container_by_name,
     wait_for_container,
 )
-from node_cli.utils.helper import rm_dir, str_to_bool
+from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
 from node_cli.utils.meta import FairCliMetaManager
-from node_cli.utils.print_formatters import print_failed_requirements_checks
+from node_cli.utils.print_formatters import TEXTS, print_failed_requirements_checks
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +148,7 @@ def update_fair_boot(env_filepath: str, env: dict) -> bool:
 
 
 @checked_host
-def update_fair(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
+def update(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
     compose_rm(node_type=NodeType.FAIR, env=env)
     if update_type not in (FairUpdateType.INFRA_ONLY, FairUpdateType.FROM_BOOT):
         remove_dynamic_containers()
@@ -192,7 +196,7 @@ def update_fair(env_filepath: str, env: dict, update_type: FairUpdateType) -> bo
     return True
 
 
-def restore_fair(env, backup_path, config_only=False):
+def restore(env, backup_path, config_only=False):
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -239,9 +243,35 @@ def restore_fair(env, backup_path, config_only=False):
     return True
 
 
-def cleanup(env) -> None:
+def cleanup(env: dict) -> None:
     turn_off(env, node_type=NodeType.FAIR)
-    cleanup_datadir_for_single_chain_node()
+    cleanup_no_lvm_datadir()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
+    cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
     cleanup_docker_configuration()
+
+
+def trigger_skaled_snapshot_mode(env: dict, snapshot_from: str = 'any') -> None:
+    record = get_fair_chain_record(env)
+    if not snapshot_from:
+        snapshot_from = 'any'
+    record.set_snapshot_from(snapshot_from)
+    print(TEXTS['fair']['node']['repair']['repair_requested'])
+
+
+def repair(env: dict, snapshot_from: str = 'any') -> None:
+    logger.info('Starting fair node repair')
+    container_name = 'fair_admin'
+    if is_admin_running(node_type=NodeType.FAIR):
+        logger.info('Stopping admin container')
+        stop_container_by_name(container_name=container_name)
+    logger.info('Removing chain container')
+    remove_dynamic_containers()
+    logger.info('Cleaning up datadir')
+    cleanup_no_lvm_datadir()
+    logger.info('Requesting fair node repair')
+    trigger_skaled_snapshot_mode(env=env, snapshot_from=snapshot_from)
+    logger.info('Starting admin')
+    start_container_by_name(container_name=container_name)
+    logger.info('Fair node repair completed successfully')

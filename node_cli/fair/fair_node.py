@@ -27,11 +27,11 @@ from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.host import is_node_inited, save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
-from node_cli.fair.record.chain_record import get_fair_chain_record
 from node_cli.operations import (
     FairUpdateType,
     cleanup_fair_op,
     init_fair_op,
+    repair_fair_op,
     restore_fair_op,
     update_fair_op,
 )
@@ -121,15 +121,6 @@ def update(env_filepath: str, pull_config_for_schain: str | None = None) -> None
         logger.info('Fair update completed successfully')
 
 
-def request_repair(snapshot_from: str = '') -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
-    record = get_fair_chain_record(env)
-    record.set_repair_ts(int(time.time()))
-    record.set_snapshot_from(snapshot_from)
-    print(TEXTS['fair']['node']['repair']['repair_requested'])
-
-
-@check_inited
 @check_user
 def cleanup() -> None:
     env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
@@ -170,3 +161,8 @@ def register(ip: str) -> None:
         error_msg = payload
         logger.error(f'Registration error {error_msg}')
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def repair_chain(snapshot_from: str = 'any') -> None:
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
+    repair_fair_op(env=env, snapshot_from=snapshot_from)

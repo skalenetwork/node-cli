@@ -32,8 +32,9 @@ from node_cli.operations.base import (  # noqa
 )
 from node_cli.operations.fair import (  # noqa
     init as init_fair_op,
-    update_fair as update_fair_op,
+    update as update_fair_op,
     FairUpdateType,
-    restore_fair as restore_fair_op,
+    restore as restore_fair_op,
+    repair as repair_fair_op,
     cleanup as cleanup_fair_op,
 )

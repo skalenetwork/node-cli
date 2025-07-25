@@ -1,16 +1,14 @@
 from unittest import mock
 
-import freezegun
 import pytest
 
 from node_cli.configs import SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.fair.fair_boot import init as init_boot
 from node_cli.fair.fair_boot import update
-from node_cli.fair.fair_node import cleanup, migrate_from_boot, request_repair, restore_fair
+from node_cli.fair.fair_node import cleanup, migrate_from_boot, restore_fair
 from node_cli.operations.fair import FairUpdateType
 from node_cli.utils.node_type import NodeType
-from tests.helper import CURRENT_DATETIME, CURRENT_TIMESTAMP
 
 
 @mock.patch('node_cli.fair.fair_node.time.sleep')
@@ -131,18 +129,6 @@ def test_migrate_from_boot(
     )
 
 
-@freezegun.freeze_time(CURRENT_DATETIME)
-@mock.patch('node_cli.fair.fair_node.compose_node_env', return_value={'ENV_TYPE': 'devnet'})
-@mock.patch('node_cli.fair.record.chain_record.get_fair_chain_name', return_value='test')
-def test_fair_repair(compose_node_env_mock, get_static_params_mock, redis_client, inited_node):
-    request_repair()
-    assert redis_client.get('test_repair_ts') == f'{CURRENT_TIMESTAMP}'.encode('utf-8')
-    assert redis_client.get('test_snapshot_from') == b''
-    request_repair(snapshot_from='127.0.0.1')
-    assert redis_client.get('test_repair_ts') == f'{CURRENT_TIMESTAMP}'.encode('utf-8')
-    assert redis_client.get('test_snapshot_from') == b'127.0.0.1'
-
-
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
 @mock.patch('node_cli.fair.fair_node.cleanup_docker_configuration')
 @mock.patch('node_cli.fair.fair_node.cleanup_fair_op')
@@ -203,9 +189,7 @@ def test_cleanup_calls_operations_in_correct_order(
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
 @mock.patch('node_cli.fair.fair_node.cleanup_docker_configuration')
-@mock.patch(
-    'node_cli.fair.fair_node.cleanup_fair_op', side_effect=Exception('Cleanup failed')
-)
+@mock.patch('node_cli.fair.fair_node.cleanup_fair_op', side_effect=Exception('Cleanup failed'))
 @mock.patch('node_cli.fair.fair_node.compose_node_env')
 def test_cleanup_continues_after_fair_op_error(
     mock_compose_env,
