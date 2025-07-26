@@ -94,4 +94,3 @@ fair:
     ip_changed: Node IP changed in Fair manager
     change-ip:
       help: Change the node IP in Fair manager
-      ip: New IP address of the node in Fair manager
