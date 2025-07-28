@@ -37,6 +37,7 @@ from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_f
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_no_lvm_datadir
+from node_cli.core.static_config import get_fair_chain_name
 from node_cli.fair.record.chain_record import get_fair_chain_record, migrate_chain_record
 from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
 from node_cli.operations.base import checked_host, turn_off
@@ -181,8 +182,9 @@ def update(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
         distro.version(),
     )
 
+    fair_chain_name = get_fair_chain_name(env)
     if update_type == FairUpdateType.FROM_BOOT:
-        migrate_nftables_from_boot()
+        migrate_nftables_from_boot(chain_name=fair_chain_name)
 
     update_images(env=env, node_type=NodeType.FAIR)
 
