@@ -20,6 +20,7 @@
 import click
 
 from node_cli.core.node import backup
+from node_cli.fair.fair_node import change_ip as change_ip_fair
 from node_cli.fair.fair_node import cleanup as fair_cleanup
 from node_cli.fair.fair_node import (
     get_node_info,
@@ -146,3 +147,9 @@ def repair(snapshot_from: str = 'any') -> None:
 @streamed_cmd
 def cleanup_node():
     fair_cleanup()
+
+
+@node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])
+@click.argument('ip', type=IP_TYPE)
+def change_ip(ip: str) -> None:
+    change_ip_fair(ip=ip)
