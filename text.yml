@@ -80,14 +80,17 @@ lvmpy:
 fair:
   node:
     repair:
-      help: Repair fair chain node
-      warning: Are you sure you want to repair fair chain node? In rare cases may cause data loss and require additional maintenance
+      help: Repair Fair chain node
+      warning: Are you sure you want to repair Fair chain node? In rare cases may cause data loss and require additional maintenance
       snapshot_from: IP of the node to take snapshot from
       repair_requested: Repair mode is requested
     not_inited: Node should be initialized to proceed with operation
 
-    registered: Node is registered in fair manager.
+    registered: Node is registered in Fair manager.
     register:
-      help: Register node in fair manager
-      name: Name of the node in fair manager
-      ip: IP address of the node in fair manager
+      help: Register node in Fair manager
+      name: Name of the node in Fair manager
+      ip: IP address of the node in Fair manager
+    ip_changed: Node IP changed in Fair manager
+    change-ip:
+      help: Change the node IP in Fair manager
