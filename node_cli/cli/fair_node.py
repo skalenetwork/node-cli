@@ -30,7 +30,7 @@ from node_cli.fair.fair_node import (
 from node_cli.fair.fair_node import init as init_fair
 from node_cli.fair.fair_node import register as register_fair
 from node_cli.fair.fair_node import update as update_fair
-from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, streamed_cmd
+from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
 TEXTS = safe_load_texts()
@@ -118,7 +118,7 @@ def migrate_node(env_filepath: str) -> None:
 @node.command('repair', help='Toggle fair chain repair mode')
 @click.option(
     '--snapshot-from',
-    type=URL_TYPE,
+    type=URL_OR_ANY_TYPE,
     default='any',
     hidden=True,
     help=TEXTS['fair']['node']['repair']['snapshot_from'],
