@@ -382,6 +382,15 @@ class UrlType(click.ParamType):
         return value
 
 
+class UrlOrAnyType(click.ParamType):
+    name = 'url'
+
+    def convert(self, value, param, ctx):
+        if value == 'any':
+            return value
+        super().convert(value, param, ctx)
+
+
 class IpType(click.ParamType):
     name = 'ip'
 
@@ -394,6 +403,7 @@ class IpType(click.ParamType):
 
 
 URL_TYPE = UrlType()
+URL_OR_ANY_TYPE = UrlOrAnyType()
 IP_TYPE = IpType()
 
 
