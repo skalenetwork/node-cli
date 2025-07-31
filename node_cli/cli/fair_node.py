@@ -76,9 +76,14 @@ def register(ip: str) -> None:
     prompt='Are you sure you want to update Fair node software?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
+@click.option('--force-skaled-start', 'force_skaled_start', hidden=True, type=bool, default=False)
 @streamed_cmd
-def update_node(env_filepath: str, pull_config_for_schain):
-    update_fair(env_filepath=env_filepath, pull_config_for_schain=pull_config_for_schain)
+def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: bool):
+    update_fair(
+        env_filepath=env_filepath,
+        pull_config_for_schain=pull_config_for_schain,
+        force_skaled_start=force_skaled_start,
+    )
 
 
 @node.command('backup', help='Generate backup file for the Fair node.')

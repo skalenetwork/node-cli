@@ -38,7 +38,11 @@ from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_no_lvm_datadir
 from node_cli.core.static_config import get_fair_chain_name
-from node_cli.fair.record.chain_record import get_fair_chain_record, migrate_chain_record
+from node_cli.fair.record.chain_record import (
+    get_fair_chain_record,
+    migrate_chain_record,
+    update_chain_record,
+)
 from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
 from node_cli.operations.base import checked_host, turn_off
 from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
@@ -149,7 +153,12 @@ def update_fair_boot(env_filepath: str, env: dict) -> bool:
 
 
 @checked_host
-def update(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
+def update(
+    env_filepath: str,
+    env: dict,
+    update_type: FairUpdateType,
+    force_skaled_start: bool,
+) -> bool:
     compose_rm(node_type=NodeType.FAIR, env=env)
     if update_type not in (FairUpdateType.INFRA_ONLY, FairUpdateType.FROM_BOOT):
         remove_dynamic_containers()
@@ -193,7 +202,7 @@ def update(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
     time.sleep(REDIS_START_TIMEOUT)
     if update_type == FairUpdateType.FROM_BOOT:
         migrate_chain_record(env)
-
+    update_chain_record(env, force_skaled_start=force_skaled_start)
     compose_up(env=env, node_type=NodeType.FAIR)
     return True
 
