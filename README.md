@@ -29,6 +29,9 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    1. [Top level commands (Fair)](#top-level-commands-fair)
    2. [Fair Boot commands](#fair-boot-commands)
    3. [Fair Node commands](#fair-node-commands)
+   4. [Fair Wallet commands](#fair-wallet-commands)
+   5. [Fair Logs commands](#fair-logs-commands)
+   6. [Fair SSL commands](#fair-ssl-commands)
 5. [Exit codes](#exit-codes)
 6. [Development](#development)
 
@@ -679,17 +682,29 @@ Options:
 
 Commands for a Fair node in the Boot phase.
 
+#### Fair Boot Info
+
+Get information about the Fair node during boot phase.
+
+```shell
+fair boot info [--format FORMAT]
+```
+
+Options:
+
+* `--format`/`-f` - Output format (`json` or `text`).
+
 #### Fair Boot Initialization
 
 Initialize the Fair node boot phase.
 
 ```shell
-fair boot init [ENV_FILE]
+fair boot init <ENV_FILE>
 ```
 
 Arguments:
 
-* `ENV_FILE` - path to .env file (required).
+* `ENV_FILE` - Path to the environment file containing configuration.
 
 Required environment variables in `ENV_FILE`:
 
@@ -714,19 +729,16 @@ Register the Fair node with Fair Manager *during* the boot phase.
 fair boot register --name <NODE_NAME> --ip <PUBLIC_IP> --domain <DOMAIN_NAME> [--port <BASE_PORT>]
 ```
 
-Required arguments:
+Options:
 
-* `--name`/`-n` - Fair node name.
-* `--ip` - Public IP for RPC connections and consensus.
-* `--domain`/`-d` - Fair node domain name (e.g., `fair1.example.com`).
-
-Optional arguments:
-
-* `--port`/`-p` - Base port for node sChains (default: `10000`).
+* `--name`/`-n` - Fair node name (required).
+* `--ip` - Public IP for RPC connections & consensus (required).
+* `--domain`/`-d` - Fair node domain name (e.g., `fair1.example.com`, required).
+* `--port`/`-p` - Base port for node sChains (default: from configuration).
 
 #### Fair Boot Signature
 
-Get the node signature for a validator ID *during* the boot phase.
+Get the node signature for a validator ID during boot phase.
 
 ```shell
 fair boot signature <VALIDATOR_ID>
@@ -736,21 +748,37 @@ Arguments:
 
 * `VALIDATOR_ID` - The ID of the validator requesting the signature.
 
-#### Fair Boot Migrate
+#### Fair Boot Update
 
-Migrate the Fair node from the boot phase to the main phase (regular operation).
+Update the Fair node software during boot phase.
 
 ```shell
-fair boot migrate [ENV_FILEPATH] [--yes]
+fair boot update <ENV_FILE> [--yes] [--pull-config SCHAIN]
 ```
 
 Arguments:
 
-* `ENV_FILEPATH` - Path to the .env file.
+* `ENV_FILE` - Path to the environment file for node configuration.
+
+Required environment variables in `ENV_FILE`:
+
+* `SGX_SERVER_URL` - SGX server URL.
+* `DISK_MOUNTPOINT` - Mount point for storing data (BTRFS recommended).
+* `NODE_VERSION` - Stream of `skale-node` configs.
+* `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
+* `MANAGER_CONTRACTS` - SKALE Manager alias or address.
+* `IMA_CONTRACTS` - IMA alias or address (*Note: Required by boot service, may not be used by Fair itself*).
+* `FILEBEAT_HOST` - URL/IP:Port of the Filebeat log server.
+* `ENV_TYPE` - Environment type (e.g., 'mainnet', 'devnet').
+
+Optional variables:
+
+* `MONITORING_CONTAINERS` - Enable monitoring containers (`cadvisor`, `node-exporter`).
 
 Options:
 
-* `--yes` - Migrate without confirmation.
+* `--yes` - Update without confirmation prompt.
+* `--pull-config` - Pull configuration for specific sChain (hidden option).
 
 ### Fair Node commands
 
@@ -758,47 +786,129 @@ Options:
 
 Commands for managing a Fair node during its regular operation (main phase).
 
-#### Fair Node Initialization (Placeholder)
+#### Fair Node Info
+
+Get information about the Fair node.
+
+```shell
+fair node info [--format FORMAT]
+```
+
+Options:
+
+* `--format`/`-f` - Output format (`json` or `text`).
+
+#### Fair Node Initialization
 
 Initialize the regular operation phase of the Fair node.
 
 ```shell
-fair node init
-```
-
-> **Note:** This command is currently a placeholder and not implemented.
-
-#### Fair Node Registration (Placeholder)
-
-Register the node during regular operation.
-
-```shell
-fair node register
-```
-
-> **Note:** This command is currently a placeholder and not implemented.
-
-#### Fair Node Update (Placeholder)
-
-Update the Fair node during regular operation.
-
-```shell
-fair node update [ENV_FILEPATH] [--yes] [--unsafe]
-```
-
-> **Note:** This command is currently a placeholder and not implemented.
-
-#### Fair Node Signature
-
-Get the node signature for a validator ID during regular operation.
-
-```shell
-fair node signature <VALIDATOR_ID>
+fair node init <ENV_FILEPATH>
 ```
 
 Arguments:
 
-* `VALIDATOR_ID` - The ID of the validator requesting the signature.
+* `ENV_FILEPATH` - Path to the environment file for node configuration.
+
+Required environment variables in `ENV_FILEPATH`:
+
+* `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
+* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
+* `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
+* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `ENV_TYPE` - Environment type (e.g., `mainnet`).
+
+Optional variables:
+
+* `ENFORCE_BTRFS` - Format existing filesystem on attached disk (`True`/`False`).
+* `FILEBEAT_HOST` - URL of the Filebeat log server to send logs.
+
+#### Fair Node Registration
+
+Register the Fair node with the specified IP address.
+
+```shell
+fair node register --ip <IP_ADDRESS>
+```
+
+Options:
+
+* `--ip` - Public IP address for the Fair node (required).
+
+#### Fair Node Update
+
+Update the Fair node software.
+
+```shell
+fair node update <ENV_FILEPATH> [--yes] [--pull-config SCHAIN]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the environment file for node configuration.
+
+Required environment variables in `ENV_FILEPATH`:
+
+* `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
+* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
+* `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
+* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `ENV_TYPE` - Environment type (e.g., `mainnet`).
+
+Optional variables:
+
+* `ENFORCE_BTRFS` - Format existing filesystem on attached disk (`True`/`False`).
+* `FILEBEAT_HOST` - URL of the Filebeat log server to send logs.
+
+Options:
+
+* `--yes` - Update without confirmation prompt.
+* `--pull-config` - Pull configuration for specific sChain (hidden option).
+
+#### Fair Node Migrate
+
+Switch from boot phase to regular Fair node operation.
+
+```shell
+fair node migrate <ENV_FILEPATH> [--yes]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the environment file for node configuration.
+
+Required environment variables in `ENV_FILEPATH`:
+
+* `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
+* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
+* `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
+* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `ENV_TYPE` - Environment type (e.g., `mainnet`).
+
+Optional variables:
+
+* `ENFORCE_BTRFS` - Format existing filesystem on attached disk (`True`/`False`).
+* `FILEBEAT_HOST` - URL of the Filebeat log server to send logs.
+
+Options:
+
+* `--yes` - Migrate without confirmation prompt.
+
+#### Fair Node Repair
+
+Toggle fair chain repair mode.
+
+```shell
+fair node repair [--snapshot-from SOURCE] [--yes]
+```
+
+Options:
+
+* `--snapshot-from` - Source for snapshots (`any` by default, hidden option).
+* `--yes` - Proceed without confirmation prompt.
 
 #### Fair Node Backup
 
@@ -822,12 +932,150 @@ fair node restore <BACKUP_PATH> <ENV_FILE> [--config-only]
 
 Arguments:
 
-* `BACKUP_PATH` - Path to the archive.
+* `BACKUP_PATH` - Path to the backup archive.
 * `ENV_FILE` - Path to the .env file for the restored node configuration.
 
 Options:
 
 * `--config-only` - Only restore configuration files.
+
+#### Fair Node Cleanup
+
+Cleanup Fair node data and configuration.
+
+```shell
+fair node cleanup [--yes]
+```
+
+Options:
+
+* `--yes` - Cleanup without confirmation prompt.
+
+#### Fair Node Change IP
+
+Change the IP address of the Fair node.
+
+```shell
+fair node change-ip <IP_ADDRESS>
+```
+
+Arguments:
+
+* `IP_ADDRESS` - New public IP address for the Fair node.
+
+### Fair Wallet commands
+
+> Prefix: `fair wallet`
+
+Commands for managing the node wallet.
+
+#### Fair Wallet Info
+
+Get information about the SKALE node wallet.
+
+```shell
+fair wallet info [--format FORMAT]
+```
+
+Options:
+
+* `--format`/`-f` - Output format (`json` or `text`).
+
+#### Fair Wallet Send
+
+Send ETH from SKALE node wallet to an address.
+
+```shell
+fair wallet send <ADDRESS> <AMOUNT> [--yes]
+```
+
+Arguments:
+
+* `ADDRESS` - Destination address for ETH transfer.
+* `AMOUNT` - Amount of ETH to send (as float).
+
+Options:
+
+* `--yes` - Send without confirmation prompt.
+
+### Fair Logs commands
+
+> Prefix: `fair logs`
+
+Commands for managing and accessing node logs.
+
+#### Fair CLI Logs
+
+Fetch the logs of the node-cli.
+
+```shell
+fair logs cli [--debug]
+```
+
+Options:
+
+* `--debug` - Show debug logs instead of regular logs.
+
+#### Fair Logs Dump
+
+Dump all logs from the connected node.
+
+```shell
+fair logs dump <PATH> [--container CONTAINER]
+```
+
+Arguments:
+
+* `PATH` - Path where the logs dump will be saved.
+
+Options:
+
+* `--container`/`-c` - Dump logs only from specified container.
+
+### Fair SSL commands
+
+> Prefix: `fair ssl`
+
+Commands for managing SSL certificates for sChains.
+
+#### Fair SSL Status
+
+Check the status of SSL certificates on the node.
+
+```shell
+fair ssl status
+```
+
+#### Fair SSL Upload
+
+Upload SSL certificate files to the node.
+
+```shell
+fair ssl upload --cert-path <CERT_PATH> --key-path <KEY_PATH> [--force]
+```
+
+Options:
+
+* `--cert-path`/`-c` - Path to the SSL certificate file (required).
+* `--key-path`/`-k` - Path to the SSL private key file (required).
+* `--force`/`-f` - Overwrite existing certificates.
+
+#### Fair SSL Check
+
+Check SSL certificate validity and connectivity.
+
+```shell
+fair ssl check [--cert-path CERT_PATH] [--key-path KEY_PATH] [--port PORT] [--type TYPE] [--no-client] [--no-wss]
+```
+
+Options:
+
+* `--cert-path`/`-c` - Path to the certificate file (default: system default).
+* `--key-path`/`-k` - Path to the key file (default: system default).
+* `--port`/`-p` - Port to start SSL health check server (default: from configuration).
+* `--type`/`-t` - Check type: `all`, `openssl`, or `skaled` (default: `all`).
+* `--no-client` - Skip client connection for openssl check.
+* `--no-wss` - Skip WSS server starting for skaled check.
 
 ***
 
