@@ -45,9 +45,9 @@ Ensure that the following packages are installed: **docker**, **docker-compose**
 This binary (`skale-VERSION-OS`) is used for managing standard SKALE validator nodes.
 
 ```shell
-# Replace {version} with the desired release version (e.g., 2.6.0)
-VERSION_NUM={version} && \
-sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m` > /usr/local/bin/skale"
+# Replace {version} with the desired release version (e.g., 3.0.0)
+CLI_VERSION={version} && \
+sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m` > /usr/local/bin/skale"
 ```
 
 ### Sync Node Binary
@@ -55,19 +55,19 @@ sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/downl
 This binary (`skale-VERSION-OS-sync`) is used for managing dedicated Sync nodes. **Ensure you download the correct `-sync` suffixed binary for Sync node operations.**
 
 ```shell
-# Replace {version} with the desired release version (e.g., 2.6.0)
-VERSION_NUM={version} && \
-sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m`-sync > /usr/local/bin/skale"
+# Replace {version} with the desired release version (e.g., 3.0.0)
+CLI_VERSION={version} && \
+sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m`-sync > /usr/local/bin/skale"
 ```
 
 ### Fair Node Binary
 
-This binary (`skale-VERSION-OS-fair`) is used specifically for managing nodes on the Fair network. It is named `fair`.
+This binary (`skale-VERSION-OS-fair`) is used specifically for managing nodes on the Fair network.
 
 ```shell
-# Replace {version} with the desired release version (e.g., 2.6.0)
-VERSION_NUM={version} && \
-sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$VERSION_NUM/skale-$VERSION_NUM-`uname -s`-`uname -m`-fair > /usr/local/bin/fair"
+# Replace {version} with the desired release version (e.g., 3.0.0)
+CLI_VERSION={version} && \
+sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m`-fair > /usr/local/bin/fair"
 ```
 
 ### Permissions and Testing
@@ -155,7 +155,7 @@ Required environment variables in `ENV_FILE`:
 * `SGX_SERVER_URL` - SGX server URL.
 * `DISK_MOUNTPOINT` - Mount point for storing sChains data.
 * `DOCKER_LVMPY_STREAM` - Stream of `docker-lvmpy` to use.
-* `CONTAINER_CONFIGS_STREAM` - Stream of `skale-node` to use.
+* `NODE_VERSION` - Stream of `skale-node` to use.
 * `ENDPOINT` - RPC endpoint of the network where SKALE Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager `message_proxy_mainnet` contract alias or address.
 * `IMA_CONTRACTS` - IMA `skale_manager` contract alias or address.
@@ -595,7 +595,7 @@ Required environment variables in `ENV_FILE`:
 
 * `DISK_MOUNTPOINT` - Mount point for storing sChain data.
 * `DOCKER_LVMPY_STREAM` - Stream of `docker-lvmpy`.
-* `CONTAINER_CONFIGS_STREAM` - Stream of `skale-node`.
+* `NODE_VERSION` - Stream of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where SKALE Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 * `IMA_CONTRACTS` - IMA alias or address.
@@ -695,7 +695,7 @@ Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
 * `DISK_MOUNTPOINT` - Mount point for storing data (BTRFS recommended).
-* `CONTAINER_CONFIGS_STREAM` - Stream of `skale-node` configs.
+* `NODE_VERSION` - Stream of `skale-node` configs.
 * `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 * `IMA_CONTRACTS` - IMA alias or address (*Note: Required by boot service, may not be used by Fair itself*).

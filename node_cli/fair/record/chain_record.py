@@ -75,7 +75,7 @@ def get_fair_chain_record(env: dict) -> ChainRecord:
 
 
 def migrate_chain_record(env: dict) -> None:
-    version = env['CONTAINER_CONFIGS_STREAM']
+    version = env['NODE_VERSION']
     logger.info('Migrating fair chain record, setting config version to %s', version)
     record = get_fair_chain_record(env)
     record.set_config_version(version)

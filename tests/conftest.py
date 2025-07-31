@@ -242,7 +242,7 @@ def valid_env_params():
         'DB_USER': 'user',
         'DB_PASSWORD': 'pass',
         'DB_PORT': '3307',
-        'CONTAINER_CONFIGS_STREAM': 'master',
+        'NODE_VERSION': 'master',
         'FILEBEAT_HOST': '127.0.0.1:3010',
         'SGX_SERVER_URL': 'http://127.0.0.1',
         'DISK_MOUNTPOINT': '/dev/sss',
@@ -307,7 +307,7 @@ def regular_user_conf(tmp_path):
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
-        CONTAINER_CONFIGS_STREAM='main'
+        NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1
         DISK_MOUNTPOINT=/dev/sss
@@ -329,7 +329,7 @@ def fair_user_conf(tmp_path):
     try:
         test_env = """
         BOOT_ENDPOINT=http://localhost:8545
-        CONTAINER_CONFIGS_STREAM='main'
+        NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1
         DISK_MOUNTPOINT=/dev/sss
@@ -350,7 +350,7 @@ def fair_boot_user_conf(tmp_path):
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
-        CONTAINER_CONFIGS_STREAM='main'
+        NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1
         DISK_MOUNTPOINT=/dev/sss
@@ -371,7 +371,7 @@ def sync_user_conf(tmp_path):
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
-        CONTAINER_CONFIGS_STREAM='main'
+        NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
         DISK_MOUNTPOINT=/dev/sss
         ENV_TYPE='devnet'

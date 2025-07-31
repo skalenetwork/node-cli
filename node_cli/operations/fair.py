@@ -95,7 +95,7 @@ def init(env_filepath: str, env: dict) -> bool:
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -129,17 +129,17 @@ def update_fair_boot(env_filepath: str, env: dict) -> bool:
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+    if not skip_cleanup and current_stream != env['NODE_VERSION']:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM'],
+            env['NODE_VERSION'],
         )
         docker_cleanup()
 
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -167,17 +167,17 @@ def update(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+    if not skip_cleanup and current_stream != env['NODE_VERSION']:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM'],
+            env['NODE_VERSION'],
         )
         docker_cleanup()
 
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -224,7 +224,7 @@ def restore(env, backup_path, config_only=False):
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
