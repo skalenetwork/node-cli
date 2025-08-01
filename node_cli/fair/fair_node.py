@@ -185,3 +185,21 @@ def change_ip(ip: str) -> None:
         error_msg = payload
         logger.error(f'Change IP error {error_msg}')
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+@check_inited
+@check_user
+def exit() -> None:
+    if not is_node_inited():
+        print(TEXTS['fair']['node']['not_inited'])
+        return
+
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='exit', json={})
+    if status == 'ok':
+        msg = TEXTS['fair']['node']['exited']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Node exit error {error_msg}')
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)

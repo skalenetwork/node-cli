@@ -10,6 +10,7 @@ from node_cli.cli.fair_boot import (
 )
 from node_cli.cli.fair_node import (
     backup_node,
+    exit_node,
     migrate_node,
     restore_node,
 )
@@ -101,3 +102,12 @@ def test_fair_node_migrate(mock_migrate_core, valid_env_file):
 
     assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
     mock_migrate_core.assert_called_once_with(env_filepath=valid_env_file)
+
+
+@mock.patch('node_cli.cli.fair_node.exit_fair')
+def test_fair_node_exit(mock_exit_core):
+    runner = CliRunner()
+    result = runner.invoke(exit_node, ['--yes'])
+
+    assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
+    mock_exit_core.assert_called_once()

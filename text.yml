@@ -94,3 +94,7 @@ fair:
     ip_changed: Node IP changed in Fair manager
     change-ip:
       help: Change the node IP in Fair manager
+    exited: Node removed from Fair manager
+    exit:
+      help: Remove node from Fair manager
+      prompt: Are you sure you want to remove the node from Fair manager?
