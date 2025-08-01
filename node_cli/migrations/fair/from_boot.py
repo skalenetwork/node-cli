@@ -1,4 +1,3 @@
-import glob
 import logging
 import os
 from pathlib import Path
@@ -21,6 +20,7 @@ def rename_chain_file(old_filepath: str, new_filepath: str) -> None:
     new_path = Path(new_filepath)
     if not old_path.exists():
         raise NoLegacyNFTChainConfigError(f'File {old_filepath} does not exists')
+
     old_path.rename(Path(new_path))
 
 
@@ -35,24 +35,28 @@ def rename_chain_in_config(config_path: str, old_chain_name: str, new_chain_name
         f.write(updated_content)
 
 
-def migrate_nft_chain() -> None:
-    after_boot_chain_path = glob.glob(os.path.join(NFT_CHAIN_BASE_PATH, '*'))[0]
-    old_chain_name = Path(after_boot_chain_path).name.removesuffix('.conf')
+def migrate_nft_chain(chain_name: str) -> None:
+    after_boot_chain_path = os.path.join(NFT_CHAIN_BASE_PATH, f'skale-{chain_name}.conf')
     new_chain_name = NFT_COMMITTEE_SCOPE_CHAIN_NAME
-    rename_chain_in_config(after_boot_chain_path, old_chain_name, new_chain_name)
     after_migration_chain_path = os.path.join(
         NFT_CHAIN_BASE_PATH, f'{NFT_COMMITTEE_SCOPE_CHAIN_NAME}.conf'
     )
-    rename_chain_file(after_boot_chain_path, after_migration_chain_path)
+    logger.debug('Renaming %s to %s', after_boot_chain_path, after_migration_chain_path)
+    if os.path.isfile(after_boot_chain_path):
+        rename_chain_in_config(after_boot_chain_path, f'skale-{chain_name}', new_chain_name)
+        if os.path.isfile(after_migration_chain_path):
+            os.remove(after_boot_chain_path)
+        else:
+            rename_chain_file(after_boot_chain_path, after_migration_chain_path)
 
 
 def reload_nft():
     run_cmd(['nft', '-f', '/etc/nftables.conf'])
 
 
-def migrate_nftables_from_boot():
+def migrate_nftables_from_boot(chain_name: str):
     logger.info('Starting nftables migration from boot')
-    migrate_nft_chain()
+    migrate_nft_chain(chain_name=chain_name)
     logger.info('Reloading nftables rules')
     reload_nft()
     logger.info('Restart docker service')

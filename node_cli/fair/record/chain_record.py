@@ -34,6 +34,7 @@ CHAIN_RECORD_FIELDS: dict[str, FieldInfo] = {
     'repair_date': FieldInfo('repair_date', datetime, datetime.fromtimestamp(0)),
     'repair_ts': FieldInfo('repair_ts', int, None),
     'snapshot_from': FieldInfo('snapshot_from', str, None),
+    'force_skaled_start': FieldInfo('force_skaled_start', bool, False),
 }
 
 
@@ -57,6 +58,10 @@ class ChainRecord(FlatRedisRecord):
     def repair_ts(self) -> int | None:
         return cast(int | None, self._get_field('repair_ts'))
 
+    @property
+    def force_skaled_start(self) -> bool:
+        return cast(bool, self._get_field('force_skaled_start'))
+
     def set_config_version(self, version: str) -> None:
         self._set_field('config_version', version)
 
@@ -69,13 +74,22 @@ class ChainRecord(FlatRedisRecord):
     def set_repair_ts(self, value: int | None) -> None:
         self._set_field('repair_ts', value)
 
+    def set_force_skaled_start(self, value: bool) -> None:
+        self._set_field('force_skaled_start', value)
+
 
 def get_fair_chain_record(env: dict) -> ChainRecord:
     return ChainRecord(get_fair_chain_name(env))
 
 
 def migrate_chain_record(env: dict) -> None:
-    version = env['CONTAINER_CONFIGS_STREAM']
+    version = env['NODE_VERSION']
     logger.info('Migrating fair chain record, setting config version to %s', version)
     record = get_fair_chain_record(env)
     record.set_config_version(version)
+
+
+def update_chain_record(env: dict, force_skaled_start: bool) -> None:
+    record = get_fair_chain_record(env)
+    record.set_force_skaled_start(force_skaled_start)
+    logger.info('Updated fair chain record with force_skaled_start=%s', force_skaled_start)

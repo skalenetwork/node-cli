@@ -44,7 +44,7 @@ class ValidationResult(NamedTuple):
 
 @dataclass(kw_only=True)
 class BaseUserConfig(ABC):
-    container_configs_stream: str
+    node_version: str
     env_type: str
     filebeat_host: str
     disk_mountpoint: str

@@ -76,7 +76,7 @@ logger = logging.getLogger(__name__)
 def checked_host(func):
     @functools.wraps(func)
     def wrapper(env_filepath: str, env: Dict, *args, **kwargs):
-        download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
+        download_skale_node(env.get('NODE_VERSION'), env.get('CONTAINER_CONFIGS_DIR'))
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
             TYPE,
@@ -130,17 +130,17 @@ def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
     meta_manager = CliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+    if not skip_cleanup and current_stream != env['NODE_VERSION']:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM'],
+            env['NODE_VERSION'],
         )
         docker_cleanup()
 
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
         distro.version(),
@@ -173,17 +173,17 @@ def update_fair_boot(env_filepath: str, env: Dict) -> bool:
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+    if not skip_cleanup and current_stream != env['NODE_VERSION']:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM'],
+            env['NODE_VERSION'],
         )
         docker_cleanup()
 
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -216,7 +216,7 @@ def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
     meta_manager = CliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
         distro.version(),
@@ -250,7 +250,7 @@ def init_fair_boot(env_filepath: str, env: dict) -> None:
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -268,7 +268,7 @@ def init_sync(
     snapshot_from: Optional[str],
 ) -> None:
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-    download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
+    download_skale_node(env.get('NODE_VERSION'), env.get('CONTAINER_CONFIGS_DIR'))
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -296,7 +296,7 @@ def init_sync(
     meta_manager = CliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         None,
         distro.id(),
         distro.version(),
@@ -317,7 +317,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     compose_rm(env=env, node_type=NodeType.SYNC)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-    download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
+    download_skale_node(env['NODE_VERSION'], env.get('CONTAINER_CONFIGS_DIR'))
     sync_skale_node()
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -336,7 +336,7 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
     meta_manager = CliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
         distro.version(),
@@ -359,7 +359,7 @@ def turn_on(env: dict, node_type: NodeType) -> None:
     meta_manager = CliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
         distro.version(),
@@ -402,7 +402,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     meta_manager = CliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         env['DOCKER_LVMPY_STREAM'],
         distro.id(),
         distro.version(),

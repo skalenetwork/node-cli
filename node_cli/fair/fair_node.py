@@ -103,8 +103,15 @@ def migrate_from_boot(
 
 @check_inited
 @check_user
-def update(env_filepath: str, pull_config_for_schain: str | None = None) -> None:
-    logger.info('Updating fair node...')
+def update(
+    env_filepath: str, pull_config_for_schain: str | None = None, force_skaled_start: bool = False
+) -> None:
+    logger.info(
+        'Updating fair node: %s, pull_config_for_schain: %s, force_skaled_start: %s',
+        env_filepath,
+        pull_config_for_schain,
+        force_skaled_start,
+    )
     env = compose_node_env(
         env_filepath,
         inited_node=True,
@@ -112,7 +119,12 @@ def update(env_filepath: str, pull_config_for_schain: str | None = None) -> None
         node_type=NodeType.FAIR,
         pull_config_for_schain=pull_config_for_schain,
     )
-    update_ok = update_fair_op(env_filepath, env, update_type=FairUpdateType.REGULAR)
+    update_ok = update_fair_op(
+        env_filepath,
+        env,
+        update_type=FairUpdateType.REGULAR,
+        force_skaled_start=force_skaled_start,
+    )
     alive = is_base_containers_alive(node_type=NodeType.FAIR)
     if not update_ok or not alive:
         print_node_cmd_error()
@@ -166,3 +178,22 @@ def register(ip: str) -> None:
 def repair_chain(snapshot_from: str = 'any') -> None:
     env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
     repair_fair_op(env=env, snapshot_from=snapshot_from)
+
+
+@check_inited
+@check_user
+def change_ip(ip: str) -> None:
+    if not is_node_inited():
+        print(TEXTS['fair']['node']['not_inited'])
+        return
+
+    json_data = {'ip': ip, 'port': DEFAULT_SKALED_BASE_PORT}
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='change-ip', json=json_data)
+    if status == 'ok':
+        msg = TEXTS['fair']['node']['ip_changed']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Change IP error {error_msg}')
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)

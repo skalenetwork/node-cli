@@ -33,6 +33,7 @@ ALL_V1_ROUTES = [
     '/api/v1/wallet/send-eth',
     '/api/v1/fair-node/info',
     '/api/v1/fair-node/register',
+    '/api/v1/fair-node/change-ip',
 ]
 
 

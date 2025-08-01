@@ -37,7 +37,12 @@ from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, link_env_f
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_no_lvm_datadir
-from node_cli.fair.record.chain_record import get_fair_chain_record, migrate_chain_record
+from node_cli.core.static_config import get_fair_chain_name
+from node_cli.fair.record.chain_record import (
+    get_fair_chain_record,
+    migrate_chain_record,
+    update_chain_record,
+)
 from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
 from node_cli.operations.base import checked_host, turn_off
 from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
@@ -94,7 +99,7 @@ def init(env_filepath: str, env: dict) -> bool:
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -128,17 +133,17 @@ def update_fair_boot(env_filepath: str, env: dict) -> bool:
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+    if not skip_cleanup and current_stream != env['NODE_VERSION']:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM'],
+            env['NODE_VERSION'],
         )
         docker_cleanup()
 
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -148,7 +153,12 @@ def update_fair_boot(env_filepath: str, env: dict) -> bool:
 
 
 @checked_host
-def update(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
+def update(
+    env_filepath: str,
+    env: dict,
+    update_type: FairUpdateType,
+    force_skaled_start: bool,
+) -> bool:
     compose_rm(node_type=NodeType.FAIR, env=env)
     if update_type not in (FairUpdateType.INFRA_ONLY, FairUpdateType.FROM_BOOT):
         remove_dynamic_containers()
@@ -166,23 +176,24 @@ def update(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+    if not skip_cleanup and current_stream != env['NODE_VERSION']:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM'],
+            env['NODE_VERSION'],
         )
         docker_cleanup()
 
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )
 
+    fair_chain_name = get_fair_chain_name(env)
     if update_type == FairUpdateType.FROM_BOOT:
-        migrate_nftables_from_boot()
+        migrate_nftables_from_boot(chain_name=fair_chain_name)
 
     update_images(env=env, node_type=NodeType.FAIR)
 
@@ -191,7 +202,7 @@ def update(env_filepath: str, env: dict, update_type: FairUpdateType) -> bool:
     time.sleep(REDIS_START_TIMEOUT)
     if update_type == FairUpdateType.FROM_BOOT:
         migrate_chain_record(env)
-
+    update_chain_record(env, force_skaled_start=force_skaled_start)
     compose_up(env=env, node_type=NodeType.FAIR)
     return True
 
@@ -222,7 +233,7 @@ def restore(env, backup_path, config_only=False):
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
+        env['NODE_VERSION'],
         distro.id(),
         distro.version(),
     )

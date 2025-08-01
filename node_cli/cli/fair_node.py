@@ -20,6 +20,7 @@
 import click
 
 from node_cli.core.node import backup
+from node_cli.fair.fair_node import change_ip as change_ip_fair
 from node_cli.fair.fair_node import cleanup as fair_cleanup
 from node_cli.fair.fair_node import (
     get_node_info,
@@ -30,7 +31,7 @@ from node_cli.fair.fair_node import (
 from node_cli.fair.fair_node import init as init_fair
 from node_cli.fair.fair_node import register as register_fair
 from node_cli.fair.fair_node import update as update_fair
-from node_cli.utils.helper import IP_TYPE, URL_TYPE, abort_if_false, streamed_cmd
+from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
 TEXTS = safe_load_texts()
@@ -75,9 +76,21 @@ def register(ip: str) -> None:
     prompt='Are you sure you want to update Fair node software?',
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
+@click.option(
+    '--force-skaled-start',
+    'force_skaled_start',
+    hidden=True,
+    type=bool,
+    default=False,
+    is_flag=True,
+)
 @streamed_cmd
-def update_node(env_filepath: str, pull_config_for_schain):
-    update_fair(env_filepath=env_filepath, pull_config_for_schain=pull_config_for_schain)
+def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: bool):
+    update_fair(
+        env_filepath=env_filepath,
+        pull_config_for_schain=pull_config_for_schain,
+        force_skaled_start=force_skaled_start,
+    )
 
 
 @node.command('backup', help='Generate backup file for the Fair node.')
@@ -118,7 +131,7 @@ def migrate_node(env_filepath: str) -> None:
 @node.command('repair', help='Toggle fair chain repair mode')
 @click.option(
     '--snapshot-from',
-    type=URL_TYPE,
+    type=URL_OR_ANY_TYPE,
     default='any',
     hidden=True,
     help=TEXTS['fair']['node']['repair']['snapshot_from'],
@@ -146,3 +159,9 @@ def repair(snapshot_from: str = 'any') -> None:
 @streamed_cmd
 def cleanup_node():
     fair_cleanup()
+
+
+@node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])
+@click.argument('ip', type=IP_TYPE)
+def change_ip(ip: str) -> None:
+    change_ip_fair(ip=ip)
