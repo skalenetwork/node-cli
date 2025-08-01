@@ -30,7 +30,9 @@ ALL_V1_ROUTES = [
     '/api/v1/ssl/upload',
 
     '/api/v1/wallet/info',
-    '/api/v1/wallet/send-eth'
+    '/api/v1/wallet/send-eth',
+
+    '/api/v1/fair/node/exit'
 ]
 
 

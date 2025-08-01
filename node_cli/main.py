@@ -39,6 +39,7 @@ from node_cli.cli.exit import exit_cli
 from node_cli.cli.validate import validate_cli
 from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.cli.sync_node import sync_node_cli
+from node_cli.cli.fair import fair_cli
 
 from node_cli.utils.helper import safe_load_texts, init_default_logger
 from node_cli.configs import LONG_LINE
@@ -94,7 +95,8 @@ def get_sources_list() -> List[click.MultiCommand]:
             ssl_cli,
             exit_cli,
             validate_cli,
-            lvmpy_cli
+            lvmpy_cli,
+            fair_cli
         ]
 
 
