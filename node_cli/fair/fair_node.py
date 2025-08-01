@@ -103,8 +103,15 @@ def migrate_from_boot(
 
 @check_inited
 @check_user
-def update(env_filepath: str, pull_config_for_schain: str | None = None) -> None:
-    logger.info('Updating fair node...')
+def update(
+    env_filepath: str, pull_config_for_schain: str | None = None, force_skaled_start: bool = False
+) -> None:
+    logger.info(
+        'Updating fair node: %s, pull_config_for_schain: %s, force_skaled_start: %s',
+        env_filepath,
+        pull_config_for_schain,
+        force_skaled_start,
+    )
     env = compose_node_env(
         env_filepath,
         inited_node=True,
@@ -112,7 +119,12 @@ def update(env_filepath: str, pull_config_for_schain: str | None = None) -> None
         node_type=NodeType.FAIR,
         pull_config_for_schain=pull_config_for_schain,
     )
-    update_ok = update_fair_op(env_filepath, env, update_type=FairUpdateType.REGULAR)
+    update_ok = update_fair_op(
+        env_filepath,
+        env,
+        update_type=FairUpdateType.REGULAR,
+        force_skaled_start=force_skaled_start,
+    )
     alive = is_base_containers_alive(node_type=NodeType.FAIR)
     if not update_ok or not alive:
         print_node_cmd_error()
