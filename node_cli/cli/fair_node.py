@@ -22,6 +22,7 @@ import click
 from node_cli.core.node import backup
 from node_cli.fair.fair_node import change_ip as change_ip_fair
 from node_cli.fair.fair_node import cleanup as fair_cleanup
+from node_cli.fair.fair_node import exit as exit_fair
 from node_cli.fair.fair_node import (
     get_node_info,
     migrate_from_boot,
@@ -165,3 +166,15 @@ def cleanup_node():
 @click.argument('ip', type=IP_TYPE)
 def change_ip(ip: str) -> None:
     change_ip_fair(ip=ip)
+
+
+@node.command('exit', help=TEXTS['fair']['node']['exit']['help'])
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt=TEXTS['fair']['node']['exit']['prompt'],
+)
+def exit_node() -> None:
+    exit_fair()
