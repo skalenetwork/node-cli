@@ -125,7 +125,7 @@ def test_migrate_from_boot(
         node_type=NodeType.FAIR,
     )
     mock_migrate_op.assert_called_once_with(
-        valid_env_file, mock_env, update_type=FairUpdateType.FROM_BOOT
+        valid_env_file, mock_env, update_type=FairUpdateType.FROM_BOOT, force_skaled_start=False
     )
 
 
