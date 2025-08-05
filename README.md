@@ -29,9 +29,10 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    1. [Top level commands (Fair)](#top-level-commands-fair)
    2. [Fair Boot commands](#fair-boot-commands)
    3. [Fair Node commands](#fair-node-commands)
-   4. [Fair Wallet commands](#fair-wallet-commands)
-   5. [Fair Logs commands](#fair-logs-commands)
-   6. [Fair SSL commands](#fair-ssl-commands)
+   4. [Fair Chain commands](#fair-chain-commands)
+   5. [Fair Wallet commands](#fair-wallet-commands)
+   6. [Fair Logs commands](#fair-logs-commands)
+   7. [Fair SSL commands](#fair-ssl-commands)
 5. [Exit codes](#exit-codes)
 6. [Development](#development)
 
@@ -841,7 +842,7 @@ Options:
 Update the Fair node software.
 
 ```shell
-fair node update <ENV_FILEPATH> [--yes] [--pull-config SCHAIN]
+fair node update <ENV_FILEPATH> [--yes] [--force-skaled-start]
 ```
 
 Arguments:
@@ -865,7 +866,7 @@ Optional variables:
 Options:
 
 * `--yes` - Update without confirmation prompt.
-* `--pull-config` - Pull configuration for specific sChain (hidden option).
+* `--force-skaled-start` - Force skaled container to start (hidden option).
 
 #### Fair Node Migrate
 
@@ -962,6 +963,36 @@ fair node change-ip <IP_ADDRESS>
 Arguments:
 
 * `IP_ADDRESS` - New public IP address for the Fair node.
+
+### Fair Chain commands
+
+> Prefix: `fair chain`
+
+Commands for managing and monitoring the Fair chain state and configuration.
+
+#### Fair Chain Record
+
+Get information about the Fair chain record, including chain name, configuration status, DKG status, and operational metadata.
+
+```shell
+fair chain record [--json]
+```
+
+Options:
+
+* `--json` - Output in JSON format instead of formatted table.
+
+#### Fair Chain Checks
+
+Get the status of Fair chain checks, including configuration checks and skaled checks.
+
+```shell
+fair chain checks [--json]
+```
+
+Options:
+
+* `--json` - Output in JSON format instead of formatted table.
 
 ### Fair Wallet commands
 

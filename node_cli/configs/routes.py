@@ -41,6 +41,7 @@ ROUTES = {
         'ssl': ['status', 'upload'],
         'wallet': ['info', 'send-eth'],
         'fair-node': ['info', 'register', 'change-ip', 'exit'],
+        'fair-chain': ['record', 'checks'],
     }
 }
 

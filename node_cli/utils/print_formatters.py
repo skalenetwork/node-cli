@@ -323,3 +323,43 @@ def print_meta_info(meta_info: CliMeta) -> None:
         {LONG_LINE}
     """)
     )
+
+
+def print_chain_record(record):
+    print(
+        inspect.cleandoc(f"""
+        {LONG_LINE}
+        Fair Chain Record
+        Chain Name: {record.get('name', 'N/A')}
+        Config Version: {record.get('config_version', 'N/A')}
+        Sync Config Run: {record.get('sync_config_run', 'N/A')}
+        First Run: {record.get('first_run', 'N/A')}
+        Backup Run: {record.get('backup_run', 'N/A')}
+        Restart Count: {record.get('restart_count', 'N/A')}
+        Failed RPC Count: {record.get('failed_rpc_count', 'N/A')}
+        Monitor Last Seen: {record.get('monitor_last_seen', 'N/A')}
+        SSL Change Date: {record.get('ssl_change_date', 'N/A')}
+        Repair Date: {record.get('repair_date', 'N/A')}
+        DKG Status: {record.get('dkg_status', 'N/A')}
+        Repair Timestamp: {record.get('repair_ts', 'N/A')}
+        Snapshot From: {record.get('snapshot_from', 'N/A')}
+        Restart Timestamp: {record.get('restart_ts', 'N/A')}
+        Force Skaled Start: {record.get('force_skaled_start', 'N/A')}
+        {LONG_LINE}
+    """)
+    )
+
+
+def print_chain_checks(checks):
+    def format_checks(check_dict, title):
+        print(f'\n{title}:')
+        for name, result in check_dict.items():
+            status = 'PASS' if result else 'FAIL'
+            print(f'  {name}: {status}')
+
+    print(f'{LONG_LINE}')
+    print('Fair Chain Checks')
+    print(f'{LONG_LINE}')
+    format_checks(checks['config_checks'], 'Config Checks')
+    format_checks(checks['skaled_checks'], 'Skaled Checks')
+    print(f'{LONG_LINE}')
