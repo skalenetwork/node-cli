@@ -164,6 +164,7 @@ def cleanup_node():
 
 @node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])
 @click.argument('ip', type=IP_TYPE)
+@streamed_cmd
 def change_ip(ip: str) -> None:
     change_ip_fair(ip=ip)
 
@@ -176,5 +177,6 @@ def change_ip(ip: str) -> None:
     expose_value=False,
     prompt=TEXTS['fair']['node']['exit']['prompt'],
 )
+@streamed_cmd
 def exit_node() -> None:
     exit_fair()
