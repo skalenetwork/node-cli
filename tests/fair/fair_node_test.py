@@ -125,7 +125,7 @@ def test_migrate_from_boot(
         node_type=NodeType.FAIR,
     )
     mock_migrate_op.assert_called_once_with(
-        valid_env_file, mock_env, update_type=FairUpdateType.FROM_BOOT
+        valid_env_file, mock_env, update_type=FairUpdateType.FROM_BOOT, force_skaled_start=False
     )
 
 
@@ -257,3 +257,65 @@ def test_cleanup_logs_success_message(
     mock_logger.info.assert_called_once_with(
         'Fair node was cleaned up, all containers and data removed'
     )
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.fair.fair_node.post_request')
+@mock.patch('node_cli.fair.fair_node.is_node_inited', return_value=True)
+def test_exit_success(
+    mock_is_inited,
+    mock_post_request,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    from node_cli.fair.fair_node import exit
+
+    mock_post_request.return_value = ('ok', {})
+
+    exit()
+
+    mock_post_request.assert_called_once_with(blueprint='fair-node', method='exit', json={})
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.fair.fair_node.error_exit')
+@mock.patch('node_cli.fair.fair_node.post_request')
+@mock.patch('node_cli.fair.fair_node.is_node_inited', return_value=True)
+def test_exit_error(
+    mock_is_inited,
+    mock_post_request,
+    mock_error_exit,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+):
+    from node_cli.fair.fair_node import exit
+
+    error_msg = 'Exit failed'
+    mock_post_request.return_value = ('error', error_msg)
+
+    exit()
+
+    mock_post_request.assert_called_once_with(blueprint='fair-node', method='exit', json={})
+    mock_error_exit.assert_called_once_with(error_msg, exit_code=mock.ANY)
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.fair.fair_node.is_node_inited', return_value=False)
+def test_exit_not_inited(
+    mock_is_inited,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+    capsys,
+):
+    from node_cli.fair.fair_node import exit
+
+    exit()
+
+    captured = capsys.readouterr()
+    assert 'Node should be initialized to proceed with operation' in captured.out
