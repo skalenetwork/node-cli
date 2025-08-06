@@ -82,7 +82,7 @@ def upload(key_path, cert_path, force):
 @click.option(
     '--port',
     '-p',
-    help='Port to start ssl healtcheck server',
+    help='Port to start ssl healthcheck server',
     type=int,
     default=DEFAULT_SSL_CHECK_PORT,
 )
