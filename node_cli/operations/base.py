@@ -259,7 +259,7 @@ def init_fair_boot(env_filepath: str, env: dict) -> None:
     compose_up(env=env, node_type=NodeType.FAIR, is_fair_boot=True)
 
 
-def init_sync(
+def init_passive(
     env_filepath: str,
     env: dict,
     indexer: bool,
@@ -308,13 +308,13 @@ def init_sync(
         ts = int(time.time())
         update_node_cli_schain_status(schain_name, repair_ts=ts, snapshot_from=snapshot_from)
 
-    update_images(env=env, node_type=NodeType.SYNC)
+    update_images(env=env, node_type=NodeType.PASSIVE)
 
-    compose_up(env=env, node_type=NodeType.SYNC)
+    compose_up(env=env, node_type=NodeType.PASSIVE)
 
 
-def update_sync(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env=env, node_type=NodeType.SYNC)
+def update_passive(env_filepath: str, env: Dict) -> bool:
+    compose_rm(env=env, node_type=NodeType.PASSIVE)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(env['NODE_VERSION'], env.get('CONTAINER_CONFIGS_DIR'))
@@ -341,9 +341,9 @@ def update_sync(env_filepath: str, env: Dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.SYNC)
+    update_images(env=env, node_type=NodeType.PASSIVE)
 
-    compose_up(env=env, node_type=NodeType.SYNC)
+    compose_up(env=env, node_type=NodeType.PASSIVE)
     return True
 
 
@@ -423,8 +423,8 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     return True
 
 
-def cleanup_sync(env, schain_name: str) -> None:
-    turn_off(env, node_type=NodeType.SYNC)
-    cleanup_no_lvm_datadir(schain_name=schain_name)
+def cleanup_passive(env, schain_name: str) -> None:
+    turn_off(env, node_type=NodeType.PASSIVE)
+    cleanup_no_lvm_datadir(chain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)

@@ -51,7 +51,7 @@ def check_ssl_certs():
 
 
 def is_regular_node_nginx() -> bool:
-    return TYPE in [NodeType.REGULAR, NodeType.SYNC]
+    return TYPE in [NodeType.REGULAR, NodeType.PASSIVE]
 
 
 def reload_nginx() -> None:

@@ -22,7 +22,7 @@ import pathlib
 
 import mock
 
-from node_cli.cli.sync_node import _cleanup_sync, _init_sync, _update_sync
+from node_cli.cli.passive_node import _cleanup_passive, _init_passive, _update_passive
 from node_cli.configs import NODE_DATA_PATH, SKALE_DIR
 from node_cli.core.node_options import NodeOptions
 from node_cli.utils.helper import init_default_logger
@@ -36,18 +36,18 @@ logger = logging.getLogger(__name__)
 init_default_logger()
 
 
-def test_init_sync(mocked_g_config, clean_node_options, sync_user_conf):
+def test_init_passive(mocked_g_config, clean_node_options, passive_user_conf):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.init_sync_op'),
+        mock.patch('node_cli.core.node.init_passive_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        result = run_command(_init_sync, [sync_user_conf.as_posix()])
+        result = run_command(_init_passive, [passive_user_conf.as_posix()])
 
         node_options = NodeOptions()
         assert not node_options.archive
@@ -57,7 +57,7 @@ def test_init_sync(mocked_g_config, clean_node_options, sync_user_conf):
         assert result.exit_code == 0
 
 
-def test_init_sync_archive(mocked_g_config, clean_node_options, sync_user_conf):
+def test_init_passive_archive(mocked_g_config, clean_node_options, passive_user_conf):
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
@@ -78,9 +78,9 @@ def test_init_sync_archive(mocked_g_config, clean_node_options, sync_user_conf):
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.SYNC),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.PASSIVE),
     ):
-        result = run_command(_init_sync, [sync_user_conf.as_posix(), '--archive'])
+        result = run_command(_init_passive, [passive_user_conf.as_posix(), '--archive'])
         node_options = NodeOptions()
 
         assert node_options.archive
@@ -94,7 +94,7 @@ def test_init_archive_indexer_fail(mocked_g_config, clean_node_options):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.init_sync_op'),
+        mock.patch('node_cli.core.node.init_passive_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
@@ -102,17 +102,17 @@ def test_init_archive_indexer_fail(mocked_g_config, clean_node_options):
         mock.patch('node_cli.core.node.compose_node_env', return_value={}),
         set_env_var('ENV_TYPE', 'devnet'),
     ):
-        result = run_command(_init_sync, ['./tests/test-env', '--archive', '--indexer'])
+        result = run_command(_init_passive, ['./tests/test-env', '--archive', '--indexer'])
         assert result.exit_code == 1
         assert 'Cannot use both' in result.output
 
 
-def test_update_sync(sync_user_conf, mocked_g_config):
+def test_update_passive(passive_user_conf, mocked_g_config):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
 
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.update_sync_op'),
+        mock.patch('node_cli.core.node.update_passive_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
@@ -123,16 +123,16 @@ def test_update_sync(sync_user_conf, mocked_g_config):
         ),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        result = run_command(_update_sync, [sync_user_conf.as_posix(), '--yes'])
+        result = run_command(_update_passive, [passive_user_conf.as_posix(), '--yes'])
         assert result.exit_code == 0
 
 
-def test_cleanup_sync(mocked_g_config):
+def test_cleanup_passive(mocked_g_config):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
 
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.cleanup_sync_op'),
+        mock.patch('node_cli.core.node.cleanup_passive_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
@@ -143,5 +143,5 @@ def test_cleanup_sync(mocked_g_config):
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):
-        result = run_command(_cleanup_sync, ['--yes'])
+        result = run_command(_cleanup_passive, ['--yes'])
         assert result.exit_code == 0

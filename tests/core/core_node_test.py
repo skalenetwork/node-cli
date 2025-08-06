@@ -34,12 +34,12 @@ WRONG_CONTAINERS = [
     'WRONG_CONTAINER_1',
     'skale_WRONG_CONTAINER_4',
     'fair_WRONG_CONTAINER_6',
-    'sync_WRONG_CONTAINER_8',
+    'passive_WRONG_CONTAINER_8',
 ]
 
 NODE_TYPE_BOOT_COMBINATIONS: list[tuple[NodeType, bool]] = [
     (NodeType.REGULAR, False),
-    (NodeType.SYNC, False),
+    (NodeType.PASSIVE, False),
     (NodeType.FAIR, True),
     (NodeType.FAIR, False),
 ]
@@ -173,8 +173,8 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
             True,
         ),
         (
-            NodeType.SYNC,
-            'sync_user_conf',
+            NodeType.PASSIVE,
+            'passive_user_conf',
             False,
             False,
             False,
@@ -205,8 +205,8 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
     ],
     ids=[
         'regular',
-        'regular_sync_flag',
-        'sync',
+        'regular_passive_flag',
+        'passive',
         'fair_boot',
         'fair_regular',
     ],
@@ -244,7 +244,7 @@ def test_compose_node_env(
     ) == expect_flask_key
     if expect_flask_key:
         assert result_env['FLASK_SECRET_KEY'] == 'mock_secret'
-    should_have_backup = sync_schains and node_type != NodeType.SYNC
+    should_have_backup = sync_schains and node_type != NodeType.PASSIVE
     assert ('BACKUP_RUN' in result_env and result_env['BACKUP_RUN'] == 'True') == should_have_backup
 
 
@@ -358,7 +358,7 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
             assert result is None
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.FAIR])
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.PASSIVE, NodeType.FAIR])
 @mock.patch('node_cli.core.node.is_admin_running', return_value=False)
 @mock.patch('node_cli.core.node.is_api_running', return_value=False)
 @mock.patch('node_cli.utils.helper.requests.get')
@@ -372,14 +372,14 @@ def test_is_update_safe_when_admin_and_api_not_running(
 @mock.patch('node_cli.core.node.is_admin_running', return_value=False)
 @mock.patch('node_cli.core.node.is_api_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
-def test_is_update_safe_when_admin_not_running_for_sync(
+def test_is_update_safe_when_admin_not_running_for_passive(
     mock_requests_get, mock_is_api_running, mock_is_admin_running
 ):
-    assert is_update_safe(node_type=NodeType.SYNC) is True
+    assert is_update_safe(node_type=NodeType.PASSIVE) is True
     mock_requests_get.assert_not_called()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.FAIR])
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.PASSIVE, NodeType.FAIR])
 @pytest.mark.parametrize(
     'api_is_safe, expected_result',
     [(True, True), (False, False)],
@@ -417,7 +417,7 @@ def test_is_update_safe_when_only_api_running_for_regular(
     mock_requests_get.assert_called_once()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.SYNC, NodeType.FAIR])
+@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.PASSIVE, NodeType.FAIR])
 @mock.patch('node_cli.core.node.is_admin_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_api_call_fails(mock_requests_get, mock_is_admin_running, node_type):

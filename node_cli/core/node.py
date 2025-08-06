@@ -49,22 +49,22 @@ from node_cli.core.host import get_flask_secret_key, is_node_inited, save_env_pa
 from node_cli.core.resources import update_resource_allocation
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
-    cleanup_sync_op,
+    cleanup_passive_op,
     configure_nftables,
     init_op,
-    init_sync_op,
+    init_passive_op,
     restore_op,
     turn_off_op,
     turn_on_op,
     update_op,
-    update_sync_op,
+    update_passive_op,
 )
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.docker_utils import (
     BASE_FAIR_BOOT_COMPOSE_SERVICES,
     BASE_FAIR_COMPOSE_SERVICES,
     BASE_SKALE_COMPOSE_SERVICES,
-    BASE_SYNC_COMPOSE_SERVICES,
+    BASE_PASSIVE_COMPOSE_SERVICES,
     is_admin_running,
     is_api_running,
 )
@@ -103,7 +103,7 @@ class NodeStatuses(Enum):
 
 def is_update_safe(node_type: NodeType) -> bool:
     if not is_admin_running(node_type):
-        if node_type == NodeType.SYNC:
+        if node_type == NodeType.PASSIVE:
             return True
         elif not is_api_running(node_type):
             return True
@@ -178,33 +178,33 @@ def restore(backup_path, env_filepath, node_type: NodeType, no_snapshot=False, c
 
 
 @check_not_inited
-def init_sync(
+def init_passive(
     env_filepath: str, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
-    env = compose_node_env(env_filepath, node_type=NodeType.SYNC)
+    env = compose_node_env(env_filepath, node_type=NodeType.PASSIVE)
     if env is None:
         return
-    init_sync_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
+    init_passive_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive(node_type=NodeType.SYNC):
+    if not is_base_containers_alive(node_type=NodeType.PASSIVE):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    logger.info('Sync node initialized successfully')
+    logger.info('Passive node initialized successfully')
 
 
 @check_inited
 @check_user
-def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
+def update_passive(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
     prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
-    env = compose_node_env(env_filepath, node_type=NodeType.SYNC)
-    update_ok = update_sync_op(env_filepath, env)
+    env = compose_node_env(env_filepath, node_type=NodeType.PASSIVE)
+    update_ok = update_passive_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
-    alive = is_base_containers_alive(node_type=NodeType.SYNC)
+    alive = is_base_containers_alive(node_type=NodeType.PASSIVE)
     if not update_ok or not alive:
         print_node_cmd_error()
         return
@@ -214,11 +214,11 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
 
 @check_inited
 @check_user
-def cleanup_sync() -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.SYNC)
+def cleanup_passive() -> None:
+    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.PASSIVE)
     schain_name = env['SCHAIN_NAME']
-    cleanup_sync_op(env, schain_name)
-    logger.info('Sync node was cleaned up, all containers and data removed')
+    cleanup_passive_op(env, schain_name)
+    logger.info('Passive node was cleaned up, all containers and data removed')
 
 
 def compose_node_env(
@@ -245,7 +245,7 @@ def compose_node_env(
             is_fair_boot=is_fair_boot,
         )
 
-    if node_type == NodeType.SYNC or node_type == NodeType.FAIR:
+    if node_type == NodeType.PASSIVE or node_type == NodeType.FAIR:
         mnt_dir = SCHAINS_MNT_DIR_SINGLE_CHAIN
     else:
         mnt_dir = SCHAINS_MNT_DIR_REGULAR
@@ -258,10 +258,10 @@ def compose_node_env(
         **user_config.to_env(),
     }
 
-    if inited_node and not node_type == NodeType.SYNC:
+    if inited_node and not node_type == NodeType.PASSIVE:
         env['FLASK_SECRET_KEY'] = get_flask_secret_key()
 
-    if sync_schains and not node_type == NodeType.SYNC:
+    if sync_schains and not node_type == NodeType.PASSIVE:
         env['BACKUP_RUN'] = 'True'
 
     if pull_config_for_schain:
@@ -431,8 +431,8 @@ def get_expected_container_names(node_type: NodeType, is_fair_boot: bool) -> lis
         services = BASE_FAIR_BOOT_COMPOSE_SERVICES
     elif node_type == NodeType.FAIR and not is_fair_boot:
         services = BASE_FAIR_COMPOSE_SERVICES
-    elif node_type == NodeType.SYNC:
-        services = BASE_SYNC_COMPOSE_SERVICES
+    elif node_type == NodeType.PASSIVE:
+        services = BASE_PASSIVE_COMPOSE_SERVICES
     else:
         services = BASE_SKALE_COMPOSE_SERVICES
 

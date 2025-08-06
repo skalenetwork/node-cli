@@ -35,7 +35,7 @@ from node_cli.configs import (
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    SYNC_COMPOSE_PATH,
+    PASSIVE_COMPOSE_PATH,
 )
 from node_cli.utils.helper import run_cmd, str_to_bool
 from node_cli.utils.node_type import NodeType
@@ -76,8 +76,8 @@ BASE_FAIR_BOOT_COMPOSE_SERVICES = {
     'fair-boot-api': 'fair_boot_api',
 }
 
-BASE_SYNC_COMPOSE_SERVICES = {
-    'skale-sync-admin': 'skale_sync_admin',
+BASE_PASSIVE_COMPOSE_SERVICES = {
+    'skale-passive-admin': 'skale_passive_admin',
     'nginx': 'skale_nginx',
 }
 
@@ -285,8 +285,8 @@ def compose_build(env: dict, node_type: NodeType):
 
 
 def get_compose_path(node_type: NodeType) -> str:
-    if node_type == NodeType.SYNC:
-        return SYNC_COMPOSE_PATH
+    if node_type == NodeType.PASSIVE:
+        return PASSIVE_COMPOSE_PATH
     elif node_type == NodeType.FAIR:
         return FAIR_COMPOSE_PATH
     else:
@@ -294,8 +294,8 @@ def get_compose_path(node_type: NodeType) -> str:
 
 
 def get_compose_services(node_type: NodeType) -> list[str]:
-    if node_type == NodeType.SYNC:
-        result = list(BASE_SYNC_COMPOSE_SERVICES)
+    if node_type == NodeType.PASSIVE:
+        result = list(BASE_PASSIVE_COMPOSE_SERVICES)
     elif node_type == NodeType.FAIR:
         result = list(BASE_FAIR_COMPOSE_SERVICES)
     else:
@@ -316,9 +316,9 @@ def get_up_compose_cmd(node_type: NodeType, services: list[str] | None = None) -
 def compose_up(
     env, node_type: NodeType, is_fair_boot: bool = False, services: list[str] | None = None
 ):
-    if node_type == NodeType.SYNC:
-        logger.info('Running containers for sync node')
-        run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.SYNC), env=env)
+    if node_type == NodeType.PASSIVE:
+        logger.info('Running containers for passive node')
+        run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.PASSIVE), env=env)
         return
 
     if 'SGX_CERTIFICATES_DIR_NAME' not in env:
@@ -406,8 +406,8 @@ def is_admin_running(node_type: NodeType, client: Optional[DockerClient] = None)
     container_name = 'skale_admin'
     if node_type == NodeType.FAIR:
         container_name = 'fair_admin'
-    elif node_type == NodeType.SYNC:
-        container_name = 'skale_sync_admin'
+    elif node_type == NodeType.PASSIVE:
+        container_name = 'skale_passive_admin'
     return is_container_running(name=container_name, dclient=client)
 
 

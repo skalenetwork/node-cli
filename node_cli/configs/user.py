@@ -116,7 +116,7 @@ class SkaleUserConfig(BaseUserConfig):
 
 
 @dataclass
-class SyncUserConfig(BaseUserConfig):
+class PassiveUserConfig(BaseUserConfig):
     endpoint: str
     manager_contracts: str
     schain_name: str = ''
@@ -176,8 +176,8 @@ def get_user_config_class(
         user_config_class = FairBootUserConfig
     elif node_type == NodeType.FAIR:
         user_config_class = FairUserConfig
-    elif node_type == NodeType.SYNC:
-        user_config_class = SyncUserConfig
+    elif node_type == NodeType.PASSIVE:
+        user_config_class = PassiveUserConfig
     else:
         user_config_class = SkaleUserConfig
     return user_config_class

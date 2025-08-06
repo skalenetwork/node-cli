@@ -60,13 +60,13 @@ exit:
     wait_for_rotations: "Node is waiting to finish rotations"
     completed: "Node exiting is completed"
 
-sync_node:
+passive_node:
   init:
-    help: Initialize sync SKALE node
-    indexer: Run sync node in indexer mode (disable block rotation)
+    help: Initialize passive SKALE node
+    indexer: Run passive node in indexer mode (disable block rotation)
     archive: Enable historic state and disable block rotation
     snapshot_from: IP of the node to take snapshot from
-    snapshot: Start sync node from snapshot
+    snapshot: Start passive node from snapshot
 
 lvmpy:
   help: Lvmpy commands

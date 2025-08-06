@@ -326,7 +326,7 @@ def test_backup():
     [
         (NodeType.REGULAR, 'regular_user_conf'),
         (NodeType.FAIR, 'fair_user_conf'),
-        (NodeType.SYNC, 'sync_user_conf'),
+        (NodeType.PASSIVE, 'passive_user_conf'),
     ],
 )
 def test_restore(request, node_type, test_user_conf, mocked_g_config, tmp_path):

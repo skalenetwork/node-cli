@@ -61,8 +61,8 @@ def nginx_template():
     [
         (NodeType.REGULAR, True, True, True),
         (NodeType.REGULAR, False, True, False),
-        (NodeType.SYNC, True, True, True),
-        (NodeType.SYNC, False, True, False),
+        (NodeType.PASSIVE, True, True, True),
+        (NodeType.PASSIVE, False, True, False),
         (NodeType.FAIR, True, False, True),
         (NodeType.FAIR, False, False, False),
     ],
@@ -133,7 +133,7 @@ def test_check_ssl_certs_missing_both(ssl_folder):
     'node_type, expected_result',
     [
         (NodeType.REGULAR, True),
-        (NodeType.SYNC, True),
+        (NodeType.PASSIVE, True),
         (NodeType.FAIR, False),
     ],
 )

@@ -18,7 +18,7 @@ if [ -z "$BRANCH" ]; then
     exit 1
 fi
 if [ -z "$TYPE_STR" ]; then
-    (>&2 echo 'You should provide type: normal, sync or fair')
+    (>&2 echo 'You should provide type: normal, passive or fair')
     echo $USAGE_MSG
     exit 1
 fi
@@ -35,14 +35,14 @@ case "$TYPE_STR" in
     normal)
         TYPE_ENUM="NodeType.REGULAR"
         ;;
-    sync)
-        TYPE_ENUM="NodeType.SYNC"
+    passive)
+        TYPE_ENUM="NodeType.PASSIVE"
         ;;
     fair)
         TYPE_ENUM="NodeType.FAIR"
         ;;
     *)
-        (>&2 echo "Error: Invalid type '$TYPE_STR'. Must be 'normal', 'sync', or 'fair'")
+        (>&2 echo "Error: Invalid type '$TYPE_STR'. Must be 'normal', 'passive', or 'fair'")
         exit 1
         ;;
 esac

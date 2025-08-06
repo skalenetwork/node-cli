@@ -226,7 +226,7 @@ def tmp_schains_dir():
 
 
 @pytest.fixture
-def tmp_sync_datadir():
+def tmp_passive_datadir():
     os.makedirs(TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN, exist_ok=True)
     try:
         yield TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
@@ -366,7 +366,7 @@ def fair_boot_user_conf(tmp_path):
 
 
 @pytest.fixture
-def sync_user_conf(tmp_path):
+def passive_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
     try:
         test_env = """

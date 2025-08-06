@@ -22,5 +22,5 @@ from enum import Enum
 
 class NodeType(Enum):
     REGULAR = 0
-    SYNC = 1
+    PASSIVE = 1
     FAIR = 2

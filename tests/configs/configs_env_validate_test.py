@@ -17,7 +17,7 @@ from node_cli.configs.user import (
     FairBootUserConfig,
     FairUserConfig,
     SkaleUserConfig,
-    SyncUserConfig,
+    PassiveUserConfig,
     get_user_config_class,
     get_validated_user_config,
     validate_env_type,
@@ -40,11 +40,11 @@ class FakeResponse:
     'node_type, is_fair_boot, expected_type',
     [
         (NodeType.REGULAR, False, SkaleUserConfig),
-        (NodeType.SYNC, False, SyncUserConfig),
+        (NodeType.PASSIVE, False, PassiveUserConfig),
         (NodeType.FAIR, True, FairBootUserConfig),
         (NodeType.FAIR, False, FairUserConfig),
     ],
-    ids=['regular', 'sync', 'fair_boot', 'fair_regular'],
+    ids=['regular', 'passive', 'fair_boot', 'fair_regular'],
 )
 def test_build_env_params_keys(node_type, is_fair_boot, expected_type):
     env_type = get_user_config_class(node_type=node_type, is_fair_boot=is_fair_boot)
