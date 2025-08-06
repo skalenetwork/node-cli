@@ -31,8 +31,8 @@ from node_cli.fair.fair_node import (
 )
 from node_cli.fair.fair_node import init as init_fair
 from node_cli.fair.fair_node import register as register_fair
-from node_cli.fair.fair_node import update as update_fair
 from node_cli.fair.fair_node import set_domain_name as set_domain_name_fair
+from node_cli.fair.fair_node import update as update_fair
 from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
 
