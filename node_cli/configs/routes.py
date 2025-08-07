@@ -40,7 +40,7 @@ ROUTES = {
         'schains': ['config', 'list', 'dkg-statuses', 'firewall-rules', 'repair', 'get'],
         'ssl': ['status', 'upload'],
         'wallet': ['info', 'send-eth'],
-        'fair-node': ['info', 'register', 'change-ip', 'exit'],
+        'fair-node': ['info', 'register', 'set-domain-name', 'change-ip', 'exit'],
         'fair-chain': ['record', 'checks'],
     }
 }
