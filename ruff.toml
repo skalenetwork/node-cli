@@ -5,4 +5,4 @@ quote-style = "single"
 
 [lint]
 # Add the `line-too-long` rule to the enforced rule set.
-extend-select = ["E501"]
+extend-select = ["E501", "I"]
