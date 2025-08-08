@@ -72,7 +72,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04] 
-        build_type: [normal, passive, fair] 
+        build_type: [skale, fair] 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4 
@@ -96,7 +96,7 @@ jobs:
         id: asset_details
         run: |
           ASSET_BASE_NAME="skale-${{ needs.create_release.outputs.version }}-Linux-x86_64"
-          if [[ "${{ matrix.build_type }}" == "normal" ]]; then
+          if [[ "${{ matrix.build_type }}" == "skale" ]]; then
             echo "FINAL_ASSET_NAME=${ASSET_BASE_NAME}" >> $GITHUB_OUTPUT
           else
             echo "FINAL_ASSET_NAME=${ASSET_BASE_NAME}-${{ matrix.build_type }}" >> $GITHUB_OUTPUT

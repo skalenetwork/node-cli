@@ -67,7 +67,7 @@ from node_cli.utils.docker_utils import (
 )
 from node_cli.utils.helper import rm_dir, str_to_bool
 from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 logger = logging.getLogger(__name__)
@@ -195,7 +195,6 @@ def update_fair_boot(env_filepath: str, env: Dict) -> bool:
 @checked_host
 def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
     sync_skale_node()
-
     ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
@@ -205,6 +204,9 @@ def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
 
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
+
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.ACTIVE
 
     configure_filebeat()
     configure_flask()

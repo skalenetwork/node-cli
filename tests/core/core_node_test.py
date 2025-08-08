@@ -38,7 +38,7 @@ WRONG_CONTAINERS = [
 ]
 
 NODE_TYPE_BOOT_COMBINATIONS: list[tuple[NodeType, bool]] = [
-    (NodeType.REGULAR, False),
+    (NodeType.SKALE, False),
     (NodeType.PASSIVE, False),
     (NodeType.FAIR, True),
     (NodeType.FAIR, False),
@@ -153,7 +153,7 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
     ),
     [
         (
-            NodeType.REGULAR,
+            NodeType.SKALE,
             'regular_user_conf',
             False,
             True,
@@ -163,7 +163,7 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
             False,
         ),
         (
-            NodeType.REGULAR,
+            NodeType.SKALE,
             'regular_user_conf',
             False,
             True,
@@ -323,7 +323,7 @@ def test_init_node(regular_user_conf, no_resource_file):  # todo: write new init
         mock.patch('node_cli.utils.helper.post_request', resp_mock),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        init(env_filepath=regular_user_conf.as_posix(), node_type=NodeType.REGULAR)
+        init(env_filepath=regular_user_conf.as_posix(), node_type=NodeType.SKALE)
         assert os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
 
 
@@ -353,12 +353,12 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
             result = update(
                 regular_user_conf.as_posix(),
                 pull_config_for_schain=None,
-                node_type=NodeType.REGULAR,
+                node_type=NodeType.SKALE,
             )
             assert result is None
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.PASSIVE, NodeType.FAIR])
+@pytest.mark.parametrize('node_type', [NodeType.SKALE, NodeType.PASSIVE, NodeType.FAIR])
 @mock.patch('node_cli.core.node.is_admin_running', return_value=False)
 @mock.patch('node_cli.core.node.is_api_running', return_value=False)
 @mock.patch('node_cli.utils.helper.requests.get')
@@ -379,7 +379,7 @@ def test_is_update_safe_when_admin_not_running_for_passive(
     mock_requests_get.assert_not_called()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.PASSIVE, NodeType.FAIR])
+@pytest.mark.parametrize('node_type', [NodeType.SKALE, NodeType.PASSIVE, NodeType.FAIR])
 @pytest.mark.parametrize(
     'api_is_safe, expected_result',
     [(True, True), (False, False)],
@@ -395,7 +395,7 @@ def test_is_update_safe_when_admin_running(
     mock_requests_get.assert_called_once()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.FAIR])
+@pytest.mark.parametrize('node_type', [NodeType.SKALE, NodeType.FAIR])
 @pytest.mark.parametrize(
     'api_is_safe, expected_result',
     [(True, True), (False, False)],
@@ -417,7 +417,7 @@ def test_is_update_safe_when_only_api_running_for_regular(
     mock_requests_get.assert_called_once()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.REGULAR, NodeType.PASSIVE, NodeType.FAIR])
+@pytest.mark.parametrize('node_type', [NodeType.SKALE, NodeType.PASSIVE, NodeType.FAIR])
 @mock.patch('node_cli.core.node.is_admin_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_api_call_fails(mock_requests_get, mock_is_admin_running, node_type):

@@ -46,6 +46,7 @@ from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH, get_validated_user_config
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.host import get_flask_secret_key, is_node_inited, save_env_params
+from node_cli.core.node_options import is_passive_node
 from node_cli.core.resources import update_resource_allocation
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
@@ -101,11 +102,11 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def is_update_safe(node_type: NodeType) -> bool:
-    if not is_admin_running(node_type):
-        if node_type == NodeType.PASSIVE:
+def is_update_safe() -> bool:
+    if not is_admin_running():
+        if is_passive_node():
             return True
-        elif not is_api_running(node_type):
+        elif not is_api_running():
             return True
     status, payload = get_request(BLUEPRINT_NAME, 'update-safe')
     if status == 'error':
@@ -223,7 +224,7 @@ def cleanup_passive() -> None:
 
 def compose_node_env(
     env_filepath: str,
-    node_type: NodeType,
+    # node_type: NodeType,
     inited_node: bool = False,
     sync_schains: Optional[bool] = None,
     pull_config_for_schain: Optional[str] = None,

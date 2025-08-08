@@ -72,7 +72,7 @@ def test_generate_already_exists(regular_user_conf, resource_alloc_config):
     resp_mock = response_mock(requests.codes.created)
     with (
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         result = run_command_mock(

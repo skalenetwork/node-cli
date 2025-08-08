@@ -379,8 +379,8 @@ def test_merge_report():
 
 
 def test_get_static_params(tmp_config_dir):
-    params = get_static_params(NodeType.REGULAR)
+    params = get_static_params(NodeType.SKALE)
     shutil.copy(STATIC_PARAMS_FILEPATH, tmp_config_dir)
-    tmp_params = get_static_params(NodeType.REGULAR, config_path=tmp_config_dir)
+    tmp_params = get_static_params(NodeType.SKALE, config_path=tmp_config_dir)
     assert params['server']['cpu_total'] == 8
     assert params == tmp_params

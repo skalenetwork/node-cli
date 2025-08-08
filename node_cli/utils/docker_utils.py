@@ -37,6 +37,7 @@ from node_cli.configs import (
     SGX_CERTIFICATES_DIR_NAME,
     PASSIVE_COMPOSE_PATH,
 )
+from node_cli.core.node_options import is_active_node, is_fair_node
 from node_cli.utils.helper import run_cmd, str_to_bool
 from node_cli.utils.node_type import NodeType
 
@@ -340,13 +341,13 @@ def compose_up(
     else:
         logger.info('Running skale node base set of containers')
         logger.debug('Launching skale node containers with env %s', env)
-        run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.REGULAR), env=env)
+        run_cmd(cmd=get_up_compose_cmd(node_type=NodeType.SKALE), env=env)
 
         if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
             logger.info('Running containers for Telegram notifications')
             run_cmd(
                 cmd=get_up_compose_cmd(
-                    node_type=NodeType.REGULAR, services=list(NOTIFICATION_COMPOSE_SERVICES)
+                    node_type=NodeType.SKALE, services=list(NOTIFICATION_COMPOSE_SERVICES)
                 ),
                 env=env,
             )
@@ -355,7 +356,7 @@ def compose_up(
         logger.info('Running monitoring containers')
         run_cmd(
             cmd=get_up_compose_cmd(
-                node_type=NodeType.REGULAR, services=list(MONITORING_COMPOSE_SERVICES)
+                node_type=NodeType.SKALE, services=list(MONITORING_COMPOSE_SERVICES)
             ),
             env=env,
         )
@@ -395,20 +396,25 @@ def is_container_running(name: str, dclient: Optional[DockerClient] = None) -> b
         return False
 
 
-def is_api_running(node_type: NodeType, dclient: Optional[DockerClient] = None) -> bool:
-    if node_type == NodeType.FAIR:
+def is_api_running(dclient: Optional[DockerClient] = None) -> bool:
+    if is_fair_node():
         return is_container_running(name='fair_api', dclient=dclient)
     else:
         return is_container_running(name='skale_api', dclient=dclient)
 
 
-def is_admin_running(node_type: NodeType, client: Optional[DockerClient] = None) -> bool:
-    container_name = 'skale_admin'
-    if node_type == NodeType.FAIR:
-        container_name = 'fair_admin'
-    elif node_type == NodeType.PASSIVE:
-        container_name = 'skale_passive_admin'
-    return is_container_running(name=container_name, dclient=client)
+def is_admin_running(dclient: Optional[DockerClient] = None) -> bool:
+    if is_fair_node():
+        if is_active_node():
+            container_name = 'fair_admin'
+        else:
+            container_name = 'fair_passive_admin'
+    else:
+        if is_active_node():
+            container_name = 'skale_admin'
+        else:
+            container_name = 'skale_passive_admin'
+    return is_container_running(name=container_name, dclient=dclient)
 
 
 def system_prune():

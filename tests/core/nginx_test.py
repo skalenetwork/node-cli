@@ -7,7 +7,7 @@ import mock
 from node_cli.core.nginx import (
     generate_nginx_config,
     check_ssl_certs,
-    is_regular_node_nginx,
+    is_skale_node_nginx,
     SSL_KEY_NAME,
     SSL_CRT_NAME,
 )
@@ -24,7 +24,7 @@ server {
     {% endif %}
 }
 
-{% if regular_node %}
+{% if skale_node %}
 server {
     listen 80;
     {% if ssl %}
@@ -59,8 +59,8 @@ def nginx_template():
 @pytest.mark.parametrize(
     'node_type, ssl_exists, expected_regular_flag, expected_ssl_flag',
     [
-        (NodeType.REGULAR, True, True, True),
-        (NodeType.REGULAR, False, True, False),
+        (NodeType.SKALE, True, True, True),
+        (NodeType.SKALE, False, True, False),
         (NodeType.PASSIVE, True, True, True),
         (NodeType.PASSIVE, False, True, False),
         (NodeType.FAIR, True, False, True),
@@ -132,14 +132,14 @@ def test_check_ssl_certs_missing_both(ssl_folder):
 @pytest.mark.parametrize(
     'node_type, expected_result',
     [
-        (NodeType.REGULAR, True),
+        (NodeType.SKALE, True),
         (NodeType.PASSIVE, True),
         (NodeType.FAIR, False),
     ],
 )
 @mock.patch('node_cli.core.nginx.TYPE')
-def test_is_regular_node_nginx(mock_type, node_type, expected_result):
+def test_is_skale_node_nginx(mock_type, node_type, expected_result):
     mock_type.__eq__.side_effect = lambda other: node_type == other
     mock_type.__ne__.side_effect = lambda other: node_type != other
 
-    assert is_regular_node_nginx() is expected_result
+    assert is_skale_node_nginx() is expected_result

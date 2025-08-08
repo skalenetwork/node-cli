@@ -89,6 +89,13 @@ class FairUserConfig(BaseUserConfig):
 
 
 @dataclass
+class PassiveFairUserConfig(BaseUserConfig):
+    fair_contracts: str
+    boot_endpoint: str
+    enforce_btrfs: str = ''
+
+
+@dataclass
 class FairBootUserConfig(BaseUserConfig):
     endpoint: str
     manager_contracts: str
@@ -116,7 +123,7 @@ class SkaleUserConfig(BaseUserConfig):
 
 
 @dataclass
-class PassiveUserConfig(BaseUserConfig):
+class PassiveSkaleUserConfig(BaseUserConfig):
     endpoint: str
     manager_contracts: str
     schain_name: str = ''
@@ -170,16 +177,21 @@ def parse_env_file(env_filepath: str) -> Dict:
 
 def get_user_config_class(
     node_type: NodeType,
+    is_passive: bool = False,
     is_fair_boot: bool = False,
 ) -> type[BaseUserConfig]:
     if node_type == NodeType.FAIR and is_fair_boot:
         user_config_class = FairBootUserConfig
     elif node_type == NodeType.FAIR:
-        user_config_class = FairUserConfig
-    elif node_type == NodeType.PASSIVE:
-        user_config_class = PassiveUserConfig
-    else:
-        user_config_class = SkaleUserConfig
+        if is_passive:
+            user_config_class = PassiveFairUserConfig
+        else:
+            user_config_class = FairUserConfig
+    elif node_type == NodeType.SKALE:
+        if is_passive:
+            user_config_class = PassiveSkaleUserConfig
+        else:
+            user_config_class = SkaleUserConfig
     return user_config_class
 
 

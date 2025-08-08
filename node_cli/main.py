@@ -84,9 +84,7 @@ def info():
 
 
 def get_sources_list() -> List[click.MultiCommand]:
-    if TYPE == NodeType.PASSIVE:
-        return [cli, passive_node_cli, ssl_cli]
-    elif TYPE == NodeType.FAIR:
+    if TYPE == NodeType.FAIR:
         return [
             cli,
             logs_cli,

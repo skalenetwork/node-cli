@@ -19,8 +19,11 @@
 
 import logging
 
+from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.helper import read_json, write_json, init_file
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
+from node_cli.cli.info import TYPE
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +44,7 @@ class NodeOptions:
 
     @property
     def archive(self) -> bool:
-        return self._get('archive')
+        return self._get('archive') or False
 
     @archive.setter
     def archive(self, archive: bool) -> None:
@@ -49,7 +52,7 @@ class NodeOptions:
 
     @property
     def catchup(self) -> bool:
-        return self._get('catchup')
+        return self._get('catchup') or False
 
     @catchup.setter
     def catchup(self, catchup: bool) -> None:
@@ -57,11 +60,49 @@ class NodeOptions:
 
     @property
     def historic_state(self) -> bool:
-        return self._get('historic_state')
+        return self._get('historic_state') or False
 
     @historic_state.setter
     def historic_state(self, historic_state: bool) -> None:
         return self._set('historic_state', historic_state)
 
+    @property
+    def node_mode(self) -> NodeMode:
+        return NodeMode(self._get('node_mode'))
+
+    @node_mode.setter
+    def node_mode(self, node_mode: NodeMode) -> None:
+        return self._set('node_mode', node_mode.name)
+
     def all(self) -> dict:
         return read_json(self.filepath)
+
+
+def mark_active_node() -> None:
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.ACTIVE
+    logger.info('Node marked as active.')
+
+
+def mark_passive_node() -> None:
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.PASSIVE
+    logger.info('Node marked as passive.')
+
+
+def is_active_node() -> bool:
+    node_options = NodeOptions()
+    return node_options.node_mode == NodeMode.ACTIVE
+
+
+def is_passive_node() -> bool:
+    node_options = NodeOptions()
+    return node_options.node_mode == NodeMode.PASSIVE
+
+
+def is_skale_node() -> bool:
+    return TYPE == NodeType.SKALE
+
+
+def is_fair_node() -> bool:
+    return TYPE == NodeType.FAIR

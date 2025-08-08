@@ -21,6 +21,10 @@ from enum import Enum
 
 
 class NodeType(Enum):
-    REGULAR = 0
-    PASSIVE = 1
-    FAIR = 2
+    SKALE = 0
+    FAIR = 1
+
+
+class NodeMode(str, Enum):
+    ACTIVE = 'active'
+    PASSIVE = 'passive'

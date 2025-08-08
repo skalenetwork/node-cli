@@ -324,7 +324,7 @@ def test_backup():
 @pytest.mark.parametrize(
     'node_type,test_user_conf',
     [
-        (NodeType.REGULAR, 'regular_user_conf'),
+        (NodeType.SKALE, 'regular_user_conf'),
         (NodeType.FAIR, 'fair_user_conf'),
         (NodeType.PASSIVE, 'passive_user_conf'),
     ],
@@ -394,7 +394,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
@@ -427,7 +427,7 @@ def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
