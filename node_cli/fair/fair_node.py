@@ -92,7 +92,9 @@ def migrate_from_boot(
         sync_schains=False,
         node_type=NodeType.FAIR,
     )
-    migrate_ok = update_fair_op(env_filepath, env, update_type=FairUpdateType.FROM_BOOT)
+    migrate_ok = update_fair_op(
+        env_filepath, env, update_type=FairUpdateType.FROM_BOOT, force_skaled_start=False
+    )
     alive = is_base_containers_alive(node_type=NodeType.FAIR)
     if not migrate_ok or not alive:
         print_node_cmd_error()
@@ -196,4 +198,42 @@ def change_ip(ip: str) -> None:
     else:
         error_msg = payload
         logger.error(f'Change IP error {error_msg}')
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+@check_inited
+@check_user
+def exit() -> None:
+    if not is_node_inited():
+        print(TEXTS['fair']['node']['not_inited'])
+        return
+
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='exit', json={})
+    if status == 'ok':
+        msg = TEXTS['fair']['node']['exited']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Node exit error {error_msg}')
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+@check_inited
+@check_user
+def set_domain_name(domain_name):
+    if not is_node_inited():
+        print(TEXTS['fair']['node']['not_inited'])
+        return
+
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME, method='set-domain-name', json={'domain_name': domain_name}
+    )
+    if status == 'ok':
+        msg = TEXTS['node']['domain_name_changed']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Setting domain name error {error_msg}')
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)

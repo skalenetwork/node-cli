@@ -22,6 +22,7 @@ import click
 from node_cli.core.node import backup
 from node_cli.fair.fair_node import change_ip as change_ip_fair
 from node_cli.fair.fair_node import cleanup as fair_cleanup
+from node_cli.fair.fair_node import exit as exit_fair
 from node_cli.fair.fair_node import (
     get_node_info,
     migrate_from_boot,
@@ -30,6 +31,7 @@ from node_cli.fair.fair_node import (
 )
 from node_cli.fair.fair_node import init as init_fair
 from node_cli.fair.fair_node import register as register_fair
+from node_cli.fair.fair_node import set_domain_name as set_domain_name_fair
 from node_cli.fair.fair_node import update as update_fair
 from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
@@ -163,5 +165,33 @@ def cleanup_node():
 
 @node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])
 @click.argument('ip', type=IP_TYPE)
+@streamed_cmd
 def change_ip(ip: str) -> None:
     change_ip_fair(ip=ip)
+
+
+@node.command('exit', help=TEXTS['fair']['node']['exit']['help'])
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt=TEXTS['fair']['node']['exit']['prompt'],
+)
+@streamed_cmd
+def exit_node() -> None:
+    exit_fair()
+
+
+@node.command('set-domain', help='Set node domain name')
+@click.option('--domain', '-d', prompt='Enter node domain name', type=str, help='Node domain name')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to set domain name?',
+)
+@streamed_cmd
+def set_domain_name(domain):
+    set_domain_name_fair(domain)
