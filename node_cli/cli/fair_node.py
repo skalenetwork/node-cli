@@ -31,6 +31,7 @@ from node_cli.fair.fair_node import (
 )
 from node_cli.fair.fair_node import init as init_fair
 from node_cli.fair.fair_node import register as register_fair
+from node_cli.fair.fair_node import set_domain_name as set_domain_name_fair
 from node_cli.fair.fair_node import update as update_fair
 from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.texts import safe_load_texts
@@ -180,3 +181,17 @@ def change_ip(ip: str) -> None:
 @streamed_cmd
 def exit_node() -> None:
     exit_fair()
+
+
+@node.command('set-domain', help='Set node domain name')
+@click.option('--domain', '-d', prompt='Enter node domain name', type=str, help='Node domain name')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to set domain name?',
+)
+@streamed_cmd
+def set_domain_name(domain):
+    set_domain_name_fair(domain)
