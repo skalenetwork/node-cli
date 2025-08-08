@@ -86,6 +86,9 @@ class FairUserConfig(BaseUserConfig):
     boot_endpoint: str
     sgx_server_url: str
     enforce_btrfs: str = ''
+    telegraf: str = ''
+    influx_token: str = ''
+    influx_url: str = ''
 
 
 @dataclass
