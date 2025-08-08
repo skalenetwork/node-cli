@@ -87,7 +87,6 @@ class FairUserConfig(BaseUserConfig):
     sgx_server_url: str
     enforce_btrfs: str = ''
     telegraf: str = ''
-    influx_token: str = ''
     influx_url: str = ''
 
 
@@ -109,7 +108,6 @@ class SkaleUserConfig(BaseUserConfig):
     sgx_server_url: str
     monitoring_containers: str = ''
     telegraf: str = ''
-    influx_token: str = ''
     influx_url: str = ''
     tg_api_key: str = ''
     tg_chat_id: str = ''

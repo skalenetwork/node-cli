@@ -50,9 +50,7 @@ def init_boot(env_file):
 
 
 @boot.command('register', help='Register Fair node in SKALE Manager (during Boot Phase).')
-@click.option(
-    '--name', '-n', required=True, prompt='Enter fair node name', help='Fair node name'
-)
+@click.option('--name', '-n', required=True, prompt='Enter fair node name', help='Fair node name')
 @click.option(
     '--ip',
     prompt='Enter node public IP',
