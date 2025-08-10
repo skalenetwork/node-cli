@@ -54,7 +54,6 @@ from node_cli.operations.volume import cleanup_volume_artifacts, prepare_block_d
 from node_cli.utils.docker_utils import (
     REDIS_SERVICE_DICT,
     REDIS_START_TIMEOUT,
-    NodeType,
     compose_rm,
     compose_up,
     docker_cleanup,
@@ -67,6 +66,7 @@ from node_cli.utils.docker_utils import (
 from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
 from node_cli.utils.meta import FairCliMetaManager
 from node_cli.utils.print_formatters import TEXTS, print_failed_requirements_checks
+from node_cli.utils.node_type import NodeMode, NodeType
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +103,8 @@ def init(env_filepath: str, env: dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.FAIR)
-    compose_up(env=env, node_type=NodeType.FAIR)
+    update_images(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
+    compose_up(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     wait_for_container(REDIS_SERVICE_DICT['redis'])
     time.sleep(REDIS_START_TIMEOUT)
     return True
@@ -112,7 +112,7 @@ def init(env_filepath: str, env: dict) -> bool:
 
 @checked_host
 def update_fair_boot(env_filepath: str, env: dict) -> bool:
-    compose_rm(node_type=NodeType.FAIR, env=env)
+    compose_rm(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, env=env)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
@@ -147,19 +147,20 @@ def update_fair_boot(env_filepath: str, env: dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.FAIR)
-    compose_up(env=env, node_type=NodeType.FAIR, is_fair_boot=True)
+    update_images(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
+    compose_up(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True)
     return True
 
 
 @checked_host
 def update(
+    node_mode: NodeMode,
     env_filepath: str,
     env: dict,
     update_type: FairUpdateType,
     force_skaled_start: bool,
 ) -> bool:
-    compose_rm(node_type=NodeType.FAIR, env=env)
+    compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=env)
     if update_type not in (FairUpdateType.INFRA_ONLY, FairUpdateType.FROM_BOOT):
         remove_dynamic_containers()
 
@@ -195,19 +196,21 @@ def update(
     if update_type == FairUpdateType.FROM_BOOT:
         migrate_nftables_from_boot(chain_name=fair_chain_name)
 
-    update_images(env=env, node_type=NodeType.FAIR)
+    update_images(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
 
-    compose_up(env=env, node_type=NodeType.FAIR, services=list(REDIS_SERVICE_DICT))
+    compose_up(
+        env=env, node_type=NodeType.FAIR, node_mode=node_mode, services=list(REDIS_SERVICE_DICT)
+    )
     wait_for_container(REDIS_SERVICE_DICT['redis'])
     time.sleep(REDIS_START_TIMEOUT)
     if update_type == FairUpdateType.FROM_BOOT:
         migrate_chain_record(env)
     update_chain_record(env, force_skaled_start=force_skaled_start)
-    compose_up(env=env, node_type=NodeType.FAIR)
+    compose_up(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
     return True
 
 
-def restore(env, backup_path, config_only=False):
+def restore(node_mode: NodeMode, env, backup_path, config_only=False):
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -239,7 +242,7 @@ def restore(env, backup_path, config_only=False):
     )
 
     if not config_only:
-        compose_up(env=env, node_type=NodeType.FAIR)
+        compose_up(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -254,8 +257,8 @@ def restore(env, backup_path, config_only=False):
     return True
 
 
-def cleanup(env: dict) -> None:
-    turn_off(env, node_type=NodeType.FAIR)
+def cleanup(node_mode: NodeMode, env: dict) -> None:
+    turn_off(env, node_type=NodeType.FAIR, node_mode=node_mode)
     cleanup_no_lvm_datadir()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
@@ -271,10 +274,10 @@ def trigger_skaled_snapshot_mode(env: dict, snapshot_from: str = 'any') -> None:
     print(TEXTS['fair']['node']['repair']['repair_requested'])
 
 
-def repair(env: dict, snapshot_from: str = 'any') -> None:
+def repair(node_mode: NodeMode, env: dict, snapshot_from: str = 'any') -> None:
     logger.info('Starting fair node repair')
     container_name = 'fair_admin'
-    if is_admin_running():
+    if is_admin_running(node_type=NodeType.FAIR, node_mode=node_mode):
         logger.info('Stopping admin container')
         stop_container_by_name(container_name=container_name)
     logger.info('Removing chain container')

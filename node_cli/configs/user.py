@@ -28,7 +28,7 @@ from dotenv.main import DotEnv
 from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_DIR
 from node_cli.configs.alias_address_validation import ContractType, validate_alias_or_address
 from node_cli.utils.helper import error_exit
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeMode, NodeType
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
@@ -133,11 +133,16 @@ class PassiveSkaleUserConfig(BaseUserConfig):
 
 def get_validated_user_config(
     node_type: NodeType,
+    node_mode: NodeMode,
     env_filepath: str = SKALE_DIR_ENV_FILEPATH,
     is_fair_boot: bool = False,
 ) -> BaseUserConfig:
     params = parse_env_file(env_filepath)
-    user_config_class = get_user_config_class(node_type, is_fair_boot)
+    user_config_class = get_user_config_class(
+        node_type=node_type,
+        node_mode=node_mode,
+        is_fair_boot=is_fair_boot,
+    )
     _, missing_params, extra_params = user_config_class.validate_params(params)
 
     if len(missing_params) > 0:
@@ -177,18 +182,18 @@ def parse_env_file(env_filepath: str) -> Dict:
 
 def get_user_config_class(
     node_type: NodeType,
-    is_passive: bool = False,
-    is_fair_boot: bool = False,
+    node_mode: NodeMode,
+    is_fair_boot: bool,
 ) -> type[BaseUserConfig]:
     if node_type == NodeType.FAIR and is_fair_boot:
         user_config_class = FairBootUserConfig
     elif node_type == NodeType.FAIR:
-        if is_passive:
+        if node_mode == NodeMode.PASSIVE:
             user_config_class = PassiveFairUserConfig
         else:
             user_config_class = FairUserConfig
     elif node_type == NodeType.SKALE:
-        if is_passive:
+        if node_mode == NodeMode.PASSIVE:
             user_config_class = PassiveSkaleUserConfig
         else:
             user_config_class = SkaleUserConfig

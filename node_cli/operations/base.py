@@ -41,7 +41,12 @@ from node_cli.core.host import (
 )
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
-from node_cli.core.node_options import NodeOptions
+from node_cli.core.node_options import (
+    NodeOptions,
+    get_node_mode,
+    mark_active_node,
+    mark_passive_node,
+)
 from node_cli.core.resources import init_shared_space_volume, update_resource_allocation
 from node_cli.core.schains import (
     cleanup_no_lvm_datadir,
@@ -108,8 +113,8 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
-    compose_rm(node_type=node_type, env=env)
+def update(env_filepath: str, env: Dict, node_type: NodeType, node_mode: NodeMode) -> bool:
+    compose_rm(node_type=node_type, node_mode=node_mode, env=env)
     remove_dynamic_containers()
 
     sync_skale_node()
@@ -145,14 +150,14 @@ def update(env_filepath: str, env: Dict, node_type: NodeType) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=node_type)
-    compose_up(env=env, node_type=node_type)
+    update_images(env=env, node_type=node_type, node_mode=node_mode)
+    compose_up(env=env, node_type=node_type, node_mode=node_mode)
     return True
 
 
 @checked_host
 def update_fair_boot(env_filepath: str, env: Dict) -> bool:
-    compose_rm(node_type=NodeType.FAIR, env=env)
+    compose_rm(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, env=env)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
@@ -187,13 +192,13 @@ def update_fair_boot(env_filepath: str, env: Dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.FAIR)
-    compose_up(env=env, node_type=NodeType.FAIR, is_fair_boot=True)
+    update_images(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
+    compose_up(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True)
     return True
 
 
 @checked_host
-def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
+def init(env_filepath: str, env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -205,8 +210,7 @@ def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
 
-    node_options = NodeOptions()
-    node_options.node_mode = NodeMode.ACTIVE
+    mark_active_node()
 
     configure_filebeat()
     configure_flask()
@@ -224,9 +228,9 @@ def init(env_filepath: str, env: dict, node_type: NodeType) -> None:
         distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
-    update_images(env=env, node_type=node_type)
+    update_images(env=env, node_type=node_type, node_mode=node_mode)
 
-    compose_up(env=env, node_type=node_type)
+    compose_up(env=env, node_type=node_type, node_mode=node_mode)
 
 
 @checked_host
@@ -243,6 +247,7 @@ def init_fair_boot(env_filepath: str, env: dict) -> None:
 
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
+    mark_active_node()
 
     configure_filebeat()
     configure_flask()
@@ -256,9 +261,9 @@ def init_fair_boot(env_filepath: str, env: dict) -> None:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.FAIR)
+    update_images(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
 
-    compose_up(env=env, node_type=NodeType.FAIR, is_fair_boot=True)
+    compose_up(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True)
 
 
 def init_passive(
@@ -289,6 +294,8 @@ def init_passive(
     node_options.catchup = archive or indexer
     node_options.historic_state = archive
 
+    mark_passive_node()
+
     ensure_filestorage_mapping()
     link_env_file()
 
@@ -310,13 +317,12 @@ def init_passive(
         ts = int(time.time())
         update_node_cli_schain_status(schain_name, repair_ts=ts, snapshot_from=snapshot_from)
 
-    update_images(env=env, node_type=NodeType.PASSIVE)
-
-    compose_up(env=env, node_type=NodeType.PASSIVE)
+    update_images(env=env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    compose_up(env=env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
 
 
 def update_passive(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env=env, node_type=NodeType.PASSIVE)
+    compose_rm(env=env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
     download_skale_node(env['NODE_VERSION'], env.get('CONTAINER_CONFIGS_DIR'))
@@ -343,20 +349,19 @@ def update_passive(env_filepath: str, env: Dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.PASSIVE)
-
-    compose_up(env=env, node_type=NodeType.PASSIVE)
+    update_images(env=env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    compose_up(env=env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     return True
 
 
-def turn_off(env: dict, node_type: NodeType) -> None:
+def turn_off(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     logger.info('Turning off the node...')
-    compose_rm(env=env, node_type=node_type)
+    compose_rm(env=env, node_type=node_type, node_mode=node_mode)
     remove_dynamic_containers()
     logger.info('Node was successfully turned off')
 
 
-def turn_on(env: dict, node_type: NodeType) -> None:
+def turn_on(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     logger.info('Turning on the node...')
     meta_manager = CliMetaManager()
     meta_manager.update_meta(
@@ -373,10 +378,11 @@ def turn_on(env: dict, node_type: NodeType) -> None:
     configure_nftables(enable_monitoring=enable_monitoring)
 
     logger.info('Launching containers on the node...')
-    compose_up(env=env, node_type=node_type)
+    compose_up(env=env, node_type=node_type, node_mode=node_mode)
 
 
 def restore(env, backup_path, node_type: NodeType, config_only=False):
+    node_mode = get_node_mode()
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -410,7 +416,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
         distro.version(),
     )
     if not config_only:
-        compose_up(env=env, node_type=node_type)
+        compose_up(env=env, node_type=node_type, node_mode=node_mode)
 
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
@@ -426,7 +432,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
 
 
 def cleanup_passive(env, schain_name: str) -> None:
-    turn_off(env, node_type=NodeType.PASSIVE)
+    turn_off(env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     cleanup_no_lvm_datadir(chain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)

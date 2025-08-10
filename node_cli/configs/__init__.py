@@ -57,6 +57,7 @@ SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
 PASSIVE_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-passive.yml')
 FAIR_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-fair.yml')
+PASSIVE_FAIR_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-fair-passive.yml')
 STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
 FAIR_STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'fair_static_params.yaml')
 

@@ -16,13 +16,14 @@ from node_cli.configs.user import (
     ALLOWED_ENV_TYPES,
     FairBootUserConfig,
     FairUserConfig,
+    PassiveFairUserConfig,
     SkaleUserConfig,
     PassiveSkaleUserConfig,
     get_user_config_class,
     get_validated_user_config,
     validate_env_type,
 )
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 
 ENDPOINT = 'http://localhost:8545'
 
@@ -37,17 +38,20 @@ class FakeResponse:
 
 
 @pytest.mark.parametrize(
-    'node_type, is_fair_boot, expected_type',
+    'node_type, node_mode, is_fair_boot, expected_type',
     [
-        (NodeType.SKALE, False, SkaleUserConfig),
-        (NodeType.PASSIVE, False, PassiveSkaleUserConfig),
-        (NodeType.FAIR, True, FairBootUserConfig),
-        (NodeType.FAIR, False, FairUserConfig),
+        (NodeType.SKALE, NodeMode.ACTIVE, False, SkaleUserConfig),
+        (NodeType.SKALE, NodeMode.PASSIVE, False, PassiveSkaleUserConfig),
+        (NodeType.FAIR, NodeMode.ACTIVE, True, FairBootUserConfig),
+        (NodeType.FAIR, NodeMode.ACTIVE, False, FairUserConfig),
+        (NodeType.FAIR, NodeMode.PASSIVE, False, PassiveFairUserConfig),
     ],
-    ids=['regular', 'passive', 'fair_boot', 'fair_regular'],
+    ids=['skale_active', 'skale_passive', 'fair_boot', 'fair_active', 'fair_passive'],
 )
-def test_build_env_params_keys(node_type, is_fair_boot, expected_type):
-    env_type = get_user_config_class(node_type=node_type, is_fair_boot=is_fair_boot)
+def test_build_env_params_keys(node_type, node_mode, is_fair_boot, expected_type):
+    env_type = get_user_config_class(
+        node_type=node_type, node_mode=node_mode, is_fair_boot=is_fair_boot
+    )
     assert env_type == expected_type
 
 
@@ -166,7 +170,9 @@ def test_validate_env_alias_or_address_with_alias(requests_mock):
 
 def test_get_validated_env_config_missing_file():
     with pytest.raises(SystemExit):
-        get_validated_user_config(env_filepath='nonexistent.env', node_type=NodeType.SKALE)
+        get_validated_user_config(
+            env_filepath='nonexistent.env', node_type=NodeType.SKALE, node_mode=NodeMode.ACTIVE
+        )
 
 
 def test_get_validated_env_config_unreadable_file(tmp_path):
@@ -176,6 +182,8 @@ def test_get_validated_env_config_unreadable_file(tmp_path):
     try:
         os.chmod(env_file, 0o000)
         with pytest.raises(PermissionError):
-            get_validated_user_config(env_filepath=str(env_file), node_type=NodeType.SKALE)
+            get_validated_user_config(
+                env_filepath=str(env_file), node_type=NodeType.SKALE, node_mode=NodeMode.ACTIVE
+            )
     finally:
         os.chmod(env_file, original_mode)

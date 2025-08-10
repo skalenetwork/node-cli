@@ -27,6 +27,7 @@ from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.host import is_node_inited, save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
+from node_cli.core.node_options import get_node_mode
 from node_cli.operations import (
     FairUpdateType,
     cleanup_fair_op,
@@ -38,7 +39,7 @@ from node_cli.operations import (
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit, get_request, post_request
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info_fair
 from node_cli.utils.texts import safe_load_texts
 
@@ -67,13 +68,16 @@ def get_node_info(format):
 
 @check_not_inited
 def restore_fair(backup_path, env_filepath, config_only=False):
-    env = compose_node_env(env_filepath, node_type=NodeType.FAIR)
+    node_mode = NodeMode.ACTIVE
+    env = compose_node_env(env_filepath, node_type=NodeType.FAIR, node_mode=node_mode)
     if env is None:
         return
     save_env_params(env_filepath)
     env['SKALE_DIR'] = SKALE_DIR
 
-    restored_ok = restore_fair_op(env, backup_path, config_only=config_only)
+    restored_ok = restore_fair_op(
+        node_mode=node_mode, env=env, backup_path=backup_path, config_only=config_only
+    )
     if not restored_ok:
         error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
@@ -91,11 +95,16 @@ def migrate_from_boot(
         inited_node=True,
         sync_schains=False,
         node_type=NodeType.FAIR,
+        node_mode=NodeMode.ACTIVE,
     )
     migrate_ok = update_fair_op(
-        env_filepath, env, update_type=FairUpdateType.FROM_BOOT, force_skaled_start=False
+        node_mode=NodeMode.ACTIVE,
+        env_filepath=env_filepath,
+        env=env,
+        update_type=FairUpdateType.FROM_BOOT,
+        force_skaled_start=False,
     )
-    alive = is_base_containers_alive(node_type=NodeType.FAIR)
+    alive = is_base_containers_alive(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     if not migrate_ok or not alive:
         print_node_cmd_error()
         return
@@ -114,20 +123,23 @@ def update(
         pull_config_for_schain,
         force_skaled_start,
     )
+    node_mode = get_node_mode()
     env = compose_node_env(
         env_filepath,
         inited_node=True,
         sync_schains=False,
         node_type=NodeType.FAIR,
+        node_mode=node_mode,
         pull_config_for_schain=pull_config_for_schain,
     )
     update_ok = update_fair_op(
-        env_filepath,
-        env,
+        node_mode=node_mode,
+        env_filepath=env_filepath,
+        env=env,
         update_type=FairUpdateType.REGULAR,
         force_skaled_start=force_skaled_start,
     )
-    alive = is_base_containers_alive(node_type=NodeType.FAIR)
+    alive = is_base_containers_alive(node_type=NodeType.FAIR, node_mode=node_mode)
     if not update_ok or not alive:
         print_node_cmd_error()
         return
@@ -137,15 +149,19 @@ def update(
 
 @check_user
 def cleanup() -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
-    cleanup_fair_op(env)
+    node_mode = get_node_mode()
+    env = compose_node_env(
+        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
+    )
+    cleanup_fair_op(node_mode=node_mode, env=env)
     logger.info('Fair node was cleaned up, all containers and data removed')
     cleanup_docker_configuration()
 
 
 @check_not_inited
 def init(env_filepath: str) -> None:
-    env = compose_node_env(env_filepath, node_type=NodeType.FAIR)
+    node_mode = NodeMode.ACTIVE
+    env = compose_node_env(env_filepath, node_type=NodeType.FAIR, node_mode=node_mode)
     if env is None:
         return
     save_env_params(env_filepath)
@@ -178,8 +194,11 @@ def register(ip: str) -> None:
 
 
 def repair_chain(snapshot_from: str = 'any') -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
-    repair_fair_op(env=env, snapshot_from=snapshot_from)
+    node_mode = get_node_mode()
+    env = compose_node_env(
+        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
+    )
+    repair_fair_op(node_mode=node_mode, env=env, snapshot_from=snapshot_from)
 
 
 @check_inited

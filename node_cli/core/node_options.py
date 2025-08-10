@@ -22,7 +22,6 @@ import logging
 from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.helper import read_json, write_json, init_file
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
-from node_cli.cli.info import TYPE
 
 
 logger = logging.getLogger(__name__)
@@ -90,19 +89,22 @@ def mark_passive_node() -> None:
     logger.info('Node marked as passive.')
 
 
-def is_active_node() -> bool:
+def get_node_mode() -> NodeMode:
     node_options = NodeOptions()
-    return node_options.node_mode == NodeMode.ACTIVE
+    return node_options.node_mode
 
 
-def is_passive_node() -> bool:
-    node_options = NodeOptions()
-    return node_options.node_mode == NodeMode.PASSIVE
+def active_skale(node_type: NodeType, node_mode: NodeMode) -> bool:
+    return node_mode == NodeMode.ACTIVE and node_type == NodeType.SKALE
 
 
-def is_skale_node() -> bool:
-    return TYPE == NodeType.SKALE
+def active_fair(node_type: NodeType, node_mode: NodeMode) -> bool:
+    return node_mode == NodeMode.ACTIVE and node_type == NodeType.FAIR
 
 
-def is_fair_node() -> bool:
-    return TYPE == NodeType.FAIR
+def passive_skale(node_type: NodeType, node_mode: NodeMode) -> bool:
+    return node_mode == NodeMode.PASSIVE and node_type == NodeType.SKALE
+
+
+def passive_fair(node_type: NodeType, node_mode: NodeMode) -> bool:
+    return node_mode == NodeMode.PASSIVE and node_type == NodeType.FAIR
