@@ -20,19 +20,22 @@
 import click
 
 from node_cli.core.node import backup
-from node_cli.fair.fair_node import change_ip as change_ip_fair
-from node_cli.fair.fair_node import cleanup as fair_cleanup
-from node_cli.fair.fair_node import exit as exit_fair
-from node_cli.fair.fair_node import (
+
+from node_cli.fair import change_ip as change_ip_fair
+from node_cli.fair import cleanup as fair_cleanup
+from node_cli.fair import exit as exit_fair
+from node_cli.fair import (
     get_node_info,
     migrate_from_boot,
     repair_chain,
-    restore_fair,
+    restore as restore_fair,
 )
-from node_cli.fair.fair_node import init as init_fair
-from node_cli.fair.fair_node import register as register_fair
-from node_cli.fair.fair_node import update as update_fair
+from node_cli.fair import init as init_fair
+from node_cli.fair import register as register_fair
+from node_cli.fair import update as update_fair
+
 from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
+from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts
 
 TEXTS = safe_load_texts()
@@ -58,7 +61,7 @@ def fair_node_info(format):
 @click.argument('env_filepath')
 @streamed_cmd
 def init_node(env_filepath: str):
-    init_fair(env_filepath=env_filepath)
+    init_fair(node_mode=NodeMode.ACTIVE, env_filepath=env_filepath)
 
 
 @node.command('register', help=TEXTS['fair']['node']['register']['help'])

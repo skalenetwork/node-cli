@@ -22,7 +22,7 @@ import click
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.core.node import get_node_info, get_node_signature
 from node_cli.core.node import register_node as register
-from node_cli.fair.fair_boot import init, update
+from node_cli.fair.boot import init, update
 from node_cli.utils.helper import IP_TYPE, abort_if_false, error_exit, streamed_cmd
 
 

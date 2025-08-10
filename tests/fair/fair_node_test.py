@@ -4,9 +4,9 @@ import pytest
 
 from node_cli.configs import SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
-from node_cli.fair.fair_boot import init as init_boot
-from node_cli.fair.fair_boot import update
-from node_cli.fair.fair_node import cleanup, migrate_from_boot, restore_fair
+from node_cli.fair.boot import init as init_boot
+from node_cli.fair.boot import update
+from node_cli.fair import cleanup, migrate_from_boot, restore
 from node_cli.operations.fair import FairUpdateType
 from node_cli.utils.node_type import NodeType
 
@@ -28,7 +28,7 @@ def test_restore_fair(
     mock_restore_op.return_value = True
     backup_path = '/fake/backup'
 
-    restore_fair(backup_path, valid_env_file)
+    restore(backup_path, valid_env_file)
 
     mock_compose_env.assert_called_once_with(valid_env_file, node_type=NodeType.FAIR)
     mock_save_env.assert_called_once_with(valid_env_file)
@@ -221,7 +221,7 @@ def test_cleanup_fails_when_user_invalid(
     """Test that cleanup fails when user validation fails"""
     import pytest
 
-    from node_cli.fair.fair_node import cleanup
+    from node_cli.fair import cleanup
 
     with pytest.raises(SystemExit):
         cleanup()
@@ -270,7 +270,7 @@ def test_exit_success(
     resource_alloc,
     meta_file_v3,
 ):
-    from node_cli.fair.fair_node import exit
+    from node_cli.fair import exit
 
     mock_post_request.return_value = ('ok', {})
 
@@ -292,7 +292,7 @@ def test_exit_error(
     resource_alloc,
     meta_file_v3,
 ):
-    from node_cli.fair.fair_node import exit
+    from node_cli.fair import exit
 
     error_msg = 'Exit failed'
     mock_post_request.return_value = ('error', error_msg)
@@ -313,7 +313,7 @@ def test_exit_not_inited(
     meta_file_v3,
     capsys,
 ):
-    from node_cli.fair.fair_node import exit
+    from node_cli.fair import exit
 
     exit()
 

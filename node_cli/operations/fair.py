@@ -78,7 +78,7 @@ class FairUpdateType(Enum):
 
 
 @checked_host
-def init(env_filepath: str, env: dict) -> bool:
+def init(node_mode: NodeMode, env_filepath: str, env: dict) -> bool:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
@@ -103,8 +103,8 @@ def init(env_filepath: str, env: dict) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
-    compose_up(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
+    update_images(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
+    compose_up(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
     wait_for_container(REDIS_SERVICE_DICT['redis'])
     time.sleep(REDIS_START_TIMEOUT)
     return True

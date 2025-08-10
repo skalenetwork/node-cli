@@ -40,6 +40,7 @@ from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.cli.passive_node import passive_node_cli
 from node_cli.cli.fair_boot import fair_boot_cli
 from node_cli.cli.fair_node import fair_node_cli
+from node_cli.cli.passive_fair_node import passive_fair_node_cli
 from node_cli.cli.chain import chain_cli
 from node_cli.core.host import init_logs_dir
 from node_cli.utils.node_type import NodeType
@@ -90,6 +91,7 @@ def get_sources_list() -> List[click.MultiCommand]:
             logs_cli,
             fair_boot_cli,
             fair_node_cli,
+            passive_fair_node_cli,
             chain_cli,
             wallet_cli,
             ssl_cli,
