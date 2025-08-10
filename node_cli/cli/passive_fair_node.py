@@ -19,9 +19,9 @@
 
 import click
 
-from node_cli.fair import init as init_fair
-from node_cli.fair import update as update_fair
-from node_cli.fair import cleanup as cleanup_fair
+from node_cli.fair.common import init as init_fair
+from node_cli.fair.common import update as update_fair
+from node_cli.fair.common import cleanup as cleanup_fair
 from node_cli.utils.helper import abort_if_false, streamed_cmd
 from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts

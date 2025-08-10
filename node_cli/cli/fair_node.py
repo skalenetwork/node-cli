@@ -21,19 +21,19 @@ import click
 
 from node_cli.core.node import backup
 
-from node_cli.fair import change_ip as change_ip_fair
-from node_cli.fair import cleanup as fair_cleanup
-from node_cli.fair import exit as exit_fair
-from node_cli.fair import (
+from node_cli.fair.active import change_ip as change_ip_fair
+from node_cli.fair.common import cleanup as fair_cleanup
+from node_cli.fair.active import exit as exit_fair
+from node_cli.fair.active import (
     get_node_info,
     migrate_from_boot,
-    repair_chain,
     restore as restore_fair,
 )
-from node_cli.fair import init as init_fair
-from node_cli.fair import register as register_fair
-from node_cli.fair import update as update_fair
-from node_cli.fair import set_domain_name as set_domain_name_fair
+from node_cli.fair.common import init as init_fair
+from node_cli.fair.active import register as register_fair
+from node_cli.fair.common import update as update_fair
+from node_cli.fair.active import set_domain_name as set_domain_name_fair
+from node_cli.fair.common import repair_chain
 
 from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.node_type import NodeMode

@@ -47,16 +47,6 @@ jobs:
     - name: Check build - skale
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
 
-    - name: Build binary - passive
-      run: |
-        mkdir -p ./dist
-        docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test passive
-        docker rm -f $(docker ps -aq)
-
-    - name: Check build - passive
-      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-passive
-
     - name: Build binary - fair
       run: |
         mkdir -p ./dist
