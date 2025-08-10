@@ -10,6 +10,7 @@ from node_cli.fair.active import (
     migrate_from_boot as migrate_from_boot,
     register as register,
     change_ip as change_ip,
+    set_domain_name as set_domain_name,
     exit as exit,
     restore as restore,
 )

@@ -160,3 +160,23 @@ def restore(backup_path, env_filepath, config_only=False):
         error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     print('Fair node is restored from backup')
+
+
+@check_inited
+@check_user
+def set_domain_name(domain_name):
+    if not is_node_inited():
+        print(TEXTS['fair']['node']['not_inited'])
+        return
+
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME, method='set-domain-name', json={'domain_name': domain_name}
+    )
+    if status == 'ok':
+        msg = TEXTS['node']['domain_name_changed']
+        logger.info(msg)
+        print(msg)
+    else:
+        error_msg = payload
+        logger.error(f'Setting domain name error {error_msg}')
+        error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
