@@ -29,6 +29,12 @@ from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_DIR
 from node_cli.configs.alias_address_validation import ContractType, validate_alias_or_address
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeMode, NodeType
+from node_cli.core.node_options import (
+    active_fair,
+    active_skale,
+    passive_skale,
+    passive_fair,
+)
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
@@ -188,16 +194,14 @@ def get_user_config_class(
 ) -> type[BaseUserConfig]:
     if node_type == NodeType.FAIR and is_fair_boot:
         user_config_class = FairBootUserConfig
-    elif node_type == NodeType.FAIR:
-        if node_mode == NodeMode.PASSIVE:
-            user_config_class = PassiveFairUserConfig
-        else:
-            user_config_class = FairUserConfig
-    elif node_type == NodeType.SKALE:
-        if node_mode == NodeMode.PASSIVE:
-            user_config_class = PassiveSkaleUserConfig
-        else:
-            user_config_class = SkaleUserConfig
+    elif passive_fair(node_type, node_mode):
+        user_config_class = PassiveFairUserConfig
+    elif active_fair(node_type, node_mode):
+        user_config_class = FairUserConfig
+    elif passive_skale(node_type, node_mode):
+        user_config_class = PassiveSkaleUserConfig
+    elif active_skale(node_type, node_mode):
+        user_config_class = SkaleUserConfig
     return user_config_class
 
 

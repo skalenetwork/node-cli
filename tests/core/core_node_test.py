@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 import docker
+from docker import errors as docker_errors
 import mock
 import pytest
 import requests
@@ -21,7 +22,7 @@ from node_cli.core.node import (
     update,
 )
 from node_cli.utils.meta import CliMeta
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 from tests.helper import response_mock, safe_update_api_response, subprocess_run_mock
 from tests.resources_test import BIG_DISK_SIZE
 
@@ -37,43 +38,46 @@ WRONG_CONTAINERS = [
     'passive_WRONG_CONTAINER_8',
 ]
 
-NODE_TYPE_BOOT_COMBINATIONS: list[tuple[NodeType, bool]] = [
-    (NodeType.SKALE, False),
-    (NodeType.PASSIVE, False),
-    (NodeType.FAIR, True),
-    (NodeType.FAIR, False),
+NODE_TYPE_MODE_BOOT_COMBINATIONS: list[tuple[NodeType, NodeMode, bool]] = [
+    (NodeType.SKALE, NodeMode.ACTIVE, False),
+    (NodeType.SKALE, NodeMode.PASSIVE, False),
+    (NodeType.FAIR, NodeMode.ACTIVE, True),
+    (NodeType.FAIR, NodeMode.ACTIVE, False),
 ]
 
 alive_test_params = [
     pytest.param(
         node_type,
+        node_mode,
         is_boot,
-        get_expected_container_names(node_type, is_boot),
-        id=f'{node_type.name}-boot_{is_boot}-correct_containers',
+        get_expected_container_names(node_type, node_mode, is_boot),
+        id=f'{node_type.name}-{node_mode.name}-boot_{is_boot}-correct_containers',
     )
-    for node_type, is_boot in NODE_TYPE_BOOT_COMBINATIONS
+    for node_type, node_mode, is_boot in NODE_TYPE_MODE_BOOT_COMBINATIONS
 ]
 
 wrong_test_params = [
     pytest.param(
         node_type,
+        node_mode,
         is_boot,
         WRONG_CONTAINERS,
-        id=f'{node_type.name}-boot_{is_boot}-wrong_containers',
+        id=f'{node_type.name}-{node_mode.name}-boot_{is_boot}-wrong_containers',
     )
-    for node_type, is_boot in NODE_TYPE_BOOT_COMBINATIONS
+    for node_type, node_mode, is_boot in NODE_TYPE_MODE_BOOT_COMBINATIONS
 ]
 
 missing_test_params = []
-for node_type, is_boot in NODE_TYPE_BOOT_COMBINATIONS:
-    expected_names = get_expected_container_names(node_type, is_boot)
+for node_type, node_mode, is_boot in NODE_TYPE_MODE_BOOT_COMBINATIONS:
+    expected_names = get_expected_container_names(node_type, node_mode, is_boot)
     containers_to_create = expected_names[1:]
     missing_test_params.append(
         pytest.param(
             node_type,
+            node_mode,
             is_boot,
             containers_to_create,
-            id=f'{node_type.name}-boot_{is_boot}-missing_containers',
+            id=f'{node_type.name}-{node_mode.name}-boot_{is_boot}-missing_containers',
         )
     )
 
@@ -87,7 +91,7 @@ def manage_node_containers(request):
             try:
                 existing_container = dclient.containers.get(name)
                 existing_container.remove(force=True)
-            except docker.errors.NotFound:
+            except docker_errors.NotFound:
                 pass
             container = dclient.containers.run(
                 ALPINE_IMAGE_NAME,
@@ -110,50 +114,63 @@ def manage_node_containers(request):
                 try:
                     container_obj.remove(force=True)
                     cleaned_count += 1
-                except docker.errors.NotFound:
+                except docker_errors.NotFound:
                     pass
 
 
 @pytest.mark.parametrize(
-    'node_type, is_boot, manage_node_containers',
+    'node_type, node_mode, is_boot, manage_node_containers',
     alive_test_params,
     indirect=['manage_node_containers'],
 )
-def test_is_base_containers_alive(manage_node_containers, node_type, is_boot):
-    assert is_base_containers_alive(node_type=node_type, is_fair_boot=is_boot) is True
+def test_is_base_containers_alive(manage_node_containers, node_type, node_mode, is_boot):
+    assert (
+        is_base_containers_alive(node_type=node_type, node_mode=node_mode, is_fair_boot=is_boot)
+        is True
+    )
 
 
 @pytest.mark.parametrize(
-    'node_type, is_boot, manage_node_containers',
+    'node_type, node_mode, is_boot, manage_node_containers',
     wrong_test_params,
     indirect=['manage_node_containers'],
 )
-def test_is_base_containers_alive_wrong(manage_node_containers, node_type, is_boot):
-    assert is_base_containers_alive(node_type=node_type, is_fair_boot=is_boot) is False
+def test_is_base_containers_alive_wrong(manage_node_containers, node_type, node_mode, is_boot):
+    assert (
+        is_base_containers_alive(node_type=node_type, node_mode=node_mode, is_fair_boot=is_boot)
+        is False
+    )
 
 
 @pytest.mark.parametrize(
-    'node_type, is_boot, manage_node_containers',
+    'node_type, node_mode, is_boot, manage_node_containers',
     missing_test_params,
     indirect=['manage_node_containers'],
 )
-def test_is_base_containers_alive_missing(manage_node_containers, node_type, is_boot):
-    assert is_base_containers_alive(node_type=node_type, is_fair_boot=is_boot) is False
+def test_is_base_containers_alive_missing(manage_node_containers, node_type, node_mode, is_boot):
+    assert (
+        is_base_containers_alive(node_type=node_type, node_mode=node_mode, is_fair_boot=is_boot)
+        is False
+    )
 
 
-@pytest.mark.parametrize('node_type, is_boot', NODE_TYPE_BOOT_COMBINATIONS)
-def test_is_base_containers_alive_empty(node_type, is_boot):
-    assert is_base_containers_alive(node_type=node_type, is_fair_boot=is_boot) is False
+@pytest.mark.parametrize('node_type, node_mode, is_boot', NODE_TYPE_MODE_BOOT_COMBINATIONS)
+def test_is_base_containers_alive_empty(node_type, node_mode, is_boot):
+    assert (
+        is_base_containers_alive(node_type=node_type, node_mode=node_mode, is_fair_boot=is_boot)
+        is False
+    )
 
 
 @pytest.mark.parametrize(
     (
-        'node_type, test_user_conf, is_boot, inited_node, sync_schains, expected_mnt_dir,'
+        'node_type, node_mode, test_user_conf, is_boot, inited_node, sync_schains, expected_mnt_dir,'
         'expect_flask_key, expect_backup_run'
     ),
     [
         (
             NodeType.SKALE,
+            NodeMode.ACTIVE,
             'regular_user_conf',
             False,
             True,
@@ -164,6 +181,7 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
         ),
         (
             NodeType.SKALE,
+            NodeMode.ACTIVE,
             'regular_user_conf',
             False,
             True,
@@ -173,7 +191,8 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
             True,
         ),
         (
-            NodeType.PASSIVE,
+            NodeType.SKALE,
+            NodeMode.PASSIVE,
             'passive_user_conf',
             False,
             False,
@@ -184,6 +203,7 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
         ),
         (
             NodeType.FAIR,
+            NodeMode.ACTIVE,
             'fair_boot_user_conf',
             True,
             True,
@@ -194,6 +214,7 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
         ),
         (
             NodeType.FAIR,
+            NodeMode.ACTIVE,
             'fair_user_conf',
             False,
             True,
@@ -214,6 +235,7 @@ def test_is_base_containers_alive_empty(node_type, is_boot):
 def test_compose_node_env(
     request,
     node_type,
+    node_mode,
     test_user_conf,
     is_boot,
     inited_node,
@@ -234,6 +256,7 @@ def test_compose_node_env(
             inited_node=inited_node,
             sync_schains=sync_schains,
             node_type=node_type,
+            node_mode=node_mode,
             is_fair_boot=is_boot,
             save=True,
         )
@@ -244,7 +267,7 @@ def test_compose_node_env(
     ) == expect_flask_key
     if expect_flask_key:
         assert result_env['FLASK_SECRET_KEY'] == 'mock_secret'
-    should_have_backup = sync_schains and node_type != NodeType.PASSIVE
+    should_have_backup = sync_schains and node_mode != NodeMode.PASSIVE
     assert ('BACKUP_RUN' in result_env and result_env['BACKUP_RUN'] == 'True') == should_have_backup
 
 
@@ -358,14 +381,21 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
             assert result is None
 
 
-@pytest.mark.parametrize('node_type', [NodeType.SKALE, NodeType.PASSIVE, NodeType.FAIR])
+@pytest.mark.parametrize(
+    'node_type,node_mode',
+    [
+        (NodeType.SKALE, NodeMode.ACTIVE),
+        (NodeType.SKALE, NodeMode.PASSIVE),
+        (NodeType.FAIR, NodeMode.ACTIVE),
+    ],
+)
 @mock.patch('node_cli.core.node.is_admin_running', return_value=False)
 @mock.patch('node_cli.core.node.is_api_running', return_value=False)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_admin_and_api_not_running(
-    mock_requests_get, mock_is_api_running, mock_is_admin_running, node_type
+    mock_requests_get, mock_is_api_running, mock_is_admin_running, node_type, node_mode
 ):
-    assert is_update_safe(node_type=node_type) is True
+    assert is_update_safe(node_type=node_type, node_mode=node_mode) is True
     mock_requests_get.assert_not_called()
 
 
@@ -375,11 +405,18 @@ def test_is_update_safe_when_admin_and_api_not_running(
 def test_is_update_safe_when_admin_not_running_for_passive(
     mock_requests_get, mock_is_api_running, mock_is_admin_running
 ):
-    assert is_update_safe(node_type=NodeType.PASSIVE) is True
+    assert is_update_safe(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE) is True
     mock_requests_get.assert_not_called()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.SKALE, NodeType.PASSIVE, NodeType.FAIR])
+@pytest.mark.parametrize(
+    'node_type,node_mode',
+    [
+        (NodeType.SKALE, NodeMode.ACTIVE),
+        (NodeType.SKALE, NodeMode.PASSIVE),
+        (NodeType.FAIR, NodeMode.ACTIVE),
+    ],
+)
 @pytest.mark.parametrize(
     'api_is_safe, expected_result',
     [(True, True), (False, False)],
@@ -388,10 +425,10 @@ def test_is_update_safe_when_admin_not_running_for_passive(
 @mock.patch('node_cli.core.node.is_admin_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
 def test_is_update_safe_when_admin_running(
-    mock_requests_get, mock_is_admin_running, api_is_safe, expected_result, node_type
+    mock_requests_get, mock_is_admin_running, api_is_safe, expected_result, node_type, node_mode
 ):
     mock_requests_get.return_value = safe_update_api_response(safe=api_is_safe)
-    assert is_update_safe(node_type=node_type) is expected_result
+    assert is_update_safe(node_type=node_type, node_mode=node_mode) is expected_result
     mock_requests_get.assert_called_once()
 
 
@@ -413,14 +450,23 @@ def test_is_update_safe_when_only_api_running_for_regular(
     node_type,
 ):
     mock_requests_get.return_value = safe_update_api_response(safe=api_is_safe)
-    assert is_update_safe(node_type=node_type) is expected_result
+    assert is_update_safe(node_type=node_type, node_mode=NodeMode.ACTIVE) is expected_result
     mock_requests_get.assert_called_once()
 
 
-@pytest.mark.parametrize('node_type', [NodeType.SKALE, NodeType.PASSIVE, NodeType.FAIR])
+@pytest.mark.parametrize(
+    'node_type,node_mode',
+    [
+        (NodeType.SKALE, NodeMode.ACTIVE),
+        (NodeType.SKALE, NodeMode.PASSIVE),
+        (NodeType.FAIR, NodeMode.ACTIVE),
+    ],
+)
 @mock.patch('node_cli.core.node.is_admin_running', return_value=True)
 @mock.patch('node_cli.utils.helper.requests.get')
-def test_is_update_safe_when_api_call_fails(mock_requests_get, mock_is_admin_running, node_type):
+def test_is_update_safe_when_api_call_fails(
+    mock_requests_get, mock_is_admin_running, node_type, node_mode
+):
     mock_requests_get.side_effect = requests.exceptions.ConnectionError('Test connection error')
-    assert is_update_safe(node_type=node_type) is False
+    assert is_update_safe(node_type=node_type, node_mode=node_mode) is False
     mock_requests_get.assert_called_once()

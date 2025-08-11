@@ -78,7 +78,7 @@ def test_init_passive_archive(mocked_g_config, clean_node_options, passive_user_
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.PASSIVE),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command(_init_passive, [passive_user_conf.as_posix(), '--archive'])
         node_options = NodeOptions()
