@@ -52,7 +52,7 @@ def init(node_mode: NodeMode, env_filepath: str) -> None:
     save_env_params(env_filepath)
     env['SKALE_DIR'] = SKALE_DIR
 
-    init_ok = init_fair_op(node_mode, env_filepath, env)
+    init_ok = init_fair_op(env_filepath, env, node_mode=node_mode)
     if not init_ok:
         error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
@@ -95,9 +95,9 @@ def update(
         pull_config_for_schain=pull_config_for_schain,
     )
     update_ok = update_fair_op(
+        env_filepath,
+        env,
         node_mode=node_mode,
-        env_filepath=env_filepath,
-        env=env,
         update_type=FairUpdateType.REGULAR,
         force_skaled_start=force_skaled_start,
     )

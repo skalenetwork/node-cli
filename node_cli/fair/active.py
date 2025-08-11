@@ -74,9 +74,9 @@ def migrate_from_boot(
         node_mode=NodeMode.ACTIVE,
     )
     migrate_ok = update_fair_op(
+        env_filepath,
+        env,
         node_mode=NodeMode.ACTIVE,
-        env_filepath=env_filepath,
-        env=env,
         update_type=FairUpdateType.FROM_BOOT,
         force_skaled_start=False,
     )

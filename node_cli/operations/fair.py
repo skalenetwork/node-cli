@@ -79,7 +79,7 @@ class FairUpdateType(Enum):
 
 
 @checked_host
-def init(node_mode: NodeMode, env_filepath: str, env: dict) -> bool:
+def init(env_filepath: str, env: dict, node_mode: NodeMode) -> bool:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
@@ -156,9 +156,9 @@ def update_fair_boot(env_filepath: str, env: dict) -> bool:
 
 @checked_host
 def update(
-    node_mode: NodeMode,
     env_filepath: str,
     env: dict,
+    node_mode: NodeMode,
     update_type: FairUpdateType,
     force_skaled_start: bool,
 ) -> bool:
