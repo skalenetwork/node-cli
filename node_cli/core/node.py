@@ -50,7 +50,7 @@ from node_cli.core.resources import update_resource_allocation
 from node_cli.core.node_options import (
     active_fair,
     active_skale,
-    get_node_mode,
+    upsert_node_mode,
     passive_skale,
     passive_fair,
 )
@@ -293,9 +293,10 @@ def update(
     env_filepath: str,
     pull_config_for_schain: Optional[str],
     node_type: NodeType,
+    node_mode: NodeMode,
     unsafe_ok: bool = False,
 ) -> None:
-    node_mode = get_node_mode()
+    node_mode = upsert_node_mode(node_mode=node_mode)
 
     if not unsafe_ok and not is_update_safe(node_type=node_type, node_mode=node_mode):
         error_msg = 'Cannot update safely'
@@ -420,7 +421,7 @@ def set_maintenance_mode_off():
 @check_inited
 @check_user
 def turn_off(node_type: NodeType, maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
-    node_mode = get_node_mode()
+    node_mode = upsert_node_mode()
     if not unsafe_ok and not is_update_safe(node_type=node_type, node_mode=node_mode):
         error_msg = 'Cannot turn off safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
@@ -435,7 +436,7 @@ def turn_off(node_type: NodeType, maintenance_on: bool = False, unsafe_ok: bool 
 @check_inited
 @check_user
 def turn_on(maintenance_off, sync_schains, env_file, node_type: NodeType) -> None:
-    node_mode = get_node_mode()
+    node_mode = upsert_node_mode()
     env = compose_node_env(
         env_file,
         inited_node=True,

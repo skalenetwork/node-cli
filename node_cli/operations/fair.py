@@ -38,6 +38,7 @@ from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_no_lvm_datadir
 from node_cli.core.static_config import get_fair_chain_name
+from node_cli.core.node_options import upsert_node_mode
 from node_cli.fair.record.chain_record import (
     get_fair_chain_record,
     migrate_chain_record,
@@ -93,6 +94,7 @@ def init(node_mode: NodeMode, env_filepath: str, env: dict) -> bool:
 
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
+    upsert_node_mode(node_mode=node_mode)
 
     prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 

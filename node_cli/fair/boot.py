@@ -23,7 +23,7 @@ import time
 
 from node_cli.configs import TM_INIT_TIMEOUT
 from node_cli.core.node import compose_node_env, is_base_containers_alive
-from node_cli.core.node_options import get_node_mode
+from node_cli.core.node_options import upsert_node_mode
 from node_cli.operations import init_fair_boot_op, update_fair_boot_op
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -57,7 +57,7 @@ def init(env_filepath: str) -> None:
 @check_user
 def update(env_filepath: str, pull_config_for_schain: str) -> None:
     logger.info('Fair boot node update started')
-    node_mode = get_node_mode()
+    node_mode = upsert_node_mode(node_mode=NodeMode.ACTIVE)
     env = compose_node_env(
         env_filepath,
         inited_node=True,

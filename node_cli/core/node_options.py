@@ -89,9 +89,24 @@ def mark_passive_node() -> None:
     logger.info('Node marked as passive.')
 
 
-def get_node_mode() -> NodeMode:
+class NodeModeMismatchError(Exception):
+    pass
+
+
+def upsert_node_mode(node_mode: NodeMode | None = None) -> NodeMode:
     node_options = NodeOptions()
-    return node_options.node_mode
+    try:
+        options_mode = node_options.node_mode
+        if options_mode != node_mode:
+            raise NodeModeMismatchError(
+                f'Cannot change node mode from {options_mode} to {node_mode}'
+            )
+        return options_mode
+    except ValueError:
+        if node_mode is None:
+            raise NodeModeMismatchError('Node mode is not set')
+        node_options.node_mode = node_mode
+        return node_mode
 
 
 def active_skale(node_type: NodeType, node_mode: NodeMode) -> bool:

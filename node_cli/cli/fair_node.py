@@ -92,6 +92,7 @@ def register(ip: str) -> None:
 @streamed_cmd
 def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: bool):
     update_fair(
+        node_mode=NodeMode.ACTIVE,
         env_filepath=env_filepath,
         pull_config_for_schain=pull_config_for_schain,
         force_skaled_start=force_skaled_start,

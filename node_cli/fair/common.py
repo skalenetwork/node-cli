@@ -24,7 +24,7 @@ from node_cli.configs import RESTORE_SLEEP_TIMEOUT, SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.node import compose_node_env, is_base_containers_alive
-from node_cli.core.node_options import get_node_mode
+from node_cli.core.node_options import upsert_node_mode
 from node_cli.operations import (
     FairUpdateType,
     cleanup_fair_op,
@@ -61,7 +61,7 @@ def init(node_mode: NodeMode, env_filepath: str) -> None:
 
 @check_user
 def cleanup() -> None:
-    node_mode = get_node_mode()
+    node_mode = upsert_node_mode()
     env = compose_node_env(
         SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
     )
@@ -73,7 +73,10 @@ def cleanup() -> None:
 @check_inited
 @check_user
 def update(
-    env_filepath: str, pull_config_for_schain: str | None = None, force_skaled_start: bool = False
+    node_mode: NodeMode,
+    env_filepath: str,
+    pull_config_for_schain: str | None = None,
+    force_skaled_start: bool = False,
 ) -> None:
     logger.info(
         'Updating fair node: %s, pull_config_for_schain: %s, force_skaled_start: %s',
@@ -81,7 +84,8 @@ def update(
         pull_config_for_schain,
         force_skaled_start,
     )
-    node_mode = get_node_mode()
+    node_mode = upsert_node_mode(node_mode=node_mode)
+
     env = compose_node_env(
         env_filepath,
         inited_node=True,
@@ -106,7 +110,7 @@ def update(
 
 
 def repair_chain(snapshot_from: str = 'any') -> None:
-    node_mode = get_node_mode()
+    node_mode = upsert_node_mode()
     env = compose_node_env(
         SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
     )

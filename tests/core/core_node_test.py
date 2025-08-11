@@ -164,8 +164,8 @@ def test_is_base_containers_alive_empty(node_type, node_mode, is_boot):
 
 @pytest.mark.parametrize(
     (
-        'node_type, node_mode, test_user_conf, is_boot, inited_node, sync_schains, expected_mnt_dir,'
-        'expect_flask_key, expect_backup_run'
+        'node_type, node_mode, test_user_conf, is_boot, inited_node, sync_schains,'
+        'expected_mnt_dir, expect_flask_key, expect_backup_run'
     ),
     [
         (
