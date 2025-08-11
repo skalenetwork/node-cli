@@ -43,9 +43,9 @@ from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.node_options import (
     NodeOptions,
-    get_node_mode,
     mark_active_node,
     mark_passive_node,
+    upsert_node_mode,
 )
 from node_cli.core.resources import init_shared_space_volume, update_resource_allocation
 from node_cli.core.schains import (
@@ -382,7 +382,7 @@ def turn_on(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
 
 
 def restore(env, backup_path, node_type: NodeType, config_only=False):
-    node_mode = get_node_mode()
+    node_mode = upsert_node_mode(node_mode=NodeMode.ACTIVE)
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],

@@ -9,7 +9,7 @@ from node_cli.fair.boot import update
 from node_cli.fair.common import cleanup
 from node_cli.fair.active import migrate_from_boot, restore
 from node_cli.operations.fair import FairUpdateType
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeMode, NodeType
 
 
 @mock.patch('node_cli.fair.active.time.sleep')
@@ -34,7 +34,8 @@ def test_restore_fair(
     mock_compose_env.assert_called_once_with(valid_env_file, node_type=NodeType.FAIR)
     mock_save_env.assert_called_once_with(valid_env_file)
     expected_env = {**mock_env, 'SKALE_DIR': SKALE_DIR}
-    mock_restore_op.assert_called_once_with(expected_env, backup_path, config_only=False)
+    mock_restore_op.assert_called_once_with(
+        node_mode=NodeMode.ACTIVE, expected_env, backup_path, config_only=False)
     mock_sleep.assert_called_once()
 
 
