@@ -1196,6 +1196,7 @@ Make the hook executable:
 chmod +x .git/hooks/pre-commit
 ```
 
+
 ## Contributing
 
 **If you have any questions please ask our development community on [Discord](https://discord.gg/vvUtWJB).**
