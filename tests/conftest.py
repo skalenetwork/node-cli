@@ -43,8 +43,10 @@ from node_cli.configs import (
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
+from node_cli.core.node_options import NodeOptions
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
+from node_cli.utils.node_type import NodeMode
 from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
 
@@ -142,6 +144,26 @@ def ssl_folder():
         yield
     finally:
         shutil.rmtree(SSL_FOLDER_PATH)
+
+
+@pytest.fixture
+def active_node_option():
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.ACTIVE
+    try:
+        yield
+    finally:
+        shutil.rmtree(NODE_OPTIONS_FILEPATH)
+
+
+@pytest.fixture
+def passive_node_option():
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.PASSIVE
+    try:
+        yield
+    finally:
+        shutil.rmtree(NODE_OPTIONS_FILEPATH)
 
 
 @pytest.fixture

@@ -374,10 +374,10 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
         ):  # noqa
             result = update(
-                node_mode=NodeMode.ACTIVE,
                 regular_user_conf.as_posix(),
                 pull_config_for_schain=None,
                 node_type=NodeType.SKALE,
+                node_mode=NodeMode.ACTIVE,
             )
             assert result is None
 

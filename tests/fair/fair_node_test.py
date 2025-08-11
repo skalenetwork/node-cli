@@ -35,7 +35,8 @@ def test_restore_fair(
     mock_save_env.assert_called_once_with(valid_env_file)
     expected_env = {**mock_env, 'SKALE_DIR': SKALE_DIR}
     mock_restore_op.assert_called_once_with(
-        node_mode=NodeMode.ACTIVE, expected_env, backup_path, config_only=False)
+        NodeMode.ACTIVE, expected_env, backup_path, config_only=False
+    )
     mock_sleep.assert_called_once()
 
 
@@ -168,6 +169,7 @@ def test_cleanup_calls_operations_in_correct_order(
     inited_node,
     resource_alloc,
     meta_file_v3,
+    active_node_option,
 ):
     from node_cli.fair.common import cleanup
 
@@ -229,7 +231,7 @@ def test_cleanup_fails_when_user_invalid(
         cleanup()
 
 
-def test_cleanup_fails_when_not_inited(ensure_meta_removed):
+def test_cleanup_fails_when_not_inited(ensure_meta_removed, active_node_option):
     import pytest
 
     with pytest.raises(SystemExit):
@@ -250,6 +252,7 @@ def test_cleanup_logs_success_message(
     inited_node,
     resource_alloc,
     meta_file_v3,
+    active_node_option,
 ):
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
