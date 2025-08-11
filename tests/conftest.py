@@ -36,6 +36,7 @@ from node_cli.configs import (
     META_FILEPATH,
     NGINX_CONFIG_FILEPATH,
     NGINX_CONTAINER_NAME,
+    NODE_DATA_PATH,
     REDIS_URI,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SCHAIN_NODE_DATA_PATH,
@@ -148,6 +149,10 @@ def ssl_folder():
 
 @pytest.fixture
 def active_node_option():
+    if os.path.isdir(NODE_DATA_PATH):
+        shutil.rmtree(NODE_DATA_PATH)
+    path = pathlib.Path(NODE_DATA_PATH)
+    path.mkdir(parents=True, exist_ok=True)
     node_options = NodeOptions()
     node_options.node_mode = NodeMode.ACTIVE
     try:
@@ -158,6 +163,10 @@ def active_node_option():
 
 @pytest.fixture
 def passive_node_option():
+    if os.path.isdir(NODE_DATA_PATH):
+        shutil.rmtree(NODE_DATA_PATH)
+    path = pathlib.Path(NODE_DATA_PATH)
+    path.mkdir(parents=True, exist_ok=True)
     node_options = NodeOptions()
     node_options.node_mode = NodeMode.PASSIVE
     try:

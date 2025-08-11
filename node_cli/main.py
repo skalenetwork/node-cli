@@ -36,7 +36,6 @@ from node_cli.cli.node import node_cli
 from node_cli.cli.schains import schains_cli
 from node_cli.cli.wallet import wallet_cli
 from node_cli.cli.ssl import ssl_cli
-from node_cli.cli.resources_allocation import resources_allocation_cli
 from node_cli.cli.passive_node import passive_node_cli
 from node_cli.cli.fair_boot import fair_boot_cli
 from node_cli.cli.fair_node import fair_node_cli
@@ -102,7 +101,6 @@ def get_sources_list() -> List[click.MultiCommand]:
             health_cli,
             schains_cli,
             logs_cli,
-            resources_allocation_cli,
             node_cli,
             passive_node_cli,
             wallet_cli,

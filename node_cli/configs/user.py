@@ -168,7 +168,9 @@ def get_validated_user_config(
 def validate_user_config(user_config: BaseUserConfig) -> None:
     validate_env_type(env_type=user_config.env_type)
 
-    if not isinstance(user_config, FairUserConfig):
+    if not isinstance(user_config, FairUserConfig) and not isinstance(
+        user_config, PassiveFairUserConfig
+    ):
         validate_alias_or_address(
             user_config.manager_contracts, ContractType.MANAGER, user_config.endpoint
         )

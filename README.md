@@ -21,7 +21,6 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    5. [Health commands (Standard)](#health-commands-standard)
    6. [SSL commands (Standard)](#ssl-commands-standard)
    7. [Logs commands (Standard)](#logs-commands-standard)
-   8. [Resources allocation commands (Standard)](#resources-allocation-commands-standard)
 3. [Passive Node Usage (`skale` - Passive Build)](#passive-node-usage-skale---passive-build)
    1. [Top level commands (Passive)](#top-level-commands-passive)
    2. [Passive node commands](#passive-node-commands)
@@ -518,37 +517,6 @@ Arguments:
 Options:
 
 * `--container`, `-c` - Dump logs only from specified container.
-
-### Resources allocation commands (Standard)
-
-> Prefix: `skale resources-allocation`
-
-Manage the resources allocation file for the standard node.
-
-#### Show allocation file
-
-Show resources allocation file:
-
-```shell
-skale resources-allocation show
-```
-
-#### Generate/update allocation file
-
-Generate/update allocation file:
-
-```shell
-skale resources-allocation generate [ENV_FILE] [--yes] [-f/--force]
-```
-
-Arguments:
-
-* `ENV_FILE` - path to .env file (required parameters are listed in the `skale node init` command).
-
-Options:
-
-* `--yes` - generate without additional confirmation.
-* `-f/--force` - rewrite allocation file if it exists.
 
 ***
 

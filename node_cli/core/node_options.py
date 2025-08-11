@@ -71,7 +71,7 @@ class NodeOptions:
 
     @node_mode.setter
     def node_mode(self, node_mode: NodeMode) -> None:
-        return self._set('node_mode', node_mode.name)
+        return self._set('node_mode', node_mode.value)
 
     def all(self) -> dict:
         return read_json(self.filepath)
@@ -97,7 +97,7 @@ def upsert_node_mode(node_mode: NodeMode | None = None) -> NodeMode:
     node_options = NodeOptions()
     try:
         options_mode = node_options.node_mode
-        if options_mode != node_mode:
+        if node_mode is not None and options_mode != node_mode:
             raise NodeModeMismatchError(
                 f'Cannot change node mode from {options_mode} to {node_mode}'
             )
