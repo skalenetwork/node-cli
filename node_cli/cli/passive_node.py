@@ -22,7 +22,6 @@ from typing import Optional
 import click
 
 from node_cli.core.node import init_passive, update_passive, cleanup_passive
-from node_cli.fair.passive import setup_fair_passive
 from node_cli.utils.helper import abort_if_false, error_exit, streamed_cmd, URL_TYPE
 from node_cli.utils.texts import safe_load_texts
 
@@ -84,9 +83,3 @@ def _update_passive(env_file, unsafe_ok):
 @streamed_cmd
 def _cleanup_passive() -> None:
     cleanup_passive()
-
-
-@passive_node.command('setup', help=TEXTS['setup']['help'])
-@click.option('--id', required=True, type=int, help=TEXTS['setup']['id'])
-def _setup(id: int) -> None:
-    setup_fair_passive(node_id=id)

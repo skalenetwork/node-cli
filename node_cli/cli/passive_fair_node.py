@@ -22,6 +22,7 @@ import click
 from node_cli.fair.common import init as init_fair
 from node_cli.fair.common import update as update_fair
 from node_cli.fair.common import cleanup as cleanup_fair
+from node_cli.fair.passive import setup_fair_passive
 from node_cli.utils.helper import abort_if_false, streamed_cmd
 from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts
@@ -85,3 +86,9 @@ def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: b
 @streamed_cmd
 def cleanup_node():
     cleanup_fair()
+
+
+@passive_node.command('setup', help=TEXTS['fair']['node']['setup']['help'])
+@click.option('--id', required=True, type=int, help=TEXTS['fair']['node']['setup']['id'])
+def _setup(id: int) -> None:
+    setup_fair_passive(node_id=id)

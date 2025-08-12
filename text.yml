@@ -67,9 +67,6 @@ passive_node:
     archive: Enable historic state and disable block rotation
     snapshot_from: IP of the node to take snapshot from
     snapshot: Start passive node from snapshot
-  setup:
-    help: Setup passive Fair node
-    id: ID of the node in Fair manager
 
 lvmpy:
   help: Lvmpy commands
@@ -88,6 +85,10 @@ fair:
       snapshot_from: IP of the node to take snapshot from
       repair_requested: Repair mode is requested
     not_inited: Node should be initialized to proceed with operation
+
+    setup:
+      help: Setup passive Fair node
+      id: ID of the node in Fair manager
 
     registered: Node is registered in Fair manager.
     setup_complete: Passive node setup complete.

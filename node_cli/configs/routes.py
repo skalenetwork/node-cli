@@ -42,6 +42,7 @@ ROUTES = {
         'wallet': ['info', 'send-eth'],
         'fair-node': ['info', 'register', 'set-domain-name', 'change-ip', 'exit'],
         'fair-chain': ['record', 'checks'],
+        'fair-node-passive': ['setup'],
     }
 }
 

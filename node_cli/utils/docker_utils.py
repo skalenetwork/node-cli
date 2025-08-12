@@ -87,6 +87,8 @@ BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
     'fair-admin': 'fair_admin',
     'fair-api': 'fair_api',
     'nginx': 'skale_nginx',
+    'watchdog': 'skale_watchdog',
+    'filebeat': 'skale_filebeat',
     **REDIS_SERVICE_DICT,
 }
 
