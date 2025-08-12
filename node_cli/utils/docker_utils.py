@@ -84,8 +84,10 @@ BASE_PASSIVE_COMPOSE_SERVICES = {
 }
 
 BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
-    'fair-passive-admin': 'fair_passive_admin',
+    'fair-admin': 'fair_admin',
+    'fair-api': 'fair_api',
     'nginx': 'skale_nginx',
+    **REDIS_SERVICE_DICT,
 }
 
 MONITORING_COMPOSE_SERVICES = {
