@@ -67,7 +67,7 @@ from node_cli.utils.docker_utils import (
 )
 from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
 from node_cli.utils.meta import FairCliMetaManager
-from node_cli.utils.print_formatters import TEXTS, print_failed_requirements_checks
+from node_cli.utils.print_formatters import print_failed_requirements_checks
 from node_cli.utils.node_type import NodeMode, NodeType
 
 logger = logging.getLogger(__name__)
