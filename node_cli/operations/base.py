@@ -42,9 +42,8 @@ from node_cli.core.host import (
 from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.node_options import (
-    NodeOptions,
     mark_active_node,
-    mark_passive_node,
+    set_passive_node_options,
     upsert_node_mode,
 )
 from node_cli.core.resources import init_shared_space_volume, update_resource_allocation
@@ -289,12 +288,7 @@ def init_passive(
         env_type=env['ENV_TYPE'],
     )
 
-    node_options = NodeOptions()
-    node_options.archive = archive or indexer
-    node_options.catchup = archive or indexer
-    node_options.historic_state = archive
-
-    mark_passive_node()
+    set_passive_node_options(archive=archive, indexer=indexer)
 
     ensure_filestorage_mapping()
     link_env_file()

@@ -23,7 +23,12 @@ from node_cli.fair.common import init as init_fair
 from node_cli.fair.common import update as update_fair
 from node_cli.fair.common import cleanup as cleanup_fair
 from node_cli.fair.passive import setup_fair_passive
-from node_cli.utils.helper import abort_if_false, streamed_cmd
+from node_cli.utils.helper import (
+    URL_OR_ANY_TYPE,
+    abort_if_false,
+    error_exit,
+    streamed_cmd,
+)
 from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts
 
@@ -42,9 +47,31 @@ def passive_node():
 
 @passive_node.command('init', help='Initialize a passive Fair node')
 @click.argument('env_filepath')
+@click.option('--id', required=True, type=int, help=TEXTS['fair']['node']['setup']['id'])
+@click.option('--indexer', help=TEXTS['passive_node']['init']['indexer'], is_flag=True)
+@click.option('--archive', help=TEXTS['passive_node']['init']['archive'], is_flag=True)
+@click.option(
+    '--snapshot',
+    type=URL_OR_ANY_TYPE,
+    default=None,
+    help=TEXTS['passive_node']['init']['snapshot_from'],
+)
 @streamed_cmd
-def init_passive_node(env_filepath: str):
-    init_fair(node_mode=NodeMode.PASSIVE, env_filepath=env_filepath)
+def init_passive_node(
+    env_filepath: str, id: int, indexer: bool, archive: bool, snapshot: str | None
+):
+    if indexer and archive:
+        error_exit('Cannot use both --indexer and --archive options')
+    if (indexer or archive) and snapshot == 'any':
+        error_exit('Cannot use any for indexer/archive node')
+    init_fair(
+        node_mode=NodeMode.PASSIVE,
+        env_filepath=env_filepath,
+        node_id=id,
+        indexer=indexer,
+        archive=archive,
+        snapshot=snapshot,
+    )
 
 
 @passive_node.command('update', help='Update Fair node')

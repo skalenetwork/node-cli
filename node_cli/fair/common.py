@@ -20,11 +20,12 @@
 import time
 import logging
 
-from node_cli.configs import RESTORE_SLEEP_TIMEOUT, SKALE_DIR
+from node_cli.configs import INIT_TIMEOUT, SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.core.node_options import upsert_node_mode
+from node_cli.fair.passive import setup_fair_passive
 from node_cli.operations import (
     FairUpdateType,
     cleanup_fair_op,
@@ -45,17 +46,35 @@ TEXTS = safe_load_texts()
 
 
 @check_not_inited
-def init(node_mode: NodeMode, env_filepath: str) -> None:
+def init(
+    node_mode: NodeMode,
+    env_filepath: str,
+    node_id: int | None = None,
+    indexer: bool = False,
+    archive: bool = False,
+    snapshot: str | None = None,
+) -> None:
     env = compose_node_env(env_filepath, node_type=NodeType.FAIR, node_mode=node_mode)
     if env is None:
         return
     save_env_params(env_filepath)
     env['SKALE_DIR'] = SKALE_DIR
 
-    init_ok = init_fair_op(env_filepath, env, node_mode=node_mode)
+    init_ok = init_fair_op(
+        env_filepath,
+        env,
+        node_mode=node_mode,
+        indexer=indexer,
+        archive=archive,
+        snapshot=snapshot,
+    )
     if not init_ok:
         error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    time.sleep(RESTORE_SLEEP_TIMEOUT)
+    time.sleep(INIT_TIMEOUT)
+
+    if node_mode == NodeMode.PASSIVE and node_id is not None:
+        setup_fair_passive(node_id)
+
     print('Fair node is initialized')
 
 

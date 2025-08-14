@@ -38,7 +38,7 @@ from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_no_lvm_datadir
 from node_cli.core.static_config import get_fair_chain_name
-from node_cli.core.node_options import upsert_node_mode
+from node_cli.core.node_options import set_passive_node_options, upsert_node_mode
 from node_cli.fair.record.chain_record import (
     get_fair_chain_record,
     migrate_chain_record,
@@ -53,6 +53,7 @@ from node_cli.operations.config_repo import (
 )
 from node_cli.operations.volume import cleanup_volume_artifacts, prepare_block_device
 from node_cli.utils.docker_utils import (
+    BASE_PASSIVE_FAIR_COMPOSE_SERVICES,
     REDIS_SERVICE_DICT,
     REDIS_START_TIMEOUT,
     compose_rm,
@@ -79,7 +80,14 @@ class FairUpdateType(Enum):
 
 
 @checked_host
-def init(env_filepath: str, env: dict, node_mode: NodeMode) -> bool:
+def init(
+    env_filepath: str,
+    env: dict,
+    node_mode: NodeMode,
+    indexer: bool,
+    archive: bool,
+    snapshot: str | None,
+) -> bool:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
@@ -94,8 +102,18 @@ def init(env_filepath: str, env: dict, node_mode: NodeMode) -> bool:
 
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
-    upsert_node_mode(node_mode=node_mode)
 
+    update_images(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
+    compose_up(
+        env=env, node_type=NodeType.FAIR, node_mode=node_mode, services=list(REDIS_SERVICE_DICT)
+    )
+
+    upsert_node_mode(node_mode=node_mode)
+    if node_mode == NodeMode.PASSIVE:
+        set_passive_node_options(archive=archive, indexer=indexer)
+        if snapshot:
+            time.sleep(REDIS_START_TIMEOUT)
+            trigger_skaled_snapshot_mode(env=env, snapshot_from=snapshot)
     prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
     meta_manager = FairCliMetaManager()
@@ -105,9 +123,9 @@ def init(env_filepath: str, env: dict, node_mode: NodeMode) -> bool:
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
+
     compose_up(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
-    wait_for_container(REDIS_SERVICE_DICT['redis'])
+    wait_for_container(BASE_PASSIVE_FAIR_COMPOSE_SERVICES['fair-api'])
     time.sleep(REDIS_START_TIMEOUT)
     return True
 
@@ -273,7 +291,6 @@ def trigger_skaled_snapshot_mode(env: dict, snapshot_from: str = 'any') -> None:
     if not snapshot_from:
         snapshot_from = 'any'
     record.set_snapshot_from(snapshot_from)
-    print(TEXTS['fair']['node']['repair']['repair_requested'])
 
 
 def repair(node_mode: NodeMode, env: dict, snapshot_from: str = 'any') -> None:

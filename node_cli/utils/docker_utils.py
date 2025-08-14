@@ -33,7 +33,6 @@ from node_cli.configs import (
     COMPOSE_PATH,
     FAIR_COMPOSE_PATH,
     NGINX_CONTAINER_NAME,
-    PASSIVE_FAIR_COMPOSE_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
     PASSIVE_COMPOSE_PATH,
@@ -298,10 +297,8 @@ def compose_build(env: dict, node_type: NodeType, node_mode: NodeMode):
 def get_compose_path(node_type: NodeType, node_mode: NodeMode) -> str:
     if passive_skale(node_type, node_mode):
         return PASSIVE_COMPOSE_PATH
-    elif active_fair(node_type, node_mode):
+    elif active_fair(node_type, node_mode) or passive_fair(node_type, node_mode):
         return FAIR_COMPOSE_PATH
-    elif passive_fair(node_type, node_mode):
-        return PASSIVE_FAIR_COMPOSE_PATH
     return COMPOSE_PATH
 
 
@@ -333,6 +330,7 @@ def compose_up(
     is_fair_boot: bool = False,
     services: list[str] | None = None,
 ):
+    env['PASSIVE_NODE'] = str(node_mode == NodeMode.PASSIVE)
     if passive_skale(node_type, node_mode) or passive_fair(node_type, node_mode):
         logger.info('Running containers for passive node')
         run_cmd(cmd=get_up_compose_cmd(node_type=node_type, node_mode=node_mode), env=env)

@@ -89,6 +89,18 @@ def mark_passive_node() -> None:
     logger.info('Node marked as passive.')
 
 
+def set_passive_node_options(
+    archive: bool,
+    indexer: bool,
+) -> None:
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.PASSIVE
+    node_options.archive = archive or indexer
+    node_options.catchup = archive or indexer
+    node_options.historic_state = archive
+    logger.info('Node options set for passive mode.')
+
+
 class NodeModeMismatchError(Exception):
     pass
 

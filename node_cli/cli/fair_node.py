@@ -136,7 +136,7 @@ def migrate_node(env_filepath: str) -> None:
 
 @node.command('repair', help='Toggle fair chain repair mode')
 @click.option(
-    '--snapshot-from',
+    '--snapshot',
     type=URL_OR_ANY_TYPE,
     default='any',
     hidden=True,
