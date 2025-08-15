@@ -38,6 +38,7 @@ ALL_V1_ROUTES = [
     '/api/v1/fair-node/exit',
     '/api/v1/fair-chain/record',
     '/api/v1/fair-chain/checks',
+    '/api/v1/fair-node-passive/setup',
 ]
 
 

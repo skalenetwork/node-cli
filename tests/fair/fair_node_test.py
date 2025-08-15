@@ -4,17 +4,18 @@ import pytest
 
 from node_cli.configs import SKALE_DIR
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
-from node_cli.fair.fair_boot import init as init_boot
-from node_cli.fair.fair_boot import update
-from node_cli.fair.fair_node import cleanup, migrate_from_boot, restore_fair
+from node_cli.fair.boot import init as init_boot
+from node_cli.fair.boot import update
+from node_cli.fair.common import cleanup
+from node_cli.fair.active import migrate_from_boot, restore
 from node_cli.operations.fair import FairUpdateType
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeMode, NodeType
 
 
-@mock.patch('node_cli.fair.fair_node.time.sleep')
-@mock.patch('node_cli.fair.fair_node.restore_fair_op')
-@mock.patch('node_cli.fair.fair_node.save_env_params')
-@mock.patch('node_cli.fair.fair_node.compose_node_env')
+@mock.patch('node_cli.fair.active.time.sleep')
+@mock.patch('node_cli.fair.active.restore_fair_op')
+@mock.patch('node_cli.fair.active.save_env_params')
+@mock.patch('node_cli.fair.active.compose_node_env')
 def test_restore_fair(
     mock_compose_env,
     mock_save_env,
@@ -28,19 +29,21 @@ def test_restore_fair(
     mock_restore_op.return_value = True
     backup_path = '/fake/backup'
 
-    restore_fair(backup_path, valid_env_file)
+    restore(backup_path, valid_env_file)
 
     mock_compose_env.assert_called_once_with(valid_env_file, node_type=NodeType.FAIR)
     mock_save_env.assert_called_once_with(valid_env_file)
     expected_env = {**mock_env, 'SKALE_DIR': SKALE_DIR}
-    mock_restore_op.assert_called_once_with(expected_env, backup_path, config_only=False)
+    mock_restore_op.assert_called_once_with(
+        NodeMode.ACTIVE, expected_env, backup_path, config_only=False
+    )
     mock_sleep.assert_called_once()
 
 
-@mock.patch('node_cli.fair.fair_boot.is_base_containers_alive', return_value=True)
-@mock.patch('node_cli.fair.fair_boot.time.sleep')
-@mock.patch('node_cli.fair.fair_boot.init_fair_boot_op')
-@mock.patch('node_cli.fair.fair_boot.compose_node_env')
+@mock.patch('node_cli.fair.boot.is_base_containers_alive', return_value=True)
+@mock.patch('node_cli.fair.boot.time.sleep')
+@mock.patch('node_cli.fair.boot.init_fair_boot_op')
+@mock.patch('node_cli.fair.boot.compose_node_env')
 def test_init_fair_boot(
     mock_compose_env,
     mock_init_op,
@@ -65,10 +68,10 @@ def test_init_fair_boot(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.fair_boot.is_base_containers_alive', return_value=True)
-@mock.patch('node_cli.fair.fair_boot.time.sleep')
-@mock.patch('node_cli.fair.fair_boot.update_fair_boot_op')
-@mock.patch('node_cli.fair.fair_boot.compose_node_env')
+@mock.patch('node_cli.fair.boot.is_base_containers_alive', return_value=True)
+@mock.patch('node_cli.fair.boot.time.sleep')
+@mock.patch('node_cli.fair.boot.update_fair_boot_op')
+@mock.patch('node_cli.fair.boot.compose_node_env')
 def test_update_fair_boot(
     mock_compose_env,
     mock_update_op,
@@ -100,8 +103,8 @@ def test_update_fair_boot(
     mock_is_alive.assert_called_once_with(node_type=NodeType.FAIR, is_fair_boot=True)
 
 
-@mock.patch('node_cli.fair.fair_node.update_fair_op')
-@mock.patch('node_cli.fair.fair_node.compose_node_env')
+@mock.patch('node_cli.fair.active.update_fair_op')
+@mock.patch('node_cli.fair.active.compose_node_env')
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
 def test_migrate_from_boot(
     mock_is_user_valid,
@@ -130,9 +133,9 @@ def test_migrate_from_boot(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.fair_node.cleanup_docker_configuration')
-@mock.patch('node_cli.fair.fair_node.cleanup_fair_op')
-@mock.patch('node_cli.fair.fair_node.compose_node_env')
+@mock.patch('node_cli.fair.common.cleanup_docker_configuration')
+@mock.patch('node_cli.fair.common.cleanup_fair_op')
+@mock.patch('node_cli.fair.common.compose_node_env')
 def test_cleanup_success(
     mock_compose_env,
     mock_cleanup_fair_op,
@@ -155,9 +158,9 @@ def test_cleanup_success(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.fair_node.cleanup_docker_configuration')
-@mock.patch('node_cli.fair.fair_node.cleanup_fair_op')
-@mock.patch('node_cli.fair.fair_node.compose_node_env')
+@mock.patch('node_cli.fair.common.cleanup_docker_configuration')
+@mock.patch('node_cli.fair.common.cleanup_fair_op')
+@mock.patch('node_cli.fair.common.compose_node_env')
 def test_cleanup_calls_operations_in_correct_order(
     mock_compose_env,
     mock_cleanup_fair_op,
@@ -166,8 +169,9 @@ def test_cleanup_calls_operations_in_correct_order(
     inited_node,
     resource_alloc,
     meta_file_v3,
+    active_node_option,
 ):
-    from node_cli.fair.fair_node import cleanup
+    from node_cli.fair.common import cleanup
 
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
@@ -188,9 +192,9 @@ def test_cleanup_calls_operations_in_correct_order(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.fair_node.cleanup_docker_configuration')
-@mock.patch('node_cli.fair.fair_node.cleanup_fair_op', side_effect=Exception('Cleanup failed'))
-@mock.patch('node_cli.fair.fair_node.compose_node_env')
+@mock.patch('node_cli.fair.common.cleanup_docker_configuration')
+@mock.patch('node_cli.fair.common.cleanup_fair_op', side_effect=Exception('Cleanup failed'))
+@mock.patch('node_cli.fair.common.compose_node_env')
 def test_cleanup_continues_after_fair_op_error(
     mock_compose_env,
     mock_cleanup_fair_op,
@@ -221,13 +225,13 @@ def test_cleanup_fails_when_user_invalid(
     """Test that cleanup fails when user validation fails"""
     import pytest
 
-    from node_cli.fair.fair_node import cleanup
+    from node_cli.fair.common import cleanup
 
     with pytest.raises(SystemExit):
         cleanup()
 
 
-def test_cleanup_fails_when_not_inited(ensure_meta_removed):
+def test_cleanup_fails_when_not_inited(ensure_meta_removed, active_node_option):
     import pytest
 
     with pytest.raises(SystemExit):
@@ -235,10 +239,10 @@ def test_cleanup_fails_when_not_inited(ensure_meta_removed):
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.fair_node.cleanup_docker_configuration')
-@mock.patch('node_cli.fair.fair_node.cleanup_fair_op')
-@mock.patch('node_cli.fair.fair_node.compose_node_env')
-@mock.patch('node_cli.fair.fair_node.logger')
+@mock.patch('node_cli.fair.common.cleanup_docker_configuration')
+@mock.patch('node_cli.fair.common.cleanup_fair_op')
+@mock.patch('node_cli.fair.common.compose_node_env')
+@mock.patch('node_cli.fair.common.logger')
 def test_cleanup_logs_success_message(
     mock_logger,
     mock_compose_env,
@@ -248,6 +252,7 @@ def test_cleanup_logs_success_message(
     inited_node,
     resource_alloc,
     meta_file_v3,
+    active_node_option,
 ):
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
@@ -260,8 +265,8 @@ def test_cleanup_logs_success_message(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.fair_node.post_request')
-@mock.patch('node_cli.fair.fair_node.is_node_inited', return_value=True)
+@mock.patch('node_cli.fair.active.post_request')
+@mock.patch('node_cli.fair.active.is_node_inited', return_value=True)
 def test_exit_success(
     mock_is_inited,
     mock_post_request,
@@ -270,7 +275,7 @@ def test_exit_success(
     resource_alloc,
     meta_file_v3,
 ):
-    from node_cli.fair.fair_node import exit
+    from node_cli.fair.active import exit
 
     mock_post_request.return_value = ('ok', {})
 
@@ -280,9 +285,9 @@ def test_exit_success(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.fair_node.error_exit')
-@mock.patch('node_cli.fair.fair_node.post_request')
-@mock.patch('node_cli.fair.fair_node.is_node_inited', return_value=True)
+@mock.patch('node_cli.fair.active.error_exit')
+@mock.patch('node_cli.fair.active.post_request')
+@mock.patch('node_cli.fair.active.is_node_inited', return_value=True)
 def test_exit_error(
     mock_is_inited,
     mock_post_request,
@@ -292,7 +297,7 @@ def test_exit_error(
     resource_alloc,
     meta_file_v3,
 ):
-    from node_cli.fair.fair_node import exit
+    from node_cli.fair.active import exit
 
     error_msg = 'Exit failed'
     mock_post_request.return_value = ('error', error_msg)
@@ -304,7 +309,7 @@ def test_exit_error(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.fair_node.is_node_inited', return_value=False)
+@mock.patch('node_cli.fair.active.is_node_inited', return_value=False)
 def test_exit_not_inited(
     mock_is_inited,
     mock_is_user_valid,
@@ -313,7 +318,7 @@ def test_exit_not_inited(
     meta_file_v3,
     capsys,
 ):
-    from node_cli.fair.fair_node import exit
+    from node_cli.fair.active import exit
 
     exit()
 

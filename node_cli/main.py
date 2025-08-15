@@ -36,10 +36,10 @@ from node_cli.cli.node import node_cli
 from node_cli.cli.schains import schains_cli
 from node_cli.cli.wallet import wallet_cli
 from node_cli.cli.ssl import ssl_cli
-from node_cli.cli.resources_allocation import resources_allocation_cli
-from node_cli.cli.sync_node import sync_node_cli
+from node_cli.cli.passive_node import passive_node_cli
 from node_cli.cli.fair_boot import fair_boot_cli
 from node_cli.cli.fair_node import fair_node_cli
+from node_cli.cli.passive_fair_node import passive_fair_node_cli
 from node_cli.cli.chain import chain_cli
 from node_cli.core.host import init_logs_dir
 from node_cli.utils.node_type import NodeType
@@ -84,14 +84,13 @@ def info():
 
 
 def get_sources_list() -> List[click.MultiCommand]:
-    if TYPE == NodeType.SYNC:
-        return [cli, sync_node_cli, ssl_cli]
-    elif TYPE == NodeType.FAIR:
+    if TYPE == NodeType.FAIR:
         return [
             cli,
             logs_cli,
             fair_boot_cli,
             fair_node_cli,
+            passive_fair_node_cli,
             chain_cli,
             wallet_cli,
             ssl_cli,
@@ -102,9 +101,8 @@ def get_sources_list() -> List[click.MultiCommand]:
             health_cli,
             schains_cli,
             logs_cli,
-            resources_allocation_cli,
             node_cli,
-            sync_node_cli,
+            passive_node_cli,
             wallet_cli,
             ssl_cli,
             exit_cli,

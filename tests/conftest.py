@@ -36,6 +36,7 @@ from node_cli.configs import (
     META_FILEPATH,
     NGINX_CONFIG_FILEPATH,
     NGINX_CONTAINER_NAME,
+    NODE_DATA_PATH,
     REDIS_URI,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SCHAIN_NODE_DATA_PATH,
@@ -43,8 +44,10 @@ from node_cli.configs import (
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
+from node_cli.core.node_options import NodeOptions
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
+from node_cli.utils.node_type import NodeMode
 from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
 
@@ -145,6 +148,34 @@ def ssl_folder():
 
 
 @pytest.fixture
+def active_node_option():
+    if os.path.isdir(NODE_DATA_PATH):
+        shutil.rmtree(NODE_DATA_PATH)
+    path = pathlib.Path(NODE_DATA_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.ACTIVE
+    try:
+        yield
+    finally:
+        shutil.rmtree(NODE_OPTIONS_FILEPATH)
+
+
+@pytest.fixture
+def passive_node_option():
+    if os.path.isdir(NODE_DATA_PATH):
+        shutil.rmtree(NODE_DATA_PATH)
+    path = pathlib.Path(NODE_DATA_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.PASSIVE
+    try:
+        yield
+    finally:
+        shutil.rmtree(NODE_OPTIONS_FILEPATH)
+
+
+@pytest.fixture
 def dutils():
     return docker_client()
 
@@ -226,7 +257,7 @@ def tmp_schains_dir():
 
 
 @pytest.fixture
-def tmp_sync_datadir():
+def tmp_passive_datadir():
     os.makedirs(TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN, exist_ok=True)
     try:
         yield TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
@@ -366,7 +397,7 @@ def fair_boot_user_conf(tmp_path):
 
 
 @pytest.fixture
-def sync_user_conf(tmp_path):
+def passive_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
     try:
         test_env = """

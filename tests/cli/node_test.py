@@ -42,7 +42,7 @@ from node_cli.configs import G_CONF_HOME, SKALE_DIR
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import init_default_logger
 from node_cli.utils.meta import CliMeta
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 from tests.helper import (
     response_mock,
     run_command,
@@ -322,14 +322,14 @@ def test_backup():
 
 
 @pytest.mark.parametrize(
-    'node_type,test_user_conf',
+    'node_type,node_mode,test_user_conf',
     [
-        (NodeType.REGULAR, 'regular_user_conf'),
-        (NodeType.FAIR, 'fair_user_conf'),
-        (NodeType.SYNC, 'sync_user_conf'),
+        (NodeType.SKALE, NodeMode.ACTIVE, 'regular_user_conf'),
+        (NodeType.SKALE, NodeMode.PASSIVE, 'passive_user_conf'),
+        (NodeType.FAIR, NodeMode.ACTIVE, 'fair_user_conf'),
     ],
 )
-def test_restore(request, node_type, test_user_conf, mocked_g_config, tmp_path):
+def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config, tmp_path):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(backup_node, [tmp_path])
     backup_path = result.output.replace('Backup archive successfully created: ', '').replace(
@@ -394,7 +394,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
@@ -427,7 +427,7 @@ def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',

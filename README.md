@@ -4,13 +4,13 @@
 ![Test](https://github.com/skalenetwork/node-cli/workflows/Test/badge.svg)
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
-SKALE Node CLI, part of the SKALE suite of validator tools, is the command line interface to setup, register and maintain your SKALE node. It comes in three distinct build types: Standard (for validator nodes), Sync (for dedicated sChain synchronization), and Fair.
+SKALE Node CLI, part of the SKALE suite of validator tools, is the command line interface to setup, register and maintain your SKALE node. It comes in three distinct build types: Standard (for validator nodes), Passive (for dedicated sChain synchronization), and Fair.
 
 ## Table of Contents
 
 1. [Installation](#installation)
    1. [Standard Node Binary](#standard-node-binary)
-   2. [Sync Node Binary](#sync-node-binary)
+   2. [Passive Node Binary](#passive-node-binary)
    3. [Fair Node Binary](#fair-node-binary)
    4. [Permissions and Testing](#permissions-and-testing)
 2. [Standard Node Usage (`skale` - Normal Build)](#standard-node-usage-skale---normal-build)
@@ -21,10 +21,9 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    5. [Health commands (Standard)](#health-commands-standard)
    6. [SSL commands (Standard)](#ssl-commands-standard)
    7. [Logs commands (Standard)](#logs-commands-standard)
-   8. [Resources allocation commands (Standard)](#resources-allocation-commands-standard)
-3. [Sync Node Usage (`skale` - Sync Build)](#sync-node-usage-skale---sync-build)
-   1. [Top level commands (Sync)](#top-level-commands-sync)
-   2. [Sync node commands](#sync-node-commands)
+3. [Passive Node Usage (`skale` - Passive Build)](#passive-node-usage-skale---passive-build)
+   1. [Top level commands (Passive)](#top-level-commands-passive)
+   2. [Passive node commands](#passive-node-commands)
 4. [Fair Node Usage (`fair`)](#fair-node-usage-fair)
    1. [Top level commands (Fair)](#top-level-commands-fair)
    2. [Fair Boot commands](#fair-boot-commands)
@@ -54,14 +53,14 @@ CLI_VERSION={version} && \
 sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m` > /usr/local/bin/skale"
 ```
 
-### Sync Node Binary
+### Passive Node Binary
 
-This binary (`skale-VERSION-OS-sync`) is used for managing dedicated Sync nodes. **Ensure you download the correct `-sync` suffixed binary for Sync node operations.**
+This binary (`skale-VERSION-OS-passive`) is used for managing dedicated Passive nodes. **Ensure you download the correct `-passive` suffixed binary for Passive node operations.**
 
 ```shell
 # Replace {version} with the desired release version (e.g., 3.0.0)
 CLI_VERSION={version} && \
-sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m`-sync > /usr/local/bin/skale"
+sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m`-passive > /usr/local/bin/skale"
 ```
 
 ### Fair Node Binary
@@ -79,7 +78,7 @@ sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/downl
 Apply executable permissions to the downloaded binary (adjust name accordingly):
 
 ```shell
-# For Standard or Sync binary
+# For Standard or Passive binary
 sudo chmod +x /usr/local/bin/skale
 
 # For Fair binary
@@ -89,7 +88,7 @@ sudo chmod +x /usr/local/bin/fair
 Test the installation:
 
 ```shell
-# Standard or Sync build
+# Standard or Passive build
 skale --help
 
 # Fair build
@@ -519,57 +518,26 @@ Options:
 
 * `--container`, `-c` - Dump logs only from specified container.
 
-### Resources allocation commands (Standard)
-
-> Prefix: `skale resources-allocation`
-
-Manage the resources allocation file for the standard node.
-
-#### Show allocation file
-
-Show resources allocation file:
-
-```shell
-skale resources-allocation show
-```
-
-#### Generate/update allocation file
-
-Generate/update allocation file:
-
-```shell
-skale resources-allocation generate [ENV_FILE] [--yes] [-f/--force]
-```
-
-Arguments:
-
-* `ENV_FILE` - path to .env file (required parameters are listed in the `skale node init` command).
-
-Options:
-
-* `--yes` - generate without additional confirmation.
-* `-f/--force` - rewrite allocation file if it exists.
-
 ***
 
-## Sync Node Usage (`skale` - Sync Build)
+## Passive Node Usage (`skale` - Passive Build)
 
-Commands available in the **sync `skale` binary** for managing dedicated Sync nodes.
+Commands available in the **passive `skale` binary** for managing dedicated Passive nodes.
 Note that this binary contains a **different set of commands** compared to the standard build.
 
-### Top level commands (Sync)
+### Top level commands (Passive)
 
-#### Info (Sync)
+#### Info (Passive)
 
-Print build info for the `skale` (sync) binary.
+Print build info for the `skale` (passive) binary.
 
 ```shell
 skale info
 ```
 
-#### Version (Sync)
+#### Version (Passive)
 
-Print version number for the `skale` (sync) binary.
+Print version number for the `skale` (passive) binary.
 
 ```shell
 skale version
@@ -579,16 +547,16 @@ Options:
 
 * `--short` - prints version only, without additional text.
 
-### Sync node commands
+### Passive node commands
 
-> Prefix: `skale sync-node`
+> Prefix: `skale passive-node`
 
-#### Sync node initialization
+#### Passive node initialization
 
-Initialize a dedicated Sync node on the current machine.
+Initialize a dedicated Passive node on the current machine.
 
 ```shell
-skale sync-node init [ENV_FILE] [--indexer | --archive] [--snapshot] [--snapshot-from <IP>] [--yes]
+skale passive-node init [ENV_FILE] [--indexer | --archive] [--snapshot] [--snapshot-from <IP>] [--yes]
 ```
 
 Arguments:
@@ -617,12 +585,12 @@ Options:
 * `--snapshot-from <IP>` - Specify the IP of another node to download a snapshot from.
 * `--yes` - Initialize without additional confirmation.
 
-#### Sync node update
+#### Passive node update
 
-Update the Sync node software and configuration.
+Update the Passive node software and configuration.
 
 ```shell
-skale sync-node update [ENV_FILEPATH] [--yes]
+skale passive-node update [ENV_FILEPATH] [--yes]
 ```
 
 Arguments:
@@ -633,21 +601,21 @@ Options:
 
 * `--yes` - Update without additionalconfirmation.
 
-> NOTE: You can just update a file with environment variables used during `skale sync-node init`.
+> NOTE: You can just update a file with environment variables used during `skale passive-node init`.
 
-#### Sync node cleanup
+#### Passive node cleanup
 
-Remove all data and containers for the Sync node.
+Remove all data and containers for the Passive node.
 
 ```shell
-skale sync-node cleanup [--yes]
+skale passive-node cleanup [--yes]
 ```
 
 Options:
 
 * `--yes` - Cleanup without confirmation.
 
-> WARNING: This command removes all Sync node data.
+> WARNING: This command removes all Passive node data.
 
 ***
 
@@ -1166,14 +1134,14 @@ pip install -e ".[dev]"
 
 #### Generate info.py locally
 
-Specify the build type (`normal`, `sync`, or `fair`):
+Specify the build type (`normal`, `passive`, or `fair`):
 
 ```shell
 # Example for Standard build
 ./scripts/generate_info.sh 1.0.0 my-branch normal
 
-# Example for Sync build
-./scripts/generate_info.sh 1.0.0 my-branch sync
+# Example for Passive build
+./scripts/generate_info.sh 1.0.0 my-branch passive
 
 # Example for Fair build
 ./scripts/generate_info.sh 1.0.0 my-branch fair

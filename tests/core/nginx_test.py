@@ -7,11 +7,11 @@ import mock
 from node_cli.core.nginx import (
     generate_nginx_config,
     check_ssl_certs,
-    is_regular_node_nginx,
+    is_skale_node_nginx,
     SSL_KEY_NAME,
     SSL_CRT_NAME,
 )
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 from node_cli.configs import NGINX_TEMPLATE_FILEPATH, NGINX_CONFIG_FILEPATH, NODE_CERTS_PATH
 
 TEST_NGINX_TEMPLATE = """
@@ -24,7 +24,7 @@ server {
     {% endif %}
 }
 
-{% if regular_node %}
+{% if skale_node %}
 server {
     listen 80;
     {% if ssl %}
@@ -57,14 +57,14 @@ def nginx_template():
 
 
 @pytest.mark.parametrize(
-    'node_type, ssl_exists, expected_regular_flag, expected_ssl_flag',
+    'node_type, node_mode, ssl_exists, expected_regular_flag, expected_ssl_flag',
     [
-        (NodeType.REGULAR, True, True, True),
-        (NodeType.REGULAR, False, True, False),
-        (NodeType.SYNC, True, True, True),
-        (NodeType.SYNC, False, True, False),
-        (NodeType.FAIR, True, False, True),
-        (NodeType.FAIR, False, False, False),
+        (NodeType.SKALE, NodeMode.ACTIVE, True, True, True),
+        (NodeType.SKALE, NodeMode.ACTIVE, False, True, False),
+        (NodeType.SKALE, NodeMode.PASSIVE, True, True, True),
+        (NodeType.SKALE, NodeMode.PASSIVE, False, True, False),
+        (NodeType.FAIR, NodeMode.ACTIVE, True, False, True),
+        (NodeType.FAIR, NodeMode.ACTIVE, False, False, False),
     ],
     ids=[
         'regular_ssl_on',
@@ -81,6 +81,7 @@ def test_generate_nginx_config(
     mock_type,
     mock_check_ssl,
     node_type,
+    node_mode,
     ssl_exists,
     expected_regular_flag,
     expected_ssl_flag,
@@ -130,16 +131,16 @@ def test_check_ssl_certs_missing_both(ssl_folder):
 
 
 @pytest.mark.parametrize(
-    'node_type, expected_result',
+    'node_type, node_mode, expected_result',
     [
-        (NodeType.REGULAR, True),
-        (NodeType.SYNC, True),
-        (NodeType.FAIR, False),
+        (NodeType.SKALE, NodeMode.ACTIVE, True),
+        (NodeType.SKALE, NodeMode.PASSIVE, True),
+        (NodeType.FAIR, NodeMode.ACTIVE, False),
     ],
 )
 @mock.patch('node_cli.core.nginx.TYPE')
-def test_is_regular_node_nginx(mock_type, node_type, expected_result):
+def test_is_skale_node_nginx(mock_type, node_type, node_mode, expected_result):
     mock_type.__eq__.side_effect = lambda other: node_type == other
     mock_type.__ne__.side_effect = lambda other: node_type != other
 
-    assert is_regular_node_nginx() is expected_result
+    assert is_skale_node_nginx() is expected_result

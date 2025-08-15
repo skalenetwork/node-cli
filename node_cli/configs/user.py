@@ -28,7 +28,13 @@ from dotenv.main import DotEnv
 from node_cli.configs import CONTAINER_CONFIG_PATH, SKALE_DIR
 from node_cli.configs.alias_address_validation import ContractType, validate_alias_or_address
 from node_cli.utils.helper import error_exit
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeMode, NodeType
+from node_cli.core.node_options import (
+    active_fair,
+    active_skale,
+    passive_skale,
+    passive_fair,
+)
 
 SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 CONFIGS_ENV_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, '.env')
@@ -91,6 +97,13 @@ class FairUserConfig(BaseUserConfig):
 
 
 @dataclass
+class PassiveFairUserConfig(BaseUserConfig):
+    fair_contracts: str
+    boot_endpoint: str
+    enforce_btrfs: str = ''
+
+
+@dataclass
 class FairBootUserConfig(BaseUserConfig):
     endpoint: str
     manager_contracts: str
@@ -117,7 +130,7 @@ class SkaleUserConfig(BaseUserConfig):
 
 
 @dataclass
-class SyncUserConfig(BaseUserConfig):
+class PassiveSkaleUserConfig(BaseUserConfig):
     endpoint: str
     manager_contracts: str
     schain_name: str = ''
@@ -127,11 +140,16 @@ class SyncUserConfig(BaseUserConfig):
 
 def get_validated_user_config(
     node_type: NodeType,
+    node_mode: NodeMode,
     env_filepath: str = SKALE_DIR_ENV_FILEPATH,
     is_fair_boot: bool = False,
 ) -> BaseUserConfig:
     params = parse_env_file(env_filepath)
-    user_config_class = get_user_config_class(node_type, is_fair_boot)
+    user_config_class = get_user_config_class(
+        node_type=node_type,
+        node_mode=node_mode,
+        is_fair_boot=is_fair_boot,
+    )
     _, missing_params, extra_params = user_config_class.validate_params(params)
 
     if len(missing_params) > 0:
@@ -150,7 +168,9 @@ def get_validated_user_config(
 def validate_user_config(user_config: BaseUserConfig) -> None:
     validate_env_type(env_type=user_config.env_type)
 
-    if not isinstance(user_config, FairUserConfig):
+    if not isinstance(user_config, FairUserConfig) and not isinstance(
+        user_config, PassiveFairUserConfig
+    ):
         validate_alias_or_address(
             user_config.manager_contracts, ContractType.MANAGER, user_config.endpoint
         )
@@ -171,15 +191,18 @@ def parse_env_file(env_filepath: str) -> Dict:
 
 def get_user_config_class(
     node_type: NodeType,
-    is_fair_boot: bool = False,
+    node_mode: NodeMode,
+    is_fair_boot: bool,
 ) -> type[BaseUserConfig]:
     if node_type == NodeType.FAIR and is_fair_boot:
         user_config_class = FairBootUserConfig
-    elif node_type == NodeType.FAIR:
+    elif passive_fair(node_type, node_mode):
+        user_config_class = PassiveFairUserConfig
+    elif active_fair(node_type, node_mode):
         user_config_class = FairUserConfig
-    elif node_type == NodeType.SYNC:
-        user_config_class = SyncUserConfig
-    else:
+    elif passive_skale(node_type, node_mode):
+        user_config_class = PassiveSkaleUserConfig
+    elif active_skale(node_type, node_mode):
         user_config_class = SkaleUserConfig
     return user_config_class
 

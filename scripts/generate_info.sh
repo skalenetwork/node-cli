@@ -18,7 +18,7 @@ if [ -z "$BRANCH" ]; then
     exit 1
 fi
 if [ -z "$TYPE_STR" ]; then
-    (>&2 echo 'You should provide type: normal, sync or fair')
+    (>&2 echo 'You should provide type: skale or fair')
     echo $USAGE_MSG
     exit 1
 fi
@@ -32,17 +32,14 @@ CURRENT_DATETIME="$(date "+%Y-%m-%d %H:%M:%S")"
 OS="$(uname -s)-$(uname -m)"
 
 case "$TYPE_STR" in
-    normal)
-        TYPE_ENUM="NodeType.REGULAR"
-        ;;
-    sync)
-        TYPE_ENUM="NodeType.SYNC"
+    skale)
+        TYPE_ENUM="NodeType.SKALE"
         ;;
     fair)
         TYPE_ENUM="NodeType.FAIR"
         ;;
     *)
-        (>&2 echo "Error: Invalid type '$TYPE_STR'. Must be 'normal', 'sync', or 'fair'")
+        (>&2 echo "Error: Invalid type '$TYPE_STR'. Must be 'skale', or 'fair'")
         exit 1
         ;;
 esac

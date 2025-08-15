@@ -21,31 +21,26 @@ from typing import Optional
 
 import click
 
-from node_cli.core.node import init_sync, update_sync, cleanup_sync
-from node_cli.utils.helper import (
-    abort_if_false,
-    error_exit,
-    streamed_cmd,
-    URL_TYPE,
-)
+from node_cli.core.node import init_passive, update_passive, cleanup_passive
+from node_cli.utils.helper import abort_if_false, error_exit, streamed_cmd, URL_TYPE
 from node_cli.utils.texts import safe_load_texts
 
 
 G_TEXTS = safe_load_texts()
-TEXTS = G_TEXTS['sync_node']
+TEXTS = G_TEXTS['passive_node']
 
 
 @click.group()
-def sync_node_cli():
+def passive_node_cli():
     pass
 
 
-@sync_node_cli.group(help='SKALE sync node commands')
-def sync_node():
+@passive_node_cli.group(help='SKALE passive node commands')
+def passive_node():
     pass
 
 
-@sync_node.command('init', help=TEXTS['init']['help'])
+@passive_node.command('init', help=TEXTS['init']['help'])
 @click.argument('env_file')
 @click.option('--indexer', help=TEXTS['init']['indexer'], is_flag=True)
 @click.option('--archive', help=TEXTS['init']['archive'], is_flag=True)
@@ -54,15 +49,15 @@ def sync_node():
     '--snapshot-from', type=URL_TYPE, default=None, hidden=True, help=TEXTS['init']['snapshot_from']
 )
 @streamed_cmd
-def _init_sync(
+def _init_passive(
     env_file, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
     if indexer and archive:
         error_exit('Cannot use both --indexer and --archive options')
-    init_sync(env_file, indexer, archive, snapshot, snapshot_from)
+    init_passive(env_file, indexer, archive, snapshot, snapshot_from)
 
 
-@sync_node.command('update', help='Update sync node from .env file')
+@passive_node.command('update', help='Update passive node from .env file')
 @click.option(
     '--yes',
     is_flag=True,
@@ -73,11 +68,11 @@ def _init_sync(
 @click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
 @click.argument('env_file')
 @streamed_cmd
-def _update_sync(env_file, unsafe_ok):
-    update_sync(env_file)
+def _update_passive(env_file, unsafe_ok):
+    update_passive(env_file)
 
 
-@sync_node.command('cleanup', help='Remove sync node data and containers')
+@passive_node.command('cleanup', help='Remove passive node data and containers')
 @click.option(
     '--yes',
     is_flag=True,
@@ -86,5 +81,5 @@ def _update_sync(env_file, unsafe_ok):
     prompt='Are you sure you want to remove all node containers and data?',
 )
 @streamed_cmd
-def _cleanup_sync() -> None:
-    cleanup_sync()
+def _cleanup_passive() -> None:
+    cleanup_passive()
