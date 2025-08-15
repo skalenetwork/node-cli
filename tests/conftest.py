@@ -121,7 +121,10 @@ def resource_alloc():
     with open(RESOURCE_ALLOCATION_FILEPATH, 'w') as alloc_file:
         json.dump({}, alloc_file)
     yield RESOURCE_ALLOCATION_FILEPATH
-    os.remove(RESOURCE_ALLOCATION_FILEPATH)
+    try:
+        os.remove(RESOURCE_ALLOCATION_FILEPATH)
+    except FileNotFoundError:
+        pass
 
 
 @pytest.fixture
@@ -132,7 +135,10 @@ def inited_node():
     try:
         yield
     finally:
-        os.remove(NGINX_CONFIG_FILEPATH)
+        try:
+            os.remove(NGINX_CONFIG_FILEPATH)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture
@@ -158,7 +164,13 @@ def active_node_option():
     try:
         yield
     finally:
-        shutil.rmtree(NODE_OPTIONS_FILEPATH)
+        try:
+            if os.path.isdir(NODE_OPTIONS_FILEPATH):
+                shutil.rmtree(NODE_OPTIONS_FILEPATH)
+            elif os.path.isfile(NODE_OPTIONS_FILEPATH):
+                os.remove(NODE_OPTIONS_FILEPATH)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture
@@ -226,7 +238,10 @@ def meta_file_v3():
     try:
         yield META_FILEPATH
     finally:
-        os.remove(META_FILEPATH)
+        try:
+            os.remove(META_FILEPATH)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture

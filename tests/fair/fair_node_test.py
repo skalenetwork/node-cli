@@ -151,9 +151,12 @@ def test_cleanup_success(
     cleanup()
 
     mock_compose_env.assert_called_once_with(
-        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR
+        SKALE_DIR_ENV_FILEPATH,
+        save=False,
+        node_type=NodeType.FAIR,
+        node_mode=NodeMode.ACTIVE,
     )
-    mock_cleanup_fair_op.assert_called_once_with(mock_env)
+    mock_cleanup_fair_op.assert_called_once_with(node_mode=NodeMode.ACTIVE, env=mock_env)
     mock_cleanup_docker_config.assert_called_once()
 
 
@@ -184,8 +187,8 @@ def test_cleanup_calls_operations_in_correct_order(
     cleanup()
 
     expected_calls = [
-        mock.call.compose_env(mock.ANY, save=False, node_type=mock.ANY),
-        mock.call.cleanup_fair_op(mock_env),
+        mock.call.compose_env(mock.ANY, save=False, node_type=mock.ANY, node_mode=NodeMode.ACTIVE),
+        mock.call.cleanup_fair_op(node_mode=NodeMode.ACTIVE, env=mock_env),
         mock.call.cleanup_docker_config(),
     ]
     manager.assert_has_calls(expected_calls, any_order=False)
@@ -211,7 +214,7 @@ def test_cleanup_continues_after_fair_op_error(
         cleanup()
 
     mock_compose_env.assert_called_once()
-    mock_cleanup_fair_op.assert_called_once_with(mock_env)
+    mock_cleanup_fair_op.assert_called_once_with(node_mode=NodeMode.ACTIVE, env=mock_env)
     mock_cleanup_docker_config.assert_not_called()
 
 
