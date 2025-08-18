@@ -223,6 +223,7 @@ def test_cleanup_continues_after_fair_op_error(
     inited_node,
     resource_alloc,
     meta_file_v3,
+    active_node_option,
 ):
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
