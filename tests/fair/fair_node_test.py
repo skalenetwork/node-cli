@@ -23,6 +23,7 @@ def test_restore_fair(
     mock_sleep,
     valid_env_file,
     ensure_meta_removed,
+    active_node_option,
 ):
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
@@ -31,11 +32,16 @@ def test_restore_fair(
 
     restore(backup_path, valid_env_file)
 
-    mock_compose_env.assert_called_once_with(valid_env_file, node_type=NodeType.FAIR)
+    mock_compose_env.assert_called_once_with(
+        valid_env_file, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
+    )
     mock_save_env.assert_called_once_with(valid_env_file)
     expected_env = {**mock_env, 'SKALE_DIR': SKALE_DIR}
     mock_restore_op.assert_called_once_with(
-        NodeMode.ACTIVE, expected_env, backup_path, config_only=False
+        node_mode=NodeMode.ACTIVE,
+        env=expected_env,
+        backup_path=backup_path,
+        config_only=False,
     )
     mock_sleep.assert_called_once()
 
@@ -60,6 +66,7 @@ def test_init_fair_boot(
     mock_compose_env.assert_called_once_with(
         valid_env_file,
         node_type=NodeType.FAIR,
+        node_mode=NodeMode.ACTIVE,
         is_fair_boot=True,
     )
     mock_init_op.assert_called_once_with(valid_env_file, mock_env)
@@ -96,6 +103,7 @@ def test_update_fair_boot(
         sync_schains=False,
         pull_config_for_schain=pull_config_for_schain,
         node_type=NodeType.FAIR,
+        node_mode=NodeMode.ACTIVE,
         is_fair_boot=True,
     )
     mock_update_op.assert_called_once_with(valid_env_file, mock_env)
@@ -126,6 +134,7 @@ def test_migrate_from_boot(
         inited_node=True,
         sync_schains=False,
         node_type=NodeType.FAIR,
+        node_mode=NodeMode.ACTIVE,
     )
     mock_migrate_op.assert_called_once_with(
         valid_env_file, mock_env, update_type=FairUpdateType.FROM_BOOT, force_skaled_start=False
