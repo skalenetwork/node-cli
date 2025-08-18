@@ -71,7 +71,9 @@ def test_init_fair_boot(
     )
     mock_init_op.assert_called_once_with(valid_env_file, mock_env)
     mock_sleep.assert_called_once()
-    mock_is_alive.assert_called_once_with(node_type=NodeType.FAIR, is_fair_boot=True)
+    mock_is_alive.assert_called_once_with(
+        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True
+    )
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
@@ -108,7 +110,9 @@ def test_update_fair_boot(
     )
     mock_update_op.assert_called_once_with(valid_env_file, mock_env)
     mock_sleep.assert_called_once()
-    mock_is_alive.assert_called_once_with(node_type=NodeType.FAIR, is_fair_boot=True)
+    mock_is_alive.assert_called_once_with(
+        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True
+    )
 
 
 @mock.patch('node_cli.fair.active.update_fair_op')
@@ -137,7 +141,11 @@ def test_migrate_from_boot(
         node_mode=NodeMode.ACTIVE,
     )
     mock_migrate_op.assert_called_once_with(
-        valid_env_file, mock_env, update_type=FairUpdateType.FROM_BOOT, force_skaled_start=False
+        valid_env_file,
+        mock_env,
+        node_mode=NodeMode.ACTIVE,
+        update_type=FairUpdateType.FROM_BOOT,
+        force_skaled_start=False,
     )
 
 
