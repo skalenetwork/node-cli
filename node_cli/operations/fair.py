@@ -103,6 +103,8 @@ def init(
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
 
+    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+
     update_images(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
     compose_up(
         env=env, node_type=NodeType.FAIR, node_mode=node_mode, services=list(REDIS_SERVICE_DICT)
@@ -114,7 +116,6 @@ def init(
         if snapshot:
             time.sleep(REDIS_START_TIMEOUT)
             trigger_skaled_snapshot_mode(env=env, snapshot_from=snapshot)
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
 
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(

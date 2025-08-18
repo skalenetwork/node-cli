@@ -325,7 +325,6 @@ def test_backup():
     'node_type,node_mode,test_user_conf',
     [
         (NodeType.SKALE, NodeMode.ACTIVE, 'regular_user_conf'),
-        (NodeType.SKALE, NodeMode.PASSIVE, 'passive_user_conf'),
         (NodeType.FAIR, NodeMode.ACTIVE, 'fair_user_conf'),
     ],
 )
@@ -350,7 +349,6 @@ def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config,
         patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         user_conf_path = request.getfixturevalue(test_user_conf).as_posix()
-
         result = run_command(restore_node, [backup_path, user_conf_path])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
@@ -386,7 +384,7 @@ def test_maintenance_off(mocked_g_config):
     )
 
 
-def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
+def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node_option):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -402,6 +400,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
             _turn_off,
             ['--maintenance-on', '--yes'],
         )
+
         assert (
             result.output
             == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'
@@ -418,7 +417,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
             assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
-def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf):
+def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node_option):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),

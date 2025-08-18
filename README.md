@@ -32,6 +32,7 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    5. [Fair Wallet commands](#fair-wallet-commands)
    6. [Fair Logs commands](#fair-logs-commands)
    7. [Fair SSL commands](#fair-ssl-commands)
+   8. [Passive Fair Node commands](#passive-fair-node-commands)
 5. [Exit codes](#exit-codes)
 6. [Development](#development)
 
@@ -1075,6 +1076,61 @@ Options:
 * `--type`/`-t` - Check type: `all`, `openssl`, or `skaled` (default: `all`).
 * `--no-client` - Skip client connection for openssl check.
 * `--no-wss` - Skip WSS server starting for skaled check.
+
+### Passive Fair Node commands
+
+> Prefix: `fair passive-node` (passive Fair build)
+
+Commands for operating a passive Fair node (sync/indexer/archive).
+
+#### Passive Fair Node Initialization
+
+Initialize a passive Fair node.
+
+```shell
+fair passive-node init <ENV_FILEPATH> --id <NODE_ID> [--indexer | --archive] [--snapshot <URL|any>]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the environment file with configuration.
+
+Required environment variables in `ENV_FILEPATH`:
+
+* `FAIR_CONTRACTS` - Fair Manager contracts alias or address.
+* `NODE_VERSION` - Stream of `skale-node` configs.
+* `BOOT_ENDPOINT` - RPC endpoint of Fair network.
+* `DISK_MOUNTPOINT` - Mount point for storing chain data.
+* `ENV_TYPE` - Environment type (e.g., `mainnet`, `devnet`).
+
+Options:
+
+* `--id` - Numerical node identifier (required).
+* `--indexer` - Run in indexer mode (no block rotation).
+* `--archive` - Run in archive mode (historical state kept; disables block rotation). Mutually exclusive with `--indexer`.
+* `--snapshot <URL|any>` - Start from provided snapshot URL or from any available source (not allowed together with `--indexer` or `--archive`).
+
+By default runs a regular sync node.
+
+#### Passive Fair Node Update
+
+Update software / configs for passive Fair node.
+
+```shell
+fair passive-node update <ENV_FILEPATH> [--yes]
+```
+
+#### Passive Fair Node Cleanup
+
+Remove all passive Fair node data and containers.
+
+```shell
+fair passive-node cleanup [--yes]
+```
+
+Options:
+
+* `--yes` - Proceed without confirmation.
 
 ***
 
