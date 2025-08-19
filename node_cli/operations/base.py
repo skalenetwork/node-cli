@@ -93,7 +93,7 @@ def checked_host(func):
             print_failed_requirements_checks(failed_checks)
             return False
 
-        result = func(env_filepath, env, *args, **kwargs)
+        result = func(env_filepath, env, node_mode, *args, **kwargs)
         if not result:
             return result
 
