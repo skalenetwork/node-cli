@@ -69,7 +69,11 @@ def test_init_fair_boot(
         node_mode=NodeMode.ACTIVE,
         is_fair_boot=True,
     )
-    mock_init_op.assert_called_once_with(valid_env_file, mock_env)
+    mock_init_op.assert_called_once_with(
+        valid_env_file,
+        mock_env,
+        NodeMode.ACTIVE,
+    )
     mock_sleep.assert_called_once()
     mock_is_alive.assert_called_once_with(
         node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True
@@ -108,7 +112,11 @@ def test_update_fair_boot(
         node_mode=NodeMode.ACTIVE,
         is_fair_boot=True,
     )
-    mock_update_op.assert_called_once_with(valid_env_file, mock_env)
+    mock_update_op.assert_called_once_with(
+        valid_env_file,
+        mock_env,
+        node_mode=NodeMode.ACTIVE,
+    )
     mock_sleep.assert_called_once()
     mock_is_alive.assert_called_once_with(
         node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True
