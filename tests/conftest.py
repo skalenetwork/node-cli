@@ -184,7 +184,13 @@ def passive_node_option():
     try:
         yield
     finally:
-        shutil.rmtree(NODE_OPTIONS_FILEPATH)
+        try:
+            if os.path.isdir(NODE_OPTIONS_FILEPATH):
+                shutil.rmtree(NODE_OPTIONS_FILEPATH)
+            elif os.path.isfile(NODE_OPTIONS_FILEPATH):
+                os.remove(NODE_OPTIONS_FILEPATH)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture

@@ -327,6 +327,14 @@ def test_get_all_checkers(requirements_data, active_node_option):
     assert isinstance(checkers[2], MachineChecker)
 
 
+def test_get_all_checkers_passive(requirements_data, passive_node_option):
+    disk = 'test-disk'
+    checkers = get_all_checkers(disk, requirements_data, node_mode=NodeMode.PASSIVE)
+    assert len(checkers) == 2
+    assert isinstance(checkers[0], PackageChecker)
+    assert isinstance(checkers[1], DockerChecker)
+
+
 def test_get_checks(requirements_data, active_node_option):
     disk = 'test-disk'
     checkers = get_all_checkers(disk, requirements_data, node_mode=NodeMode.ACTIVE)
