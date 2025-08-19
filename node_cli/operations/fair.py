@@ -132,8 +132,8 @@ def init(
 
 
 @checked_host
-def update_fair_boot(env_filepath: str, env: dict) -> bool:
-    compose_rm(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, env=env)
+def update_fair_boot(env_filepath: str, env: dict, node_mode: NodeMode = NodeMode.ACTIVE) -> bool:
+    compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=env)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
@@ -236,6 +236,7 @@ def restore(node_mode: NodeMode, env, backup_path, config_only=False):
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
         TYPE,
+        node_mode,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.PREINSTALL,
@@ -268,6 +269,7 @@ def restore(node_mode: NodeMode, env, backup_path, config_only=False):
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
         TYPE,
+        node_mode,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.POSTINSTALL,

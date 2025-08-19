@@ -472,13 +472,13 @@ def get_all_checkers(disk: str, requirements: Dict, node_mode: NodeMode) -> List
 def run_checks(
     disk: str,
     node_type: NodeType,
+    node_mode: NodeMode,
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH,
     check_type: CheckType = CheckType.ALL,
 ) -> ResultList:
     logger.info('Executing checks. Type: %s', check_type)
     requirements = get_static_params(node_type, env_type, config_path)
-    node_mode = upsert_node_mode()
 
     checkers = get_all_checkers(disk, requirements, node_mode)
     checks = get_checks(checkers, check_type)
