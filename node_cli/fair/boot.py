@@ -67,7 +67,7 @@ def update(env_filepath: str, pull_config_for_schain: str) -> None:
         node_mode=node_mode,
         is_fair_boot=True,
     )
-    migrate_ok = update_fair_boot_op(env_filepath, env)
+    migrate_ok = update_fair_boot_op(env_filepath, env, node_mode=NodeMode.ACTIVE)
     if migrate_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
