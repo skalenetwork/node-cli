@@ -56,7 +56,6 @@ from node_cli.configs import (
     REPORTS_PATH,
 )
 from node_cli.core.host import is_ufw_ipv6_chain_exists, is_ufw_ipv6_option_enabled
-from node_cli.core.node_options import upsert_node_mode
 from node_cli.core.resources import get_disk_size
 from node_cli.core.static_config import get_static_params
 from node_cli.utils.docker_utils import NodeType
@@ -472,13 +471,13 @@ def get_all_checkers(disk: str, requirements: Dict, node_mode: NodeMode) -> List
 def run_checks(
     disk: str,
     node_type: NodeType,
+    node_mode: NodeMode,
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH,
     check_type: CheckType = CheckType.ALL,
 ) -> ResultList:
     logger.info('Executing checks. Type: %s', check_type)
     requirements = get_static_params(node_type, env_type, config_path)
-    node_mode = upsert_node_mode()
 
     checkers = get_all_checkers(disk, requirements, node_mode)
     checks = get_checks(checkers, check_type)

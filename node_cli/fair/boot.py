@@ -45,7 +45,7 @@ def init(env_filepath: str) -> None:
         is_fair_boot=True,
     )
 
-    init_fair_boot_op(env_filepath, env)
+    init_fair_boot_op(env_filepath, env, node_mode)
     logger.info('Waiting for fair containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode, is_fair_boot=True):
@@ -67,7 +67,7 @@ def update(env_filepath: str, pull_config_for_schain: str) -> None:
         node_mode=node_mode,
         is_fair_boot=True,
     )
-    migrate_ok = update_fair_boot_op(env_filepath, env)
+    migrate_ok = update_fair_boot_op(env_filepath, env, node_mode=NodeMode.ACTIVE)
     if migrate_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)

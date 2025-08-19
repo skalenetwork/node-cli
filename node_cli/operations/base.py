@@ -79,11 +79,12 @@ logger = logging.getLogger(__name__)
 
 def checked_host(func):
     @functools.wraps(func)
-    def wrapper(env_filepath: str, env: Dict, *args, **kwargs):
+    def wrapper(env_filepath: str, env: Dict, node_mode: NodeMode, *args, **kwargs):
         download_skale_node(env.get('NODE_VERSION'), env.get('CONTAINER_CONFIGS_DIR'))
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
             TYPE,
+            node_mode,
             env['ENV_TYPE'],
             CONTAINER_CONFIG_TMP_PATH,
             check_type=CheckType.PREINSTALL,
@@ -92,13 +93,14 @@ def checked_host(func):
             print_failed_requirements_checks(failed_checks)
             return False
 
-        result = func(env_filepath, env, *args, **kwargs)
+        result = func(env_filepath, env, node_mode, *args, **kwargs)
         if not result:
             return result
 
         failed_checks = run_host_checks(
             env['DISK_MOUNTPOINT'],
             TYPE,
+            node_mode,
             env['ENV_TYPE'],
             CONTAINER_CONFIG_PATH,
             check_type=CheckType.POSTINSTALL,
@@ -155,8 +157,8 @@ def update(env_filepath: str, env: Dict, node_type: NodeType, node_mode: NodeMod
 
 
 @checked_host
-def update_fair_boot(env_filepath: str, env: Dict) -> bool:
-    compose_rm(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, env=env)
+def update_fair_boot(env_filepath: str, env: Dict, node_mode: NodeMode = NodeMode.ACTIVE) -> bool:
+    compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=env)
     remove_dynamic_containers()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
@@ -233,7 +235,7 @@ def init(env_filepath: str, env: dict, node_type: NodeType, node_mode: NodeMode)
 
 
 @checked_host
-def init_fair_boot(env_filepath: str, env: dict) -> None:
+def init_fair_boot(env_filepath: str, env: dict, node_mode: NodeMode = NodeMode.ACTIVE) -> None:
     sync_skale_node()
     cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
 
@@ -381,6 +383,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
         TYPE,
+        node_mode,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.PREINSTALL,
@@ -415,6 +418,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     failed_checks = run_host_checks(
         env['DISK_MOUNTPOINT'],
         TYPE,
+        node_mode,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.POSTINSTALL,
