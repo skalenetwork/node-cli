@@ -79,8 +79,8 @@ def init(
 
 
 @check_user
-def cleanup() -> None:
-    node_mode = upsert_node_mode()
+def cleanup(node_mode: NodeMode) -> None:
+    node_mode = upsert_node_mode(node_mode=node_mode)
     env = compose_node_env(
         SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
     )
