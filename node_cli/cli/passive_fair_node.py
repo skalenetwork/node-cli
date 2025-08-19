@@ -112,7 +112,7 @@ def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: b
 )
 @streamed_cmd
 def cleanup_node():
-    cleanup_fair()
+    cleanup_fair(node_mode=NodeMode.PASSIVE)
 
 
 @passive_node.command('setup', help=TEXTS['fair']['node']['setup']['help'])

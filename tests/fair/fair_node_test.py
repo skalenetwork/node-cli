@@ -161,11 +161,12 @@ def test_cleanup_success(
     inited_node,
     resource_alloc,
     meta_file_v3,
+    active_node_option,
 ):
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
 
-    cleanup()
+    cleanup(node_mode=NodeMode.ACTIVE)
 
     mock_compose_env.assert_called_once_with(
         SKALE_DIR_ENV_FILEPATH,
@@ -201,7 +202,7 @@ def test_cleanup_calls_operations_in_correct_order(
     manager.attach_mock(mock_cleanup_fair_op, 'cleanup_fair_op')
     manager.attach_mock(mock_cleanup_docker_config, 'cleanup_docker_config')
 
-    cleanup()
+    cleanup(node_mode=NodeMode.ACTIVE)
 
     expected_calls = [
         mock.call.compose_env(mock.ANY, save=False, node_type=mock.ANY, node_mode=NodeMode.ACTIVE),
@@ -229,7 +230,7 @@ def test_cleanup_continues_after_fair_op_error(
     mock_compose_env.return_value = mock_env
 
     with pytest.raises(Exception, match='Cleanup failed'):
-        cleanup()
+        cleanup(node_mode=NodeMode.ACTIVE)
 
     mock_compose_env.assert_called_once()
     mock_cleanup_fair_op.assert_called_once_with(node_mode=NodeMode.ACTIVE, env=mock_env)
@@ -249,14 +250,14 @@ def test_cleanup_fails_when_user_invalid(
     from node_cli.fair.common import cleanup
 
     with pytest.raises(SystemExit):
-        cleanup()
+        cleanup(node_mode=NodeMode.ACTIVE)
 
 
 def test_cleanup_fails_when_not_inited(ensure_meta_removed, active_node_option):
     import pytest
 
     with pytest.raises(SystemExit):
-        cleanup()
+        cleanup(node_mode=NodeMode.ACTIVE)
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
@@ -278,7 +279,7 @@ def test_cleanup_logs_success_message(
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
 
-    cleanup()
+    cleanup(node_mode=NodeMode.ACTIVE)
 
     mock_logger.info.assert_called_once_with(
         'Fair node was cleaned up, all containers and data removed'
