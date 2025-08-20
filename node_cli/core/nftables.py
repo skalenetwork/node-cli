@@ -22,9 +22,9 @@ import logging
 import os
 import shutil
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-from dataclasses import dataclass
 
 from node_cli.configs import (
     ENV,
@@ -44,7 +44,8 @@ class ServicePort:
     DNS: int = 53
     CADVISOR: int = 9100
     EXPORTER: int = 8080
-    WATCHDOG: int = 3009
+    WATCHDOG_HTTP: int = 3009
+    WATCHDOG_HTTPS: int = 311
     HTTPS: int = 443
     HTTP: int = 80
 
@@ -561,7 +562,8 @@ class NFTablesManager:
                 ServicePort.DNS,
                 ServicePort.HTTPS,
                 ServicePort.HTTP,
-                ServicePort.WATCHDOG,
+                ServicePort.WATCHDOG_HTTP,
+                ServicePort.WATCHDOG_HTTPS,
             ]
             if enable_monitoring:
                 tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
@@ -601,7 +603,8 @@ class NFTablesManager:
         self.remove_drop_rule('udp')
         tcp_ports = [
             ServicePort.HTTPS,
-            ServicePort.WATCHDOG,
+            ServicePort.WATCHDOG_HTTP,
+            ServicePort.WATCHDOG_HTTPS,
             ServicePort.EXPORTER,
             ServicePort.CADVISOR,
             ServicePort.DNS,  # tcp is redundant, making sure it's removed
