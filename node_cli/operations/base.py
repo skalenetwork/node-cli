@@ -82,7 +82,7 @@ def checked_host(func):
     def wrapper(env_filepath: str, env: Dict, node_mode: NodeMode, *args, **kwargs):
         download_skale_node(env.get('NODE_VERSION'), env.get('CONTAINER_CONFIGS_DIR'))
         failed_checks = run_host_checks(
-            env['DISK_MOUNTPOINT'],
+            env['BLOCK_DEVICE'],
             TYPE,
             node_mode,
             env['ENV_TYPE'],
@@ -98,7 +98,7 @@ def checked_host(func):
             return result
 
         failed_checks = run_host_checks(
-            env['DISK_MOUNTPOINT'],
+            env['BLOCK_DEVICE'],
             TYPE,
             node_mode,
             env['ENV_TYPE'],
@@ -160,7 +160,7 @@ def update(env_filepath: str, env: Dict, node_type: NodeType, node_mode: NodeMod
 def update_fair_boot(env_filepath: str, env: Dict, node_mode: NodeMode = NodeMode.ACTIVE) -> bool:
     compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=env)
     remove_dynamic_containers()
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
 
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
@@ -172,7 +172,7 @@ def update_fair_boot(env_filepath: str, env: Dict, node_mode: NodeMode = NodeMod
     configure_nftables(enable_monitoring=enable_monitoring)
 
     generate_nginx_config()
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
 
     prepare_host(env_filepath, env['ENV_TYPE'])
 
@@ -237,7 +237,7 @@ def init(env_filepath: str, env: dict, node_type: NodeType, node_mode: NodeMode)
 @checked_host
 def init_fair_boot(env_filepath: str, env: dict, node_mode: NodeMode = NodeMode.ACTIVE) -> None:
     sync_skale_node()
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
 
     ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -253,7 +253,7 @@ def init_fair_boot(env_filepath: str, env: dict, node_mode: NodeMode = NodeMode.
     configure_filebeat()
     configure_flask()
     generate_nginx_config()
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
 
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
@@ -275,7 +275,7 @@ def init_passive(
     snapshot: bool,
     snapshot_from: Optional[str],
 ) -> None:
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
     download_skale_node(env.get('NODE_VERSION'), env.get('CONTAINER_CONFIGS_DIR'))
     sync_skale_node()
 
@@ -296,7 +296,7 @@ def init_passive(
     link_env_file()
 
     generate_nginx_config()
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
 
     meta_manager = CliMetaManager()
     meta_manager.update_meta(
@@ -320,7 +320,7 @@ def init_passive(
 def update_passive(env_filepath: str, env: Dict) -> bool:
     compose_rm(env=env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     remove_dynamic_containers()
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
     download_skale_node(env['NODE_VERSION'], env.get('CONTAINER_CONFIGS_DIR'))
     sync_skale_node()
 
@@ -332,7 +332,7 @@ def update_passive(env_filepath: str, env: Dict) -> bool:
 
     ensure_filestorage_mapping()
 
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
     generate_nginx_config()
 
     prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
@@ -381,7 +381,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     node_mode = upsert_node_mode(node_mode=NodeMode.ACTIVE)
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
+        env['BLOCK_DEVICE'],
         TYPE,
         node_mode,
         env['ENV_TYPE'],
@@ -416,7 +416,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
         compose_up(env=env, node_type=node_type, node_mode=node_mode)
 
     failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
+        env['BLOCK_DEVICE'],
         TYPE,
         node_mode,
         env['ENV_TYPE'],

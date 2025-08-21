@@ -157,7 +157,7 @@ Arguments:
 Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
-* `DISK_MOUNTPOINT` - Mount point for storing sChains data.
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc)
 * `DOCKER_LVMPY_STREAM` - Stream of `docker-lvmpy` to use.
 * `NODE_VERSION` - Stream of `skale-node` to use.
 * `ENDPOINT` - RPC endpoint of the network where SKALE Manager is deployed.
@@ -566,7 +566,7 @@ Arguments:
 
 Required environment variables in `ENV_FILE`:
 
-* `DISK_MOUNTPOINT` - Mount point for storing sChain data.
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
 * `DOCKER_LVMPY_STREAM` - Stream of `docker-lvmpy`.
 * `NODE_VERSION` - Stream of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where SKALE Manager is deployed.
@@ -679,7 +679,7 @@ Arguments:
 Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
-* `DISK_MOUNTPOINT` - Mount point for storing data (BTRFS recommended).
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
 * `NODE_VERSION` - Stream of `skale-node` configs.
 * `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
@@ -733,7 +733,7 @@ Arguments:
 Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
-* `DISK_MOUNTPOINT` - Mount point for storing data (BTRFS recommended).
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
 * `NODE_VERSION` - Stream of `skale-node` configs.
 * `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
@@ -786,7 +786,7 @@ Required environment variables in `ENV_FILEPATH`:
 * `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
-* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
 * `ENV_TYPE` - Environment type (e.g., `mainnet`).
 
 Optional variables:
@@ -824,7 +824,7 @@ Required environment variables in `ENV_FILEPATH`:
 * `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
-* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
 * `ENV_TYPE` - Environment type (e.g., `mainnet`).
 
 Optional variables:
@@ -855,7 +855,7 @@ Required environment variables in `ENV_FILEPATH`:
 * `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
-* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
 * `ENV_TYPE` - Environment type (e.g., `mainnet`).
 
 Optional variables:
@@ -1100,7 +1100,7 @@ Required environment variables in `ENV_FILEPATH`:
 * `FAIR_CONTRACTS` - Fair Manager contracts alias or address.
 * `NODE_VERSION` - Stream of `skale-node` configs.
 * `BOOT_ENDPOINT` - RPC endpoint of Fair network.
-* `DISK_MOUNTPOINT` - Mount point for storing chain data.
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
 * `ENV_TYPE` - Environment type (e.g., `mainnet`, `devnet`).
 
 Options:

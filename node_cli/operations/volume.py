@@ -42,7 +42,7 @@ class FilesystemExistsError(Exception):
 
 
 def update_docker_lvmpy_env(env):
-    env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
+    env['PHYSICAL_VOLUME'] = env['BLOCK_DEVICE']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
     env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR

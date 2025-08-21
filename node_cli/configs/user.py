@@ -53,7 +53,7 @@ class BaseUserConfig(ABC):
     node_version: str
     env_type: str
     filebeat_host: str
-    disk_mountpoint: str
+    block_device: str
 
     container_configs_dir: str = ''
     skip_docker_config: str = ''
