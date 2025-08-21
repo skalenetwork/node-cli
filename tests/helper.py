@@ -34,12 +34,12 @@ TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN = 'tests/tmp'
 
 TEST_META_V1 = {'version': '0.1.1', 'config_stream': 'develop'}
 
-TEST_META_V2 = {'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_stream': '1.1.2'}
+TEST_META_V2 = {'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_version': '1.1.2'}
 
 TEST_META_V3 = {
     'version': '0.1.1',
     'config_stream': 'develop',
-    'docker_lvmpy_stream': '1.1.2',
+    'docker_lvmpy_version': '1.1.2',
     'os_id': 'ubuntu',
     'os_version': '18.04',
 }

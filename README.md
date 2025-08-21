@@ -44,9 +44,9 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 
 Ensure that the following packages are installed: **docker**, **docker-compose** (1.27.4+)
 
-### Standard Node Binary
+### SKALE Node Binary
 
-This binary (`skale-VERSION-OS`) is used for managing standard SKALE validator nodes.
+This binary (`skale-VERSION-OS`) is used for managing SKALE validator nodes.
 
 ```shell
 # Replace {version} with the desired release version (e.g., 3.0.0)
@@ -54,19 +54,9 @@ CLI_VERSION={version} && \
 sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m` > /usr/local/bin/skale"
 ```
 
-### Passive Node Binary
-
-This binary (`skale-VERSION-OS-passive`) is used for managing dedicated Passive nodes. **Ensure you download the correct `-passive` suffixed binary for Passive node operations.**
-
-```shell
-# Replace {version} with the desired release version (e.g., 3.0.0)
-CLI_VERSION={version} && \
-sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m`-passive > /usr/local/bin/skale"
-```
-
 ### Fair Node Binary
 
-This binary (`skale-VERSION-OS-fair`) is used specifically for managing nodes on the Fair network.
+This binary (`skale-VERSION-OS-fair`) is used for managing nodes on the Fair network.
 
 ```shell
 # Replace {version} with the desired release version (e.g., 3.0.0)
@@ -158,8 +148,8 @@ Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
 * `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc)
-* `DOCKER_LVMPY_STREAM` - Stream of `docker-lvmpy` to use.
-* `NODE_VERSION` - Stream of `skale-node` to use.
+* `DOCKER_LVMPY_VERSION` - Version of `docker-lvmpy`.
+* `NODE_VERSION` - Version of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where SKALE Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager `message_proxy_mainnet` contract alias or address.
 * `IMA_CONTRACTS` - IMA `skale_manager` contract alias or address.
@@ -567,8 +557,8 @@ Arguments:
 Required environment variables in `ENV_FILE`:
 
 * `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
-* `DOCKER_LVMPY_STREAM` - Stream of `docker-lvmpy`.
-* `NODE_VERSION` - Stream of `skale-node`.
+* `DOCKER_LVMPY_VERSION` - Version of `docker-lvmpy`.
+* `NODE_VERSION` - Version of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where SKALE Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 * `IMA_CONTRACTS` - IMA alias or address.
@@ -680,7 +670,7 @@ Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
 * `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
-* `NODE_VERSION` - Stream of `skale-node` configs.
+* `NODE_VERSION` - Version of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 * `IMA_CONTRACTS` - IMA alias or address (*Note: Required by boot service, may not be used by Fair itself*).
@@ -734,7 +724,7 @@ Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
 * `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
-* `NODE_VERSION` - Stream of `skale-node` configs.
+* `NODE_VERSION` - Version of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 * `IMA_CONTRACTS` - IMA alias or address (*Note: Required by boot service, may not be used by Fair itself*).
@@ -783,7 +773,7 @@ Arguments:
 Required environment variables in `ENV_FILEPATH`:
 
 * `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
-* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `NODE_VERSION` - Version of `skale-node`.
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
 * `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
@@ -821,7 +811,7 @@ Arguments:
 Required environment variables in `ENV_FILEPATH`:
 
 * `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
-* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `NODE_VERSION` - Version of `skale-node`.
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
 * `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
@@ -852,7 +842,7 @@ Arguments:
 Required environment variables in `ENV_FILEPATH`:
 
 * `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
-* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `NODE_VERSION` - Version of `skale-node`.
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
 * `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
@@ -1098,7 +1088,7 @@ Arguments:
 Required environment variables in `ENV_FILEPATH`:
 
 * `FAIR_CONTRACTS` - Fair Manager contracts alias or address.
-* `NODE_VERSION` - Stream of `skale-node` configs.
+* `NODE_VERSION` - Version of `skale-node`.
 * `BOOT_ENDPOINT` - RPC endpoint of Fair network.
 * `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
 * `ENV_TYPE` - Environment type (e.g., `mainnet`, `devnet`).

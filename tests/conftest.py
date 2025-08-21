@@ -298,7 +298,7 @@ def valid_env_params():
         'FILEBEAT_HOST': '127.0.0.1:3010',
         'SGX_SERVER_URL': 'http://127.0.0.1',
         'BLOCK_DEVICE': '/dev/sss',
-        'DOCKER_LVMPY_STREAM': 'master',
+        'DOCKER_LVMPY_VERSION': 'master',
         'ENV_TYPE': 'devnet',
         'SCHAIN_NAME': 'test',
         'ENFORCE_BTRFS': 'False',
@@ -363,7 +363,7 @@ def regular_user_conf(tmp_path):
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1
         BLOCK_DEVICE=/dev/sss
-        DOCKER_LVMPY_STREAM='master'
+        DOCKER_LVMPY_VERSION='master'
         ENV_TYPE='devnet'
         MANAGER_CONTRACTS='test-manager'
         IMA_CONTRACTS='test-ima'

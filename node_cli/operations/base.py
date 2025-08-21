@@ -147,7 +147,7 @@ def update(env_filepath: str, env: Dict, node_type: NodeType, node_mode: NodeMod
     meta_manager.update_meta(
         VERSION,
         env['NODE_VERSION'],
-        env['DOCKER_LVMPY_STREAM'],
+        env['DOCKER_LVMPY_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -224,7 +224,7 @@ def init(env_filepath: str, env: dict, node_type: NodeType, node_mode: NodeMode)
     meta_manager.update_meta(
         VERSION,
         env['NODE_VERSION'],
-        env['DOCKER_LVMPY_STREAM'],
+        env['DOCKER_LVMPY_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -341,7 +341,7 @@ def update_passive(env_filepath: str, env: Dict) -> bool:
     meta_manager.update_meta(
         VERSION,
         env['NODE_VERSION'],
-        env['DOCKER_LVMPY_STREAM'],
+        env['DOCKER_LVMPY_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -363,7 +363,7 @@ def turn_on(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     meta_manager.update_meta(
         VERSION,
         env['NODE_VERSION'],
-        env['DOCKER_LVMPY_STREAM'],
+        env['DOCKER_LVMPY_VERSION'],
         distro.id(),
         distro.version(),
     )
@@ -408,7 +408,7 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     meta_manager.update_meta(
         VERSION,
         env['NODE_VERSION'],
-        env['DOCKER_LVMPY_STREAM'],
+        env['DOCKER_LVMPY_VERSION'],
         distro.id(),
         distro.version(),
     )

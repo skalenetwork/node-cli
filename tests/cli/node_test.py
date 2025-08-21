@@ -471,5 +471,5 @@ def test_node_version(meta_file_v2):
         assert result.exit_code == 0
         assert (
             result.output
-            == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_stream': '1.1.2'}\n"
+            == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_version': '1.1.2'}\n"
         )

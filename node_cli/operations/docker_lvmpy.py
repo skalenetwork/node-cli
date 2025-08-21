@@ -57,7 +57,7 @@ def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
 def sync_docker_lvmpy_repo(env):
     if os.path.isdir(DOCKER_LVMPY_PATH):
         shutil.rmtree(DOCKER_LVMPY_PATH)
-    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_STREAM'])
+    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_VERSION'])
 
 
 def lvmpy_install(env):
