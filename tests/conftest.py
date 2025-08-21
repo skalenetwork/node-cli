@@ -297,8 +297,8 @@ def valid_env_params():
         'NODE_VERSION': 'master',
         'FILEBEAT_HOST': '127.0.0.1:3010',
         'SGX_SERVER_URL': 'http://127.0.0.1',
-        'DISK_MOUNTPOINT': '/dev/sss',
-        'DOCKER_LVMPY_STREAM': 'master',
+        'BLOCK_DEVICE': '/dev/sss',
+        'DOCKER_LVMPY_VERSION': 'master',
         'ENV_TYPE': 'devnet',
         'SCHAIN_NAME': 'test',
         'ENFORCE_BTRFS': 'False',
@@ -362,8 +362,8 @@ def regular_user_conf(tmp_path):
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1
-        DISK_MOUNTPOINT=/dev/sss
-        DOCKER_LVMPY_STREAM='master'
+        BLOCK_DEVICE=/dev/sss
+        DOCKER_LVMPY_VERSION='master'
         ENV_TYPE='devnet'
         MANAGER_CONTRACTS='test-manager'
         IMA_CONTRACTS='test-ima'
@@ -384,7 +384,7 @@ def fair_user_conf(tmp_path):
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1
-        DISK_MOUNTPOINT=/dev/sss
+        BLOCK_DEVICE=/dev/sss
         ENV_TYPE='devnet'
         ENFORCE_BTRFS=False
         FAIR_CONTRACTS='test-fair'
@@ -405,7 +405,7 @@ def fair_boot_user_conf(tmp_path):
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1
-        DISK_MOUNTPOINT=/dev/sss
+        BLOCK_DEVICE=/dev/sss
         ENV_TYPE='devnet'
         MANAGER_CONTRACTS='test-manager'
         IMA_CONTRACTS='test-ima'
@@ -425,7 +425,7 @@ def passive_user_conf(tmp_path):
         ENDPOINT=http://localhost:8545
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
-        DISK_MOUNTPOINT=/dev/sss
+        BLOCK_DEVICE=/dev/sss
         ENV_TYPE='devnet'
         SCHAIN_NAME='test-schain'
         ENFORCE_BTRFS=False

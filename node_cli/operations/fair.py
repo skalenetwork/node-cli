@@ -90,7 +90,7 @@ def init(
 ) -> bool:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
 
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
@@ -103,7 +103,7 @@ def init(
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
     link_env_file()
 
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
 
     update_images(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
     compose_up(
@@ -135,7 +135,7 @@ def init(
 def update_fair_boot(env_filepath: str, env: dict, node_mode: NodeMode = NodeMode.ACTIVE) -> bool:
     compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=env)
     remove_dynamic_containers()
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
+    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
 
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
@@ -147,7 +147,7 @@ def update_fair_boot(env_filepath: str, env: dict, node_mode: NodeMode = NodeMod
     configure_nftables(enable_monitoring=enable_monitoring)
 
     generate_nginx_config()
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
 
     prepare_host(env_filepath, env['ENV_TYPE'])
 
@@ -234,7 +234,7 @@ def update(
 def restore(node_mode: NodeMode, env, backup_path, config_only=False):
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
+        env['BLOCK_DEVICE'],
         TYPE,
         node_mode,
         env['ENV_TYPE'],
@@ -267,7 +267,7 @@ def restore(node_mode: NodeMode, env, backup_path, config_only=False):
         compose_up(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
 
     failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
+        env['BLOCK_DEVICE'],
         TYPE,
         node_mode,
         env['ENV_TYPE'],

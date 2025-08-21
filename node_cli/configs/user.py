@@ -53,7 +53,7 @@ class BaseUserConfig(ABC):
     node_version: str
     env_type: str
     filebeat_host: str
-    disk_mountpoint: str
+    block_device: str
 
     container_configs_dir: str = ''
     skip_docker_config: str = ''
@@ -117,7 +117,7 @@ class SkaleUserConfig(BaseUserConfig):
     endpoint: str
     manager_contracts: str
     ima_contracts: str
-    docker_lvmpy_stream: str
+    docker_lvmpy_version: str
     sgx_server_url: str
     monitoring_containers: str = ''
     telegraf: str = ''
