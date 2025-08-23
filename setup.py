@@ -69,7 +69,7 @@ setup(
         "MarkupSafe==3.0.2",
         'Flask==2.3.3',
         'itsdangerous==2.1.2',
-        "cryptography==42.0.4",
+        "cryptography==44.0.1",
         "filelock==3.0.12",
         'sh==1.14.2',
         'python-crontab==2.6.0'
