@@ -106,4 +106,9 @@ def get_earned_fee_amount() -> None:
         print('Node is not initialized')
         return
     status, payload = post_request(blueprint=BLUEPRINT_NAME, method='get-earned-fee-amount')
-    _handle_response(status, payload, success=f'Earned fee amount: {payload}')
+    if status == 'ok' and isinstance(payload, dict):
+        amount_wei = payload.get('amount_wei')
+        amount_ether = payload.get('amount_ether')
+        print(f'Earned fee amount: {amount_wei} wei ({amount_ether} FAIR)')
+        return
+    error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)

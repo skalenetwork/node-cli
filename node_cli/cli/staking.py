@@ -29,6 +29,7 @@ from node_cli.fair.staking import (
     send_fees,
     get_earned_fee_amount,
 )
+from node_cli.utils.helper import abort_if_false
 
 
 @click.group()
@@ -43,35 +44,77 @@ def staking():
 
 @staking.command('add-allowed-receiver', help='Add allowed receiver')
 @click.argument('receiver')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to add allowed receiver?',
+)
 def _add_allowed_receiver(receiver: str) -> None:
     add_allowed_receiver(receiver)
 
 
 @staking.command('remove-allowed-receiver', help='Remove allowed receiver')
 @click.argument('receiver')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to remove allowed receiver?',
+)
 def _remove_allowed_receiver(receiver: str) -> None:
     remove_allowed_receiver(receiver)
 
 
 @staking.command('send-all-fees', help='Send all fees to address')
 @click.argument('to')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to send all fees?',
+)
 def _send_all_fees(to: str) -> None:
     send_all_fees(to)
 
 
 @staking.command('claim-all-fees', help='Claim all fees')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to claim all fees?',
+)
 def _claim_all_fees() -> None:
     claim_all_fees()
 
 
-@staking.command('set-fee-rate', help='Set fee rate (uint16)')
+@staking.command('set-fee-rate', help='Set fee rate (uint16, basis points; 25 = 2.5%)')
 @click.argument('fee_rate', type=int)
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to set fee rate?',
+)
 def _set_fee_rate(fee_rate: int) -> None:
     set_fee_rate(fee_rate)
 
 
 @staking.command('claim-fees', help='Claim fees amount (FAIR)')
 @click.argument('amount', type=float)
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to claim fees?',
+)
 def _claim_fees(amount: float) -> None:
     claim_fees(amount)
 
@@ -79,6 +122,13 @@ def _claim_fees(amount: float) -> None:
 @staking.command('send-fees', help='Send fees to address')
 @click.argument('to')
 @click.argument('amount', type=float)
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to send fees?',
+)
 def _send_fees(to: str, amount: float) -> None:
     send_fees(to, amount)
 
