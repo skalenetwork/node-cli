@@ -197,13 +197,26 @@ def abort_if_false(ctx, param, value):
 
 
 def post_request(blueprint, method, json=None, files=None):
+    print('in post request')
     route = get_route(blueprint, method)
     url = construct_url(route)
+    logger.info('url: ')
+    logger.info(url)
     try:
+        logger.info('json: ')
+        print(json)
         response = requests.post(url, json=json, files=files)
+
+        logger.info('--------')
+        logger.info(response)
+        logger.info(response.status_code)
+        logger.info(response.reason)
+        logger.info(response.raw)
+        logger.info('=========')
+
         data = response.json()
     except Exception as err:
-        logger.error('Request failed', exc_info=err)
+        logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA
     status = data['status']
     payload = data['payload']

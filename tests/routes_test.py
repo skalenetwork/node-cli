@@ -39,14 +39,14 @@ ALL_V1_ROUTES = [
     '/api/v1/fair-chain/record',
     '/api/v1/fair-chain/checks',
     '/api/v1/fair-node-passive/setup',
-    '/api/v1/staking/add-allowed-receiver',
-    '/api/v1/staking/remove-allowed-receiver',
-    '/api/v1/staking/send-all-fees',
-    '/api/v1/staking/claim-all-fees',
-    '/api/v1/staking/set-fee-rate',
-    '/api/v1/staking/claim-fees',
-    '/api/v1/staking/send-fees',
-    '/api/v1/staking/get-earned-fee-amount',
+    '/api/v1/fair-staking/add-allowed-receiver',
+    '/api/v1/fair-staking/remove-allowed-receiver',
+    '/api/v1/fair-staking/send-all-fees',
+    '/api/v1/fair-staking/claim-all-fees',
+    '/api/v1/fair-staking/set-fee-rate',
+    '/api/v1/fair-staking/claim-fees',
+    '/api/v1/fair-staking/send-fees',
+    '/api/v1/fair-staking/get-earned-fee-amount',
 ]
 
 
