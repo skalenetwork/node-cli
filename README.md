@@ -32,7 +32,8 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    5. [Fair Wallet commands](#fair-wallet-commands)
    6. [Fair Logs commands](#fair-logs-commands)
    7. [Fair SSL commands](#fair-ssl-commands)
-   8. [Passive Fair Node commands](#passive-fair-node-commands)
+   8. [Fair Staking commands](#fair-staking-commands)
+   9. [Passive Fair Node commands](#passive-fair-node-commands)
 5. [Exit codes](#exit-codes)
 6. [Development](#development)
 
@@ -1066,6 +1067,101 @@ Options:
 * `--type`/`-t` - Check type: `all`, `openssl`, or `skaled` (default: `all`).
 * `--no-client` - Skip client connection for openssl check.
 * `--no-wss` - Skip WSS server starting for skaled check.
+
+### Fair Staking commands
+
+> Prefix: `fair staking`
+
+Commands for interacting with the Fair staking functionality.
+
+#### Add allowed receiver
+
+Allow an address to receive staking fees.
+
+```shell
+fair staking add-allowed-receiver <RECEIVER_ADDRESS>
+```
+
+Arguments:
+
+* `RECEIVER_ADDRESS` - Address to add to the allowed receivers list.
+
+#### Remove allowed receiver
+
+Remove an address from the allowed receivers list.
+
+```shell
+fair staking remove-allowed-receiver <RECEIVER_ADDRESS>
+```
+
+Arguments:
+
+* `RECEIVER_ADDRESS` - Address to remove from the allowed receivers list.
+
+#### Send all fees
+
+Send all accumulated fees to the specified address.
+
+```shell
+fair staking send-all-fees <TO_ADDRESS>
+```
+
+Arguments:
+
+* `TO_ADDRESS` - Destination address to receive all fees.
+
+#### Claim all fees
+
+Claim all accumulated fees to the node wallet.
+
+```shell
+fair staking claim-all-fees
+```
+
+#### Set fee rate
+
+Set the fee rate (uint16 value) used by the staking logic.
+
+```shell
+fair staking set-fee-rate <FEE_RATE>
+```
+
+Arguments:
+
+* `FEE_RATE` - Fee rate value as integer (uint16).
+
+#### Claim fees
+
+Claim a specific amount of fees to the node wallet.
+
+```shell
+fair staking claim-fees <AMOUNT>
+```
+
+Arguments:
+
+* `AMOUNT` - Amount of fees to claim (FAIR).
+
+#### Send fees
+
+Send a specific amount of fees to an address.
+
+```shell
+fair staking send-fees <TO_ADDRESS> <AMOUNT>
+```
+
+Arguments:
+
+* `TO_ADDRESS` - Destination address for the fee transfer.
+* `AMOUNT` - Amount of fees to send (FAIR).
+
+#### Get earned fee amount
+
+Get the currently earned fee amount.
+
+```shell
+fair staking get-earned-fee-amount
+```
 
 ### Passive Fair Node commands
 
