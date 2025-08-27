@@ -50,10 +50,10 @@ def remove_allowed_receiver(receiver: str) -> None:
 
 
 @check_inited
-def send_fees(to: str, value: float | None) -> None:
+def send_fees(to: str, amount: float | None) -> None:
     json_data: dict[str, Any] = {'to': to}
-    if value is not None:
-        json_data['value'] = value
+    if amount is not None:
+        json_data['amount'] = amount
     status, payload = post_request(blueprint=BLUEPRINT_NAME, method='send-fees', json=json_data)
     _handle_response(status, payload, success=f'Fees sent to {to}')
 

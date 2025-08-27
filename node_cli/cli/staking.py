@@ -107,7 +107,7 @@ def _claim_fees(amount: float) -> None:
 
 @staking.command('send-fees', help='Send fees to address (or all with --all)')
 @click.argument('to')
-@click.argument('value', type=float, required=False)
+@click.argument('amount', type=float, required=False)
 @click.option('--all', 'send_all', is_flag=True, help='Send all fees to address')
 @click.option(
     '--yes',
@@ -116,10 +116,10 @@ def _claim_fees(amount: float) -> None:
     expose_value=False,
     prompt='Are you sure you want to send fees?',
 )
-def _send_fees(to: str, value: float | None, send_all: bool) -> None:
-    if value is None and not send_all:
-        raise click.UsageError('Provide <VALUE> or use --all')
-    send_fees(to, None if send_all else value)
+def _send_fees(to: str, amount: float | None, send_all: bool) -> None:
+    if amount is None and not send_all:
+        raise click.UsageError('Provide <AMOUNT> or use --all')
+    send_fees(to, None if send_all else amount)
 
 
 @staking.command('get-earned-fee-amount', help='Get earned fee amount')
