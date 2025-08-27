@@ -43,6 +43,14 @@ ROUTES = {
         'fair-node': ['info', 'register', 'set-domain-name', 'change-ip', 'exit'],
         'fair-chain': ['record', 'checks'],
         'fair-node-passive': ['setup'],
+        'fair-staking': [
+            'add-receiver',
+            'remove-receiver',
+            'set-fee-rate',
+            'claim-fees',
+            'send-fees',
+            'get-earned-fee-amount',
+        ],
     }
 }
 
