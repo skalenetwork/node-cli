@@ -17,94 +17,71 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Any, Optional
+from typing import Any
 
-from node_cli.core.host import is_node_inited
+from node_cli.utils.decorators import check_inited
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit, post_request
 
 BLUEPRINT_NAME = 'fair-staking'
 
 
-def _handle_response(status: str, payload: Any, success: Optional[str] = None) -> None:
+def _handle_response(status: str, payload: Any, success: str | None = None) -> None:
     if status == 'ok':
         print(success if success is not None else 'OK')
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
+@check_inited
 def add_allowed_receiver(receiver: str) -> None:
-    if not is_node_inited():
-        print('Node is not initialized')
-        return
     status, payload = post_request(
-        blueprint=BLUEPRINT_NAME, method='add-allowed-receiver', json={'receiver': receiver}
+        blueprint=BLUEPRINT_NAME, method='add-receiver', json={'receiver': receiver}
     )
     _handle_response(status, payload, success=f'Allowed receiver added: {receiver}')
 
 
+@check_inited
 def remove_allowed_receiver(receiver: str) -> None:
-    if not is_node_inited():
-        print('Node is not initialized')
-        return
     status, payload = post_request(
-        blueprint=BLUEPRINT_NAME, method='remove-allowed-receiver', json={'receiver': receiver}
+        blueprint=BLUEPRINT_NAME, method='remove-receiver', json={'receiver': receiver}
     )
     _handle_response(status, payload, success=f'Allowed receiver removed: {receiver}')
 
 
-def send_all_fees(to: str) -> None:
-    if not is_node_inited():
-        print('Node is not initialized')
-        return
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME, method='send-all-fees', json={'to': to}
-    )
-    _handle_response(status, payload, success=f'All fees sent to {to}')
+@check_inited
+def send_fees(to: str, value: float | None) -> None:
+    json_data: dict[str, Any] = {'to': to}
+    if value is not None:
+        json_data['value'] = value
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='send-fees', json=json_data)
+    _handle_response(status, payload, success=f'Fees sent to {to}')
 
 
+@check_inited
 def claim_all_fees() -> None:
-    if not is_node_inited():
-        print('Node is not initialized')
-        return
     status, payload = post_request(blueprint=BLUEPRINT_NAME, method='claim-all-fees')
     _handle_response(status, payload, success='All fees claimed')
 
 
+@check_inited
 def set_fee_rate(fee_rate: int) -> None:
-    if not is_node_inited():
-        print('Node is not initialized')
-        return
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME, method='set-fee-rate', json={'feeRate': fee_rate}
     )
     _handle_response(status, payload, success=f'Fee rate set to {fee_rate}')
 
 
+@check_inited
 def claim_fees(amount: float) -> None:
-    if not is_node_inited():
-        print('Node is not initialized')
-        return
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME, method='claim-fees', json={'amount': amount}
     )
     _handle_response(status, payload, success=f'Fees claimed: {amount}')
 
 
-def send_fees(to: str, amount: float) -> None:
-    if not is_node_inited():
-        print('Node is not initialized')
-        return
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME, method='send-fees', json={'to': to, 'amount': amount}
-    )
-    _handle_response(status, payload, success=f'Fees sent: {amount} to {to}')
-
-
+@check_inited
 def get_earned_fee_amount() -> None:
-    if not is_node_inited():
-        print('Node is not initialized')
-        return
     status, payload = post_request(blueprint=BLUEPRINT_NAME, method='get-earned-fee-amount')
     if status == 'ok' and isinstance(payload, dict):
         amount_wei = payload.get('amount_wei')

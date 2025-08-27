@@ -44,9 +44,8 @@ ROUTES = {
         'fair-chain': ['record', 'checks'],
         'fair-node-passive': ['setup'],
         'fair-staking': [
-            'add-allowed-receiver',
-            'remove-allowed-receiver',
-            'send-all-fees',
+            'add-receiver',
+            'remove-receiver',
             'claim-all-fees',
             'set-fee-rate',
             'claim-fees',

@@ -22,7 +22,6 @@ import click
 from node_cli.fair.staking import (
     add_allowed_receiver,
     remove_allowed_receiver,
-    send_all_fees,
     claim_all_fees,
     set_fee_rate,
     claim_fees,
@@ -42,7 +41,7 @@ def staking():
     pass
 
 
-@staking.command('add-allowed-receiver', help='Add allowed receiver')
+@staking.command('add-receiver', help='Add allowed receiver')
 @click.argument('receiver')
 @click.option(
     '--yes',
@@ -55,7 +54,7 @@ def _add_allowed_receiver(receiver: str) -> None:
     add_allowed_receiver(receiver)
 
 
-@staking.command('remove-allowed-receiver', help='Remove allowed receiver')
+@staking.command('remove-receiver', help='Remove allowed receiver')
 @click.argument('receiver')
 @click.option(
     '--yes',
@@ -66,19 +65,6 @@ def _add_allowed_receiver(receiver: str) -> None:
 )
 def _remove_allowed_receiver(receiver: str) -> None:
     remove_allowed_receiver(receiver)
-
-
-@staking.command('send-all-fees', help='Send all fees to address')
-@click.argument('to')
-@click.option(
-    '--yes',
-    is_flag=True,
-    callback=abort_if_false,
-    expose_value=False,
-    prompt='Are you sure you want to send all fees?',
-)
-def _send_all_fees(to: str) -> None:
-    send_all_fees(to)
 
 
 @staking.command('claim-all-fees', help='Claim all fees')
@@ -119,9 +105,10 @@ def _claim_fees(amount: float) -> None:
     claim_fees(amount)
 
 
-@staking.command('send-fees', help='Send fees to address')
+@staking.command('send-fees', help='Send fees to address (or all with --all)')
 @click.argument('to')
-@click.argument('amount', type=float)
+@click.argument('value', type=float, required=False)
+@click.option('--all', 'send_all', is_flag=True, help='Send all fees to address')
 @click.option(
     '--yes',
     is_flag=True,
@@ -129,8 +116,10 @@ def _claim_fees(amount: float) -> None:
     expose_value=False,
     prompt='Are you sure you want to send fees?',
 )
-def _send_fees(to: str, amount: float) -> None:
-    send_fees(to, amount)
+def _send_fees(to: str, value: float | None, send_all: bool) -> None:
+    if value is None and not send_all:
+        raise click.UsageError('Provide <VALUE> or use --all')
+    send_fees(to, None if send_all else value)
 
 
 @staking.command('get-earned-fee-amount', help='Get earned fee amount')

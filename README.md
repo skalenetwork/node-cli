@@ -1079,7 +1079,7 @@ Commands for interacting with the Fair staking functionality.
 Allow an address to receive staking fees.
 
 ```shell
-fair staking add-allowed-receiver <RECEIVER_ADDRESS>
+fair staking add-receiver <RECEIVER_ADDRESS>
 ```
 
 Arguments:
@@ -1091,24 +1091,12 @@ Arguments:
 Remove an address from the allowed receivers list.
 
 ```shell
-fair staking remove-allowed-receiver <RECEIVER_ADDRESS>
+fair staking remove-receiver <RECEIVER_ADDRESS>
 ```
 
 Arguments:
 
 * `RECEIVER_ADDRESS` - Address to remove from the allowed receivers list.
-
-#### Send all fees
-
-Send all accumulated fees to the specified address.
-
-```shell
-fair staking send-all-fees <TO_ADDRESS>
-```
-
-Arguments:
-
-* `TO_ADDRESS` - Destination address to receive all fees.
 
 #### Claim all fees
 
@@ -1144,7 +1132,7 @@ Arguments:
 
 #### Send fees
 
-Send a specific amount of fees to an address.
+Send a specific amount of fees to the default allowed receiver.
 
 ```shell
 fair staking send-fees <TO_ADDRESS> <AMOUNT>
@@ -1153,7 +1141,7 @@ fair staking send-fees <TO_ADDRESS> <AMOUNT>
 Arguments:
 
 * `TO_ADDRESS` - Destination address for the fee transfer.
-* `AMOUNT` - Amount of fees to send (FAIR).
+* `AMOUNT` - Amount of fees to send (FAIR). Use `--all` to send all.
 
 #### Get earned fee amount
 
