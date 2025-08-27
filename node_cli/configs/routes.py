@@ -46,7 +46,6 @@ ROUTES = {
         'fair-staking': [
             'add-receiver',
             'remove-receiver',
-            'claim-all-fees',
             'set-fee-rate',
             'claim-fees',
             'send-fees',

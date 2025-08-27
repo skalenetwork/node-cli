@@ -41,7 +41,6 @@ ALL_V1_ROUTES = [
     '/api/v1/fair-node-passive/setup',
     '/api/v1/fair-staking/add-receiver',
     '/api/v1/fair-staking/remove-receiver',
-    '/api/v1/fair-staking/claim-all-fees',
     '/api/v1/fair-staking/set-fee-rate',
     '/api/v1/fair-staking/claim-fees',
     '/api/v1/fair-staking/send-fees',

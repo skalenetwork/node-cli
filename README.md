@@ -1098,12 +1098,13 @@ Arguments:
 
 * `RECEIVER_ADDRESS` - Address to remove from the allowed receivers list.
 
-#### Claim all fees
+#### Claim fees
 
-Claim all accumulated fees to the node wallet.
+Claim a specific amount of fees or all fees to the node wallet.
 
 ```shell
-fair staking claim-all-fees
+fair staking claim-fees <AMOUNT>
+fair staking claim-fees --all
 ```
 
 #### Set fee rate
@@ -1117,18 +1118,6 @@ fair staking set-fee-rate <FEE_RATE>
 Arguments:
 
 * `FEE_RATE` - Fee rate value as integer (uint16).
-
-#### Claim fees
-
-Claim a specific amount of fees to the node wallet.
-
-```shell
-fair staking claim-fees <AMOUNT>
-```
-
-Arguments:
-
-* `AMOUNT` - Amount of fees to claim (FAIR).
 
 #### Send fees
 

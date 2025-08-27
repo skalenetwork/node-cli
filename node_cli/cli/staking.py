@@ -22,7 +22,6 @@ import click
 from node_cli.fair.staking import (
     add_allowed_receiver,
     remove_allowed_receiver,
-    claim_all_fees,
     set_fee_rate,
     claim_fees,
     send_fees,
@@ -67,18 +66,6 @@ def _remove_allowed_receiver(receiver: str) -> None:
     remove_allowed_receiver(receiver)
 
 
-@staking.command('claim-all-fees', help='Claim all fees')
-@click.option(
-    '--yes',
-    is_flag=True,
-    callback=abort_if_false,
-    expose_value=False,
-    prompt='Are you sure you want to claim all fees?',
-)
-def _claim_all_fees() -> None:
-    claim_all_fees()
-
-
 @staking.command('set-fee-rate', help='Set fee rate (uint16, basis points; 25 = 2.5%)')
 @click.argument('fee_rate', type=int)
 @click.option(
@@ -92,8 +79,9 @@ def _set_fee_rate(fee_rate: int) -> None:
     set_fee_rate(fee_rate)
 
 
-@staking.command('claim-fees', help='Claim fees amount (FAIR)')
-@click.argument('amount', type=float)
+@staking.command('claim-fees', help='Claim fees amount (FAIR) or all with --all')
+@click.argument('amount', type=float, required=False)
+@click.option('--all', 'claim_all', is_flag=True, help='Claim all fees')
 @click.option(
     '--yes',
     is_flag=True,
@@ -101,8 +89,10 @@ def _set_fee_rate(fee_rate: int) -> None:
     expose_value=False,
     prompt='Are you sure you want to claim fees?',
 )
-def _claim_fees(amount: float) -> None:
-    claim_fees(amount)
+def _claim_fees(amount: float | None, claim_all: bool) -> None:
+    if amount is None and not claim_all:
+        raise click.UsageError('Provide <AMOUNT> or use --all')
+    claim_fees(None if claim_all else amount)
 
 
 @staking.command('send-fees', help='Send fees to address (or all with --all)')

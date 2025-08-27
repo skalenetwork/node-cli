@@ -59,12 +59,6 @@ def send_fees(to: str, amount: float | None) -> None:
 
 
 @check_inited
-def claim_all_fees() -> None:
-    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='claim-all-fees')
-    _handle_response(status, payload, success='All fees claimed')
-
-
-@check_inited
 def set_fee_rate(fee_rate: int) -> None:
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME, method='set-fee-rate', json={'feeRate': fee_rate}
@@ -73,11 +67,16 @@ def set_fee_rate(fee_rate: int) -> None:
 
 
 @check_inited
-def claim_fees(amount: float) -> None:
-    status, payload = post_request(
-        blueprint=BLUEPRINT_NAME, method='claim-fees', json={'amount': amount}
+def claim_fees(amount: float | None) -> None:
+    json_data: dict[str, Any] = {}
+    if amount is not None:
+        json_data['amount'] = amount
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='claim-fees', json=json_data)
+    _handle_response(
+        status,
+        payload,
+        success='All fees claimed' if amount is None else f'Fees claimed: {amount}',
     )
-    _handle_response(status, payload, success=f'Fees claimed: {amount}')
 
 
 @check_inited
