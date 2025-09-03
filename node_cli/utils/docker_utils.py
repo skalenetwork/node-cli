@@ -423,11 +423,8 @@ def is_container_running(name: str, dclient: Optional[DockerClient] = None) -> b
         return False
 
 
-def is_api_running(node_type: NodeType, dclient: Optional[DockerClient] = None) -> bool:
-    if node_type == NodeType.FAIR:
-        return is_container_running(name='fair_api', dclient=dclient)
-    else:
-        return is_container_running(name='skale_api', dclient=dclient)
+def is_api_running(dclient: Optional[DockerClient] = None) -> bool:
+    return is_container_running(name='sk_api', dclient=dclient)
 
 
 def is_admin_running(dclient: Optional[DockerClient] = None) -> bool:
