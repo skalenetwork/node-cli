@@ -110,7 +110,7 @@ class NodeStatuses(Enum):
 
 
 def is_update_safe(node_type: NodeType, node_mode: NodeMode) -> bool:
-    if not is_admin_running(node_type, node_mode):
+    if not is_admin_running():
         if node_mode == NodeMode.PASSIVE:
             return True
         elif not is_api_running(node_type):

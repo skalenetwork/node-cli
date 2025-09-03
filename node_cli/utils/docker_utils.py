@@ -48,46 +48,46 @@ IMA_REMOVE_TIMEOUT = 20
 TELEGRAF_REMOVE_TIMEOUT = 20
 REDIS_START_TIMEOUT = 10
 
-REDIS_SERVICE_DICT = {'redis': 'skale_redis'}
+REDIS_SERVICE_DICT = {'redis': 'sk_redis'}
 
 CORE_COMMON_COMPOSE_SERVICES = {
-    'transaction-manager': 'skale_transaction-manager',
-    'redis': 'skale_redis',
-    'watchdog': 'skale_watchdog',
-    'nginx': 'skale_nginx',
-    'filebeat': 'skale_filebeat',
+    'transaction-manager': 'sk_tm',
+    'redis': 'sk_redis',
+    'watchdog': 'sk_watchdog',
+    'nginx': 'sk_nginx',
+    'filebeat': 'sk_filebeat',
 }
 
 BASE_SKALE_COMPOSE_SERVICES = {
     **CORE_COMMON_COMPOSE_SERVICES,
-    'skale-admin': 'skale_admin',
-    'skale-api': 'skale_api',
-    'bounty': 'skale_bounty',
+    'admin': 'sk_admin',
+    'api': 'sk_api',
+    'bounty': 'sk_bounty',
 }
 
 BASE_FAIR_COMPOSE_SERVICES = {
     **CORE_COMMON_COMPOSE_SERVICES,
-    'fair-admin': 'fair_admin',
-    'fair-api': 'fair_api',
+    'admin': 'sk_admin',
+    'api': 'sk_api',
 }
 
 BASE_FAIR_BOOT_COMPOSE_SERVICES = {
     **CORE_COMMON_COMPOSE_SERVICES,
-    'fair-boot': 'fair_boot_admin',
-    'fair-boot-api': 'fair_boot_api',
+    'boot-admin': 'sk_boot_admin',
+    'boot-api': 'sk_boot_api',
 }
 
 BASE_PASSIVE_COMPOSE_SERVICES = {
-    'skale-passive-admin': 'skale_passive_admin',
-    'nginx': 'skale_nginx',
+    'admin': 'sk_admin',
+    'nginx': 'sk_nginx',
 }
 
 BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
-    'fair-admin': 'fair_admin',
-    'fair-api': 'fair_api',
-    'nginx': 'skale_nginx',
-    'watchdog': 'skale_watchdog',
-    'filebeat': 'skale_filebeat',
+    'admin': 'sk_admin',
+    'api': 'sk_api',
+    'nginx': 'sk_nginx',
+    'watchdog': 'sk_watchdog',
+    'filebeat': 'sk_filebeat',
     **REDIS_SERVICE_DICT,
 }
 
@@ -120,11 +120,11 @@ def get_containers(container_name_filter=None, _all=True) -> list:
 
 
 def get_all_schain_containers(_all=True) -> list:
-    return docker_client().containers.list(all=_all, filters={'name': 'skale_schain_*'})
+    return docker_client().containers.list(all=_all, filters={'name': 'sk_chain_*'})
 
 
 def get_all_ima_containers(_all=True) -> list:
-    return docker_client().containers.list(all=_all, filters={'name': 'skale_ima_*'})
+    return docker_client().containers.list(all=_all, filters={'name': 'sk_ima_*'})
 
 
 def remove_dynamic_containers() -> None:
@@ -203,7 +203,7 @@ def start_container_by_name(container_name: str, dclient: Optional[DockerClient]
 def remove_schain_container_by_name(
     schain_name: str, dclient: Optional[DockerClient] = None
 ) -> None:
-    container_name = f'skale_schain_{schain_name}'
+    container_name = f'sk_chain_{schain_name}'
     remove_container_by_name(container_name, timeout=SCHAIN_REMOVE_TIMEOUT, dclient=dclient)
 
 
@@ -430,20 +430,8 @@ def is_api_running(node_type: NodeType, dclient: Optional[DockerClient] = None) 
         return is_container_running(name='skale_api', dclient=dclient)
 
 
-def is_admin_running(
-    node_type: NodeType,
-    node_mode: NodeMode,
-    dclient: Optional[DockerClient] = None,
-) -> bool:
-    if active_fair(node_type, node_mode):
-        container_name = 'fair_admin'
-    elif passive_fair(node_type, node_mode):
-        container_name = 'fair_passive_admin'
-    elif active_skale(node_type, node_mode):
-        container_name = 'skale_admin'
-    elif passive_skale(node_type, node_mode):
-        container_name = 'skale_passive_admin'
-    return is_container_running(name=container_name, dclient=dclient)
+def is_admin_running(dclient: Optional[DockerClient] = None) -> bool:
+    return is_container_running(name='sk_admin', dclient=dclient)
 
 
 def system_prune():

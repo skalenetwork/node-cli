@@ -296,10 +296,10 @@ def trigger_skaled_snapshot_mode(env: dict, snapshot_from: str = 'any') -> None:
     record.set_snapshot_from(snapshot_from)
 
 
-def repair(node_mode: NodeMode, env: dict, snapshot_from: str = 'any') -> None:
+def repair(env: dict, snapshot_from: str = 'any') -> None:
     logger.info('Starting fair node repair')
-    container_name = 'fair_admin'
-    if is_admin_running(node_type=NodeType.FAIR, node_mode=node_mode):
+    container_name = 'sk_admin'
+    if is_admin_running():
         logger.info('Stopping admin container')
         stop_container_by_name(container_name=container_name)
     logger.info('Removing chain container')

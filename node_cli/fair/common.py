@@ -133,4 +133,4 @@ def repair_chain(snapshot_from: str = 'any') -> None:
     env = compose_node_env(
         SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
     )
-    repair_fair_op(node_mode=node_mode, env=env, snapshot_from=snapshot_from)
+    repair_fair_op(env=env, snapshot_from=snapshot_from)
