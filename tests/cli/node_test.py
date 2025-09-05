@@ -42,7 +42,7 @@ from node_cli.configs import G_CONF_HOME, SKALE_DIR
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import init_default_logger
 from node_cli.utils.meta import CliMeta
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 from tests.helper import (
     response_mock,
     run_command,
@@ -322,14 +322,13 @@ def test_backup():
 
 
 @pytest.mark.parametrize(
-    'node_type,test_user_conf',
+    'node_type,node_mode,test_user_conf',
     [
-        (NodeType.REGULAR, 'regular_user_conf'),
-        (NodeType.FAIR, 'fair_user_conf'),
-        (NodeType.SYNC, 'sync_user_conf'),
+        (NodeType.SKALE, NodeMode.ACTIVE, 'regular_user_conf'),
+        (NodeType.FAIR, NodeMode.ACTIVE, 'fair_user_conf'),
     ],
 )
-def test_restore(request, node_type, test_user_conf, mocked_g_config, tmp_path):
+def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config, tmp_path):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     result = run_command(backup_node, [tmp_path])
     backup_path = result.output.replace('Backup archive successfully created: ', '').replace(
@@ -350,7 +349,6 @@ def test_restore(request, node_type, test_user_conf, mocked_g_config, tmp_path):
         patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         user_conf_path = request.getfixturevalue(test_user_conf).as_posix()
-
         result = run_command(restore_node, [backup_path, user_conf_path])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
@@ -386,7 +384,7 @@ def test_maintenance_off(mocked_g_config):
     )
 
 
-def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
+def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node_option):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -394,7 +392,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
@@ -402,6 +400,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
             _turn_off,
             ['--maintenance-on', '--yes'],
         )
+
         assert (
             result.output
             == 'Setting maintenance mode on...\nNode is successfully set in maintenance mode\n'
@@ -418,7 +417,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf):
             assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
-def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf):
+def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node_option):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -427,7 +426,7 @@ def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf):
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.cli.node.TYPE', NodeType.REGULAR),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
@@ -472,5 +471,5 @@ def test_node_version(meta_file_v2):
         assert result.exit_code == 0
         assert (
             result.output
-            == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_stream': '1.1.2'}\n"
+            == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_version': '1.1.2'}\n"
         )

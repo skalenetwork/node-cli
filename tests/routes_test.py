@@ -38,6 +38,13 @@ ALL_V1_ROUTES = [
     '/api/v1/fair-node/exit',
     '/api/v1/fair-chain/record',
     '/api/v1/fair-chain/checks',
+    '/api/v1/fair-node-passive/setup',
+    '/api/v1/fair-staking/add-receiver',
+    '/api/v1/fair-staking/remove-receiver',
+    '/api/v1/fair-staking/set-fee-rate',
+    '/api/v1/fair-staking/claim-fees',
+    '/api/v1/fair-staking/send-fees',
+    '/api/v1/fair-staking/get-earned-fee-amount',
 ]
 
 

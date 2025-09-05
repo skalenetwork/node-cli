@@ -113,7 +113,7 @@ node_cli/cli/info.py
 
 meta.json
 
-disk_mountpoint.txt
+block_device.txt
 sgx_server_url.txt
 resource_allocation.json
 conf.json

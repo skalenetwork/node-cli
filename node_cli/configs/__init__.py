@@ -55,7 +55,7 @@ SKALE_RUN_DIR = '/var/run/skale'
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
-SYNC_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-sync.yml')
+PASSIVE_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-passive.yml')
 FAIR_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-fair.yml')
 STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
 FAIR_STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'fair_static_params.yaml')
@@ -140,6 +140,7 @@ BACKUP_ARCHIVE_NAME = 'skale-node-backup'
 
 TM_INIT_TIMEOUT = 20
 RESTORE_SLEEP_TIMEOUT = 20
+INIT_TIMEOUT = 20
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
 

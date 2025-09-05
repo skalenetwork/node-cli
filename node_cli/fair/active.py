@@ -23,22 +23,17 @@ import time
 from typing import cast
 
 from node_cli.configs import DEFAULT_SKALED_BASE_PORT, RESTORE_SLEEP_TIMEOUT, SKALE_DIR
-from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
-from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.host import is_node_inited, save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.operations import (
     FairUpdateType,
-    cleanup_fair_op,
-    init_fair_op,
-    repair_fair_op,
     restore_fair_op,
     update_fair_op,
 )
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit, get_request, post_request
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info_fair
 from node_cli.utils.texts import safe_load_texts
 
@@ -65,21 +60,6 @@ def get_node_info(format):
         print_node_info_fair(node_info)
 
 
-@check_not_inited
-def restore_fair(backup_path, env_filepath, config_only=False):
-    env = compose_node_env(env_filepath, node_type=NodeType.FAIR)
-    if env is None:
-        return
-    save_env_params(env_filepath)
-    env['SKALE_DIR'] = SKALE_DIR
-
-    restored_ok = restore_fair_op(env, backup_path, config_only=config_only)
-    if not restored_ok:
-        error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    time.sleep(RESTORE_SLEEP_TIMEOUT)
-    print('Fair node is restored from backup')
-
-
 @check_inited
 @check_user
 def migrate_from_boot(
@@ -91,71 +71,21 @@ def migrate_from_boot(
         inited_node=True,
         sync_schains=False,
         node_type=NodeType.FAIR,
+        node_mode=NodeMode.ACTIVE,
     )
     migrate_ok = update_fair_op(
-        env_filepath, env, update_type=FairUpdateType.FROM_BOOT, force_skaled_start=False
+        env_filepath,
+        env,
+        node_mode=NodeMode.ACTIVE,
+        update_type=FairUpdateType.FROM_BOOT,
+        force_skaled_start=False,
     )
-    alive = is_base_containers_alive(node_type=NodeType.FAIR)
+    alive = is_base_containers_alive(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     if not migrate_ok or not alive:
         print_node_cmd_error()
         return
     else:
         logger.info('Migration from boot to fair completed successfully')
-
-
-@check_inited
-@check_user
-def update(
-    env_filepath: str, pull_config_for_schain: str | None = None, force_skaled_start: bool = False
-) -> None:
-    logger.info(
-        'Updating fair node: %s, pull_config_for_schain: %s, force_skaled_start: %s',
-        env_filepath,
-        pull_config_for_schain,
-        force_skaled_start,
-    )
-    env = compose_node_env(
-        env_filepath,
-        inited_node=True,
-        sync_schains=False,
-        node_type=NodeType.FAIR,
-        pull_config_for_schain=pull_config_for_schain,
-    )
-    update_ok = update_fair_op(
-        env_filepath,
-        env,
-        update_type=FairUpdateType.REGULAR,
-        force_skaled_start=force_skaled_start,
-    )
-    alive = is_base_containers_alive(node_type=NodeType.FAIR)
-    if not update_ok or not alive:
-        print_node_cmd_error()
-        return
-    else:
-        logger.info('Fair update completed successfully')
-
-
-@check_user
-def cleanup() -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
-    cleanup_fair_op(env)
-    logger.info('Fair node was cleaned up, all containers and data removed')
-    cleanup_docker_configuration()
-
-
-@check_not_inited
-def init(env_filepath: str) -> None:
-    env = compose_node_env(env_filepath, node_type=NodeType.FAIR)
-    if env is None:
-        return
-    save_env_params(env_filepath)
-    env['SKALE_DIR'] = SKALE_DIR
-
-    init_ok = init_fair_op(env_filepath, env)
-    if not init_ok:
-        error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    time.sleep(RESTORE_SLEEP_TIMEOUT)
-    print('Fair node is initialized')
 
 
 @check_inited
@@ -175,11 +105,6 @@ def register(ip: str) -> None:
         error_msg = payload
         logger.error(f'Registration error {error_msg}')
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
-
-
-def repair_chain(snapshot_from: str = 'any') -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR)
-    repair_fair_op(env=env, snapshot_from=snapshot_from)
 
 
 @check_inited
@@ -217,6 +142,24 @@ def exit() -> None:
         error_msg = payload
         logger.error(f'Node exit error {error_msg}')
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+@check_not_inited
+def restore(backup_path, env_filepath, config_only=False):
+    node_mode = NodeMode.ACTIVE
+    env = compose_node_env(env_filepath, node_type=NodeType.FAIR, node_mode=node_mode)
+    if env is None:
+        return
+    save_env_params(env_filepath)
+    env['SKALE_DIR'] = SKALE_DIR
+
+    restored_ok = restore_fair_op(
+        node_mode=node_mode, env=env, backup_path=backup_path, config_only=config_only
+    )
+    if not restored_ok:
+        error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
+    time.sleep(RESTORE_SLEEP_TIMEOUT)
+    print('Fair node is restored from backup')
 
 
 @check_inited

@@ -20,20 +20,23 @@
 import click
 
 from node_cli.core.node import backup
-from node_cli.fair.fair_node import change_ip as change_ip_fair
-from node_cli.fair.fair_node import cleanup as fair_cleanup
-from node_cli.fair.fair_node import exit as exit_fair
-from node_cli.fair.fair_node import (
+
+from node_cli.fair.active import change_ip as change_ip_fair
+from node_cli.fair.common import cleanup as cleanup_fair
+from node_cli.fair.active import exit as exit_fair
+from node_cli.fair.active import (
     get_node_info,
     migrate_from_boot,
-    repair_chain,
-    restore_fair,
+    restore as restore_fair,
 )
-from node_cli.fair.fair_node import init as init_fair
-from node_cli.fair.fair_node import register as register_fair
-from node_cli.fair.fair_node import set_domain_name as set_domain_name_fair
-from node_cli.fair.fair_node import update as update_fair
+from node_cli.fair.common import init as init_fair
+from node_cli.fair.active import register as register_fair
+from node_cli.fair.common import update as update_fair
+from node_cli.fair.active import set_domain_name as set_domain_name_fair
+from node_cli.fair.common import repair_chain
+
 from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
+from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts
 
 TEXTS = safe_load_texts()
@@ -59,7 +62,7 @@ def fair_node_info(format):
 @click.argument('env_filepath')
 @streamed_cmd
 def init_node(env_filepath: str):
-    init_fair(env_filepath=env_filepath)
+    init_fair(node_mode=NodeMode.ACTIVE, env_filepath=env_filepath)
 
 
 @node.command('register', help=TEXTS['fair']['node']['register']['help'])
@@ -89,6 +92,7 @@ def register(ip: str) -> None:
 @streamed_cmd
 def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: bool):
     update_fair(
+        node_mode=NodeMode.ACTIVE,
         env_filepath=env_filepath,
         pull_config_for_schain=pull_config_for_schain,
         force_skaled_start=force_skaled_start,
@@ -132,7 +136,7 @@ def migrate_node(env_filepath: str) -> None:
 
 @node.command('repair', help='Toggle fair chain repair mode')
 @click.option(
-    '--snapshot-from',
+    '--snapshot',
     type=URL_OR_ANY_TYPE,
     default='any',
     hidden=True,
@@ -160,7 +164,7 @@ def repair(snapshot_from: str = 'any') -> None:
 )
 @streamed_cmd
 def cleanup_node():
-    fair_cleanup()
+    cleanup_fair(node_mode=NodeMode.ACTIVE)
 
 
 @node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])

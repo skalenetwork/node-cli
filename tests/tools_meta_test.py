@@ -17,21 +17,21 @@ def test_get_meta_info_v1(meta_file_v1):
     meta = CliMetaManager().get_meta_info()
     assert meta.version == TEST_META_V1['version']
     assert meta.config_stream == TEST_META_V1['config_stream']
-    assert meta.docker_lvmpy_stream == '1.0.0'
+    assert meta.docker_lvmpy_version == '1.0.0'
 
 
 def test_get_meta_info_v2(meta_file_v2):
     meta = CliMetaManager().get_meta_info()
     assert meta.version == TEST_META_V2['version']
     assert meta.config_stream == TEST_META_V2['config_stream']
-    assert meta.docker_lvmpy_stream == TEST_META_V2['docker_lvmpy_stream']
+    assert meta.docker_lvmpy_version == TEST_META_V2['docker_lvmpy_version']
 
 
 def test_get_meta_info_v3(meta_file_v3):
     meta = CliMetaManager().get_meta_info()
     assert meta.version == TEST_META_V3['version']
     assert meta.config_stream == TEST_META_V3['config_stream']
-    assert meta.docker_lvmpy_stream == TEST_META_V3['docker_lvmpy_stream']
+    assert meta.docker_lvmpy_version == TEST_META_V3['docker_lvmpy_version']
     assert meta.os_id == TEST_META_V3['os_id']
     assert meta.os_version == TEST_META_V3['os_version']
 
@@ -45,7 +45,7 @@ def test_compose_default_meta():
     meta = CliMetaManager().compose_default_meta()
     assert meta.version == '1.0.0'
     assert meta.config_stream == '1.1.0'
-    assert meta.docker_lvmpy_stream == '1.0.0'
+    assert meta.docker_lvmpy_version == '1.0.0'
     assert meta.os_id == 'ubuntu'
     assert meta.os_version == '18.04'
 
@@ -58,7 +58,7 @@ def test_save_meta(meta_file_v2):
     assert saved_json == {
         'version': '1.1.2',
         'config_stream': '2.2.2',
-        'docker_lvmpy_stream': '1.0.0',
+        'docker_lvmpy_version': '1.0.0',
         'os_id': 'ubuntu',
         'os_version': '18.04',
     }
@@ -69,14 +69,14 @@ def test_update_meta_from_v2_to_v3(meta_file_v2):
     CliMetaManager().update_meta(
         version='3.3.3',
         config_stream='1.1.1',
-        docker_lvmpy_stream='1.2.2',
+        docker_lvmpy_version='1.2.2',
         os_id='debian',
         os_version='11',
     )
     meta = CliMetaManager().get_meta_info()
     assert meta.version == '3.3.3'
     assert meta.config_stream == '1.1.1'
-    assert meta.docker_lvmpy_stream == '1.2.2'
+    assert meta.docker_lvmpy_version == '1.2.2'
     assert meta.os_id == 'debian'
     assert meta.os_version == '11'
     assert meta != old_meta
@@ -86,14 +86,14 @@ def test_update_meta_from_v1(meta_file_v1):
     CliMetaManager().update_meta(
         version='4.4.4',
         config_stream='beta',
-        docker_lvmpy_stream='1.3.3',
+        docker_lvmpy_version='1.3.3',
         os_id='debian',
         os_version='11',
     )
     meta = CliMetaManager().get_meta_info()
     assert meta.version == '4.4.4'
     assert meta.config_stream == 'beta'
-    assert meta.docker_lvmpy_stream == '1.3.3'
+    assert meta.docker_lvmpy_version == '1.3.3'
     assert meta.os_id == 'debian'
     assert meta.os_version == '11'
 
@@ -102,14 +102,14 @@ def test_update_meta_from_v3(meta_file_v3):
     CliMetaManager().update_meta(
         version='5.5.5',
         config_stream='stable',
-        docker_lvmpy_stream='1.2.3',
+        docker_lvmpy_version='1.2.3',
         os_id='ubuntu',
         os_version='20.04',
     )
     meta = CliMetaManager().get_meta_info()
     assert meta.version == '5.5.5'
     assert meta.config_stream == 'stable'
-    assert meta.docker_lvmpy_stream == '1.2.3'
+    assert meta.docker_lvmpy_version == '1.2.3'
     assert meta.os_id == 'ubuntu'
     assert meta.os_version == '20.04'
 
@@ -156,7 +156,7 @@ def test_fair_compose_default_meta():
     assert meta.config_stream == '1.1.0'
     assert meta.os_id == 'ubuntu'
     assert meta.os_version == '18.04'
-    assert not hasattr(meta, 'docker_lvmpy_stream')
+    assert not hasattr(meta, 'docker_lvmpy_version')
 
 
 def test_fair_save_meta(meta_file_v2):
@@ -172,7 +172,7 @@ def test_fair_save_meta(meta_file_v2):
         'os_id': 'debian',
         'os_version': '11',
     }
-    assert 'docker_lvmpy_stream' not in saved_json
+    assert 'docker_lvmpy_version' not in saved_json
 
 
 def test_fair_update_meta_from_v2_to_v3(meta_file_v2):
@@ -237,7 +237,7 @@ def test_fair_get_meta_info_raw(meta_file_v3):
     assert raw_meta['config_stream'] == TEST_META_V3['config_stream']
     assert raw_meta['os_id'] == TEST_META_V3['os_id']
     assert raw_meta['os_version'] == TEST_META_V3['os_version']
-    assert 'docker_lvmpy_stream' not in raw_meta
+    assert 'docker_lvmpy_version' not in raw_meta
 
 
 def test_fair_get_meta_info_raw_empty():
@@ -257,7 +257,7 @@ def test_fair_asdict():
         'os_version': '35',
     }
     assert meta_dict == expected
-    assert 'docker_lvmpy_stream' not in meta_dict
+    assert 'docker_lvmpy_version' not in meta_dict
 
 
 def test_fair_meta_compatibility_with_cli_meta_file(meta_file_v3):
@@ -266,21 +266,21 @@ def test_fair_meta_compatibility_with_cli_meta_file(meta_file_v3):
     assert meta.config_stream == TEST_META_V3['config_stream']
     assert meta.os_id == TEST_META_V3['os_id']
     assert meta.os_version == TEST_META_V3['os_version']
-    # Should not have docker_lvmpy_stream even though it's in the file
-    assert not hasattr(meta, 'docker_lvmpy_stream')
+    # Should not have docker_lvmpy_version even though it's in the file
+    assert not hasattr(meta, 'docker_lvmpy_version')
 
 
 def test_fair_save_meta_overwrites_cli_meta(meta_file_v3):
     with open(META_FILEPATH) as f:
         original_data = json.load(f)
-    assert 'docker_lvmpy_stream' in original_data
+    assert 'docker_lvmpy_version' in original_data
 
     fair_meta = FairCliMeta(version='2.0.0', config_stream='fair-new')
     FairCliMetaManager().save_meta(fair_meta)
 
     with open(META_FILEPATH) as f:
         saved_data = json.load(f)
-    assert 'docker_lvmpy_stream' not in saved_data
+    assert 'docker_lvmpy_version' not in saved_data
     assert saved_data['version'] == '2.0.0'
     assert saved_data['config_stream'] == 'fair-new'
 

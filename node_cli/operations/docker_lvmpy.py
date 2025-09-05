@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 def update_docker_lvmpy_env(env):
-    env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
+    env['PHYSICAL_VOLUME'] = env['BLOCK_DEVICE']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
     env['MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
@@ -57,14 +57,14 @@ def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
 def sync_docker_lvmpy_repo(env):
     if os.path.isdir(DOCKER_LVMPY_PATH):
         shutil.rmtree(DOCKER_LVMPY_PATH)
-    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_STREAM'])
+    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_VERSION'])
 
 
 def lvmpy_install(env):
     ensure_filestorage_mapping()
     logging.info('Configuring and starting lvmpy')
     setup_lvmpy(
-        block_device=env['DISK_MOUNTPOINT'], volume_group=VOLUME_GROUP, exec_start=LVMPY_RUN_CMD
+        block_device=env['BLOCK_DEVICE'], volume_group=VOLUME_GROUP, exec_start=LVMPY_RUN_CMD
     )
     init_healing_cron()
     logger.info('docker-lvmpy is configured and started')

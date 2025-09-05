@@ -14,3 +14,4 @@
 - check `ruff.toml` for formatting rules
 - always lint changes using `ruff check`
 - tests should be placed in `tests/` directory, follow the existing structure and code style
+- to run a test always use `bash scripts/run_tests.sh tests/path_to_test.py -k [TEST_NAME]` command

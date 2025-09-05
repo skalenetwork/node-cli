@@ -34,9 +34,9 @@ def test_toggle_repair_mode(tmp_schains_dir):
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
-def test_cleanup_sync_datadir(tmp_sync_datadir):
+def test_cleanup_passive_datadir(tmp_passive_datadir):
     schain_name = 'test_schain'
-    base_folder = Path(tmp_sync_datadir).joinpath(schain_name)
+    base_folder = Path(tmp_passive_datadir).joinpath(schain_name)
     base_folder.mkdir()
     folders = [
         '28e07f34',
@@ -81,5 +81,5 @@ def test_cleanup_sync_datadir(tmp_sync_datadir):
             hash_path.touch()
 
     with mock.patch('node_cli.core.schains.rm_btrfs_subvolume'):
-        cleanup_no_lvm_datadir(schain_name, base_path=tmp_sync_datadir)
+        cleanup_no_lvm_datadir(schain_name, base_path=tmp_passive_datadir)
         assert not os.path.isdir(base_folder)
