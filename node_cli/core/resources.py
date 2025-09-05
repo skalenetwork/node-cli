@@ -81,7 +81,7 @@ def compose_resource_allocation_config(env_type: str, params_by_env_type: Dict =
     schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
 
     return {
-        'schain': {
+        'skaled': {
             'cpu_shares': schain_cpu_alloc.dict(),
             'mem': schain_mem_alloc.dict(),
             'disk': schain_allocation_data[env_type]['disk'],

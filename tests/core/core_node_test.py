@@ -396,7 +396,7 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
 def test_is_update_safe_when_admin_and_api_not_running(
     mock_requests_get, mock_is_api_running, mock_is_admin_running, node_type, node_mode
 ):
-    assert is_update_safe(node_type=node_type, node_mode=node_mode) is True
+    assert is_update_safe(node_mode=node_mode) is True
     mock_requests_get.assert_not_called()
 
 
@@ -406,7 +406,7 @@ def test_is_update_safe_when_admin_and_api_not_running(
 def test_is_update_safe_when_admin_not_running_for_passive(
     mock_requests_get, mock_is_api_running, mock_is_admin_running
 ):
-    assert is_update_safe(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE) is True
+    assert is_update_safe(node_mode=NodeMode.PASSIVE) is True
     mock_requests_get.assert_not_called()
 
 
@@ -429,7 +429,7 @@ def test_is_update_safe_when_admin_running(
     mock_requests_get, mock_is_admin_running, api_is_safe, expected_result, node_type, node_mode
 ):
     mock_requests_get.return_value = safe_update_api_response(safe=api_is_safe)
-    assert is_update_safe(node_type=node_type, node_mode=node_mode) is expected_result
+    assert is_update_safe(node_mode=node_mode) is expected_result
     mock_requests_get.assert_called_once()
 
 
@@ -451,7 +451,7 @@ def test_is_update_safe_when_only_api_running_for_regular(
     node_type,
 ):
     mock_requests_get.return_value = safe_update_api_response(safe=api_is_safe)
-    assert is_update_safe(node_type=node_type, node_mode=NodeMode.ACTIVE) is expected_result
+    assert is_update_safe(node_mode=NodeMode.ACTIVE) is expected_result
     mock_requests_get.assert_called_once()
 
 
@@ -469,5 +469,5 @@ def test_is_update_safe_when_api_call_fails(
     mock_requests_get, mock_is_admin_running, node_type, node_mode
 ):
     mock_requests_get.side_effect = requests.exceptions.ConnectionError('Test connection error')
-    assert is_update_safe(node_type=node_type, node_mode=node_mode) is False
+    assert is_update_safe(node_mode=node_mode) is False
     mock_requests_get.assert_called_once()

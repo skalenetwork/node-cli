@@ -109,11 +109,11 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def is_update_safe(node_type: NodeType, node_mode: NodeMode) -> bool:
-    if not is_admin_running(node_type, node_mode):
+def is_update_safe(node_mode: NodeMode) -> bool:
+    if not is_admin_running():
         if node_mode == NodeMode.PASSIVE:
             return True
-        elif not is_api_running(node_type):
+        elif not is_api_running():
             return True
     status, payload = get_request(BLUEPRINT_NAME, 'update-safe')
     if status == 'error':
@@ -298,7 +298,7 @@ def update(
 ) -> None:
     node_mode = upsert_node_mode(node_mode=node_mode)
 
-    if not unsafe_ok and not is_update_safe(node_type=node_type, node_mode=node_mode):
+    if not unsafe_ok and not is_update_safe(node_mode=node_mode):
         error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
@@ -422,7 +422,7 @@ def set_maintenance_mode_off():
 @check_user
 def turn_off(node_type: NodeType, maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
     node_mode = upsert_node_mode()
-    if not unsafe_ok and not is_update_safe(node_type=node_type, node_mode=node_mode):
+    if not unsafe_ok and not is_update_safe(node_mode=node_mode):
         error_msg = 'Cannot turn off safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
