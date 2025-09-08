@@ -126,7 +126,7 @@ def init(
     )
 
     compose_up(env=env, node_type=NodeType.FAIR, node_mode=node_mode)
-    wait_for_container(BASE_PASSIVE_FAIR_COMPOSE_SERVICES['fair-api'])
+    wait_for_container(BASE_PASSIVE_FAIR_COMPOSE_SERVICES['api'])
     time.sleep(REDIS_START_TIMEOUT)
     return True
 
