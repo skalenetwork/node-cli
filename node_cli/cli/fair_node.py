@@ -18,11 +18,13 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-
+from node_cli.cli.info import TYPE
 from node_cli.core.node import backup
 
 from node_cli.fair.active import change_ip as change_ip_fair
 from node_cli.fair.common import cleanup as cleanup_fair
+from node_cli.fair.common import turn_off as turn_off_fair
+from node_cli.fair.common import turn_on as turn_on_fair
 from node_cli.fair.active import exit as exit_fair
 from node_cli.fair.active import (
     get_node_info,
@@ -199,3 +201,30 @@ def exit_node() -> None:
 @streamed_cmd
 def set_domain_name(domain):
     set_domain_name_fair(domain)
+
+
+@node.command('turn-off', help='Turn off the node')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to turn off the node?',
+)
+@streamed_cmd
+def _turn_off():
+    turn_off_fair(node_type=TYPE)
+
+
+@node.command('turn-on', help='Turn on the node')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to turn on the node?',
+)
+@click.argument('env_file')
+@streamed_cmd
+def _turn_on(env_file):
+    turn_on_fair(env_file, node_type=TYPE)
