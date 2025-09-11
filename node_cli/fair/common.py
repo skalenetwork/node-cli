@@ -150,12 +150,11 @@ def turn_off(node_type: NodeType) -> None:
 
 @check_inited
 @check_user
-def turn_on(sync_schains, env_file, node_type: NodeType) -> None:
+def turn_on(env_file, node_type: NodeType) -> None:
     node_mode = upsert_node_mode()
     env = compose_node_env(
         env_file,
         inited_node=True,
-        sync_schains=sync_schains,
         node_type=node_type,
         node_mode=node_mode,
     )
