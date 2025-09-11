@@ -359,14 +359,23 @@ def turn_off(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
 
 def turn_on(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     logger.info('Turning on the node...')
-    meta_manager = CliMetaManager()
-    meta_manager.update_meta(
-        VERSION,
-        env['NODE_VERSION'],
-        env['DOCKER_LVMPY_VERSION'],
-        distro.id(),
-        distro.version(),
-    )
+    if node_type == NodeType.FAIR:
+        meta_manager = FairCliMetaManager()
+        meta_manager.update_meta(
+            VERSION,
+            env['NODE_VERSION'],
+            distro.id(),
+            distro.version(),
+        )
+    else:
+        meta_manager = CliMetaManager()
+        meta_manager.update_meta(
+            VERSION,
+            env['NODE_VERSION'],
+            env['DOCKER_LVMPY_VERSION'],
+            distro.id(),
+            distro.version()
+        )
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
 
