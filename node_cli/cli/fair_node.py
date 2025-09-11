@@ -212,7 +212,7 @@ def set_domain_name(domain):
     prompt='Are you sure you want to turn off the node?',
 )
 @streamed_cmd
-def _turn_off():
+def turn_off_node() -> None:
     turn_off_fair(node_type=TYPE)
 
 
@@ -224,7 +224,7 @@ def _turn_off():
     expose_value=False,
     prompt='Are you sure you want to turn on the node?',
 )
-@click.argument('env_file')
+@click.argument('env_filepath')
 @streamed_cmd
-def _turn_on(env_file):
-    turn_on_fair(env_file, node_type=TYPE)
+def turn_on_node(env_filepath: str) -> None:
+    turn_on_fair(env_file=env_filepath, node_type=TYPE)
