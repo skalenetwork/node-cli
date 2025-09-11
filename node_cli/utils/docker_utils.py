@@ -120,7 +120,7 @@ def get_containers(container_name_filter=None, _all=True) -> list:
 
 
 def get_all_schain_containers(_all=True) -> list:
-    return docker_client().containers.list(all=_all, filters={'name': 'sk_schain_*'})
+    return docker_client().containers.list(all=_all, filters={'name': 'sk_skaled_*'})
 
 
 def get_all_ima_containers(_all=True) -> list:
@@ -203,7 +203,7 @@ def start_container_by_name(container_name: str, dclient: Optional[DockerClient]
 def remove_schain_container_by_name(
     schain_name: str, dclient: Optional[DockerClient] = None
 ) -> None:
-    container_name = f'sk_schain_{schain_name}'
+    container_name = f'sk_skaled_{schain_name}'
     remove_container_by_name(container_name, timeout=SCHAIN_REMOVE_TIMEOUT, dclient=dclient)
 
 

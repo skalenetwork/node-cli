@@ -9,7 +9,7 @@ OK_LS_RESPONSE_DATA = {
     'payload': [
         {
             'image': 'skalenetwork/schain:1.46-develop.21',
-            'name': 'sk_schain_shapely-alfecca-meridiana',
+            'name': 'sk_skaled_shapely-alfecca-meridiana',
             'state': {
                 'Status': 'running',
                 'Running': True,
