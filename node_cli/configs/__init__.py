@@ -62,7 +62,7 @@ FAIR_STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'fair_static_p
 
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
 NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
-NGINX_CONTAINER_NAME = 'skale_nginx'
+NGINX_CONTAINER_NAME = 'sk_nginx'
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
