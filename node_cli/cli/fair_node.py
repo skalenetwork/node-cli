@@ -18,25 +18,21 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
+
 from node_cli.cli.info import TYPE
 from node_cli.core.node import backup
-
 from node_cli.fair.active import change_ip as change_ip_fair
+from node_cli.fair.active import exit as exit_fair
+from node_cli.fair.active import get_node_info, migrate_from_boot
+from node_cli.fair.active import register as register_fair
+from node_cli.fair.active import restore as restore_fair
+from node_cli.fair.active import set_domain_name as set_domain_name_fair
 from node_cli.fair.common import cleanup as cleanup_fair
+from node_cli.fair.common import init as init_fair
+from node_cli.fair.common import repair_chain
 from node_cli.fair.common import turn_off as turn_off_fair
 from node_cli.fair.common import turn_on as turn_on_fair
-from node_cli.fair.active import exit as exit_fair
-from node_cli.fair.active import (
-    get_node_info,
-    migrate_from_boot,
-    restore as restore_fair,
-)
-from node_cli.fair.common import init as init_fair
-from node_cli.fair.active import register as register_fair
 from node_cli.fair.common import update as update_fair
-from node_cli.fair.active import set_domain_name as set_domain_name_fair
-from node_cli.fair.common import repair_chain
-
 from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts

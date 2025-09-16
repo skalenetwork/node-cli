@@ -19,12 +19,12 @@
 
 import click
 
-from node_cli.fair.common import init as init_fair
-from node_cli.fair.common import update as update_fair
+from node_cli.cli.info import TYPE
 from node_cli.fair.common import cleanup as cleanup_fair
+from node_cli.fair.common import init as init_fair
 from node_cli.fair.common import turn_off as turn_off_fair
 from node_cli.fair.common import turn_on as turn_on_fair
-from node_cli.cli.info import TYPE
+from node_cli.fair.common import update as update_fair
 from node_cli.fair.passive import setup_fair_passive
 from node_cli.utils.helper import (
     URL_OR_ANY_TYPE,
