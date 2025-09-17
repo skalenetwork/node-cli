@@ -47,9 +47,11 @@ ROUTES = {
             'add-receiver',
             'remove-receiver',
             'set-fee-rate',
-            'claim-fees',
-            'send-fees',
+            'request-fees',
+            'request-send-fees',
+            'claim-request',
             'get-earned-fee-amount',
+            'get-exit-requests',
         ],
     }
 }
