@@ -828,6 +828,35 @@ Options:
 * `--yes` - Update without confirmation prompt.
 * `--force-skaled-start` - Force skaled container to start (hidden option).
 
+#### Fair Node turn-off
+
+Turn off the Fair node containers.
+
+```shell
+fair node turn-off [--yes]
+```
+
+Options:
+
+* `--yes` - Turn off without confirmation.
+
+#### Fair Node turn-on
+
+Turn on the Fair node containers.
+
+```shell
+fair node turn-on [ENV_FILEPATH] [--yes]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the .env file.
+
+Options:
+
+* `--yes` - Turn on without additional confirmation.
+
+
 #### Fair Node Migrate
 
 Switch from boot phase to regular Fair node operation.
@@ -1098,13 +1127,56 @@ Arguments:
 
 * `RECEIVER_ADDRESS` - Address to remove from the allowed receivers list.
 
-#### Claim fees
+Workflow (fees): request fees -> review exit requests -> claim request.
 
-Claim a specific amount of fees or all fees to the node wallet.
+#### Request fees
+
+Create a request to claim a specific amount of earned fees (FAIR). Use `--all` to request all.
 
 ```shell
-fair staking claim-fees <AMOUNT>
-fair staking claim-fees --all
+fair staking request-fees <AMOUNT>
+fair staking request-fees --all
+```
+
+#### Request send fees
+
+Create a request to send a specific amount (or all) of earned fees to an address.
+
+```shell
+fair staking request-send-fees <TO_ADDRESS> <AMOUNT>
+fair staking request-send-fees <TO_ADDRESS> --all
+```
+
+Arguments:
+
+* `TO_ADDRESS` - Destination address for the fee transfer.
+* `AMOUNT` - Amount of fees to include in the request (FAIR).
+
+#### Claim request
+
+Claim a previously created request by its request ID once it is unlocked.
+
+```shell
+fair staking claim-request <REQUEST_ID>
+```
+
+#### Get exit requests
+
+List exit (fee withdrawal) requests for the current wallet. Use `--json` for raw JSON output.
+
+```shell
+fair staking exit-requests
+fair staking exit-requests --json
+```
+
+Default output (non-JSON) shows: `request_id`, `user`, `node_id`, `amount_wei`, `amount_fair`, `unlock_date (ISO)`.
+
+#### Get earned fee amount
+
+Get the currently earned (unrequested) fee amount.
+
+```shell
+fair staking earned-fee-amount
 ```
 
 #### Set fee rate
@@ -1118,27 +1190,6 @@ fair staking set-fee-rate <FEE_RATE>
 Arguments:
 
 * `FEE_RATE` - Fee rate value as integer (uint16).
-
-#### Send fees
-
-Send a specific amount of fees to the default allowed receiver.
-
-```shell
-fair staking send-fees <TO_ADDRESS> <AMOUNT>
-```
-
-Arguments:
-
-* `TO_ADDRESS` - Destination address for the fee transfer.
-* `AMOUNT` - Amount of fees to send (FAIR). Use `--all` to send all.
-
-#### Get earned fee amount
-
-Get the currently earned fee amount.
-
-```shell
-fair staking get-earned-fee-amount
-```
 
 ### Passive Fair Node commands
 
@@ -1182,6 +1233,35 @@ Update software / configs for passive Fair node.
 ```shell
 fair passive-node update <ENV_FILEPATH> [--yes]
 ```
+
+#### Passive Fair Node turn-off
+
+Turn off the Fair passive node containers.
+
+```shell
+fair passive-node turn-off [--yes]
+```
+
+Options:
+
+* `--yes` - Turn off without confirmation.
+
+#### Passive Fair Node turn-on
+
+Turn on the Fair passive node containers.
+
+```shell
+fair passive-node turn-on [ENV_FILEPATH] [--yes]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the .env file.
+
+Options:
+
+* `--yes` - Turn on without additional confirmation.
+
 
 #### Passive Fair Node Cleanup
 

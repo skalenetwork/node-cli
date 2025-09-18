@@ -18,6 +18,8 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Any
+import json
+from datetime import datetime, timezone
 
 from node_cli.utils.decorators import check_inited
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -50,12 +52,27 @@ def remove_allowed_receiver(receiver: str) -> None:
 
 
 @check_inited
-def send_fees(to: str, amount: float | None) -> None:
+def request_fees(amount: float | None) -> None:
+    json_data: dict[str, Any] = {}
+    if amount is not None:
+        json_data['amount'] = amount
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='request-fees', json=json_data)
+    _handle_response(
+        status,
+        payload,
+        success='All fees requested' if amount is None else f'Fees requested: {amount}',
+    )
+
+
+@check_inited
+def request_send_fees(to: str, amount: float | None) -> None:
     json_data: dict[str, Any] = {'to': to}
     if amount is not None:
         json_data['amount'] = amount
-    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='send-fees', json=json_data)
-    _handle_response(status, payload, success=f'Fees sent to {to}')
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME, method='request-send-fees', json=json_data
+    )
+    _handle_response(status, payload, success=f'Fees request to send to {to} created')
 
 
 @check_inited
@@ -67,16 +84,11 @@ def set_fee_rate(fee_rate: int) -> None:
 
 
 @check_inited
-def claim_fees(amount: float | None) -> None:
-    json_data: dict[str, Any] = {}
-    if amount is not None:
-        json_data['amount'] = amount
-    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='claim-fees', json=json_data)
-    _handle_response(
-        status,
-        payload,
-        success='All fees claimed' if amount is None else f'Fees claimed: {amount}',
+def claim_request(request_id: int) -> None:
+    status, payload = post_request(
+        blueprint=BLUEPRINT_NAME, method='claim-request', json={'requestId': request_id}
     )
+    _handle_response(status, payload, success=f'Request claimed: {request_id}')
 
 
 @check_inited
@@ -86,5 +98,41 @@ def get_earned_fee_amount() -> None:
         amount_wei = payload.get('amount_wei')
         amount_ether = payload.get('amount_ether')
         print(f'Earned fee amount: {amount_wei} wei ({amount_ether} FAIR)')
+        return
+    error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+@check_inited
+def get_exit_requests(raw: bool = False) -> None:
+    status, payload = post_request(blueprint=BLUEPRINT_NAME, method='get-exit-requests')
+    if status == 'ok' and isinstance(payload, dict):
+        exit_requests = payload.get('exit_requests')
+        if not isinstance(exit_requests, list):
+            error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+            return
+        if raw:
+            print(json.dumps(exit_requests, indent=2))
+            return
+        for req in exit_requests:
+            try:
+                request_id = req.get('request_id')
+                user = req.get('user')
+                node_id = req.get('node_id')
+                amount = req.get('amount')
+                unlock_date = req.get('unlock_date')
+                amount_fair = None
+                if isinstance(amount, int):
+                    amount_fair = amount / 10**18
+                unlock_iso = None
+                if isinstance(unlock_date, int):
+                    unlock_iso = datetime.fromtimestamp(unlock_date, tz=timezone.utc).isoformat()
+                base = (
+                    f'request_id: {request_id} | user: {user} | node_id: {node_id} | '
+                    f'amount_wei: {amount} | amount_fair: {amount_fair} | '
+                    f'unlock_date: {unlock_date}'
+                )
+                print(base + (f' ({unlock_iso})' if unlock_iso else ''))
+            except Exception:  # noqa: BLE001
+                print(req)
         return
     error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)

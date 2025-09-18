@@ -17,29 +17,31 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time
 import logging
+import time
 
-from node_cli.configs import INIT_TIMEOUT, SKALE_DIR
+from node_cli.configs import INIT_TIMEOUT, SKALE_DIR, TM_INIT_TIMEOUT
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.docker_config import cleanup_docker_configuration
+from node_cli.core.host import save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.core.node_options import upsert_node_mode
 from node_cli.fair.passive import setup_fair_passive
 from node_cli.operations import (
     FairUpdateType,
     cleanup_fair_op,
-    repair_fair_op,
-    update_fair_op,
     init_fair_op,
+    repair_fair_op,
+    turn_off_op,
+    turn_on_op,
+    update_fair_op,
 )
-from node_cli.core.host import save_env_params
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
+from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
 from node_cli.utils.texts import safe_load_texts
-from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.helper import error_exit
 
 logger = logging.getLogger(__name__)
 TEXTS = safe_load_texts()
@@ -134,3 +136,32 @@ def repair_chain(snapshot_from: str = 'any') -> None:
         SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
     )
     repair_fair_op(env=env, snapshot_from=snapshot_from)
+
+
+@check_inited
+@check_user
+def turn_off(node_type: NodeType) -> None:
+    node_mode = upsert_node_mode()
+    env = compose_node_env(
+        SKALE_DIR_ENV_FILEPATH, save=False, node_type=node_type, node_mode=node_mode
+    )
+    turn_off_op(node_type=node_type, node_mode=node_mode, env=env)
+
+
+@check_inited
+@check_user
+def turn_on(env_file, node_type: NodeType) -> None:
+    node_mode = upsert_node_mode()
+    env = compose_node_env(
+        env_file,
+        inited_node=True,
+        node_type=node_type,
+        node_mode=node_mode,
+    )
+    turn_on_op(env=env, node_type=node_type, node_mode=node_mode)
+    logger.info('Waiting for containers initialization')
+    time.sleep(TM_INIT_TIMEOUT)
+    if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
+        print_node_cmd_error()
+        return
+    logger.info('Node turned on')

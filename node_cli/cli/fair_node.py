@@ -19,22 +19,20 @@
 
 import click
 
+from node_cli.cli.info import TYPE
 from node_cli.core.node import backup
-
 from node_cli.fair.active import change_ip as change_ip_fair
-from node_cli.fair.common import cleanup as cleanup_fair
 from node_cli.fair.active import exit as exit_fair
-from node_cli.fair.active import (
-    get_node_info,
-    migrate_from_boot,
-    restore as restore_fair,
-)
-from node_cli.fair.common import init as init_fair
+from node_cli.fair.active import get_node_info, migrate_from_boot
 from node_cli.fair.active import register as register_fair
-from node_cli.fair.common import update as update_fair
+from node_cli.fair.active import restore as restore_fair
 from node_cli.fair.active import set_domain_name as set_domain_name_fair
+from node_cli.fair.common import cleanup as cleanup_fair
+from node_cli.fair.common import init as init_fair
 from node_cli.fair.common import repair_chain
-
+from node_cli.fair.common import turn_off as turn_off_fair
+from node_cli.fair.common import turn_on as turn_on_fair
+from node_cli.fair.common import update as update_fair
 from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
 from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts
@@ -199,3 +197,30 @@ def exit_node() -> None:
 @streamed_cmd
 def set_domain_name(domain):
     set_domain_name_fair(domain)
+
+
+@node.command('turn-off', help='Turn off the node')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to turn off the node?',
+)
+@streamed_cmd
+def turn_off_node() -> None:
+    turn_off_fair(node_type=TYPE)
+
+
+@node.command('turn-on', help='Turn on the node')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to turn on the node?',
+)
+@click.argument('env_filepath')
+@streamed_cmd
+def turn_on_node(env_filepath: str) -> None:
+    turn_on_fair(env_file=env_filepath, node_type=TYPE)
