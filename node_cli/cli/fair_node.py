@@ -138,7 +138,7 @@ def migrate_node(env_filepath: str) -> None:
     type=URL_OR_ANY_TYPE,
     default='any',
     hidden=True,
-    help=TEXTS['fair']['node']['repair']['snapshot_from'],
+    help=TEXTS['fair']['node']['repair']['snapshot'],
 )
 @click.option(
     '--yes',
@@ -148,8 +148,8 @@ def migrate_node(env_filepath: str) -> None:
     prompt=TEXTS['fair']['node']['repair']['warning'],
 )
 @streamed_cmd
-def repair(snapshot_from: str = 'any') -> None:
-    repair_chain(snapshot_from=snapshot_from)
+def repair(snapshot: str = 'any') -> None:
+    repair_chain(snapshot_from=snapshot)
 
 
 @node.command('cleanup', help='Cleanup Fair node.')
