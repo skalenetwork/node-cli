@@ -828,6 +828,35 @@ Options:
 * `--yes` - Update without confirmation prompt.
 * `--force-skaled-start` - Force skaled container to start (hidden option).
 
+#### Fair Node turn-off
+
+Turn off the Fair node containers.
+
+```shell
+fair node turn-off [--yes]
+```
+
+Options:
+
+* `--yes` - Turn off without confirmation.
+
+#### Fair Node turn-on
+
+Turn on the Fair node containers.
+
+```shell
+fair node turn-on [ENV_FILEPATH] [--yes]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the .env file.
+
+Options:
+
+* `--yes` - Turn on without additional confirmation.
+
+
 #### Fair Node Migrate
 
 Switch from boot phase to regular Fair node operation.
@@ -1204,6 +1233,35 @@ Update software / configs for passive Fair node.
 ```shell
 fair passive-node update <ENV_FILEPATH> [--yes]
 ```
+
+#### Passive Fair Node turn-off
+
+Turn off the Fair passive node containers.
+
+```shell
+fair passive-node turn-off [--yes]
+```
+
+Options:
+
+* `--yes` - Turn off without confirmation.
+
+#### Passive Fair Node turn-on
+
+Turn on the Fair passive node containers.
+
+```shell
+fair passive-node turn-on [ENV_FILEPATH] [--yes]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the .env file.
+
+Options:
+
+* `--yes` - Turn on without additional confirmation.
+
 
 #### Passive Fair Node Cleanup
 

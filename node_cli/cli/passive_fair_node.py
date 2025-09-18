@@ -19,9 +19,12 @@
 
 import click
 
-from node_cli.fair.common import init as init_fair
-from node_cli.fair.common import update as update_fair
+from node_cli.cli.info import TYPE
 from node_cli.fair.common import cleanup as cleanup_fair
+from node_cli.fair.common import init as init_fair
+from node_cli.fair.common import turn_off as turn_off_fair
+from node_cli.fair.common import turn_on as turn_on_fair
+from node_cli.fair.common import update as update_fair
 from node_cli.fair.passive import setup_fair_passive
 from node_cli.utils.helper import (
     URL_OR_ANY_TYPE,
@@ -119,3 +122,30 @@ def cleanup_node():
 @click.option('--id', required=True, type=int, help=TEXTS['fair']['node']['setup']['id'])
 def _setup(id: int) -> None:
     setup_fair_passive(node_id=id)
+
+
+@passive_node.command('turn-off', help='Turn off the node')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to turn off the node?',
+)
+@streamed_cmd
+def turn_off_node() -> None:
+    turn_off_fair(node_type=TYPE)
+
+
+@passive_node.command('turn-on', help='Turn on the node')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to turn on the node?',
+)
+@click.argument('env_filepath')
+@streamed_cmd
+def turn_on_node(env_filepath: str) -> None:
+    turn_on_fair(env_file=env_filepath, node_type=TYPE)
