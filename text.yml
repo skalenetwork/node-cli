@@ -82,7 +82,7 @@ fair:
     repair:
       help: Repair Fair chain node
       warning: Are you sure you want to repair Fair chain node? In rare cases may cause data loss and require additional maintenance
-      snapshot_from: IP of the node to take snapshot from (put "any" to use any available node)
+      snapshot: IP of the node to take snapshot from (put "any" to use any available node)
       repair_requested: Repair mode is requested
     not_inited: Node should be initialized to proceed with operation
 
