@@ -21,7 +21,7 @@ from node_cli.core.checks import (
     save_report,
 )
 
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeMode, NodeType
 
 
 @pytest.fixture
@@ -318,18 +318,26 @@ def test_checks_apt_package(package_req):
         assert r.status == 'ok'
 
 
-def test_get_all_checkers(requirements_data):
+def test_get_all_checkers(requirements_data, active_node_option):
     disk = 'test-disk'
-    checkers = get_all_checkers(disk, requirements_data)
+    checkers = get_all_checkers(disk, requirements_data, node_mode=NodeMode.ACTIVE)
     assert len(checkers) == 3
-    assert isinstance(checkers[0], MachineChecker)
-    assert isinstance(checkers[1], PackageChecker)
-    assert isinstance(checkers[2], DockerChecker)
+    assert isinstance(checkers[0], PackageChecker)
+    assert isinstance(checkers[1], DockerChecker)
+    assert isinstance(checkers[2], MachineChecker)
 
 
-def test_get_checks(requirements_data):
+def test_get_all_checkers_passive(requirements_data, passive_node_option):
     disk = 'test-disk'
-    checkers = get_all_checkers(disk, requirements_data)
+    checkers = get_all_checkers(disk, requirements_data, node_mode=NodeMode.PASSIVE)
+    assert len(checkers) == 2
+    assert isinstance(checkers[0], PackageChecker)
+    assert isinstance(checkers[1], DockerChecker)
+
+
+def test_get_checks(requirements_data, active_node_option):
+    disk = 'test-disk'
+    checkers = get_all_checkers(disk, requirements_data, node_mode=NodeMode.ACTIVE)
     checks = get_checks(checkers)
     assert len(checks) == 16
     checks = get_checks(checkers, check_type=CheckType.PREINSTALL)
@@ -338,9 +346,9 @@ def test_get_checks(requirements_data):
     assert len(checks) == 2
 
 
-def test_get_checks_fair(fair_requirements_data):
+def test_get_checks_fair(fair_requirements_data, active_node_option):
     disk = 'test-disk'
-    fair_checkers = get_all_checkers(disk, fair_requirements_data)
+    fair_checkers = get_all_checkers(disk, fair_requirements_data, node_mode=NodeMode.ACTIVE)
 
     fair_all_checks = get_checks(fair_checkers, CheckType.ALL)
     fair_all_names = {f.func.__name__ for f in fair_all_checks}
@@ -379,8 +387,8 @@ def test_merge_report():
 
 
 def test_get_static_params(tmp_config_dir):
-    params = get_static_params(NodeType.REGULAR)
+    params = get_static_params(NodeType.SKALE)
     shutil.copy(STATIC_PARAMS_FILEPATH, tmp_config_dir)
-    tmp_params = get_static_params(NodeType.REGULAR, config_path=tmp_config_dir)
+    tmp_params = get_static_params(NodeType.SKALE, config_path=tmp_config_dir)
     assert params['server']['cpu_total'] == 8
     assert params == tmp_params

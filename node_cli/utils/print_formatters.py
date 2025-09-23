@@ -319,7 +319,7 @@ def print_meta_info(meta_info: CliMeta) -> None:
         {LONG_LINE}
         Version: {meta_info.version}
         Config Stream: {meta_info.config_stream}
-        Lvmpy stream: {meta_info.docker_lvmpy_stream}
+        Lvmpy stream: {meta_info.docker_lvmpy_version}
         {LONG_LINE}
     """)
     )

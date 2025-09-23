@@ -42,6 +42,17 @@ ROUTES = {
         'wallet': ['info', 'send-eth'],
         'fair-node': ['info', 'register', 'set-domain-name', 'change-ip', 'exit'],
         'fair-chain': ['record', 'checks'],
+        'fair-node-passive': ['setup'],
+        'fair-staking': [
+            'add-receiver',
+            'remove-receiver',
+            'set-fee-rate',
+            'request-fees',
+            'request-send-fees',
+            'claim-request',
+            'get-earned-fee-amount',
+            'get-exit-requests',
+        ],
     }
 }
 

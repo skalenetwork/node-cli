@@ -60,6 +60,7 @@ from node_cli.core.resources import get_disk_size
 from node_cli.core.static_config import get_static_params
 from node_cli.utils.docker_utils import NodeType
 from node_cli.utils.helper import run_cmd, safe_mkdir
+from node_cli.utils.node_type import NodeMode
 
 logger = logging.getLogger(__name__)
 
@@ -272,7 +273,7 @@ class PackageChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         super().__init__(requirements=requirements)
 
-    def _check_apt_package(self, package_name: str, version: str = None) -> CheckResult:
+    def _check_apt_package(self, package_name: str, version: str | None = None) -> CheckResult:
         # TODO: check versions
         dpkg_cmd_result = run_cmd(['dpkg', '-s', package_name], check_code=False)
         output = dpkg_cmd_result.stdout.decode('utf-8').strip()
@@ -457,24 +458,28 @@ def get_checks(checkers: List[BaseChecker], check_type: CheckType = CheckType.AL
     )
 
 
-def get_all_checkers(disk: str, requirements: Dict) -> List[BaseChecker]:
-    return [
-        MachineChecker(requirements['server'], disk),
+def get_all_checkers(disk: str, requirements: Dict, node_mode: NodeMode) -> List[BaseChecker]:
+    checkers = [
         PackageChecker(requirements['package']),
         DockerChecker(requirements['docker']),
     ]
+    if node_mode == NodeMode.ACTIVE:
+        checkers.append(MachineChecker(requirements['server'], disk))
+    return checkers
 
 
 def run_checks(
     disk: str,
     node_type: NodeType,
+    node_mode: NodeMode,
     env_type: str = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH,
     check_type: CheckType = CheckType.ALL,
 ) -> ResultList:
     logger.info('Executing checks. Type: %s', check_type)
     requirements = get_static_params(node_type, env_type, config_path)
-    checkers = get_all_checkers(disk, requirements)
+
+    checkers = get_all_checkers(disk, requirements, node_mode)
     checks = get_checks(checkers, check_type)
     results = [check() for check in checks]
 

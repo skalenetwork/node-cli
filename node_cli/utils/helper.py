@@ -69,7 +69,7 @@ HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
 
 DEFAULT_ERROR_DATA = {
     'status': 'error',
-    'payload': 'Request failed. Check skale_api container logs',
+    'payload': 'Request failed. Check API container logs',
 }
 
 
@@ -203,7 +203,7 @@ def post_request(blueprint, method, json=None, files=None):
         response = requests.post(url, json=json, files=files)
         data = response.json()
     except Exception as err:
-        logger.error('Request failed', exc_info=err)
+        logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA
     status = data['status']
     payload = data['payload']

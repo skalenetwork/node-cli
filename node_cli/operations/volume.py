@@ -42,7 +42,7 @@ class FilesystemExistsError(Exception):
 
 
 def update_docker_lvmpy_env(env):
-    env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
+    env['PHYSICAL_VOLUME'] = env['BLOCK_DEVICE']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
     env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
@@ -58,7 +58,7 @@ def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
 def sync_docker_lvmpy_repo(env):
     if os.path.isdir(DOCKER_LVMPY_PATH):
         shutil.rmtree(DOCKER_LVMPY_PATH)
-    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_STREAM'])
+    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_VERSION'])
 
 
 def docker_lvmpy_update(env):

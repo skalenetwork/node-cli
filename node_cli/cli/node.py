@@ -38,8 +38,10 @@ from node_cli.core.node import (
 )
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.configs.user import ALLOWED_ENV_TYPES
+from node_cli.core.node_options import upsert_node_mode
 from node_cli.utils.decorators import check_inited
 from node_cli.utils.helper import abort_if_false, streamed_cmd, IP_TYPE
+from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts
 from node_cli.utils.meta import CliMetaManager
 from node_cli.utils.print_formatters import print_meta_info
@@ -102,6 +104,7 @@ def init_node(env_file):
 @streamed_cmd
 def update_node(env_file, pull_config_for_schain, unsafe_ok):
     update(
+        node_mode=NodeMode.ACTIVE,
         env_filepath=env_file,
         pull_config_for_schain=pull_config_for_schain,
         node_type=TYPE,
@@ -228,7 +231,8 @@ def _set_domain_name(domain):
     help='Network to check',
 )
 def check(network):
-    run_checks(node_type=TYPE, network=network)
+    node_mode = upsert_node_mode()
+    run_checks(node_type=TYPE, node_mode=node_mode, network=network)
 
 
 @node.command(help='Reconfigure nftables rules')

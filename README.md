@@ -4,13 +4,13 @@
 ![Test](https://github.com/skalenetwork/node-cli/workflows/Test/badge.svg)
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
-SKALE Node CLI, part of the SKALE suite of validator tools, is the command line interface to setup, register and maintain your SKALE node. It comes in three distinct build types: Standard (for validator nodes), Sync (for dedicated sChain synchronization), and Fair.
+SKALE Node CLI, part of the SKALE suite of validator tools, is the command line interface to setup, register and maintain your SKALE node. It comes in three distinct build types: Standard (for validator nodes), Passive (for dedicated sChain synchronization), and Fair.
 
 ## Table of Contents
 
 1. [Installation](#installation)
    1. [Standard Node Binary](#standard-node-binary)
-   2. [Sync Node Binary](#sync-node-binary)
+   2. [Passive Node Binary](#passive-node-binary)
    3. [Fair Node Binary](#fair-node-binary)
    4. [Permissions and Testing](#permissions-and-testing)
 2. [Standard Node Usage (`skale` - Normal Build)](#standard-node-usage-skale---normal-build)
@@ -21,10 +21,9 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    5. [Health commands (Standard)](#health-commands-standard)
    6. [SSL commands (Standard)](#ssl-commands-standard)
    7. [Logs commands (Standard)](#logs-commands-standard)
-   8. [Resources allocation commands (Standard)](#resources-allocation-commands-standard)
-3. [Sync Node Usage (`skale` - Sync Build)](#sync-node-usage-skale---sync-build)
-   1. [Top level commands (Sync)](#top-level-commands-sync)
-   2. [Sync node commands](#sync-node-commands)
+3. [Passive Node Usage (`skale` - Passive Build)](#passive-node-usage-skale---passive-build)
+   1. [Top level commands (Passive)](#top-level-commands-passive)
+   2. [Passive node commands](#passive-node-commands)
 4. [Fair Node Usage (`fair`)](#fair-node-usage-fair)
    1. [Top level commands (Fair)](#top-level-commands-fair)
    2. [Fair Boot commands](#fair-boot-commands)
@@ -33,6 +32,8 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    5. [Fair Wallet commands](#fair-wallet-commands)
    6. [Fair Logs commands](#fair-logs-commands)
    7. [Fair SSL commands](#fair-ssl-commands)
+   8. [Fair Staking commands](#fair-staking-commands)
+   9. [Passive Fair Node commands](#passive-fair-node-commands)
 5. [Exit codes](#exit-codes)
 6. [Development](#development)
 
@@ -44,9 +45,9 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 
 Ensure that the following packages are installed: **docker**, **docker-compose** (1.27.4+)
 
-### Standard Node Binary
+### SKALE Node Binary
 
-This binary (`skale-VERSION-OS`) is used for managing standard SKALE validator nodes.
+This binary (`skale-VERSION-OS`) is used for managing SKALE validator nodes.
 
 ```shell
 # Replace {version} with the desired release version (e.g., 3.0.0)
@@ -54,19 +55,9 @@ CLI_VERSION={version} && \
 sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m` > /usr/local/bin/skale"
 ```
 
-### Sync Node Binary
-
-This binary (`skale-VERSION-OS-sync`) is used for managing dedicated Sync nodes. **Ensure you download the correct `-sync` suffixed binary for Sync node operations.**
-
-```shell
-# Replace {version} with the desired release version (e.g., 3.0.0)
-CLI_VERSION={version} && \
-sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/download/$CLI_VERSION/skale-$CLI_VERSION-`uname -s`-`uname -m`-sync > /usr/local/bin/skale"
-```
-
 ### Fair Node Binary
 
-This binary (`skale-VERSION-OS-fair`) is used specifically for managing nodes on the Fair network.
+This binary (`skale-VERSION-OS-fair`) is used for managing nodes on the Fair network.
 
 ```shell
 # Replace {version} with the desired release version (e.g., 3.0.0)
@@ -79,7 +70,7 @@ sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/downl
 Apply executable permissions to the downloaded binary (adjust name accordingly):
 
 ```shell
-# For Standard or Sync binary
+# For Standard or Passive binary
 sudo chmod +x /usr/local/bin/skale
 
 # For Fair binary
@@ -89,7 +80,7 @@ sudo chmod +x /usr/local/bin/fair
 Test the installation:
 
 ```shell
-# Standard or Sync build
+# Standard or Passive build
 skale --help
 
 # Fair build
@@ -157,9 +148,9 @@ Arguments:
 Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
-* `DISK_MOUNTPOINT` - Mount point for storing sChains data.
-* `DOCKER_LVMPY_STREAM` - Stream of `docker-lvmpy` to use.
-* `NODE_VERSION` - Stream of `skale-node` to use.
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc)
+* `DOCKER_LVMPY_VERSION` - Version of `docker-lvmpy`.
+* `NODE_VERSION` - Version of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where SKALE Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager `message_proxy_mainnet` contract alias or address.
 * `IMA_CONTRACTS` - IMA `skale_manager` contract alias or address.
@@ -519,57 +510,26 @@ Options:
 
 * `--container`, `-c` - Dump logs only from specified container.
 
-### Resources allocation commands (Standard)
-
-> Prefix: `skale resources-allocation`
-
-Manage the resources allocation file for the standard node.
-
-#### Show allocation file
-
-Show resources allocation file:
-
-```shell
-skale resources-allocation show
-```
-
-#### Generate/update allocation file
-
-Generate/update allocation file:
-
-```shell
-skale resources-allocation generate [ENV_FILE] [--yes] [-f/--force]
-```
-
-Arguments:
-
-* `ENV_FILE` - path to .env file (required parameters are listed in the `skale node init` command).
-
-Options:
-
-* `--yes` - generate without additional confirmation.
-* `-f/--force` - rewrite allocation file if it exists.
-
 ***
 
-## Sync Node Usage (`skale` - Sync Build)
+## Passive Node Usage (`skale` - Passive Build)
 
-Commands available in the **sync `skale` binary** for managing dedicated Sync nodes.
+Commands available in the **passive `skale` binary** for managing dedicated Passive nodes.
 Note that this binary contains a **different set of commands** compared to the standard build.
 
-### Top level commands (Sync)
+### Top level commands (Passive)
 
-#### Info (Sync)
+#### Info (Passive)
 
-Print build info for the `skale` (sync) binary.
+Print build info for the `skale` (passive) binary.
 
 ```shell
 skale info
 ```
 
-#### Version (Sync)
+#### Version (Passive)
 
-Print version number for the `skale` (sync) binary.
+Print version number for the `skale` (passive) binary.
 
 ```shell
 skale version
@@ -579,16 +539,16 @@ Options:
 
 * `--short` - prints version only, without additional text.
 
-### Sync node commands
+### Passive node commands
 
-> Prefix: `skale sync-node`
+> Prefix: `skale passive-node`
 
-#### Sync node initialization
+#### Passive node initialization
 
-Initialize a dedicated Sync node on the current machine.
+Initialize a dedicated Passive node on the current machine.
 
 ```shell
-skale sync-node init [ENV_FILE] [--indexer | --archive] [--snapshot] [--snapshot-from <IP>] [--yes]
+skale passive-node init [ENV_FILE] [--indexer | --archive] [--snapshot] [--snapshot-from <IP>] [--yes]
 ```
 
 Arguments:
@@ -597,9 +557,9 @@ Arguments:
 
 Required environment variables in `ENV_FILE`:
 
-* `DISK_MOUNTPOINT` - Mount point for storing sChain data.
-* `DOCKER_LVMPY_STREAM` - Stream of `docker-lvmpy`.
-* `NODE_VERSION` - Stream of `skale-node`.
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
+* `DOCKER_LVMPY_VERSION` - Version of `docker-lvmpy`.
+* `NODE_VERSION` - Version of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where SKALE Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 * `IMA_CONTRACTS` - IMA alias or address.
@@ -617,12 +577,12 @@ Options:
 * `--snapshot-from <IP>` - Specify the IP of another node to download a snapshot from.
 * `--yes` - Initialize without additional confirmation.
 
-#### Sync node update
+#### Passive node update
 
-Update the Sync node software and configuration.
+Update the Passive node software and configuration.
 
 ```shell
-skale sync-node update [ENV_FILEPATH] [--yes]
+skale passive-node update [ENV_FILEPATH] [--yes]
 ```
 
 Arguments:
@@ -633,21 +593,21 @@ Options:
 
 * `--yes` - Update without additionalconfirmation.
 
-> NOTE: You can just update a file with environment variables used during `skale sync-node init`.
+> NOTE: You can just update a file with environment variables used during `skale passive-node init`.
 
-#### Sync node cleanup
+#### Passive node cleanup
 
-Remove all data and containers for the Sync node.
+Remove all data and containers for the Passive node.
 
 ```shell
-skale sync-node cleanup [--yes]
+skale passive-node cleanup [--yes]
 ```
 
 Options:
 
 * `--yes` - Cleanup without confirmation.
 
-> WARNING: This command removes all Sync node data.
+> WARNING: This command removes all Passive node data.
 
 ***
 
@@ -710,8 +670,8 @@ Arguments:
 Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
-* `DISK_MOUNTPOINT` - Mount point for storing data (BTRFS recommended).
-* `NODE_VERSION` - Stream of `skale-node` configs.
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
+* `NODE_VERSION` - Version of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 * `IMA_CONTRACTS` - IMA alias or address (*Note: Required by boot service, may not be used by Fair itself*).
@@ -764,8 +724,8 @@ Arguments:
 Required environment variables in `ENV_FILE`:
 
 * `SGX_SERVER_URL` - SGX server URL.
-* `DISK_MOUNTPOINT` - Mount point for storing data (BTRFS recommended).
-* `NODE_VERSION` - Stream of `skale-node` configs.
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g. /dev/sdc).
+* `NODE_VERSION` - Version of `skale-node`.
 * `ENDPOINT` - RPC endpoint of the network where Fair Manager is deployed.
 * `MANAGER_CONTRACTS` - SKALE Manager alias or address.
 * `IMA_CONTRACTS` - IMA alias or address (*Note: Required by boot service, may not be used by Fair itself*).
@@ -814,10 +774,10 @@ Arguments:
 Required environment variables in `ENV_FILEPATH`:
 
 * `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
-* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `NODE_VERSION` - Version of `skale-node`.
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
-* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
 * `ENV_TYPE` - Environment type (e.g., `mainnet`).
 
 Optional variables:
@@ -852,10 +812,10 @@ Arguments:
 Required environment variables in `ENV_FILEPATH`:
 
 * `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
-* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `NODE_VERSION` - Version of `skale-node`.
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
-* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
 * `ENV_TYPE` - Environment type (e.g., `mainnet`).
 
 Optional variables:
@@ -867,6 +827,35 @@ Options:
 
 * `--yes` - Update without confirmation prompt.
 * `--force-skaled-start` - Force skaled container to start (hidden option).
+
+#### Fair Node turn-off
+
+Turn off the Fair node containers.
+
+```shell
+fair node turn-off [--yes]
+```
+
+Options:
+
+* `--yes` - Turn off without confirmation.
+
+#### Fair Node turn-on
+
+Turn on the Fair node containers.
+
+```shell
+fair node turn-on [ENV_FILEPATH] [--yes]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the .env file.
+
+Options:
+
+* `--yes` - Turn on without additional confirmation.
+
 
 #### Fair Node Migrate
 
@@ -883,10 +872,10 @@ Arguments:
 Required environment variables in `ENV_FILEPATH`:
 
 * `FAIR_CONTRACTS` - Fair contracts alias or address (e.g., `mainnet`).
-* `NODE_VERSION` - Stream of `skale-node` configs (e.g., `fair-main`).
+* `NODE_VERSION` - Version of `skale-node`.
 * `BOOT_ENDPOINT` - RPC endpoint of the Fair network (e.g., `https://rpc.fair.cloud/`).
 * `SGX_SERVER_URL` - SGX server URL (e.g., `https://127.0.0.1:1026/`).
-* `DISK_MOUNTPOINT` - Mount point for storing data (e.g., `/dev/sdc`).
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
 * `ENV_TYPE` - Environment type (e.g., `mainnet`).
 
 Optional variables:
@@ -1108,6 +1097,184 @@ Options:
 * `--no-client` - Skip client connection for openssl check.
 * `--no-wss` - Skip WSS server starting for skaled check.
 
+### Fair Staking commands
+
+> Prefix: `fair staking`
+
+Commands for interacting with the Fair staking functionality.
+
+#### Add allowed receiver
+
+Allow an address to receive staking fees.
+
+```shell
+fair staking add-receiver <RECEIVER_ADDRESS>
+```
+
+Arguments:
+
+* `RECEIVER_ADDRESS` - Address to add to the allowed receivers list.
+
+#### Remove allowed receiver
+
+Remove an address from the allowed receivers list.
+
+```shell
+fair staking remove-receiver <RECEIVER_ADDRESS>
+```
+
+Arguments:
+
+* `RECEIVER_ADDRESS` - Address to remove from the allowed receivers list.
+
+Workflow (fees): request fees -> review exit requests -> claim request.
+
+#### Request fees
+
+Create a request to claim a specific amount of earned fees (FAIR). Use `--all` to request all.
+
+```shell
+fair staking request-fees <AMOUNT>
+fair staking request-fees --all
+```
+
+#### Request send fees
+
+Create a request to send a specific amount (or all) of earned fees to an address.
+
+```shell
+fair staking request-send-fees <TO_ADDRESS> <AMOUNT>
+fair staking request-send-fees <TO_ADDRESS> --all
+```
+
+Arguments:
+
+* `TO_ADDRESS` - Destination address for the fee transfer.
+* `AMOUNT` - Amount of fees to include in the request (FAIR).
+
+#### Claim request
+
+Claim a previously created request by its request ID once it is unlocked.
+
+```shell
+fair staking claim-request <REQUEST_ID>
+```
+
+#### Get exit requests
+
+List exit (fee withdrawal) requests for the current wallet. Use `--json` for raw JSON output.
+
+```shell
+fair staking exit-requests
+fair staking exit-requests --json
+```
+
+Default output (non-JSON) shows: `request_id`, `user`, `node_id`, `amount_wei`, `amount_fair`, `unlock_date (ISO)`.
+
+#### Get earned fee amount
+
+Get the currently earned (unrequested) fee amount.
+
+```shell
+fair staking earned-fee-amount
+```
+
+#### Set fee rate
+
+Set the fee rate (uint16 value) used by the staking logic.
+
+```shell
+fair staking set-fee-rate <FEE_RATE>
+```
+
+Arguments:
+
+* `FEE_RATE` - Fee rate value as integer (uint16).
+
+### Passive Fair Node commands
+
+> Prefix: `fair passive-node` (passive Fair build)
+
+Commands for operating a passive Fair node (sync/indexer/archive).
+
+#### Passive Fair Node Initialization
+
+Initialize a passive Fair node.
+
+```shell
+fair passive-node init <ENV_FILEPATH> --id <NODE_ID> [--indexer | --archive] [--snapshot <URL|any>]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the environment file with configuration.
+
+Required environment variables in `ENV_FILEPATH`:
+
+* `FAIR_CONTRACTS` - Fair Manager contracts alias or address.
+* `NODE_VERSION` - Version of `skale-node`.
+* `BOOT_ENDPOINT` - RPC endpoint of Fair network.
+* `BLOCK_DEVICE` - Absolute path to a dedicated raw block device (e.g., `/dev/sdc`).
+* `ENV_TYPE` - Environment type (e.g., `mainnet`, `devnet`).
+
+Options:
+
+* `--id` - Numerical node identifier (required).
+* `--indexer` - Run in indexer mode (no block rotation).
+* `--archive` - Run in archive mode (historical state kept; disables block rotation). Mutually exclusive with `--indexer`.
+* `--snapshot <URL|any>` - Start from provided snapshot URL or from any available source (not allowed together with `--indexer` or `--archive`).
+
+By default runs a regular sync node.
+
+#### Passive Fair Node Update
+
+Update software / configs for passive Fair node.
+
+```shell
+fair passive-node update <ENV_FILEPATH> [--yes]
+```
+
+#### Passive Fair Node turn-off
+
+Turn off the Fair passive node containers.
+
+```shell
+fair passive-node turn-off [--yes]
+```
+
+Options:
+
+* `--yes` - Turn off without confirmation.
+
+#### Passive Fair Node turn-on
+
+Turn on the Fair passive node containers.
+
+```shell
+fair passive-node turn-on [ENV_FILEPATH] [--yes]
+```
+
+Arguments:
+
+* `ENV_FILEPATH` - Path to the .env file.
+
+Options:
+
+* `--yes` - Turn on without additional confirmation.
+
+
+#### Passive Fair Node Cleanup
+
+Remove all passive Fair node data and containers.
+
+```shell
+fair passive-node cleanup [--yes]
+```
+
+Options:
+
+* `--yes` - Proceed without confirmation.
+
 ***
 
 ## Exit codes
@@ -1166,14 +1333,14 @@ pip install -e ".[dev]"
 
 #### Generate info.py locally
 
-Specify the build type (`normal`, `sync`, or `fair`):
+Specify the build type (`normal`, `passive`, or `fair`):
 
 ```shell
 # Example for Standard build
 ./scripts/generate_info.sh 1.0.0 my-branch normal
 
-# Example for Sync build
-./scripts/generate_info.sh 1.0.0 my-branch sync
+# Example for Passive build
+./scripts/generate_info.sh 1.0.0 my-branch passive
 
 # Example for Fair build
 ./scripts/generate_info.sh 1.0.0 my-branch fair

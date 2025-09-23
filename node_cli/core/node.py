@@ -47,24 +47,32 @@ from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH, get_validated_user_con
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.host import get_flask_secret_key, is_node_inited, save_env_params
 from node_cli.core.resources import update_resource_allocation
+from node_cli.core.node_options import (
+    active_fair,
+    active_skale,
+    upsert_node_mode,
+    passive_skale,
+    passive_fair,
+)
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
-    cleanup_sync_op,
+    cleanup_passive_op,
     configure_nftables,
     init_op,
-    init_sync_op,
+    init_passive_op,
     restore_op,
     turn_off_op,
     turn_on_op,
     update_op,
-    update_sync_op,
+    update_passive_op,
 )
 from node_cli.utils.decorators import check_inited, check_not_inited, check_user
 from node_cli.utils.docker_utils import (
     BASE_FAIR_BOOT_COMPOSE_SERVICES,
     BASE_FAIR_COMPOSE_SERVICES,
     BASE_SKALE_COMPOSE_SERVICES,
-    BASE_SYNC_COMPOSE_SERVICES,
+    BASE_PASSIVE_COMPOSE_SERVICES,
+    BASE_PASSIVE_FAIR_COMPOSE_SERVICES,
     is_admin_running,
     is_api_running,
 )
@@ -75,7 +83,7 @@ from node_cli.utils.helper import (
     post_request,
 )
 from node_cli.utils.meta import CliMetaManager
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks,
     print_node_cmd_error,
@@ -101,18 +109,20 @@ class NodeStatuses(Enum):
     NOT_CREATED = 5
 
 
-def is_update_safe(node_type: NodeType) -> bool:
-    if not is_admin_running(node_type):
-        if node_type == NodeType.SYNC:
+def is_update_safe(node_mode: NodeMode) -> bool:
+    if not is_admin_running():
+        if node_mode == NodeMode.PASSIVE:
             return True
-        elif not is_api_running(node_type):
+        elif not is_api_running():
             return True
     status, payload = get_request(BLUEPRINT_NAME, 'update-safe')
     if status == 'error':
         return False
-    safe = payload['update_safe']
+    if not isinstance(payload, dict):
+        return False
+    safe = bool(payload.get('update_safe'))
     if not safe:
-        logger.info('Locked schains: %s', payload['unsafe_chains'])
+        logger.info('Locked schains: %s', payload.get('unsafe_chains'))
     return safe
 
 
@@ -144,12 +154,13 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 
 @check_not_inited
 def init(env_filepath: str, node_type: NodeType) -> None:
-    env = compose_node_env(env_filepath=env_filepath, node_type=node_type)
+    node_mode = NodeMode.ACTIVE
+    env = compose_node_env(env_filepath=env_filepath, node_type=node_type, node_mode=node_mode)
 
-    init_op(env_filepath=env_filepath, env=env, node_type=node_type)
+    init_op(env_filepath=env_filepath, env=env, node_type=node_type, node_mode=node_mode)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive(node_type=node_type):
+    if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Generating resource allocation file ...')
     update_resource_allocation(env['ENV_TYPE'])
@@ -158,7 +169,8 @@ def init(env_filepath: str, node_type: NodeType) -> None:
 
 @check_not_inited
 def restore(backup_path, env_filepath, node_type: NodeType, no_snapshot=False, config_only=False):
-    env = compose_node_env(env_filepath=env_filepath, node_type=node_type)
+    node_mode = NodeMode.ACTIVE
+    env = compose_node_env(env_filepath=env_filepath, node_type=node_type, node_mode=node_mode)
     if env is None:
         return
     save_env_params(env_filepath)
@@ -178,33 +190,34 @@ def restore(backup_path, env_filepath, node_type: NodeType, no_snapshot=False, c
 
 
 @check_not_inited
-def init_sync(
+def init_passive(
     env_filepath: str, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
-    env = compose_node_env(env_filepath, node_type=NodeType.SYNC)
+    node_mode = NodeMode.PASSIVE
+    env = compose_node_env(env_filepath, node_type=NodeType.SKALE, node_mode=node_mode)
     if env is None:
         return
-    init_sync_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
+    init_passive_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive(node_type=NodeType.SYNC):
+    if not is_base_containers_alive(node_type=NodeType.SKALE, node_mode=node_mode):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    logger.info('Sync node initialized successfully')
+    logger.info('Passive node initialized successfully')
 
 
 @check_inited
 @check_user
-def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
+def update_passive(env_filepath: str, unsafe_ok: bool = False) -> None:
     logger.info('Node update started')
     prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
-    env = compose_node_env(env_filepath, node_type=NodeType.SYNC)
-    update_ok = update_sync_op(env_filepath, env)
+    env = compose_node_env(env_filepath, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    update_ok = update_passive_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
-    alive = is_base_containers_alive(node_type=NodeType.SYNC)
+    alive = is_base_containers_alive(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     if not update_ok or not alive:
         print_node_cmd_error()
         return
@@ -214,16 +227,19 @@ def update_sync(env_filepath: str, unsafe_ok: bool = False) -> None:
 
 @check_inited
 @check_user
-def cleanup_sync() -> None:
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.SYNC)
+def cleanup_passive() -> None:
+    env = compose_node_env(
+        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
+    )
     schain_name = env['SCHAIN_NAME']
-    cleanup_sync_op(env, schain_name)
-    logger.info('Sync node was cleaned up, all containers and data removed')
+    cleanup_passive_op(env, schain_name)
+    logger.info('Passive node was cleaned up, all containers and data removed')
 
 
 def compose_node_env(
     env_filepath: str,
     node_type: NodeType,
+    node_mode: NodeMode,
     inited_node: bool = False,
     sync_schains: Optional[bool] = None,
     pull_config_for_schain: Optional[str] = None,
@@ -233,6 +249,7 @@ def compose_node_env(
     if env_filepath is not None:
         user_config = get_validated_user_config(
             node_type=node_type,
+            node_mode=node_mode,
             env_filepath=env_filepath,
             is_fair_boot=is_fair_boot,
         )
@@ -245,7 +262,7 @@ def compose_node_env(
             is_fair_boot=is_fair_boot,
         )
 
-    if node_type == NodeType.SYNC or node_type == NodeType.FAIR:
+    if node_mode == NodeMode.PASSIVE or node_type == NodeType.FAIR:
         mnt_dir = SCHAINS_MNT_DIR_SINGLE_CHAIN
     else:
         mnt_dir = SCHAINS_MNT_DIR_REGULAR
@@ -258,10 +275,10 @@ def compose_node_env(
         **user_config.to_env(),
     }
 
-    if inited_node and not node_type == NodeType.SYNC:
+    if inited_node and not node_mode == NodeMode.PASSIVE:
         env['FLASK_SECRET_KEY'] = get_flask_secret_key()
 
-    if sync_schains and not node_type == NodeType.SYNC:
+    if sync_schains and not node_mode == NodeMode.PASSIVE:
         env['BACKUP_RUN'] = 'True'
 
     if pull_config_for_schain:
@@ -276,9 +293,12 @@ def update(
     env_filepath: str,
     pull_config_for_schain: Optional[str],
     node_type: NodeType,
+    node_mode: NodeMode,
     unsafe_ok: bool = False,
 ) -> None:
-    if not unsafe_ok and not is_update_safe(node_type=node_type):
+    node_mode = upsert_node_mode(node_mode=node_mode)
+
+    if not unsafe_ok and not is_update_safe(node_mode=node_mode):
         error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
@@ -292,12 +312,13 @@ def update(
         sync_schains=False,
         pull_config_for_schain=pull_config_for_schain,
         node_type=node_type,
+        node_mode=node_mode,
     )
-    update_ok = update_op(env_filepath, env, node_type=node_type)
+    update_ok = update_op(env_filepath, env, node_type=node_type, node_mode=node_mode)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
-    alive = is_base_containers_alive(node_type=node_type)
+    alive = is_base_containers_alive(node_type=node_type, node_mode=node_mode)
     if not update_ok or not alive:
         print_node_cmd_error()
         return
@@ -400,25 +421,33 @@ def set_maintenance_mode_off():
 @check_inited
 @check_user
 def turn_off(node_type: NodeType, maintenance_on: bool = False, unsafe_ok: bool = False) -> None:
-    if not unsafe_ok and not is_update_safe(node_type=node_type):
+    node_mode = upsert_node_mode()
+    if not unsafe_ok and not is_update_safe(node_mode=node_mode):
         error_msg = 'Cannot turn off safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()
-    env = compose_node_env(SKALE_DIR_ENV_FILEPATH, save=False, node_type=node_type)
-    turn_off_op(node_type=node_type, env=env)
+    env = compose_node_env(
+        SKALE_DIR_ENV_FILEPATH, save=False, node_type=node_type, node_mode=node_mode
+    )
+    turn_off_op(node_type=node_type, node_mode=node_mode, env=env)
 
 
 @check_inited
 @check_user
 def turn_on(maintenance_off, sync_schains, env_file, node_type: NodeType) -> None:
+    node_mode = upsert_node_mode()
     env = compose_node_env(
-        env_file, inited_node=True, sync_schains=sync_schains, node_type=node_type
+        env_file,
+        inited_node=True,
+        sync_schains=sync_schains,
+        node_type=node_type,
+        node_mode=node_mode,
     )
-    turn_on_op(env=env, node_type=node_type)
+    turn_on_op(env=env, node_type=node_type, node_mode=node_mode)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
-    if not is_base_containers_alive(node_type=node_type):
+    if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
         print_node_cmd_error()
         return
     logger.info('Node turned on')
@@ -426,21 +455,30 @@ def turn_on(maintenance_off, sync_schains, env_file, node_type: NodeType) -> Non
         set_maintenance_mode_off()
 
 
-def get_expected_container_names(node_type: NodeType, is_fair_boot: bool) -> list[str]:
+def get_expected_container_names(
+    node_type: NodeType,
+    node_mode: NodeMode,
+    is_fair_boot: bool,
+) -> list[str]:
     if node_type == NodeType.FAIR and is_fair_boot:
         services = BASE_FAIR_BOOT_COMPOSE_SERVICES
-    elif node_type == NodeType.FAIR and not is_fair_boot:
+    elif active_fair(node_type, node_mode):
         services = BASE_FAIR_COMPOSE_SERVICES
-    elif node_type == NodeType.SYNC:
-        services = BASE_SYNC_COMPOSE_SERVICES
-    else:
+    elif passive_fair(node_type, node_mode):
+        services = BASE_PASSIVE_FAIR_COMPOSE_SERVICES
+    elif active_skale(node_type, node_mode):
         services = BASE_SKALE_COMPOSE_SERVICES
-
+    elif passive_skale(node_type, node_mode):
+        services = BASE_PASSIVE_COMPOSE_SERVICES
     return list(services.values())
 
 
-def is_base_containers_alive(node_type: NodeType, is_fair_boot: bool = False) -> bool:
-    base_container_names = get_expected_container_names(node_type, is_fair_boot)
+def is_base_containers_alive(
+    node_type: NodeType,
+    node_mode: NodeMode,
+    is_fair_boot: bool = False,
+) -> bool:
+    base_container_names = get_expected_container_names(node_type, node_mode, is_fair_boot)
 
     dclient = docker.from_env()
     running_container_names = set(container.name for container in dclient.containers.list())
@@ -491,6 +529,7 @@ def set_domain_name(domain_name):
 
 def run_checks(
     node_type: NodeType,
+    node_mode: NodeMode,
     network: str = 'mainnet',
     container_config_path: str = CONTAINER_CONFIG_PATH,
     disk: Optional[str] = None,
@@ -500,9 +539,9 @@ def run_checks(
         return
 
     if disk is None:
-        env_config = get_validated_user_config(node_type=node_type)
-        disk = env_config.disk_mountpoint
-    failed_checks = run_host_checks(disk, node_type, network, container_config_path)
+        env_config = get_validated_user_config(node_type=node_type, node_mode=node_mode)
+        disk = env_config.block_device
+    failed_checks = run_host_checks(disk, node_type, node_mode, network, container_config_path)
     if not failed_checks:
         print('Requirements checking successfully finished!')
     else:

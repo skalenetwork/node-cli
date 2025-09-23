@@ -31,31 +31,21 @@ jobs:
         pip install -e ".[dev]"
 
     - name: Generate info
-      run: bash ./scripts/generate_info.sh 1.0.0 my-branch normal
+      run: bash ./scripts/generate_info.sh 1.0.0 my-branch skale
 
     - name: Check with ruff
       run: |
         ruff check
 
-    - name: Build binary - normal
+    - name: Build binary - skale
       run: |
         mkdir -p ./dist
         docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test normal
+        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test skale
         docker rm -f $(docker ps -aq)
 
-    - name: Check build - normal
+    - name: Check build - skale
       run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
-
-    - name: Build binary - sync
-      run: |
-        mkdir -p ./dist
-        docker build . -t node-cli-builder
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test sync
-        docker rm -f $(docker ps -aq)
-
-    - name: Check build - sync
-      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-sync
 
     - name: Build binary - fair
       run: |
@@ -69,7 +59,7 @@ jobs:
 
     - name: Run prepare test build
       run: |
-        bash scripts/build.sh test test normal
+        bash scripts/build.sh test test skale
 
     - name: Run redis
       run: |

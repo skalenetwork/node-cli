@@ -28,7 +28,7 @@ from node_cli.configs.user import get_validated_user_config
 from node_cli.utils.docker_utils import ensure_volume
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import write_json, read_json, run_cmd, safe_load_yml
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 from node_cli.configs import ALLOCATION_FILEPATH, STATIC_PARAMS_FILEPATH, SNAPSHOTS_SHARED_VOLUME
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH,
@@ -81,7 +81,7 @@ def compose_resource_allocation_config(env_type: str, params_by_env_type: Dict =
     schain_allocation_data = safe_load_yml(ALLOCATION_FILEPATH)
 
     return {
-        'schain': {
+        'skaled': {
             'cpu_shares': schain_cpu_alloc.dict(),
             'mem': schain_mem_alloc.dict(),
             'disk': schain_allocation_data[env_type]['disk'],
@@ -95,6 +95,7 @@ def compose_resource_allocation_config(env_type: str, params_by_env_type: Dict =
 def generate_resource_allocation_config(
     env_file,
     node_type: NodeType,
+    node_mode: NodeMode,
     force=False,
 ) -> None:
     if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
@@ -102,7 +103,9 @@ def generate_resource_allocation_config(
         logger.debug(msg)
         print(msg)
         return
-    user_config = get_validated_user_config(node_type=node_type, env_filepath=env_file)
+    user_config = get_validated_user_config(
+        node_type=node_type, node_mode=node_mode, env_filepath=env_file
+    )
     logger.info('Generating resource allocation file ...')
     try:
         update_resource_allocation(user_config.env_type)

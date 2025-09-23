@@ -9,7 +9,7 @@ OK_LS_RESPONSE_DATA = {
     'payload': [
         {
             'image': 'skalenetwork/schain:1.46-develop.21',
-            'name': 'skale_schain_shapely-alfecca-meridiana',
+            'name': 'sk_skaled_shapely-alfecca-meridiana',
             'state': {
                 'Status': 'running',
                 'Running': True,
@@ -26,7 +26,7 @@ OK_LS_RESPONSE_DATA = {
         },
         {
             'image': 'skale-admin:latest',
-            'name': 'skale_api',
+            'name': 'sk_api',
             'state': {
                 'Status': 'running',
                 'Running': True,
@@ -51,7 +51,7 @@ def test_containers():
     assert result.exit_code == 0
     assert (
         result.output
-        == '                 Name                    Status         Started At                       Image               \n-------------------------------------------------------------------------------------------------------------\nskale_schain_shapely-alfecca-meridiana   Running   Jul 31 2020 11:56:35   skalenetwork/schain:1.46-develop.21\nskale_api                                Running   Jul 31 2020 11:55:17   skale-admin:latest                 \n'  # noqa
+        == '               Name                   Status         Started At                       Image               \n----------------------------------------------------------------------------------------------------------\nsk_skaled_shapely-alfecca-meridiana   Running   Jul 31 2020 11:56:35   skalenetwork/schain:1.46-develop.21\nsk_api                                Running   Jul 31 2020 11:55:17   skale-admin:latest                 \n'  # noqa
     )
 
 
