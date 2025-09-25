@@ -57,6 +57,37 @@ def test_init_passive(mocked_g_config, clean_node_options, passive_user_conf):
         assert result.exit_code == 0
 
 
+def test_init_passive_snapshot_any(mocked_g_config, clean_node_options, passive_user_conf):
+    pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
+    with (
+        mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
+        mock.patch('node_cli.operations.base.cleanup_volume_artifacts'),
+        mock.patch('node_cli.operations.base.download_skale_node'),
+        mock.patch('node_cli.operations.base.sync_skale_node'),
+        mock.patch('node_cli.operations.base.configure_docker'),
+        mock.patch('node_cli.operations.base.prepare_host'),
+        mock.patch('node_cli.operations.base.ensure_filestorage_mapping'),
+        mock.patch('node_cli.operations.base.link_env_file'),
+        mock.patch('node_cli.operations.base.generate_nginx_config'),
+        mock.patch('node_cli.operations.base.prepare_block_device'),
+        mock.patch('node_cli.operations.base.CliMetaManager.update_meta'),
+        mock.patch('node_cli.operations.base.update_resource_allocation'),
+        mock.patch('node_cli.operations.base.update_images'),
+        mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        mock.patch('node_cli.operations.base.configure_nftables'),
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
+        mock.patch('node_cli.configs.user.validate_alias_or_address'),
+        mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
+        mock.patch('node_cli.operations.base.compose_up') as compose_up_mock,
+    ):
+        result = run_command(_init_passive, [passive_user_conf.as_posix(), '--snapshot', 'any'])
+        assert result.exit_code == 0
+        assert compose_up_mock.called
+        args, kwargs = compose_up_mock.call_args
+        assert 'snapshot' in kwargs
+        assert kwargs['snapshot'] == 'any'
+
+
 def test_init_passive_archive(mocked_g_config, clean_node_options, passive_user_conf):
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
     with (
