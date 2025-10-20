@@ -112,8 +112,10 @@ def init(
 
     upsert_node_mode(node_mode=node_mode)
     if node_mode == NodeMode.PASSIVE:
+        logger.info('Setting passive node options')
         set_passive_node_options(archive=archive, indexer=indexer)
         if snapshot:
+            logger.info('Waiting %s seconds for redis to start', REDIS_START_TIMEOUT)
             time.sleep(REDIS_START_TIMEOUT)
             trigger_skaled_snapshot_mode(env=env, snapshot_from=snapshot)
 
@@ -293,6 +295,7 @@ def trigger_skaled_snapshot_mode(env: dict, snapshot_from: str = 'any') -> None:
     record = get_fair_chain_record(env)
     if not snapshot_from:
         snapshot_from = 'any'
+    logger.info('Triggering skaled snapshot mode, snapshot_from: %s', snapshot_from)
     record.set_snapshot_from(snapshot_from)
 
 

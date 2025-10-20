@@ -382,13 +382,13 @@ class UrlType(click.ParamType):
         return value
 
 
-class UrlOrAnyType(click.ParamType):
+class UrlOrAnyType(UrlType):
     name = 'url'
 
     def convert(self, value, param, ctx):
         if value == 'any':
             return value
-        super().convert(value, param, ctx)
+        return super().convert(value, param, ctx)
 
 
 class IpType(click.ParamType):
