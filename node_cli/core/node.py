@@ -157,7 +157,7 @@ def init(env_filepath: str, node_type: NodeType) -> None:
     node_mode = NodeMode.ACTIVE
     env = compose_node_env(env_filepath=env_filepath, node_type=node_type, node_mode=node_mode)
 
-    init_op(env_filepath=env_filepath, env=env, node_type=node_type, node_mode=node_mode)
+    init_op(env_filepath=env_filepath, env=env, node_mode=node_mode)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
@@ -314,7 +314,7 @@ def update(
         node_type=node_type,
         node_mode=node_mode,
     )
-    update_ok = update_op(env_filepath, env, node_type=node_type, node_mode=node_mode)
+    update_ok = update_op(env_filepath, env, node_mode=node_mode)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
