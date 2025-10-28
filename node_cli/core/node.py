@@ -56,7 +56,7 @@ from node_cli.core.node_options import (
 )
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
-    cleanup_passive_op,
+    cleanup_skale_op,
     configure_nftables,
     init_op,
     init_passive_op,
@@ -227,13 +227,13 @@ def update_passive(env_filepath: str, unsafe_ok: bool = False) -> None:
 
 @check_inited
 @check_user
-def cleanup_passive() -> None:
+def cleanup(node_mode: NodeMode) -> None:
+    node_mode = upsert_node_mode(node_mode=node_mode)
     env = compose_node_env(
-        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
+        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.SKALE, node_mode=node_mode
     )
-    schain_name = env['SCHAIN_NAME']
-    cleanup_passive_op(env, schain_name)
-    logger.info('Passive node was cleaned up, all containers and data removed')
+    cleanup_skale_op(node_mode=node_mode, env=env)
+    logger.info('SKALE node was cleaned up, all containers and data removed')
 
 
 def compose_node_env(
