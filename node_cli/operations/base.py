@@ -29,11 +29,12 @@ from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     CONTAINER_CONFIG_TMP_PATH,
     GLOBAL_SKALE_DIR,
+    NFTABLES_CHAIN_FOLDER_PATH,
     SKALE_DIR,
 )
 from node_cli.core.checks import CheckType
 from node_cli.core.checks import run_checks as run_host_checks
-from node_cli.core.docker_config import configure_docker
+from node_cli.core.docker_config import cleanup_docker_configuration, configure_docker
 from node_cli.core.host import (
     ensure_btrfs_kernel_module_autoloaded,
     link_env_file,
@@ -69,7 +70,7 @@ from node_cli.utils.docker_utils import (
     docker_cleanup,
     remove_dynamic_containers,
 )
-from node_cli.utils.helper import rm_dir, str_to_bool
+from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
 from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
 from node_cli.utils.node_type import NodeType, NodeMode
 from node_cli.utils.print_formatters import print_failed_requirements_checks
@@ -438,8 +439,18 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     return True
 
 
-def cleanup_passive(env, schain_name: str) -> None:
-    turn_off(env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
-    cleanup_no_lvm_datadir(chain_name=schain_name)
+def cleanup_active():
+    pass
+
+
+def cleanup(node_mode: NodeMode, env: dict) -> None:
+    turn_off(env, node_type=NodeType.SKALE, node_mode=node_mode)
+    if node_mode == NodeMode.PASSIVE:
+        schain_name = env['SCHAIN_NAME']
+        cleanup_no_lvm_datadir(chain_name=schain_name)
+    else:
+        cleanup_active()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
+    cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
+    cleanup_docker_configuration()
