@@ -69,6 +69,7 @@ from node_cli.utils.docker_utils import (
     compose_up,
     docker_cleanup,
     remove_dynamic_containers,
+    system_prune,
 )
 from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool, run_cmd
 from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
@@ -457,8 +458,10 @@ def cleanup_active():
     logger.info('Active node cleanup finished.')
 
 
-def cleanup(node_mode: NodeMode, env: dict) -> None:
+def cleanup(node_mode: NodeMode, env: dict, prune: bool = False) -> None:
     turn_off(env, node_type=NodeType.SKALE, node_mode=node_mode)
+    if prune:
+        system_prune()
     if node_mode == NodeMode.PASSIVE:
         schain_name = env['SCHAIN_NAME']
         cleanup_no_lvm_datadir(chain_name=schain_name)

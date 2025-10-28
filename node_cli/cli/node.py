@@ -268,6 +268,7 @@ def version(raw: bool) -> None:
     expose_value=False,
     prompt='Are you sure you want to remove all SKALE node data and containers?',
 )
+@click.option('--prune', is_flag=True, help='Prune docker system.')
 @streamed_cmd
-def cleanup_node():
-    cleanup_skale(node_mode=NodeMode.ACTIVE)
+def cleanup_node(prune):
+    cleanup_skale(node_mode=NodeMode.ACTIVE, prune=prune)
