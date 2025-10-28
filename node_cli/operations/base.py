@@ -70,9 +70,9 @@ from node_cli.utils.docker_utils import (
     docker_cleanup,
     remove_dynamic_containers,
 )
-from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
+from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool, run_cmd
 from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
-from node_cli.utils.node_type import NodeType, NodeMode
+from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 logger = logging.getLogger(__name__)
@@ -439,8 +439,22 @@ def restore(env, backup_path, node_type: NodeType, config_only=False):
     return True
 
 
+def cleanup_passive(env, schain_name: str) -> None:
+    turn_off(env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    cleanup_no_lvm_datadir(chain_name=schain_name)
+    rm_dir(GLOBAL_SKALE_DIR)
+    rm_dir(SKALE_DIR)
+
+
 def cleanup_active():
-    pass
+    logger.info('Starting cleanup for active node...')
+    logger.info('Unmounting /mnt/schains-shared-space...')
+    run_cmd(['sudo', 'umount', '/mnt/schains-shared-space'], check_code=False)
+    logger.info('Cleaning up /mnt directory content...')
+    cleanup_dir_content('/mnt/')
+    logger.info('Removing LVM volume group "schains"...')
+    run_cmd(['sudo', 'lvremove', '-f', 'schains'], check_code=False)
+    logger.info('Active node cleanup finished.')
 
 
 def cleanup(node_mode: NodeMode, env: dict) -> None:
