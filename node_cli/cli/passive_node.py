@@ -21,8 +21,9 @@ from typing import Optional
 
 import click
 
-from node_cli.core.node import init_passive, update_passive, cleanup_passive
+from node_cli.core.node import init_passive, update_passive, cleanup as cleanup_skale
 from node_cli.utils.helper import abort_if_false, error_exit, streamed_cmd, URL_TYPE
+from node_cli.utils.node_type import NodeMode
 from node_cli.utils.texts import safe_load_texts
 
 
@@ -72,14 +73,14 @@ def _update_passive(env_file, unsafe_ok):
     update_passive(env_file)
 
 
-@passive_node.command('cleanup', help='Remove passive node data and containers')
+@passive_node.command('cleanup', help='Remove all passive SKALE node data and containers.')
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to remove all node containers and data?',
+    prompt='Are you sure you want to remove all SKALE node data and containers?',
 )
 @streamed_cmd
-def _cleanup_passive() -> None:
-    cleanup_passive()
+def cleanup_node():
+    cleanup_skale(node_mode=NodeMode.PASSIVE)
