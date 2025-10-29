@@ -2,7 +2,6 @@ import pathlib
 from unittest import mock
 
 from click.testing import CliRunner
-
 from node_cli.cli.fair_boot import (
     init_boot,
     register_boot,
@@ -10,11 +9,16 @@ from node_cli.cli.fair_boot import (
 )
 from node_cli.cli.fair_node import (
     backup_node,
+    cleanup_node,
     migrate_node,
     exit_node,
     restore_node,
 )
-
+from node_cli.configs import SKALE_DIR
+from node_cli.utils.node_type import NodeMode
+from node_cli.utils.meta import CliMeta
+from tests.helper import run_command, subprocess_run_mock
+from tests.resources_test import BIG_DISK_SIZE
 
 @mock.patch('node_cli.cli.fair_node.restore_fair')
 def test_fair_node_restore(mock_restore_core, valid_env_file, tmp_path):
@@ -111,3 +115,25 @@ def test_fair_node_exit(mock_exit_core):
 
     assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
     mock_exit_core.assert_called_once()
+
+
+def test_cleanup_node(mocked_g_config):
+    pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
+
+    with (
+        mock.patch('subprocess.run', new=subprocess_run_mock),
+        mock.patch('node_cli.fair.common.cleanup_fair_op') as cleanup_mock,
+        mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
+        mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        mock.patch('node_cli.operations.base.configure_nftables'),
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.fair.common.compose_node_env', return_value={'SCHAIN_NAME': 'test'}),
+        mock.patch(
+            'node_cli.core.node.CliMetaManager.get_meta_info',
+            return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
+        ),
+    ):
+        result = run_command(cleanup_node, ['--yes'])
+        assert result.exit_code == 0
+        cleanup_mock.assert_called_once_with(
+            node_mode=NodeMode.ACTIVE, prune=False, env={'SCHAIN_NAME': 'test'})
