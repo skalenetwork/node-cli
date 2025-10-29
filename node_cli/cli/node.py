@@ -260,7 +260,7 @@ def version(raw: bool) -> None:
         print_meta_info(meta_info)
 
 
-@node.command('cleanup', help='Remove all SKALE node data and containers..')
+@node.command('cleanup', help='Remove all SKALE node data and containers.')
 @click.option(
     '--yes',
     is_flag=True,
@@ -270,5 +270,5 @@ def version(raw: bool) -> None:
 )
 @click.option('--prune', is_flag=True, help='Prune docker system.')
 @streamed_cmd
-def _cleanup_node(prune):
+def cleanup_node(prune):
     cleanup_skale(node_mode=NodeMode.ACTIVE, prune=prune)

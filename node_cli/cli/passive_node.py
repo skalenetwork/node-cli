@@ -73,7 +73,7 @@ def _update_passive(env_file, unsafe_ok):
     update_passive(env_file)
 
 
-@passive_node.command('cleanup', help='Remove all passive SKALE node data and containers.')
+@passive_node.command('cleanup', help='Remove all SKALE node data and containers.')
 @click.option(
     '--yes',
     is_flag=True,
@@ -83,5 +83,5 @@ def _update_passive(env_file, unsafe_ok):
 )
 @click.option('--prune', is_flag=True, help='Prune docker system.')
 @streamed_cmd
-def _cleanup_node(prune):
+def cleanup_node(prune):
     cleanup_skale(node_mode=NodeMode.PASSIVE, prune=prune)
