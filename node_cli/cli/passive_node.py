@@ -83,5 +83,5 @@ def _update_passive(env_file, unsafe_ok):
 )
 @click.option('--prune', is_flag=True, help='Prune docker system.')
 @streamed_cmd
-def cleanup_node(prune):
+def _cleanup_node(prune):
     cleanup_skale(node_mode=NodeMode.PASSIVE, prune=prune)

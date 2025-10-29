@@ -270,5 +270,5 @@ def version(raw: bool) -> None:
 )
 @click.option('--prune', is_flag=True, help='Prune docker system.')
 @streamed_cmd
-def cleanup_node(prune):
+def _cleanup_node(prune):
     cleanup_skale(node_mode=NodeMode.ACTIVE, prune=prune)
