@@ -22,12 +22,12 @@ import pathlib
 
 import mock
 
-from node_cli.cli.passive_node import _cleanup_passive, _init_passive, _update_passive
+from node_cli.cli.passive_node import cleanup_node, _init_passive, _update_passive
 from node_cli.configs import NODE_DATA_PATH, SKALE_DIR
 from node_cli.core.node_options import NodeOptions
 from node_cli.utils.helper import init_default_logger
 from node_cli.utils.meta import CliMeta
-from node_cli.utils.node_type import NodeType
+from node_cli.utils.node_type import NodeType, NodeMode
 from tests.conftest import set_env_var
 from tests.helper import run_command, subprocess_run_mock
 from tests.resources_test import BIG_DISK_SIZE
@@ -127,12 +127,12 @@ def test_update_passive(passive_user_conf, mocked_g_config):
         assert result.exit_code == 0
 
 
-def test_cleanup_passive(mocked_g_config):
+def test_cleanup_node(mocked_g_config):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
 
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.cleanup_passive_op'),
+        mock.patch('node_cli.core.node.cleanup_skale_op') as cleanup_mock,
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
@@ -143,5 +143,6 @@ def test_cleanup_passive(mocked_g_config):
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):
-        result = run_command(_cleanup_passive, ['--yes'])
+        result = run_command(cleanup_node, ['--yes'])
         assert result.exit_code == 0
+        cleanup_mock.assert_called_once_with(node_mode=NodeMode.PASSIVE, prune=False, env={'SCHAIN_NAME': 'test'})
