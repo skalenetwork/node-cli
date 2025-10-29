@@ -30,6 +30,7 @@ from node_cli.cli.node import (
     _turn_off,
     _turn_on,
     backup_node,
+    cleanup_node,
     node_info,
     register_node,
     remove_node_from_maintenance,
@@ -473,3 +474,23 @@ def test_node_version(meta_file_v2):
             result.output
             == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_version': '1.1.2'}\n"
         )
+
+def test_cleanup_node(mocked_g_config):
+    pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
+
+    with (
+        mock.patch('subprocess.run', new=subprocess_run_mock),
+        mock.patch('node_cli.core.node.cleanup_skale_op') as cleanup_mock,
+        mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
+        mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
+        mock.patch('node_cli.operations.base.configure_nftables'),
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.compose_node_env', return_value={}),
+        mock.patch(
+            'node_cli.core.node.CliMetaManager.get_meta_info',
+            return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
+        ),
+    ):
+        result = run_command(cleanup_node, ['--yes'])
+        assert result.exit_code == 0
+        cleanup_mock.assert_called_once_with(node_mode=NodeMode.ACTIVE, prune=False, env={})
