@@ -63,6 +63,7 @@ from node_cli.utils.docker_utils import (
     remove_dynamic_containers,
     start_container_by_name,
     stop_container_by_name,
+    system_prune,
     wait_for_container,
 )
 from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
@@ -282,8 +283,10 @@ def restore(node_mode: NodeMode, env, backup_path, config_only=False):
     return True
 
 
-def cleanup(node_mode: NodeMode, env: dict) -> None:
+def cleanup(node_mode: NodeMode, env: dict, prune: bool = False) -> None:
     turn_off(env, node_type=NodeType.FAIR, node_mode=node_mode)
+    if prune:
+        system_prune()
     cleanup_no_lvm_datadir()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)

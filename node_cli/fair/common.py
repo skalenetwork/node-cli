@@ -81,14 +81,13 @@ def init(
 
 
 @check_user
-def cleanup(node_mode: NodeMode) -> None:
+def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
     node_mode = upsert_node_mode(node_mode=node_mode)
     env = compose_node_env(
         SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
     )
-    cleanup_fair_op(node_mode=node_mode, env=env)
+    cleanup_fair_op(node_mode=node_mode, env=env, prune=prune)
     logger.info('Fair node was cleaned up, all containers and data removed')
-    cleanup_docker_configuration()
 
 
 @check_inited
