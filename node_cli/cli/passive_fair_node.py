@@ -105,17 +105,18 @@ def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: b
     )
 
 
-@passive_node.command('cleanup', help='Cleanup Fair node.')
+@passive_node.command('cleanup', help='Remove all FAIR node data and containers.')
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to cleanup Fair node?',
+    prompt='Are you sure you want to remove all FAIR node data and containers?',
 )
+@click.option('--prune', is_flag=True, help='Prune docker system.')
 @streamed_cmd
-def cleanup_node():
-    cleanup_fair(node_mode=NodeMode.PASSIVE)
+def cleanup_node(prune):
+    cleanup_fair(node_mode=NodeMode.PASSIVE, prune=prune)
 
 
 @passive_node.command('setup', help=TEXTS['fair']['node']['setup']['help'])
