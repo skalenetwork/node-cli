@@ -22,7 +22,6 @@ import time
 
 from node_cli.configs import INIT_TIMEOUT, SKALE_DIR, TM_INIT_TIMEOUT
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
-from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.host import save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.core.node_options import upsert_node_mode
