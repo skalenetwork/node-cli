@@ -71,7 +71,7 @@ def test_init_fair_passive_snapshot_any(mocked_g_config, tmp_path):
         assert result.exit_code == 0
 
 
-def test_update_fair_passive(mocked_g_config, tmp_path):
+def test_update_fair_passive(mocked_g_config, tmp_path, clean_node_options):
     env_file = tmp_path / 'test-env'
     env_file.write_text('')
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)

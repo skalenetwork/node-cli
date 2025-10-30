@@ -117,7 +117,7 @@ def test_fair_node_exit(mock_exit_core):
     mock_exit_core.assert_called_once()
 
 
-def test_cleanup_node(mocked_g_config):
+def test_cleanup_node(mocked_g_config, inited_node):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
 
     with (
