@@ -116,8 +116,8 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict, node_type: NodeType, node_mode: NodeMode) -> bool:
-    compose_rm(node_type=node_type, node_mode=node_mode, env=env)
+def update(env_filepath: str, env: Dict, node_mode: NodeMode) -> bool:
+    compose_rm(node_type=NodeType.SKALE, node_mode=node_mode, env=env)
     remove_dynamic_containers()
 
     sync_skale_node()
@@ -153,8 +153,8 @@ def update(env_filepath: str, env: Dict, node_type: NodeType, node_mode: NodeMod
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=node_type, node_mode=node_mode)
-    compose_up(env=env, node_type=node_type, node_mode=node_mode)
+    update_images(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
+    compose_up(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
     return True
 
 
@@ -201,7 +201,7 @@ def update_fair_boot(env_filepath: str, env: Dict, node_mode: NodeMode = NodeMod
 
 
 @checked_host
-def init(env_filepath: str, env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
+def init(env_filepath: str, env: dict, node_mode: NodeMode) -> None:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -231,9 +231,8 @@ def init(env_filepath: str, env: dict, node_type: NodeType, node_mode: NodeMode)
         distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
-    update_images(env=env, node_type=node_type, node_mode=node_mode)
-
-    compose_up(env=env, node_type=node_type, node_mode=node_mode)
+    update_images(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
+    compose_up(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
 
 
 @checked_host
@@ -372,11 +371,7 @@ def turn_on(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     else:
         meta_manager = CliMetaManager()
         meta_manager.update_meta(
-            VERSION,
-            env['NODE_VERSION'],
-            env['DOCKER_LVMPY_VERSION'],
-            distro.id(),
-            distro.version()
+            VERSION, env['NODE_VERSION'], env['DOCKER_LVMPY_VERSION'], distro.id(), distro.version()
         )
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
