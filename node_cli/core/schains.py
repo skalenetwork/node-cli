@@ -299,6 +299,6 @@ def cleanup_no_lvm_datadir(
         if folder_name != 'shared-space':
             logger.info('Removing datadir content for %s', folder_path)
             cleanup_datadir_content(folder_path)
-        logger.info('Removing datadir content for %s', folder_path)
         if os.path.isdir(folder_path):
             shutil.rmtree(folder_path)
+    run_cmd(['umount', base_path])
