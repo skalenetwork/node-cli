@@ -12,7 +12,9 @@ import requests
 
 from node_cli.configs import NODE_DATA_PATH, SCHAINS_MNT_DIR_REGULAR, SCHAINS_MNT_DIR_SINGLE_CHAIN
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.core.node import (
+    cleanup,
     compose_node_env,
     get_expected_container_names,
     init,
@@ -471,3 +473,32 @@ def test_is_update_safe_when_api_call_fails(
     mock_requests_get.side_effect = requests.exceptions.ConnectionError('Test connection error')
     assert is_update_safe(node_mode=node_mode) is False
     mock_requests_get.assert_called_once()
+
+
+@mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
+@mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True)
+@mock.patch('node_cli.core.node.cleanup_skale_op')
+@mock.patch('node_cli.core.node.compose_node_env')
+def test_cleanup_success(
+    mock_compose_env,
+    mock_cleanup_skale_op,
+    mock_node_inited,
+    mock_is_user_valid,
+    inited_node,
+    resource_alloc,
+    meta_file_v3,
+    active_node_option,
+):
+    mock_env = {'ENV_TYPE': 'devnet'}
+    mock_compose_env.return_value = mock_env
+
+    cleanup(node_mode=NodeMode.ACTIVE)
+
+    mock_compose_env.assert_called_once_with(
+        SKALE_DIR_ENV_FILEPATH,
+        save=False,
+        node_type=NodeType.SKALE,
+        node_mode=NodeMode.ACTIVE,
+    )
+    mock_cleanup_skale_op.assert_called_once_with(
+        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)
