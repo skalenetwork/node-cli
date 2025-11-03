@@ -476,13 +476,11 @@ def test_is_update_safe_when_api_call_fails(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True)
 @mock.patch('node_cli.core.node.cleanup_skale_op')
 @mock.patch('node_cli.core.node.compose_node_env')
 def test_cleanup_success(
     mock_compose_env,
     mock_cleanup_skale_op,
-    mock_node_inited,
     mock_is_user_valid,
     inited_node,
     resource_alloc,
