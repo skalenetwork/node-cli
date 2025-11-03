@@ -225,7 +225,6 @@ def update_passive(env_filepath: str, unsafe_ok: bool = False) -> None:
         logger.info('Node update finished')
 
 
-@check_inited
 @check_user
 def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
     node_mode = upsert_node_mode(node_mode=node_mode)
