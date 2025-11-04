@@ -143,6 +143,7 @@ def get_validated_user_config(
     node_mode: NodeMode,
     env_filepath: str = SKALE_DIR_ENV_FILEPATH,
     is_fair_boot: bool = False,
+    skip_usr_conf_validation: bool = False,
 ) -> BaseUserConfig:
     params = parse_env_file(env_filepath)
     user_config_class = get_user_config_class(
@@ -160,7 +161,8 @@ def get_validated_user_config(
 
     params = to_lower_keys(params)
     user_config = user_config_class(**params)
-    validate_user_config(user_config)
+    if not skip_usr_conf_validation:
+        validate_user_config(user_config)
 
     return user_config
 
