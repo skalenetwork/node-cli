@@ -83,7 +83,11 @@ def init(
 def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
     node_mode = upsert_node_mode(node_mode=node_mode)
     env = compose_node_env(
-        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
+        SKALE_DIR_ENV_FILEPATH,
+        save=False,
+        node_type=NodeType.FAIR,
+        node_mode=node_mode,
+        skip_usr_conf_validation=True,
     )
     cleanup_fair_op(node_mode=node_mode, env=env, prune=prune)
     logger.info('Fair node was cleaned up, all containers and data removed')
