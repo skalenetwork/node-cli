@@ -856,7 +856,6 @@ Options:
 
 * `--yes` - Turn on without additional confirmation.
 
-
 #### Fair Node Migrate
 
 Switch from boot phase to regular Fair node operation.
@@ -1261,7 +1260,6 @@ Arguments:
 Options:
 
 * `--yes` - Turn on without additional confirmation.
-
 
 #### Passive Fair Node Cleanup
 
