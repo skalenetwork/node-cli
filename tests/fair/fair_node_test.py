@@ -179,7 +179,7 @@ def test_cleanup_success(
         save=False,
         node_type=NodeType.FAIR,
         node_mode=NodeMode.ACTIVE,
-        skip_usr_conf_validation=True,
+        skip_user_conf_validation=True,
     )
     mock_cleanup_fair_op.assert_called_once_with(
         node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)
@@ -214,7 +214,7 @@ def test_cleanup_calls_operations_in_correct_order(
             save=False,
             node_type=mock.ANY,
             node_mode=NodeMode.ACTIVE,
-            skip_usr_conf_validation=True),
+            skip_user_conf_validation=True),
         mock.call.cleanup_fair_op(node_mode=NodeMode.ACTIVE, env=mock_env, prune=False),
     ]
     manager.assert_has_calls(expected_calls, any_order=False)

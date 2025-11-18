@@ -497,7 +497,7 @@ def test_cleanup_success(
         save=False,
         node_type=NodeType.SKALE,
         node_mode=NodeMode.ACTIVE,
-        skip_usr_conf_validation=True,
+        skip_user_conf_validation=True,
     )
     mock_cleanup_skale_op.assert_called_once_with(
         node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)

@@ -87,7 +87,7 @@ def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
         save=False,
         node_type=NodeType.FAIR,
         node_mode=node_mode,
-        skip_usr_conf_validation=True,
+        skip_user_conf_validation=True,
     )
     cleanup_fair_op(node_mode=node_mode, env=env, prune=prune)
     logger.info('Fair node was cleaned up, all containers and data removed')

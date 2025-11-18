@@ -233,7 +233,7 @@ def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
         save=False,
         node_type=NodeType.SKALE,
         node_mode=node_mode,
-        skip_usr_conf_validation=True,
+        skip_user_conf_validation=True,
     )
     cleanup_skale_op(node_mode=node_mode, env=env, prune=prune)
     logger.info('SKALE node was cleaned up, all containers and data removed')
@@ -248,7 +248,7 @@ def compose_node_env(
     pull_config_for_schain: Optional[str] = None,
     save: bool = True,
     is_fair_boot: bool = False,
-    skip_usr_conf_validation: bool = False,
+    skip_user_conf_validation: bool = False,
 ) -> dict[str, str]:
     if env_filepath is not None:
         user_config = get_validated_user_config(
@@ -256,7 +256,7 @@ def compose_node_env(
             node_mode=node_mode,
             env_filepath=env_filepath,
             is_fair_boot=is_fair_boot,
-            skip_usr_conf_validation=skip_usr_conf_validation,
+            skip_user_conf_validation=skip_user_conf_validation,
         )
         if save:
             save_env_params(env_filepath)
@@ -265,7 +265,7 @@ def compose_node_env(
             node_type=node_type,
             env_filepath=INIT_ENV_FILEPATH,
             is_fair_boot=is_fair_boot,
-            skip_usr_conf_validation=skip_usr_conf_validation,
+            skip_user_conf_validation=skip_user_conf_validation,
         )
 
     if node_mode == NodeMode.PASSIVE or node_type == NodeType.FAIR:
