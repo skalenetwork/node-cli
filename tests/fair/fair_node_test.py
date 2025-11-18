@@ -158,13 +158,11 @@ def test_migrate_from_boot(
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.common.cleanup_docker_configuration')
 @mock.patch('node_cli.fair.common.cleanup_fair_op')
 @mock.patch('node_cli.fair.common.compose_node_env')
 def test_cleanup_success(
     mock_compose_env,
     mock_cleanup_fair_op,
-    mock_cleanup_docker_config,
     mock_is_user_valid,
     inited_node,
     resource_alloc,
@@ -181,19 +179,18 @@ def test_cleanup_success(
         save=False,
         node_type=NodeType.FAIR,
         node_mode=NodeMode.ACTIVE,
+        skip_user_conf_validation=True,
     )
-    mock_cleanup_fair_op.assert_called_once_with(node_mode=NodeMode.ACTIVE, env=mock_env)
-    mock_cleanup_docker_config.assert_called_once()
+    mock_cleanup_fair_op.assert_called_once_with(
+        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.common.cleanup_docker_configuration')
 @mock.patch('node_cli.fair.common.cleanup_fair_op')
 @mock.patch('node_cli.fair.common.compose_node_env')
 def test_cleanup_calls_operations_in_correct_order(
     mock_compose_env,
     mock_cleanup_fair_op,
-    mock_cleanup_docker_config,
     mock_is_user_valid,
     inited_node,
     resource_alloc,
@@ -208,26 +205,27 @@ def test_cleanup_calls_operations_in_correct_order(
     manager = mock.Mock()
     manager.attach_mock(mock_compose_env, 'compose_env')
     manager.attach_mock(mock_cleanup_fair_op, 'cleanup_fair_op')
-    manager.attach_mock(mock_cleanup_docker_config, 'cleanup_docker_config')
 
     cleanup(node_mode=NodeMode.ACTIVE)
 
     expected_calls = [
-        mock.call.compose_env(mock.ANY, save=False, node_type=mock.ANY, node_mode=NodeMode.ACTIVE),
-        mock.call.cleanup_fair_op(node_mode=NodeMode.ACTIVE, env=mock_env),
-        mock.call.cleanup_docker_config(),
+        mock.call.compose_env(
+            mock.ANY,
+            save=False,
+            node_type=mock.ANY,
+            node_mode=NodeMode.ACTIVE,
+            skip_user_conf_validation=True),
+        mock.call.cleanup_fair_op(node_mode=NodeMode.ACTIVE, env=mock_env, prune=False),
     ]
     manager.assert_has_calls(expected_calls, any_order=False)
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.common.cleanup_docker_configuration')
 @mock.patch('node_cli.fair.common.cleanup_fair_op', side_effect=Exception('Cleanup failed'))
 @mock.patch('node_cli.fair.common.compose_node_env')
 def test_cleanup_continues_after_fair_op_error(
     mock_compose_env,
     mock_cleanup_fair_op,
-    mock_cleanup_docker_config,
     mock_is_user_valid,
     inited_node,
     resource_alloc,
@@ -241,8 +239,8 @@ def test_cleanup_continues_after_fair_op_error(
         cleanup(node_mode=NodeMode.ACTIVE)
 
     mock_compose_env.assert_called_once()
-    mock_cleanup_fair_op.assert_called_once_with(node_mode=NodeMode.ACTIVE, env=mock_env)
-    mock_cleanup_docker_config.assert_not_called()
+    mock_cleanup_fair_op.assert_called_once_with(
+        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=False)
@@ -269,7 +267,6 @@ def test_cleanup_fails_when_not_inited(ensure_meta_removed, active_node_option):
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
-@mock.patch('node_cli.fair.common.cleanup_docker_configuration')
 @mock.patch('node_cli.fair.common.cleanup_fair_op')
 @mock.patch('node_cli.fair.common.compose_node_env')
 @mock.patch('node_cli.fair.common.logger')
@@ -277,7 +274,6 @@ def test_cleanup_logs_success_message(
     mock_logger,
     mock_compose_env,
     mock_cleanup_fair_op,
-    mock_cleanup_docker_config,
     mock_is_user_valid,
     inited_node,
     resource_alloc,

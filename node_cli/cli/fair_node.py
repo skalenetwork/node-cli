@@ -152,17 +152,18 @@ def repair(snapshot: str = 'any') -> None:
     repair_chain(snapshot_from=snapshot)
 
 
-@node.command('cleanup', help='Cleanup Fair node.')
+@node.command('cleanup', help='Remove all FAIR node data and containers.')
 @click.option(
     '--yes',
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
-    prompt='Are you sure you want to cleanup Fair node?',
+    prompt='Are you sure you want to remove all FAIR node data and containers?',
 )
+@click.option('--prune', is_flag=True, help='Prune docker system.')
 @streamed_cmd
-def cleanup_node():
-    cleanup_fair(node_mode=NodeMode.ACTIVE)
+def cleanup_node(prune):
+    cleanup_fair(node_mode=NodeMode.ACTIVE, prune=prune)
 
 
 @node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])

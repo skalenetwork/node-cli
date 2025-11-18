@@ -29,11 +29,12 @@ from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     CONTAINER_CONFIG_TMP_PATH,
     GLOBAL_SKALE_DIR,
+    NFTABLES_CHAIN_FOLDER_PATH,
     SKALE_DIR,
 )
 from node_cli.core.checks import CheckType
 from node_cli.core.checks import run_checks as run_host_checks
-from node_cli.core.docker_config import configure_docker
+from node_cli.core.docker_config import cleanup_docker_configuration, configure_docker
 from node_cli.core.host import (
     ensure_btrfs_kernel_module_autoloaded,
     link_env_file,
@@ -48,6 +49,7 @@ from node_cli.core.node_options import (
 )
 from node_cli.core.resources import init_shared_space_volume, update_resource_allocation
 from node_cli.core.schains import (
+    cleanup_lvm_datadir,
     cleanup_no_lvm_datadir,
     update_node_cli_schain_status,
 )
@@ -68,10 +70,11 @@ from node_cli.utils.docker_utils import (
     compose_up,
     docker_cleanup,
     remove_dynamic_containers,
+    system_prune,
 )
-from node_cli.utils.helper import rm_dir, str_to_bool
+from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
 from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
-from node_cli.utils.node_type import NodeType, NodeMode
+from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 
 logger = logging.getLogger(__name__)
@@ -114,8 +117,8 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict, node_type: NodeType, node_mode: NodeMode) -> bool:
-    compose_rm(node_type=node_type, node_mode=node_mode, env=env)
+def update(env_filepath: str, env: Dict, node_mode: NodeMode) -> bool:
+    compose_rm(node_type=NodeType.SKALE, node_mode=node_mode, env=env)
     remove_dynamic_containers()
 
     sync_skale_node()
@@ -151,8 +154,8 @@ def update(env_filepath: str, env: Dict, node_type: NodeType, node_mode: NodeMod
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, node_type=node_type, node_mode=node_mode)
-    compose_up(env=env, node_type=node_type, node_mode=node_mode)
+    update_images(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
+    compose_up(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
     return True
 
 
@@ -199,7 +202,7 @@ def update_fair_boot(env_filepath: str, env: Dict, node_mode: NodeMode = NodeMod
 
 
 @checked_host
-def init(env_filepath: str, env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
+def init(env_filepath: str, env: dict, node_mode: NodeMode) -> None:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
@@ -229,9 +232,8 @@ def init(env_filepath: str, env: dict, node_type: NodeType, node_mode: NodeMode)
         distro.version(),
     )
     update_resource_allocation(env_type=env['ENV_TYPE'])
-    update_images(env=env, node_type=node_type, node_mode=node_mode)
-
-    compose_up(env=env, node_type=node_type, node_mode=node_mode)
+    update_images(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
+    compose_up(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
 
 
 @checked_host
@@ -370,11 +372,7 @@ def turn_on(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     else:
         meta_manager = CliMetaManager()
         meta_manager.update_meta(
-            VERSION,
-            env['NODE_VERSION'],
-            env['DOCKER_LVMPY_VERSION'],
-            distro.id(),
-            distro.version()
+            VERSION, env['NODE_VERSION'], env['DOCKER_LVMPY_VERSION'], distro.id(), distro.version()
         )
     if env.get('SKIP_DOCKER_CONFIG') != 'True':
         configure_docker()
@@ -443,3 +441,18 @@ def cleanup_passive(env, schain_name: str) -> None:
     cleanup_no_lvm_datadir(chain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
+
+
+def cleanup(node_mode: NodeMode, env: dict, prune: bool = False) -> None:
+    turn_off(env, node_type=NodeType.SKALE, node_mode=node_mode)
+    if prune:
+        system_prune()
+    if node_mode == NodeMode.PASSIVE:
+        schain_name = env['SCHAIN_NAME']
+        cleanup_no_lvm_datadir(chain_name=schain_name)
+    else:
+        cleanup_lvm_datadir()
+    rm_dir(GLOBAL_SKALE_DIR)
+    rm_dir(SKALE_DIR)
+    cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
+    cleanup_docker_configuration()

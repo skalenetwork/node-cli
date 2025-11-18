@@ -80,6 +80,9 @@ def test_cleanup_passive_datadir(tmp_passive_datadir):
             hash_path = snapshot_folder.joinpath('snapshot_hash.txt')
             hash_path.touch()
 
-    with mock.patch('node_cli.core.schains.rm_btrfs_subvolume'):
+    with (
+        mock.patch('node_cli.core.schains.rm_btrfs_subvolume'),
+        mock.patch('node_cli.core.schains.run_cmd'),
+    ):
         cleanup_no_lvm_datadir(schain_name, base_path=tmp_passive_datadir)
         assert not os.path.isdir(base_folder)

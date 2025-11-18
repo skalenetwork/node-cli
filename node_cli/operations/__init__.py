@@ -27,7 +27,7 @@ from node_cli.operations.base import (  # noqa
     turn_off as turn_off_op,
     turn_on as turn_on_op,
     restore as restore_op,
-    cleanup_passive as cleanup_passive_op,
+    cleanup as cleanup_skale_op,
     configure_nftables,
 )
 from node_cli.operations.fair import (  # noqa

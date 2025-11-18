@@ -2,18 +2,18 @@ FROM python:3.11-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt install -y \
-                       git \
-                       build-essential \
-                       software-properties-common \
-                       zlib1g-dev \
-                       libssl-dev \
-                       libffi-dev \
-                       swig \
-                       iptables \
-                       nftables \ 
-                       python3-nftables \ 
-                       libxslt-dev \
-                       kmod
+    git \
+    build-essential \
+    software-properties-common \
+    zlib1g-dev \
+    libssl-dev \
+    libffi-dev \
+    swig \
+    iptables \
+    nftables \ 
+    python3-nftables \ 
+    libxslt-dev \
+    kmod
 
 
 RUN mkdir /app

@@ -56,7 +56,7 @@ from node_cli.core.node_options import (
 )
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
-    cleanup_passive_op,
+    cleanup_skale_op,
     configure_nftables,
     init_op,
     init_passive_op,
@@ -157,7 +157,7 @@ def init(env_filepath: str, node_type: NodeType) -> None:
     node_mode = NodeMode.ACTIVE
     env = compose_node_env(env_filepath=env_filepath, node_type=node_type, node_mode=node_mode)
 
-    init_op(env_filepath=env_filepath, env=env, node_type=node_type, node_mode=node_mode)
+    init_op(env_filepath=env_filepath, env=env, node_mode=node_mode)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
@@ -225,15 +225,18 @@ def update_passive(env_filepath: str, unsafe_ok: bool = False) -> None:
         logger.info('Node update finished')
 
 
-@check_inited
 @check_user
-def cleanup_passive() -> None:
+def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
+    node_mode = upsert_node_mode(node_mode=node_mode)
     env = compose_node_env(
-        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
+        SKALE_DIR_ENV_FILEPATH,
+        save=False,
+        node_type=NodeType.SKALE,
+        node_mode=node_mode,
+        skip_user_conf_validation=True,
     )
-    schain_name = env['SCHAIN_NAME']
-    cleanup_passive_op(env, schain_name)
-    logger.info('Passive node was cleaned up, all containers and data removed')
+    cleanup_skale_op(node_mode=node_mode, env=env, prune=prune)
+    logger.info('SKALE node was cleaned up, all containers and data removed')
 
 
 def compose_node_env(
@@ -245,6 +248,7 @@ def compose_node_env(
     pull_config_for_schain: Optional[str] = None,
     save: bool = True,
     is_fair_boot: bool = False,
+    skip_user_conf_validation: bool = False,
 ) -> dict[str, str]:
     if env_filepath is not None:
         user_config = get_validated_user_config(
@@ -252,6 +256,7 @@ def compose_node_env(
             node_mode=node_mode,
             env_filepath=env_filepath,
             is_fair_boot=is_fair_boot,
+            skip_user_conf_validation=skip_user_conf_validation,
         )
         if save:
             save_env_params(env_filepath)
@@ -260,6 +265,7 @@ def compose_node_env(
             node_type=node_type,
             env_filepath=INIT_ENV_FILEPATH,
             is_fair_boot=is_fair_boot,
+            skip_user_conf_validation=skip_user_conf_validation,
         )
 
     if node_mode == NodeMode.PASSIVE or node_type == NodeType.FAIR:
@@ -314,7 +320,7 @@ def update(
         node_type=node_type,
         node_mode=node_mode,
     )
-    update_ok = update_op(env_filepath, env, node_type=node_type, node_mode=node_mode)
+    update_ok = update_op(env_filepath, env, node_mode=node_mode)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)

@@ -38,6 +38,7 @@ from node_cli.configs.user import get_validated_user_config
 from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import (
+    cleanup_dir_content,
     error_exit,
     get_request,
     is_btrfs_subvolume,
@@ -299,6 +300,17 @@ def cleanup_no_lvm_datadir(
         if folder_name != 'shared-space':
             logger.info('Removing datadir content for %s', folder_path)
             cleanup_datadir_content(folder_path)
-        logger.info('Removing datadir content for %s', folder_path)
         if os.path.isdir(folder_path):
             shutil.rmtree(folder_path)
+    run_cmd(['umount', base_path])
+
+
+def cleanup_lvm_datadir():
+    logger.info('Starting cleanup for active node...')
+    logger.info('Unmounting /mnt/schains-shared-space...')
+    run_cmd(['sudo', 'umount', '/mnt/schains-shared-space'], check_code=False)
+    logger.info('Cleaning up /mnt directory content...')
+    cleanup_dir_content('/mnt/')
+    logger.info('Removing LVM volume group "schains"...')
+    run_cmd(['sudo', 'lvremove', '-f', 'schains'], check_code=False)
+    logger.info('Active node cleanup finished.')

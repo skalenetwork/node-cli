@@ -21,6 +21,7 @@ import click
 
 from node_cli.cli.info import TYPE
 from node_cli.core.node import (
+    cleanup as cleanup_skale,
     configure_firewall_rules,
     get_node_signature,
     init,
@@ -257,3 +258,17 @@ def version(raw: bool) -> None:
         print(meta_info)
     else:
         print_meta_info(meta_info)
+
+
+@node.command('cleanup', help='Remove all SKALE node data and containers.')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to remove all SKALE node data and containers?',
+)
+@click.option('--prune', is_flag=True, help='Prune docker system.')
+@streamed_cmd
+def cleanup_node(prune):
+    cleanup_skale(node_mode=NodeMode.ACTIVE, prune=prune)

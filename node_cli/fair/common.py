@@ -22,7 +22,6 @@ import time
 
 from node_cli.configs import INIT_TIMEOUT, SKALE_DIR, TM_INIT_TIMEOUT
 from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
-from node_cli.core.docker_config import cleanup_docker_configuration
 from node_cli.core.host import save_env_params
 from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.core.node_options import upsert_node_mode
@@ -81,14 +80,17 @@ def init(
 
 
 @check_user
-def cleanup(node_mode: NodeMode) -> None:
+def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
     node_mode = upsert_node_mode(node_mode=node_mode)
     env = compose_node_env(
-        SKALE_DIR_ENV_FILEPATH, save=False, node_type=NodeType.FAIR, node_mode=node_mode
+        SKALE_DIR_ENV_FILEPATH,
+        save=False,
+        node_type=NodeType.FAIR,
+        node_mode=node_mode,
+        skip_user_conf_validation=True,
     )
-    cleanup_fair_op(node_mode=node_mode, env=env)
+    cleanup_fair_op(node_mode=node_mode, env=env, prune=prune)
     logger.info('Fair node was cleaned up, all containers and data removed')
-    cleanup_docker_configuration()
 
 
 @check_inited
