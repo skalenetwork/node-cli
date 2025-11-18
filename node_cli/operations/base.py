@@ -49,6 +49,7 @@ from node_cli.core.node_options import (
 )
 from node_cli.core.resources import init_shared_space_volume, update_resource_allocation
 from node_cli.core.schains import (
+    cleanup_lvm_datadir,
     cleanup_no_lvm_datadir,
     update_node_cli_schain_status,
 )
@@ -442,17 +443,6 @@ def cleanup_passive(env, schain_name: str) -> None:
     rm_dir(SKALE_DIR)
 
 
-def cleanup_active():
-    logger.info('Starting cleanup for active node...')
-    logger.info('Unmounting /mnt/schains-shared-space...')
-    run_cmd(['sudo', 'umount', '/mnt/schains-shared-space'], check_code=False)
-    logger.info('Cleaning up /mnt directory content...')
-    cleanup_dir_content('/mnt/')
-    logger.info('Removing LVM volume group "schains"...')
-    run_cmd(['sudo', 'lvremove', '-f', 'schains'], check_code=False)
-    logger.info('Active node cleanup finished.')
-
-
 def cleanup(node_mode: NodeMode, env: dict, prune: bool = False) -> None:
     turn_off(env, node_type=NodeType.SKALE, node_mode=node_mode)
     if prune:
@@ -461,7 +451,7 @@ def cleanup(node_mode: NodeMode, env: dict, prune: bool = False) -> None:
         schain_name = env['SCHAIN_NAME']
         cleanup_no_lvm_datadir(chain_name=schain_name)
     else:
-        cleanup_active()
+        cleanup_lvm_datadir()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
     cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
