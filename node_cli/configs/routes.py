@@ -19,7 +19,6 @@
 
 import os
 
-
 CURRENT_API_VERSION = 'v1'
 API_PREFIX = '/api'
 
@@ -41,12 +40,25 @@ ROUTES = {
         'schains': ['config', 'list', 'dkg-statuses', 'firewall-rules', 'repair', 'get'],
         'ssl': ['status', 'upload'],
         'wallet': ['info', 'send-eth'],
+        'fair-node': ['info', 'register', 'set-domain-name', 'change-ip', 'exit'],
+        'fair-chain': ['record', 'checks'],
+        'fair-node-passive': ['setup'],
+        'fair-staking': [
+            'add-receiver',
+            'remove-receiver',
+            'set-fee-rate',
+            'request-fees',
+            'request-send-fees',
+            'claim-request',
+            'get-earned-fee-amount',
+            'get-exit-requests',
+        ],
     }
 }
 
 
 class RouteNotFoundException(Exception):
-    """Raised when requested route is not found in provided API version"""
+    """Raised when requested route is not found in provided API version."""
 
 
 def route_exists(blueprint, method, api_version):

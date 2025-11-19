@@ -1,3 +1,22 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of node-cli
+#
+#   Copyright (C) 2025 SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import glob
 import logging
 import os
@@ -5,34 +24,44 @@ import pprint
 import shutil
 import time
 from pathlib import Path
-
 from typing import Dict, Optional
 
+from lvmpy.src.core import mount, volume_mountpoint
 from node_cli.configs import (
     ALLOCATION_FILEPATH,
-    NODE_CONFIG_PATH,
     NODE_CLI_STATUS_FILENAME,
+    NODE_CONFIG_PATH,
     SCHAIN_NODE_DATA_PATH,
-    SCHAINS_MNT_DIR_SYNC,
+    SCHAINS_MNT_DIR_SINGLE_CHAIN,
 )
-from node_cli.configs.env import get_env_config
-
-from node_cli.utils.helper import get_request, error_exit, safe_load_yml
+from node_cli.configs.user import get_validated_user_config
+from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
 from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.helper import (
+    cleanup_dir_content,
+    error_exit,
+    get_request,
+    is_btrfs_subvolume,
+    read_json,
+    run_cmd,
+    safe_load_yml,
+    save_json,
+)
+from node_cli.utils.node_type import NodeType
 from node_cli.utils.print_formatters import (
     print_dkg_statuses,
     print_firewall_rules,
     print_schain_info,
     print_schains,
 )
-from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
-from node_cli.utils.helper import read_json, run_cmd, save_json
-from lvmpy.src.core import mount, volume_mountpoint
-
 
 logger = logging.getLogger(__name__)
 
 BLUEPRINT_NAME = 'schains'
+
+
+class NoDataDirForChainError(Exception):
+    """Raised when no data directory is found"""
 
 
 def get_schain_firewall_rules(schain: str) -> None:
@@ -182,11 +211,15 @@ def fillin_snapshot_folder(src_path: str, block_number: int) -> None:
 
 
 def restore_schain_from_snapshot(
-    schain: str, snapshot_path: str, env_type: Optional[str] = None, schain_type: str = 'medium'
+    schain: str,
+    snapshot_path: str,
+    node_type: NodeType,
+    env_type: Optional[str] = None,
+    schain_type: str = 'medium',
 ) -> None:
     if env_type is None:
-        env_config = get_env_config()
-        env_type = env_config['ENV_TYPE']
+        user_config = get_validated_user_config(node_type=node_type)
+        env_type = user_config.env_type
     ensure_schain_volume(schain, schain_type, env_type)
     block_number = get_block_number_from_path(snapshot_path)
     if block_number == -1:
@@ -222,25 +255,62 @@ def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
         logger.warning('Volume %s already exists', schain)
 
 
-def cleanup_sync_datadir(schain_name: str, base_path: str = SCHAINS_MNT_DIR_SYNC) -> None:
-    base_path = os.path.join(base_path, schain_name)
-    regular_folders_pattern = f'{base_path}/[!snapshots]*'
-    logger.info('Removing regular folders')
-    for filepath in glob.glob(regular_folders_pattern):
-        if os.path.isdir(filepath):
-            logger.debug('Removing recursively %s', filepath)
-            shutil.rmtree(filepath)
-        if os.path.isfile(filepath):
-            os.remove(filepath)
+def cleanup_datadir_content(datadir_path: str) -> None:
+    regular_folders_pattern = f'{datadir_path}/[!snapshots]*'
+    logger.info('Removing regular folders of %s', datadir_path)
+    for path in glob.glob(regular_folders_pattern):
+        logger.debug('Removing recursively %s', path)
+        if os.path.isfile(path):
+            logger.debug('Deleting file in datadir: %s', path)
+            os.remove(path)
+        if os.path.isdir(path):
+            logger.debug('Deleting folder in datadir: %s', path)
+            shutil.rmtree(path)
 
-    logger.info('Removing subvolumes')
-    subvolumes_pattern = f'{base_path}/snapshots/*/*'
-    for filepath in glob.glob(subvolumes_pattern):
-        logger.debug('Deleting subvolume %s', filepath)
-        if os.path.isdir(filepath):
-            rm_btrfs_subvolume(filepath)
-        else:
-            os.remove(filepath)
-    logger.info('Cleaning up snapshots folder')
-    if os.path.isdir(base_path):
-        shutil.rmtree(base_path)
+    logger.info('Removing subvolumes of %s', datadir_path)
+    subvolumes_pattern = f'{datadir_path}/snapshots/*/*'
+    for path in glob.glob(subvolumes_pattern):
+        if is_btrfs_subvolume(path):
+            logger.debug('Deleting subvolume %s', path)
+            rm_btrfs_subvolume(path)
+        if os.path.isfile(path):
+            logger.debug('Deleting file in snapshots directory: %s', path)
+            os.remove(path)
+        if os.path.isdir(path):
+            logger.debug('Deleting folder in snapshots directory %s', path)
+            shutil.rmtree(path)
+
+    shutil.rmtree(os.path.join(datadir_path, 'snapshots'), ignore_errors=True)
+
+
+def cleanup_no_lvm_datadir(
+    chain_name: str = '', base_path: str = SCHAINS_MNT_DIR_SINGLE_CHAIN
+) -> None:
+    if chain_name:
+        folders = [chain_name]
+    else:
+        folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
+        if not folders:
+            raise NoDataDirForChainError(
+                f'No data directory found in {base_path}. '
+                'Please check the path or specify a chain name.'
+            )
+    for folder_name in folders:
+        folder_path = os.path.join(base_path, folder_name)
+        if folder_name != 'shared-space':
+            logger.info('Removing datadir content for %s', folder_path)
+            cleanup_datadir_content(folder_path)
+        if os.path.isdir(folder_path):
+            shutil.rmtree(folder_path)
+    run_cmd(['umount', base_path])
+
+
+def cleanup_lvm_datadir():
+    logger.info('Starting cleanup for active node...')
+    logger.info('Unmounting /mnt/schains-shared-space...')
+    run_cmd(['sudo', 'umount', '/mnt/schains-shared-space'], check_code=False)
+    logger.info('Cleaning up /mnt directory content...')
+    cleanup_dir_content('/mnt/')
+    logger.info('Removing LVM volume group "schains"...')
+    run_cmd(['sudo', 'lvremove', '-f', 'schains'], check_code=False)
+    logger.info('Active node cleanup finished.')

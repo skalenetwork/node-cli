@@ -1,16 +1,16 @@
-import grp
 import enum
+import grp
 import json
 import logging
 import os
 import pathlib
+import shutil
 import time
 import typing
 from typing import Optional, Tuple
 
-
 from node_cli.configs import (
-    DOCKER_DEAMON_CONFIG_PATH,
+    DOCKER_DAEMON_CONFIG_PATH,
     DOCKER_DAEMON_HOSTS,
     DOCKER_SERVICE_CONFIG_DIR,
     DOCKER_SERVICE_CONFIG_PATH,
@@ -18,9 +18,8 @@ from node_cli.configs import (
     NODE_DOCKER_CONFIG_PATH,
     SKALE_RUN_DIR,
 )
-from node_cli.utils.helper import run_cmd
 from node_cli.utils.docker_utils import docker_client, get_containers
-
+from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ class DockerConfigResult(enum.IntEnum):
 
 
 def ensure_docker_service_config_dir(
-        docker_service_dir: Path = DOCKER_SERVICE_CONFIG_DIR
+    docker_service_dir: Path = DOCKER_SERVICE_CONFIG_DIR,
 ) -> DockerConfigResult:
     logger.info('Ensuring docker service dir')
     if not os.path.isdir(docker_service_dir):
@@ -84,8 +83,7 @@ def ensure_docker_service_config_dir(
 
 
 def ensure_service_overriden_config(
-    config_filepath:
-    Optional[Path] = DOCKER_SERVICE_CONFIG_PATH
+    config_filepath: Optional[Path] = DOCKER_SERVICE_CONFIG_PATH,
 ) -> DockerConfigResult:
     logger.info('Ensuring docker service override config')
     config = get_content(config_filepath)
@@ -95,8 +93,8 @@ def ensure_service_overriden_config(
             '[Service]',
             'ExecStart=',
             'ExecStart=/usr/bin/dockerd',
-            f'ExecStartPre=/bin/mkdir -p {socket_dir}'
-         ]
+            f'ExecStartPre=/bin/mkdir -p {socket_dir}',
+        ]
     )
 
     if not os.path.isfile(config_filepath):
@@ -105,37 +103,28 @@ def ensure_service_overriden_config(
             config_file.write(expected_config)
             return DockerConfigResult.CHANGED
     elif config != expected_config:
-        raise OverridenConfigExsitsError(
-            f'{config_filepath} already exists'
-        )
+        raise OverridenConfigExsitsError(f'{config_filepath} already exists')
     return DockerConfigResult.UNCHANGED
 
 
 def ensure_docker_daemon_config(
-        daemon_config_path: Path = DOCKER_DEAMON_CONFIG_PATH,
-        daemon_hosts: Path = DOCKER_DAEMON_HOSTS
+    daemon_config_path: Path = DOCKER_DAEMON_CONFIG_PATH, daemon_hosts: Path = DOCKER_DAEMON_HOSTS
 ) -> None:
     logger.info('Ensuring docker daemon config')
     config = {}
     if os.path.isfile(daemon_config_path):
         with open(daemon_config_path, 'r') as daemon_config:
             config = json.load(daemon_config)
-    if config.get('live-restore') is True and \
-       config.get('hosts') == daemon_hosts:
+    if config.get('live-restore') is True and config.get('hosts') == daemon_hosts:
         return DockerConfigResult.UNCHANGED
-    config.update({
-        'live-restore': True,
-        'hosts': daemon_hosts
-    })
+    config.update({'live-restore': True, 'hosts': daemon_hosts})
     logger.info('Updating docker daemon config')
     with open(daemon_config_path, 'w') as daemon_config:
         json.dump(config, daemon_config)
     return DockerConfigResult.CHANGED
 
 
-def restart_docker_service(
-        docker_service_name: str = 'docker'
-) -> DockerConfigResult:
+def restart_docker_service(docker_service_name: str = 'docker') -> DockerConfigResult:
     logger.info('Executing daemon-reload')
     run_cmd(['systemctl', 'daemon-reload'])
 
@@ -149,18 +138,14 @@ def is_socket_existed(socket_path: Path = DOCKER_SOCKET_PATH) -> bool:
 
 
 def wait_for_socket_initialization(
-        socket_path: Path = DOCKER_SOCKET_PATH,
-        allowed_time: int = 300
+    socket_path: Path = DOCKER_SOCKET_PATH, allowed_time: int = 300
 ) -> None:
     logger.info('Waiting for docker inititalization')
     start_ts = time.time()
-    while int(time.time() - start_ts) < allowed_time and \
-            not is_socket_existed(socket_path):
+    while int(time.time() - start_ts) < allowed_time and not is_socket_existed(socket_path):
         time.sleep(2)
     if not is_socket_existed(socket_path):
-        raise SocketInitTimeoutError(
-            f'Socket was not able to init in {allowed_time}'
-        )
+        raise SocketInitTimeoutError(f'Socket was not able to init in {allowed_time}')
     logger.info('Socket initialized successfully')
 
 
@@ -172,16 +157,10 @@ def ensure_run_dir(run_dir: Path = SKALE_RUN_DIR) -> DockerConfigResult:
 
 
 def assert_no_containers(ignore: Tuple[str] = ()):
-    containers = [
-        c.name
-        for c in get_containers()
-        if c.name not in ignore
-    ]
+    containers = [c.name for c in get_containers() if c.name not in ignore]
     if len(containers) > 0:
         logger.fatal('%s containers exist', ' '.join(containers))
-        raise ContainersExistError(
-            f'Existed containers amount {len(containers)}'
-        )
+        raise ContainersExistError(f'Existed containers amount {len(containers)}')
 
 
 def configure_docker() -> None:
@@ -190,13 +169,12 @@ def configure_docker() -> None:
         ensure_run_dir,
         ensure_docker_service_config_dir,
         ensure_service_overriden_config,
-        ensure_docker_daemon_config
+        ensure_docker_daemon_config,
     )
     results = (task() for task in pre_restart_tasks)
     results = list(results)
     logger.info('Docker config changes %s', results)
-    if not is_socket_existed() or \
-       any(r == DockerConfigResult.CHANGED for r in results):
+    if not is_socket_existed() or any(r == DockerConfigResult.CHANGED for r in results):
         restart_docker_service()
         wait_for_socket_initialization()
 
@@ -205,3 +183,49 @@ def configure_docker() -> None:
     save_docker_group_id(group_id)
 
     logger.info('Docker configuration finished')
+
+
+def remove_docker_service_override_config() -> None:
+    if os.path.isfile(DOCKER_SERVICE_CONFIG_PATH):
+        logger.info('Removing docker service override config')
+        os.remove(DOCKER_SERVICE_CONFIG_PATH)
+
+
+def reset_docker_daemon_config() -> None:
+    if os.path.isfile(DOCKER_DAEMON_CONFIG_PATH):
+        logger.info('Resetting docker daemon config')
+        with open(DOCKER_DAEMON_CONFIG_PATH, 'r') as daemon_config:
+            config = json.load(daemon_config)
+
+        config.pop('live-restore', None)
+        config.pop('hosts', None)
+
+        if config:
+            with open(DOCKER_DAEMON_CONFIG_PATH, 'w') as daemon_config:
+                json.dump(config, daemon_config)
+        else:
+            os.remove(DOCKER_DAEMON_CONFIG_PATH)
+
+
+def remove_node_docker_config() -> None:
+    if os.path.isfile(NODE_DOCKER_CONFIG_PATH):
+        logger.info('Removing node docker config')
+        os.remove(NODE_DOCKER_CONFIG_PATH)
+
+
+def remove_skale_run_dir() -> None:
+    if os.path.isdir(SKALE_RUN_DIR):
+        shutil.rmtree(SKALE_RUN_DIR)
+        logger.info('Removed SKALE run directory')
+
+
+def cleanup_docker_configuration() -> None:
+    """Cleanup all skale specific docker configuration files and directories"""
+    logger.info('Cleaning up docker configuration')
+
+    remove_docker_service_override_config()
+    reset_docker_daemon_config()
+    remove_node_docker_config()
+    remove_skale_run_dir()
+    restart_docker_service()
+    logger.info('Docker configuration cleanup finished')

@@ -29,7 +29,7 @@ from node_cli.configs.ssl import (
     DEFAULT_SSL_CHECK_PORT,
     SKALED_SSL_TEST_SCRIPT,
     SSL_CERT_FILEPATH,
-    SSL_KEY_FILEPATH
+    SSL_KEY_FILEPATH,
 )
 
 
@@ -42,13 +42,12 @@ def check_cert(
     port=DEFAULT_SSL_CHECK_PORT,
     check_type='all',
     no_client=False,
-    no_wss=False
+    no_wss=False,
 ):
     if check_type in ('all', 'openssl'):
         try:
             check_cert_openssl(
-                cert_path, key_path,
-                host='127.0.0.1', port=port, no_client=no_client
+                cert_path, key_path, host='127.0.0.1', port=port, no_client=no_client
             )
         except Exception as err:
             logger.exception('Cerificate/key pair is incorrect')
@@ -56,10 +55,7 @@ def check_cert(
 
     if check_type in ('skaled',):
         try:
-            check_cert_skaled(
-                cert_path, key_path,
-                host='127.0.0.1', port=port, no_wss=no_wss
-            )
+            check_cert_skaled(cert_path, key_path, host='127.0.0.1', port=port, no_wss=no_wss)
         except Exception as err:
             logger.exception('Certificate/key pair is incorrect for skaled')
             return 'error', f'Skaled ssl check failed. {err}'
@@ -73,12 +69,9 @@ def check_cert_openssl(
     host='127.0.0.1',
     port=DEFAULT_SSL_CHECK_PORT,
     no_client=False,
-    silent=False
+    silent=False,
 ):
-    with openssl_server(
-        host, port, cert_path,
-        key_path, silent=silent
-    ) as serv:
+    with openssl_server(host, port, cert_path, key_path, silent=silent) as serv:
         time.sleep(1)
         code = serv.poll()
         if code is not None:
@@ -90,9 +83,7 @@ def check_cert_openssl(
         # Connect to ssl server
         if not no_client:
             if not check_endpoint(host, port):
-                raise SSLHealthcheckError(
-                    f'Healthcheck port is closed on {host}:{port}'
-                )
+                raise SSLHealthcheckError(f'Healthcheck port is closed on {host}:{port}')
             check_ssl_connection(host, port, silent=silent)
             logger.info('Healthcheck connection passed')
 
@@ -100,28 +91,29 @@ def check_cert_openssl(
 @contextmanager
 def openssl_server(host, port, cert_path, key_path, silent=False):
     ssl_server_cmd = [
-        'openssl', 's_server',
-        '-cert', cert_path,
-        '-cert_chain', cert_path,
-        '-key', key_path,
+        'openssl',
+        's_server',
+        '-cert',
+        cert_path,
+        '-cert_chain',
+        cert_path,
+        '-key',
+        key_path,
         '-WWW',
-        '-accept', f'{host}:{port}',
-        '-verify_return_error', '-verify', '1'
+        '-accept',
+        f'{host}:{port}',
+        '-verify_return_error',
+        '-verify',
+        '1',
     ]
     logger.info(f'Staring healthcheck server on port {port} ...')
     expose_output = not silent
-    with detached_subprocess(
-        ssl_server_cmd, expose_output=expose_output
-    ) as dp:
+    with detached_subprocess(ssl_server_cmd, expose_output=expose_output) as dp:
         yield dp
 
 
 def check_cert_skaled(
-    cert_path,
-    key_path,
-    host='127.0.0.1',
-    port=DEFAULT_SSL_CHECK_PORT,
-    no_wss=False
+    cert_path, key_path, host='127.0.0.1', port=DEFAULT_SSL_CHECK_PORT, no_wss=False
 ):
     run_skaled_https_healthcheck(cert_path, key_path, host, port)
     if not no_wss:
@@ -129,17 +121,18 @@ def check_cert_skaled(
 
 
 def run_skaled_https_healthcheck(
-    cert_path,
-    key_path,
-    host='127.0.0.1',
-    port=DEFAULT_SSL_CHECK_PORT
+    cert_path, key_path, host='127.0.0.1', port=DEFAULT_SSL_CHECK_PORT
 ):
     skaled_https_check_cmd = [
         SKALED_SSL_TEST_SCRIPT,
-        '--ssl-cert', cert_path,
-        '--ssl-key', key_path,
-        '--bind', host,
-        '--port', str(port)
+        '--ssl-cert',
+        cert_path,
+        '--ssl-key',
+        key_path,
+        '--bind',
+        host,
+        '--port',
+        str(port),
     ]
     with detached_subprocess(skaled_https_check_cmd, expose_output=True) as dp:
         time.sleep(1)
@@ -148,24 +141,23 @@ def run_skaled_https_healthcheck(
             logger.info('Skaled https check server successfully started')
         else:
             logger.error('Skaled https check server was failed to start')
-            raise SSLHealthcheckError(
-                'Skaled https check was failed')
+            raise SSLHealthcheckError('Skaled https check was failed')
 
 
-def run_skaled_wss_healthcheck(
-    cert_path,
-    key_path,
-    host='127.0.0.1',
-    port=DEFAULT_SSL_CHECK_PORT
-):
+def run_skaled_wss_healthcheck(cert_path, key_path, host='127.0.0.1', port=DEFAULT_SSL_CHECK_PORT):
     skaled_wss_check_cmd = [
         SKALED_SSL_TEST_SCRIPT,
-        '--ssl-cert', cert_path,
-        '--ssl-key', key_path,
-        '--bind', host,
-        '--port', str(port),
-        '--proto', 'wss',
-        '--echo'
+        '--ssl-cert',
+        cert_path,
+        '--ssl-key',
+        key_path,
+        '--bind',
+        host,
+        '--port',
+        str(port),
+        '--proto',
+        'wss',
+        '--echo',
     ]
 
     with detached_subprocess(skaled_wss_check_cmd, expose_output=True) as dp:
@@ -173,8 +165,7 @@ def run_skaled_wss_healthcheck(
         code = dp.poll()
         if code is not None:
             logger.error('Skaled wss check server was failed to start')
-            raise SSLHealthcheckError(
-                'Skaled wss check was failed')
+            raise SSLHealthcheckError('Skaled wss check was failed')
         else:
             logger.info('Skaled wss check server successfully started')
 
@@ -196,9 +187,13 @@ def check_endpoint(host, port):
 def check_ssl_connection(host, port, silent=False):
     logger.info(f'Connecting to public ssl endpoint {host}:{port} ...')
     ssl_check_cmd = [
-        'openssl', 's_client',
-        '-connect', f'{host}:{port}',
-        '-verify_return_error', '-verify', '2'
+        'openssl',
+        's_client',
+        '-connect',
+        f'{host}:{port}',
+        '-verify_return_error',
+        '-verify',
+        '2',
     ]
     expose_output = not silent
     with detached_subprocess(ssl_check_cmd, expose_output=expose_output) as dp:

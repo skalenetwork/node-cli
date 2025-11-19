@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2021 SKALE Labs
+#   Copyright (C) 2025-Present SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -17,19 +17,28 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import click
 
-class NodeConfig:
-    def __init__(self, config_filepath, env_filepath=None):
-        pass
+from node_cli.fair.chain import get_chain_record, get_chain_checks
 
-    def load_env(self):
-        pass
 
-    def validate_env(self):
-        pass
+@click.group()
+def chain_cli():
+    pass
 
-    def load_config(self):
-        pass
 
-    def validate_config(self):
-        pass
+@chain_cli.group(help='Fair chain commands')
+def chain():
+    pass
+
+
+@chain.command('record', help='Get Fair chain record information')
+@click.option('--json', 'raw', is_flag=True, help='Output in JSON format')
+def chain_record(raw: bool) -> None:
+    get_chain_record(raw=raw)
+
+
+@chain.command('checks', help='Get Fair chain checks status')
+@click.option('--json', 'raw', is_flag=True, help='Output in JSON format')
+def chain_checks(raw: bool) -> None:
+    get_chain_checks(raw=raw)

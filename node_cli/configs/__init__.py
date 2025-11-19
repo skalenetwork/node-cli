@@ -19,13 +19,12 @@
 
 import os
 import sys
-from node_cli.utils.global_config import read_g_config
 
+from node_cli.utils.global_config import read_g_config
 
 GLOBAL_SKALE_DIR = os.getenv('GLOBAL_SKALE_DIR') or '/etc/skale'
 GLOBAL_SKALE_CONF_FILENAME = 'conf.json'
-GLOBAL_SKALE_CONF_FILEPATH = os.path.join(
-    GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILENAME)
+GLOBAL_SKALE_CONF_FILEPATH = os.path.join(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILENAME)
 GLOBAL_CONFIG = read_g_config(GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH)
 
 G_CONF_USER = GLOBAL_CONFIG['user']
@@ -35,7 +34,7 @@ SKALE_STATE_DIR = '/var/lib/skale'
 FILESTORAGE_MAPPING = os.path.join(SKALE_STATE_DIR, 'filestorage')
 SNAPSHOTS_SHARED_VOLUME = 'shared-space'
 SCHAINS_MNT_DIR_REGULAR = '/mnt'
-SCHAINS_MNT_DIR_SYNC = '/var/lib/skale/schains'
+SCHAINS_MNT_DIR_SINGLE_CHAIN = '/var/lib/skale/schains'
 VOLUME_GROUP = 'schains'
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
@@ -56,17 +55,18 @@ SKALE_RUN_DIR = '/var/run/skale'
 SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
-SYNC_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-sync.yml')
+PASSIVE_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-passive.yml')
+FAIR_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-fair.yml')
 STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml')
+FAIR_STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'fair_static_params.yaml')
 
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
 NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
-NGINX_CONTAINER_NAME = 'skale_nginx'
+NGINX_CONTAINER_NAME = 'sk_nginx'
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')
 REMOVED_CONTAINERS_FOLDER_NAME = '.removed_containers'
-REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(
-    LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
+REMOVED_CONTAINERS_FOLDER_PATH = os.path.join(LOG_PATH, REMOVED_CONTAINERS_FOLDER_NAME)
 
 ETH_STATE_PATH = os.path.join(NODE_DATA_PATH, 'eth-state')
 NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
@@ -105,7 +105,7 @@ HIDE_STREAM_LOG = os.getenv('HIDE_STREAM_LOG')
 
 def _get_env():
     try:
-        sys._MEIPASS
+        sys._MEIPASS  # type: ignore
     except AttributeError:
         return 'dev'
     return 'prod'
@@ -118,7 +118,7 @@ if ENV == 'dev':
     PARDIR = os.path.join(CURRENT_FILE_LOCATION, os.pardir)
     PROJECT_DIR = os.path.join(PARDIR, os.pardir)
 else:
-    PARDIR = os.path.join(sys._MEIPASS, 'data')
+    PARDIR = os.path.join(sys._MEIPASS, 'data')  # type: ignore
     PROJECT_DIR = PARDIR
 
 TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
@@ -140,16 +140,14 @@ BACKUP_ARCHIVE_NAME = 'skale-node-backup'
 
 TM_INIT_TIMEOUT = 20
 RESTORE_SLEEP_TIMEOUT = 20
-
-MANAGER_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'manager.json')
-IMA_CONTRACTS_FILEPATH = os.path.join(CONTRACTS_PATH, 'ima.json')
+INIT_TIMEOUT = 20
 
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
 
 SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
 DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'
 
-DOCKER_DEAMON_CONFIG_PATH = '/etc/docker/daemon.json'
+DOCKER_DAEMON_CONFIG_PATH = '/etc/docker/daemon.json'
 DOCKER_DAEMON_HOSTS = ('fd://', 'unix:///var/run/skale/docker.sock')
 DOCKER_SERVICE_CONFIG_DIR = '/etc/systemd/system/docker.service.d'
 DOCKER_SERVICE_CONFIG_PATH = '/etc/systemd/system/docker.service.d/no-host.conf'
@@ -172,3 +170,6 @@ NFTABLES_MAIN_CONFIG_PATH = '/etc/nftables.conf'
 
 UFW_CONFIG_PATH = '/etc/default/ufw'
 UFW_IPV6_BEFORE_INPUT_CHAIN = 'ufw6-before-input'
+
+REDIS_URI: str = os.getenv('REDIS_URI', 'redis://@127.0.0.1:6379')
+DEFAULT_SKALED_BASE_PORT: int = 10000

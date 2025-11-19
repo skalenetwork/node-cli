@@ -16,120 +16,39 @@
 #
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""SKALE config test"""
 
 import json
 import os
 import pathlib
 import shutil
+import tempfile
 from contextlib import contextmanager
 
 import docker
 import mock
 import pytest
-import yaml
+import redis
 
 from node_cli.configs import (
     CONTAINER_CONFIG_TMP_PATH,
     GLOBAL_SKALE_CONF_FILEPATH,
     GLOBAL_SKALE_DIR,
     META_FILEPATH,
+    NGINX_CONFIG_FILEPATH,
     NGINX_CONTAINER_NAME,
+    NODE_DATA_PATH,
+    REDIS_URI,
     REMOVED_CONTAINERS_FOLDER_PATH,
-    STATIC_PARAMS_FILEPATH,
     SCHAIN_NODE_DATA_PATH,
 )
 from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
-from node_cli.configs.ssl import SSL_FOLDER_PATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
+from node_cli.configs.ssl import SSL_FOLDER_PATH
+from node_cli.core.node_options import NodeOptions
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
-
-from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SYNC
-
-
-TEST_ENV_PARAMS = """
-mainnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 2000000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-testnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-testnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-qanet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 200000000000
-
-  packages:
-    docker: 1.1.3
-    docker-compose: 1.1.3
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-
-devnet:
-  server:
-    cpu_total: 4
-    cpu_physical: 4
-    memory: 32
-    swap: 16
-    disk: 80000000000
-
-  packages:
-    iptables-persistant: 1.1.3
-    lvm2: 1.1.1
-    docker-compose: 1.1.3
-
-  docker:
-    docker-api: 1.1.3
-    docker-engine: 1.1.3
-"""
-
-
-@pytest.fixture
-def net_params_file():
-    with open(STATIC_PARAMS_FILEPATH, 'w') as f:
-        yaml.dump(yaml.load(TEST_ENV_PARAMS, Loader=yaml.Loader), stream=f, Dumper=yaml.Dumper)
-    yield STATIC_PARAMS_FILEPATH
-    os.remove(STATIC_PARAMS_FILEPATH)
+from node_cli.utils.node_type import NodeMode
+from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
 
 @pytest.fixture()
@@ -202,7 +121,24 @@ def resource_alloc():
     with open(RESOURCE_ALLOCATION_FILEPATH, 'w') as alloc_file:
         json.dump({}, alloc_file)
     yield RESOURCE_ALLOCATION_FILEPATH
-    os.remove(RESOURCE_ALLOCATION_FILEPATH)
+    try:
+        os.remove(RESOURCE_ALLOCATION_FILEPATH)
+    except FileNotFoundError:
+        pass
+
+
+@pytest.fixture
+def inited_node():
+    path = pathlib.Path(NGINX_CONFIG_FILEPATH)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch()
+    try:
+        yield
+    finally:
+        try:
+            os.remove(NGINX_CONFIG_FILEPATH)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture
@@ -215,6 +151,46 @@ def ssl_folder():
         yield
     finally:
         shutil.rmtree(SSL_FOLDER_PATH)
+
+
+@pytest.fixture
+def active_node_option():
+    if os.path.isdir(NODE_DATA_PATH):
+        shutil.rmtree(NODE_DATA_PATH)
+    path = pathlib.Path(NODE_DATA_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.ACTIVE
+    try:
+        yield
+    finally:
+        try:
+            if os.path.isdir(NODE_OPTIONS_FILEPATH):
+                shutil.rmtree(NODE_OPTIONS_FILEPATH)
+            elif os.path.isfile(NODE_OPTIONS_FILEPATH):
+                os.remove(NODE_OPTIONS_FILEPATH)
+        except FileNotFoundError:
+            pass
+
+
+@pytest.fixture
+def passive_node_option():
+    if os.path.isdir(NODE_DATA_PATH):
+        shutil.rmtree(NODE_DATA_PATH)
+    path = pathlib.Path(NODE_DATA_PATH)
+    path.mkdir(parents=True, exist_ok=True)
+    node_options = NodeOptions()
+    node_options.node_mode = NodeMode.PASSIVE
+    try:
+        yield
+    finally:
+        try:
+            if os.path.isdir(NODE_OPTIONS_FILEPATH):
+                shutil.rmtree(NODE_OPTIONS_FILEPATH)
+            elif os.path.isfile(NODE_OPTIONS_FILEPATH):
+                os.remove(NODE_OPTIONS_FILEPATH)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture
@@ -268,7 +244,10 @@ def meta_file_v3():
     try:
         yield META_FILEPATH
     finally:
-        os.remove(META_FILEPATH)
+        try:
+            os.remove(META_FILEPATH)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture
@@ -299,12 +278,66 @@ def tmp_schains_dir():
 
 
 @pytest.fixture
-def tmp_sync_datadir():
-    os.makedirs(TEST_SCHAINS_MNT_DIR_SYNC, exist_ok=True)
+def tmp_passive_datadir():
+    os.makedirs(TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN, exist_ok=True)
     try:
-        yield TEST_SCHAINS_MNT_DIR_SYNC
+        yield TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
     finally:
-        shutil.rmtree(TEST_SCHAINS_MNT_DIR_SYNC)
+        shutil.rmtree(TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN)
+
+
+@pytest.fixture
+def valid_env_params():
+    return {
+        'ENDPOINT': 'http://localhost:8545',
+        'IMA_ENDPOINT': 'http://127.0.01',
+        'DB_USER': 'user',
+        'DB_PASSWORD': 'pass',
+        'DB_PORT': '3307',
+        'NODE_VERSION': 'master',
+        'FILEBEAT_HOST': '127.0.0.1:3010',
+        'SGX_SERVER_URL': 'http://127.0.0.1',
+        'BLOCK_DEVICE': '/dev/sss',
+        'DOCKER_LVMPY_VERSION': 'master',
+        'ENV_TYPE': 'devnet',
+        'SCHAIN_NAME': 'test',
+        'ENFORCE_BTRFS': 'False',
+        'MANAGER_CONTRACTS': 'test-manager',
+        'IMA_CONTRACTS': 'test-ima',
+    }
+
+
+@pytest.fixture
+def valid_env_file(valid_env_params):
+    file_name = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+            for key, value in valid_env_params.items():
+                f.write(f'{key}={value}\n')
+            file_name = f.name
+        yield file_name
+    finally:
+        if file_name:
+            os.unlink(file_name)
+
+
+@pytest.fixture
+def mock_chain_response():
+    return {
+        'jsonrpc': '2.0',
+        'id': 1,
+        'result': '0x1',
+    }
+
+
+@pytest.fixture
+def mock_networks_metadata():
+    return {
+        'networks': [
+            {'chainId': 1, 'name': 'Mainnet', 'path': 'mainnet'},
+            {'chainId': 2, 'name': 'Testnet', 'path': 'testnet'},
+        ]
+    }
 
 
 @contextmanager
@@ -318,3 +351,94 @@ def set_env_var(name, value):
             del os.environ[name]
         else:
             os.environ[name] = old_value
+
+
+@pytest.fixture
+def regular_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        NODE_VERSION='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        BLOCK_DEVICE=/dev/sss
+        DOCKER_LVMPY_VERSION='master'
+        ENV_TYPE='devnet'
+        MANAGER_CONTRACTS='test-manager'
+        IMA_CONTRACTS='test-ima'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def fair_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        BOOT_ENDPOINT=http://localhost:8545
+        NODE_VERSION='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        BLOCK_DEVICE=/dev/sss
+        ENV_TYPE='devnet'
+        ENFORCE_BTRFS=False
+        FAIR_CONTRACTS='test-fair'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def fair_boot_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        NODE_VERSION='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        SGX_SERVER_URL=http://127.0.0.1
+        BLOCK_DEVICE=/dev/sss
+        ENV_TYPE='devnet'
+        MANAGER_CONTRACTS='test-manager'
+        IMA_CONTRACTS='test-ima'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def passive_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        NODE_VERSION='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        BLOCK_DEVICE=/dev/sss
+        ENV_TYPE='devnet'
+        SCHAIN_NAME='test-schain'
+        ENFORCE_BTRFS=False
+        MANAGER_CONTRACTS='test-manager'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+
+
+@pytest.fixture
+def redis_client():
+    cpool = redis.ConnectionPool.from_url(REDIS_URI)
+    return redis.Redis(connection_pool=cpool)

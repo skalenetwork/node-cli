@@ -25,7 +25,7 @@ from node_cli.core.nftables import (
     LEGACY_TABLE,
     POLICY,
     NFTablesManager,
-    remove_legacy_saved_rules
+    remove_legacy_saved_rules,
 )
 from node_cli.utils.helper import run_cmd
 
@@ -39,7 +39,7 @@ ALLOWED_INCOMING_TCP_PORTS = [
     '443',  # https
     '53',  # dns
     '3009',  # watchdog http
-    '9100'  # node exporter
+    '9100',  # node exporter
 ]
 
 ALLOWED_INCOMING_UDP_PORTS = [

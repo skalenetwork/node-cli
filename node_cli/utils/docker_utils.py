@@ -19,45 +19,82 @@
 
 import io
 import itertools
-import os
 import logging
+import os
+import time
 from typing import Optional
 
 import docker
 from docker.client import DockerClient
+from docker.errors import NotFound
 from docker.models.containers import Container
 
-from node_cli.utils.helper import run_cmd, str_to_bool
 from node_cli.configs import (
     COMPOSE_PATH,
-    SYNC_COMPOSE_PATH,
+    FAIR_COMPOSE_PATH,
+    NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    NGINX_CONTAINER_NAME,
+    PASSIVE_COMPOSE_PATH,
 )
-
+from node_cli.core.node_options import active_fair, active_skale, passive_fair, passive_skale
+from node_cli.utils.helper import run_cmd, str_to_bool
+from node_cli.utils.node_type import NodeMode, NodeType
 
 logger = logging.getLogger(__name__)
 
 SCHAIN_REMOVE_TIMEOUT = 300
 IMA_REMOVE_TIMEOUT = 20
 TELEGRAF_REMOVE_TIMEOUT = 20
+REDIS_START_TIMEOUT = 10
 
-MAIN_COMPOSE_CONTAINERS = ('skale-api', 'bounty', 'skale-admin')
-BASE_COMPOSE_SERVICES = (
-    'transaction-manager',
-    'skale-admin',
-    'skale-api',
-    'bounty',
-    'nginx',
-    'redis',
-    'watchdog',
-    'filebeat',
-)
-MONITORING_COMPOSE_SERVICES = (
-    'node-exporter',
-    'advisor',
-)
+REDIS_SERVICE_DICT = {'redis': 'sk_redis'}
+
+CORE_COMMON_COMPOSE_SERVICES = {
+    'transaction-manager': 'sk_tm',
+    'redis': 'sk_redis',
+    'watchdog': 'sk_watchdog',
+    'nginx': 'sk_nginx',
+    'filebeat': 'sk_filebeat',
+}
+
+BASE_SKALE_COMPOSE_SERVICES = {
+    **CORE_COMMON_COMPOSE_SERVICES,
+    'admin': 'sk_admin',
+    'api': 'sk_api',
+    'bounty': 'sk_bounty',
+}
+
+BASE_FAIR_COMPOSE_SERVICES = {
+    **CORE_COMMON_COMPOSE_SERVICES,
+    'admin': 'sk_admin',
+    'api': 'sk_api',
+}
+
+BASE_FAIR_BOOT_COMPOSE_SERVICES = {
+    **CORE_COMMON_COMPOSE_SERVICES,
+    'boot-admin': 'sk_boot_admin',
+    'boot-api': 'sk_boot_api',
+}
+
+BASE_PASSIVE_COMPOSE_SERVICES = {
+    'admin': 'sk_admin',
+    'nginx': 'sk_nginx',
+}
+
+BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
+    'admin': 'sk_admin',
+    'api': 'sk_api',
+    'nginx': 'sk_nginx',
+    'watchdog': 'sk_watchdog',
+    'filebeat': 'sk_filebeat',
+    **REDIS_SERVICE_DICT,
+}
+
+MONITORING_COMPOSE_SERVICES = {
+    'node-exporter': 'monitor_node_exporter',
+    'advisor': 'monitor_cadvisor',
+}
 TELEGRAF_SERVICES = ('telegraf',)
 NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
@@ -83,11 +120,11 @@ def get_containers(container_name_filter=None, _all=True) -> list:
 
 
 def get_all_schain_containers(_all=True) -> list:
-    return docker_client().containers.list(all=_all, filters={'name': 'skale_schain_*'})
+    return docker_client().containers.list(all=_all, filters={'name': 'sk_skaled_*'})
 
 
 def get_all_ima_containers(_all=True) -> list:
-    return docker_client().containers.list(all=_all, filters={'name': 'skale_ima_*'})
+    return docker_client().containers.list(all=_all, filters={'name': 'sk_ima_*'})
 
 
 def remove_dynamic_containers() -> None:
@@ -133,7 +170,7 @@ def safe_rm(container: Container, timeout=DOCKER_DEFAULT_STOP_TIMEOUT, **kwargs)
     logger.info(f'Container removed: {container_name}')
 
 
-def stop_container(
+def stop_container_by_name(
     container_name: str,
     timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
     dclient: Optional[DockerClient] = None,
@@ -144,7 +181,7 @@ def stop_container(
     container.stop(timeout=timeout)
 
 
-def rm_container(
+def remove_container_by_name(
     container_name: str,
     timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
     dclient: Optional[DockerClient] = None,
@@ -153,19 +190,21 @@ def rm_container(
     container_names = [container.name for container in get_containers()]
     if container_name in container_names:
         container = dc.containers.get(container_name)
-        safe_rm(container)
+        safe_rm(container, timeout=timeout)
 
 
-def start_container(container_name: str, dclient: Optional[DockerClient] = None) -> None:
+def start_container_by_name(container_name: str, dclient: Optional[DockerClient] = None) -> None:
     dc = dclient or docker_client()
     container = dc.containers.get(container_name)
     logger.info('Starting container %s', container_name)
     container.start()
 
 
-def remove_schain_container(schain_name: str, dclient: Optional[DockerClient] = None) -> None:
-    container_name = f'skale_schain_{schain_name}'
-    rm_container(container_name, timeout=SCHAIN_REMOVE_TIMEOUT, dclient=dclient)
+def remove_schain_container_by_name(
+    schain_name: str, dclient: Optional[DockerClient] = None
+) -> None:
+    container_name = f'sk_skaled_{schain_name}'
+    remove_container_by_name(container_name, timeout=SCHAIN_REMOVE_TIMEOUT, dclient=dclient)
 
 
 def backup_container_logs(
@@ -220,14 +259,14 @@ def is_volume_exists(name: str, dutils=None):
     dutils = dutils or docker_client()
     try:
         dutils.volumes.get(name)
-    except docker.errors.NotFound:
+    except NotFound:
         return False
     return True
 
 
-def compose_rm(env={}, sync_node: bool = False):
+def compose_rm(node_type: NodeType, node_mode: NodeMode, env={}):
     logger.info('Removing compose containers')
-    compose_path = get_compose_path(sync_node)
+    compose_path = get_compose_path(node_type, node_mode)
     run_cmd(
         cmd=(
             'docker',
@@ -243,49 +282,111 @@ def compose_rm(env={}, sync_node: bool = False):
     logger.info('Compose containers removed')
 
 
-def compose_pull(env: dict, sync_node: bool = False):
+def compose_pull(env: dict, node_type: NodeType, node_mode: NodeMode):
     logger.info('Pulling compose containers')
-    compose_path = get_compose_path(sync_node)
+    compose_path = get_compose_path(node_type, node_mode)
     run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'pull'), env=env)
 
 
-def compose_build(env: dict, sync_node: bool = False):
+def compose_build(env: dict, node_type: NodeType, node_mode: NodeMode):
     logger.info('Building compose containers')
-    compose_path = get_compose_path(sync_node)
+    compose_path = get_compose_path(node_type, node_mode)
     run_cmd(cmd=('docker', 'compose', '-f', compose_path, 'build'), env=env)
 
 
-def get_up_compose_cmd(services):
-    return ('docker', 'compose', '-f', COMPOSE_PATH, 'up', '-d', *services)
+def get_compose_path(node_type: NodeType, node_mode: NodeMode) -> str:
+    if passive_skale(node_type, node_mode):
+        return PASSIVE_COMPOSE_PATH
+    elif active_fair(node_type, node_mode) or passive_fair(node_type, node_mode):
+        return FAIR_COMPOSE_PATH
+    return COMPOSE_PATH
 
 
-def get_up_compose_sync_cmd():
-    return ('docker', 'compose', '-f', SYNC_COMPOSE_PATH, 'up', '-d')
+def get_compose_services(node_type: NodeType, node_mode: NodeMode) -> list[str]:
+    if passive_skale(node_type, node_mode):
+        return list(BASE_PASSIVE_COMPOSE_SERVICES)
+    elif active_fair(node_type, node_mode):
+        return list(BASE_FAIR_COMPOSE_SERVICES)
+    elif passive_fair(node_type, node_mode):
+        return list(BASE_PASSIVE_FAIR_COMPOSE_SERVICES)
+    return list(BASE_SKALE_COMPOSE_SERVICES)
 
 
-def get_compose_path(sync_node: bool) -> str:
-    return SYNC_COMPOSE_PATH if sync_node else COMPOSE_PATH
+def get_up_compose_cmd(
+    node_type: NodeType, node_mode: NodeMode, services: list[str] | None = None
+) -> tuple:
+    compose_path = get_compose_path(node_type, node_mode)
+
+    if services is None:
+        services = get_compose_services(node_type, node_mode)
+
+    return ('docker', 'compose', '-f', compose_path, 'up', '-d', *services)
 
 
-def compose_up(env, sync_node=False):
-    if sync_node:
-        logger.info('Running containers for sync node')
-        run_cmd(cmd=get_up_compose_sync_cmd(), env=env)
+def compose_up(
+    env,
+    node_type: NodeType,
+    node_mode: NodeMode,
+    is_fair_boot: bool = False,
+    services: list[str] | None = None,
+):
+    env['PASSIVE_NODE'] = str(node_mode == NodeMode.PASSIVE)
+    if passive_skale(node_type, node_mode) or passive_fair(node_type, node_mode):
+        logger.info('Running containers for passive node')
+        run_cmd(cmd=get_up_compose_cmd(node_type=node_type, node_mode=node_mode), env=env)
         return
-
-    logger.info('Running base set of containers')
 
     if 'SGX_CERTIFICATES_DIR_NAME' not in env:
         env['SGX_CERTIFICATES_DIR_NAME'] = SGX_CERTIFICATES_DIR_NAME
 
-    logger.debug('Launching containers with env %s', env)
-    run_cmd(cmd=get_up_compose_cmd(BASE_COMPOSE_SERVICES), env=env)
+    if active_fair(node_type, node_mode):
+        logger.info('Running fair base set of containers')
+        if is_fair_boot:
+            logger.debug('Launching fair boot containers with env %s', env)
+            run_cmd(
+                cmd=get_up_compose_cmd(
+                    node_type=node_type,
+                    node_mode=node_mode,
+                    services=list(BASE_FAIR_BOOT_COMPOSE_SERVICES),
+                ),
+                env=env,
+            )
+        else:
+            logger.debug('Launching fair containers with env %s', env)
+            run_cmd(
+                cmd=get_up_compose_cmd(
+                    node_type=node_type,
+                    node_mode=node_mode,
+                    services=services,
+                ),
+                env=env,
+            )
+    elif active_skale(node_type, node_mode):
+        logger.info('Running skale node base set of containers')
+        logger.debug('Launching skale node containers with env %s', env)
+        run_cmd(cmd=get_up_compose_cmd(node_type=node_type, node_mode=node_mode), env=env)
+
+        if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
+            logger.info('Running containers for Telegram notifications')
+            run_cmd(
+                cmd=get_up_compose_cmd(
+                    node_type=NodeType.SKALE,
+                    node_mode=node_mode,
+                    services=list(NOTIFICATION_COMPOSE_SERVICES),
+                ),
+                env=env,
+            )
+
     if str_to_bool(env.get('MONITORING_CONTAINERS', 'False')):
         logger.info('Running monitoring containers')
-        run_cmd(cmd=get_up_compose_cmd(MONITORING_COMPOSE_SERVICES), env=env)
-    if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
-        logger.info('Running containers for Telegram notifications')
-        run_cmd(cmd=get_up_compose_cmd(NOTIFICATION_COMPOSE_SERVICES), env=env)
+        run_cmd(
+            cmd=get_up_compose_cmd(
+                node_type=NodeType.SKALE,
+                node_mode=node_mode,
+                services=list(MONITORING_COMPOSE_SERVICES),
+            ),
+            env=env,
+        )
 
 
 def restart_nginx_container(dutils=None):
@@ -318,20 +419,16 @@ def is_container_running(name: str, dclient: Optional[DockerClient] = None) -> b
     try:
         container = dc.containers.get(name)
         return container.status == 'running'
-    except docker.errors.NotFound:
+    except NotFound:
         return False
 
 
-def is_admin_running(dclient: Optional[DockerClient] = None) -> bool:
-    return is_container_running(name='skale_admin', dclient=dclient)
-
-
 def is_api_running(dclient: Optional[DockerClient] = None) -> bool:
-    return is_container_running(name='skale_api', dclient=dclient)
+    return is_container_running(name='sk_api', dclient=dclient)
 
 
-def is_sync_admin_running(dclient: Optional[DockerClient] = None) -> bool:
-    return is_container_running(name='skale_sync_admin', dclient=dclient)
+def is_admin_running(dclient: Optional[DockerClient] = None) -> bool:
+    return is_container_running(name='sk_admin', dclient=dclient)
 
 
 def system_prune():
@@ -348,3 +445,19 @@ def docker_cleanup(dclient=None, ignore=None):
         system_prune()
     except Exception as e:
         logger.warning('Image cleanup errored with %s', e)
+
+
+def wait_for_container(container_name: str, attempts: int = 10, interval: int = 3) -> bool:
+    logger.info('Waiting for container %s to be up', container_name)
+    dc = docker_client()
+
+    for i in range(attempts):
+        try:
+            container = dc.containers.get(container_name)
+            if container.status == 'running':
+                logger.info('Container %s is up', container_name)
+                return True
+        except NotFound:
+            logger.warning('Container %s not found, retrying...', container_name)
+        time.sleep(interval)
+    return False

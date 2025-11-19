@@ -30,8 +30,9 @@ from node_cli.core.schains import (
     show_config,
     show_dkg_info,
     show_schains,
-    toggle_schain_repair_mode
+    toggle_schain_repair_mode,
 )
+from node_cli.cli.info import TYPE
 
 
 @click.group()
@@ -39,17 +40,13 @@ def schains_cli() -> None:
     pass
 
 
-@schains_cli.group('schains', help="Node sChains commands")
+@schains_cli.group('schains', help='Node sChains commands')
 def schains() -> None:
     pass
 
 
-@schains.command(help="List of sChains served by connected node")
-@click.option(
-    '-n', '--names',
-    help='Shows only chain names',
-    is_flag=True
-)
+@schains.command(help='List of sChains served by connected node')
+@click.option('-n', '--names', help='Shows only chain names', is_flag=True)
 def ls(names: bool) -> None:
     if names:
         schains: str = get_schains_by_artifacts()
@@ -58,17 +55,13 @@ def ls(names: bool) -> None:
         show_schains()
 
 
-@schains.command(help="DKG statuses for each sChain on the node")
-@click.option(
-    '--all', '-a', 'all_',
-    help='Shows active and deleted sChains',
-    is_flag=True
-)
+@schains.command(help='DKG statuses for each sChain on the node')
+@click.option('--all', '-a', 'all_', help='Shows active and deleted sChains', is_flag=True)
 def dkg(all_: bool) -> None:
     show_dkg_info(all_)
 
 
-@schains.command('config', help="sChain config")
+@schains.command('config', help='sChain config')
 @click.argument('schain_name')
 def get_schain_config(schain_name: str) -> None:
     show_config(schain_name)
@@ -82,15 +75,19 @@ def show_rules(schain_name: str) -> None:
 
 @schains.command('repair', help='Toggle schain repair mode')
 @click.argument('schain_name')
-@click.option('--yes', is_flag=True, callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure? Repair mode may corrupt working SKALE chain data.')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure? Repair mode may corrupt working SKALE chain data.',
+)
 @click.option(
     '--snapshot-from',
     type=URL_TYPE,
     default=None,
     hidden=True,
-    help='Ip of the node from to download snapshot from'
+    help='Ip of the node from to download snapshot from',
 )
 def repair(schain_name: str, snapshot_from: Optional[str] = None) -> None:
     toggle_schain_repair_mode(schain_name, snapshot_from=snapshot_from)
@@ -98,12 +95,7 @@ def repair(schain_name: str, snapshot_from: Optional[str] = None) -> None:
 
 @schains.command('info', help='Show info about schain')
 @click.argument('schain_name')
-@click.option(
-    '--json',
-    'json_format',
-    help='Show info in JSON format',
-    is_flag=True
-)
+@click.option('--json', 'json_format', help='Show info in JSON format', is_flag=True)
 def info_(schain_name: str, json_format: bool) -> None:
     describe(schain_name, raw=json_format)
 
@@ -114,9 +106,6 @@ def info_(schain_name: str, json_format: bool) -> None:
 @click.option('--schain-type', default='medium')
 @click.option('--env-type', default=None)
 def restore(
-    schain_name: str,
-    snapshot_path: str,
-    schain_type: str,
-    env_type: Optional[str]
+    schain_name: str, snapshot_path: str, schain_type: str, env_type: Optional[str]
 ) -> None:
-    restore_schain_from_snapshot(schain_name, snapshot_path)
+    restore_schain_from_snapshot(schain_name, snapshot_path, node_type=TYPE)

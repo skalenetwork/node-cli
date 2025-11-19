@@ -21,7 +21,8 @@ import click
 from terminaltables import SingleTable
 
 from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.utils.helper import safe_load_texts, error_exit
+from node_cli.utils.helper import error_exit
+from node_cli.utils.texts import safe_load_texts
 from node_cli.configs.ssl import DEFAULT_SSL_CHECK_PORT, SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
 from node_cli.core.ssl import check_cert, upload_cert, cert_status
 
@@ -35,12 +36,12 @@ def ssl_cli():
     pass
 
 
-@ssl_cli.group('ssl', help="sChains SSL commands")
+@ssl_cli.group('ssl', help='sChains SSL commands')
 def ssl():
     pass
 
 
-@ssl.command(help="Status of the SSL certificates on the node")
+@ssl.command(help='Status of the SSL certificates on the node')
 def status():
     status, payload = cert_status()
     if status == 'ok':
@@ -49,7 +50,7 @@ def status():
         else:
             table_data = [
                 ['Issued to', payload['issued_to']],
-                ['Expiration date', payload['expiration_date']]
+                ['Expiration date', payload['expiration_date']],
             ]
             table = SingleTable(table_data)
             print('SSL certificates status:')
@@ -58,69 +59,46 @@ def status():
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
-@ssl.command(help="Upload new SSL certificates")
+@ssl.command(help='Upload new SSL certificates')
+@click.option('--key-path', '-k', prompt='Enter path to the key file', help='Path to the key file')
 @click.option(
-    '--key-path', '-k',
-    prompt="Enter path to the key file",
-    help='Path to the key file'
+    '--cert-path',
+    '-c',
+    prompt='Enter path to the certificate file',
+    help='Path to the certificate file',
 )
-@click.option(
-    '--cert-path', '-c',
-    prompt="Enter path to the certificate file",
-    help='Path to the certificate file'
-)
-@click.option('--force', '-f', is_flag=True,
-              help='Overwrite existing certificates')
+@click.option('--force', '-f', is_flag=True, help='Overwrite existing certificates')
 def upload(key_path, cert_path, force):
     status, payload = upload_cert(cert_path, key_path, force)
     if status == 'ok':
         print(TEXTS['ssl']['uploaded'])
     else:
-        error_exit(payload, exit_code=CLIExitCodes.FAILURE)
+        error_exit(payload)
 
 
-@ssl.command(help="Check certificates")
+@ssl.command(help='Check certificates')
+@click.option('--key-path', '-k', help='Path to the key file', default=SSL_KEY_FILEPATH)
+@click.option('--cert-path', '-c', help='Path to the certificate file', default=SSL_CERT_FILEPATH)
 @click.option(
-    '--key-path', '-k',
-    help='Path to the key file',
-    default=SSL_KEY_FILEPATH
-)
-@click.option(
-    '--cert-path', '-c',
-    help='Path to the certificate file',
-    default=SSL_CERT_FILEPATH
-)
-@click.option(
-    '--port', '-p',
-    help='Port to start ssl healtcheck server',
+    '--port',
+    '-p',
+    help='Port to start ssl healthcheck server',
     type=int,
-    default=DEFAULT_SSL_CHECK_PORT
+    default=DEFAULT_SSL_CHECK_PORT,
 )
 @click.option(
-    '--type', '-t',
+    '--type',
+    '-t',
     'type_',
     help='Check type',
     type=click.Choice(['all', 'openssl', 'skaled']),
-    default='all'
+    default='all',
 )
-@click.option(
-    '--no-client',
-    is_flag=True,
-    help='Skip client connection for openssl check'
-)
-@click.option(
-    '--no-wss',
-    is_flag=True,
-    help='Skip wss server starting for skaled check'
-)
+@click.option('--no-client', is_flag=True, help='Skip client connection for openssl check')
+@click.option('--no-wss', is_flag=True, help='Skip wss server starting for skaled check')
 def check(key_path, cert_path, port, no_client, type_, no_wss):
     status, payload = check_cert(
-        cert_path,
-        key_path,
-        port=port,
-        check_type=type_,
-        no_client=no_client,
-        no_wss=no_wss
+        cert_path, key_path, port=port, check_type=type_, no_client=no_client, no_wss=no_wss
     )
     if status == 'ok':
         print(TEXTS['ssl']['check_passed'])

@@ -18,11 +18,13 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import logging
 
-from node_cli.utils.print_formatters import print_wallet_info, TEXTS
-from node_cli.utils.helper import error_exit, get_request, post_request, logger
 from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.helper import error_exit, get_request, post_request
+from node_cli.utils.print_formatters import TEXTS, print_fair_wallet_info, print_wallet_info
 
+logger = logging.getLogger(__name__)
 
 BLUEPRINT_NAME = 'wallet'
 
@@ -33,16 +35,19 @@ def get_wallet_info(_format):
         if _format == 'json':
             print(json.dumps(payload))
         else:
-            print_wallet_info(payload)
+            if type(payload) is str:
+                print(payload)
+            elif type(payload) is dict:
+                if payload.get('skale_balance'):
+                    print_wallet_info(payload)
+                else:
+                    print_fair_wallet_info(payload)
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def send_eth(address: str, amount: float):
-    json_data = {
-        'address': address,
-        'amount': amount
-    }
+    json_data = {'address': address, 'amount': amount}
     status, payload = post_request(BLUEPRINT_NAME, 'send-eth', json=json_data)
     if status == 'ok':
         msg = TEXTS['wallet']['successful_transfer']
