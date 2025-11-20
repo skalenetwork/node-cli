@@ -7,7 +7,7 @@ name = "node-cli"
 version = "3.2.0"
 description = "Node CLI tools"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = { file = "LICENSE" }
 keywords = ["skale", "cli"]
 authors = [
@@ -18,7 +18,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU Affero General Public License v3",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
 ]
 
 dependencies = [
@@ -73,4 +73,4 @@ exclude = ["tests"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py313"
