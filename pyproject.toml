@@ -48,6 +48,9 @@ dependencies = [
   "redis==6.2.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/skalenetwork/node-cli"
+
 [project.optional-dependencies]
 dev = [
   "ruff==0.14.0",
