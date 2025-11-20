@@ -9,9 +9,16 @@ description = "Node CLI tools"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
-
+keywords = ["skale", "cli"]
 authors = [
   { name = "SKALE Labs", email = "support@skalelabs.com" }
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.11",
 ]
 
 dependencies = [
