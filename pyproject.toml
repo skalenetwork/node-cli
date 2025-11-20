@@ -68,6 +68,7 @@ package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
 where = ["."]
+exclude = ["tests"]
 
 [tool.ruff]
 line-length = 100
