@@ -1,4 +1,4 @@
-FROM python:3.11-bookworm
+FROM python:3.13-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt install -y \
@@ -10,8 +10,8 @@ RUN apt-get update && apt install -y \
     libffi-dev \
     swig \
     iptables \
-    nftables \ 
-    python3-nftables \ 
+    nftables \
+    python3-nftables \
     libxslt-dev \
     kmod
 
