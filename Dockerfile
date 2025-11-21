@@ -17,7 +17,8 @@ RUN apt-get update && \
     nftables \
     python3-nftables \
     kmod \
-    wget && \
+    wget \
+    binutils && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
