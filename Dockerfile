@@ -25,5 +25,5 @@ ENV PATH=/app/buildvenv/bin:$PATH
 ENV PYTHONPATH="{PYTHONPATH}:/usr/lib/python3/dist-packages"
 
 RUN pip install --upgrade pip && \
-    pip install wheel setuptools==63.2.0 && \
+    pip install wheel setuptools==80.9.0 && \
     pip install -e '.[dev]' 
