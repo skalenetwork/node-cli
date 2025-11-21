@@ -54,9 +54,20 @@ TEXTS = safe_load_texts()
 logger = logging.getLogger(__name__)
 
 
-@click.group()
-def cli():
-    pass
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+    if ctx.invoked_subcommand is None:
+        print(ctx.get_help())
+        ctx.exit(0)
+
+    start_time = time.time()
+    init_logs_dir()
+    init_default_logger()
+    args = sys.argv
+    # todo: hide secret variables (passwords, private keys)
+    logger.debug(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
+    ctx.call_on_close(lambda: logger.debug('Execution time: %d seconds', time.time() - start_time))
 
 
 @cli.command('version', help='Show SKALE node CLI version')
@@ -84,10 +95,9 @@ def info():
     )
 
 
-def get_sources_list() -> List[click.MultiCommand]:
+def get_command_groups() -> List[click.Group]:
     if TYPE == NodeType.FAIR:
         return [
-            cli,
             logs_cli,
             fair_boot_cli,
             fair_node_cli,
@@ -99,7 +109,6 @@ def get_sources_list() -> List[click.MultiCommand]:
         ]
     else:
         return [
-            cli,
             health_cli,
             schains_cli,
             logs_cli,
@@ -122,19 +131,12 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 if __name__ == '__main__':
-    start_time = time.time()
-    init_logs_dir()
-    init_default_logger()
-    args = sys.argv
-    # todo: hide secret variables (passwords, private keys)
-    logger.debug(f'cmd: {" ".join(str(x) for x in args)}, v.{__version__}')
-    sources = get_sources_list()
-    cmd_collection = click.CommandCollection(sources=sources)
+    for group in get_command_groups():
+        for cmd_name, cmd_obj in group.commands.items():
+            cli.add_command(cmd_obj, cmd_name)
 
     try:
-        cmd_collection()
+        cli()
     except Exception as err:
         traceback.print_exc()
-        logger.debug('Execution time: %d seconds', time.time() - start_time)
         error_exit(err)
-    logger.debug('Execution time: %d seconds', time.time() - start_time)
