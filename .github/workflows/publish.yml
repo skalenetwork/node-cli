@@ -5,6 +5,7 @@ on:
     types: [closed]
     branches:
       - develop
+      - migrate-to-pyproject
       - beta
       - stable
       - 'v*.*.*'
