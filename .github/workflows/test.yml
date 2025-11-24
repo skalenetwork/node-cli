@@ -20,6 +20,15 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    - name: Cache uv
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/uv
+        key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+
     - name: Install ubuntu dependencies
       run: |
         sudo apt-get update
@@ -27,8 +36,7 @@ jobs:
 
     - name: Install python dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+        uv pip install -e ".[dev]"
 
     - name: Generate info
       run: bash ./scripts/generate_info.sh 1.0.0 my-branch skale
