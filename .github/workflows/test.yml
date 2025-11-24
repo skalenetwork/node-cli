@@ -36,6 +36,7 @@ jobs:
 
     - name: Install python dependencies
       run: |
+        uv venv
         uv pip install -e ".[dev]"
 
     - name: Generate info
@@ -43,7 +44,7 @@ jobs:
 
     - name: Check with ruff
       run: |
-        ruff check
+        uv run ruff check
 
     - name: Build binary - skale
       run: |
@@ -76,8 +77,8 @@ jobs:
     - name: Run tests
       run: |
         export PYTHONPATH=${PYTHONPATH}:/usr/lib/python3/dist-packages/
-        bash ./scripts/run_tests.sh
+        uv run bash ./scripts/run_tests.sh
 
     - name: Run nftables tests
       run: |
-        scripts/run_nftables_test.sh
+        uv run scripts/run_nftables_test.sh
