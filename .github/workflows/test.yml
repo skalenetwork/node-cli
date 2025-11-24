@@ -68,7 +68,7 @@ jobs:
 
     - name: Run prepare test build
       run: |
-        bash scripts/build.sh test test skale
+        uv run bash scripts/build.sh test test skale
 
     - name: Run redis
       run: |
