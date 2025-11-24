@@ -79,10 +79,10 @@ jobs:
         with:
           submodules: true 
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.13
         uses: actions/setup-python@v5 
         with:
-          python-version: 3.11
+          python-version: 3.13
 
       - name: Install ubuntu dependencies
         if: matrix.os == 'ubuntu-22.04'
