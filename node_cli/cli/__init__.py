@@ -1,9 +1,6 @@
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import version
 
-try:
-    __version__ = version("node-cli")
-except PackageNotFoundError:
-    __version__ = "0.0.0-dev"
+__version__ = version("node-cli")
 
 if __name__ == '__main__':
     print(__version__)
