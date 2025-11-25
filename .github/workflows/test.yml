@@ -46,10 +46,12 @@ jobs:
       run: |
         uv run ruff check
 
+    - name: Build docker image
+      run: docker build . -t node-cli-builder
+
     - name: Build binary - skale
       run: |
         mkdir -p ./dist
-        docker build . -t node-cli-builder
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test skale
         docker rm -f $(docker ps -aq)
 
@@ -59,7 +61,6 @@ jobs:
     - name: Build binary - fair
       run: |
         mkdir -p ./dist
-        docker build . -t node-cli-builder
         docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test fair
         docker rm -f $(docker ps -aq)
 
