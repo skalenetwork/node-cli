@@ -1,11 +1,10 @@
-name: Build and Publish
+name: Build and publish
 
 on:
   pull_request:
     types: [closed]
     branches:
       - develop
-      - migrate-to-pyproject
       - beta
       - stable
       - 'v*.*.*'
@@ -13,7 +12,7 @@ on:
 jobs:
   build_and_release:
     if: github.event.pull_request.merged
-    name: Build and Create Release
+    name: Build and create release
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -28,12 +27,12 @@ jobs:
         with:
           python-version: 3.13
 
-      - name: Calculate Version
+      - name: Calculate version
         id: versioning
         run: |
           bash ./scripts/set_versions_ga.sh
           
-      - name: Determine Prerelease status
+      - name: Determine prerelease status
         id: release_info
         run: |
           if [[ "${{ env.BRANCH }}" == "stable" ]]; then
@@ -65,7 +64,7 @@ jobs:
           echo "Checksums generated:"
           ls -l *.sha512
 
-      - name: Create GitHub Release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
