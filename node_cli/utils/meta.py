@@ -26,7 +26,7 @@ class CliMetaBase(abc.ABC):
 
 @dataclass
 class CliMeta(CliMetaBase):
-    docker_lvmpy_version: str = DEFAULT_DOCKER_LVMPY_VERSION
+    docker_lvmpy_version: str | None = DEFAULT_DOCKER_LVMPY_VERSION
 
     def asdict(self) -> dict:
         return {
