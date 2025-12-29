@@ -17,8 +17,6 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import distutils
-import distutils.util
 import ipaddress
 import json
 import logging
@@ -145,8 +143,14 @@ def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
-def str_to_bool(val):
-    return bool(distutils.util.strtobool(val))
+def str_to_bool(val: str) -> bool:
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f'Invalid truth value {val!r}')
 
 
 def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> NoReturn:
