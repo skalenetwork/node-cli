@@ -343,7 +343,7 @@ def update_passive(env_filepath: str, env: Dict) -> bool:
     meta_manager.update_meta(
         VERSION,
         env['NODE_VERSION'],
-        env['DOCKER_LVMPY_VERSION'],
+        None,
         distro.id(),
         distro.version(),
     )
