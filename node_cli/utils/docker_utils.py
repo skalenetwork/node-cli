@@ -35,7 +35,6 @@ from node_cli.configs import (
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    PASSIVE_COMPOSE_PATH,
 )
 from node_cli.core.node_options import active_fair, active_skale, passive_fair, passive_skale
 from node_cli.utils.helper import run_cmd, str_to_bool
@@ -292,9 +291,7 @@ def compose_build(env: dict, node_type: NodeType, node_mode: NodeMode):
 
 
 def get_compose_path(node_type: NodeType, node_mode: NodeMode) -> str:
-    if passive_skale(node_type, node_mode):
-        return PASSIVE_COMPOSE_PATH
-    elif active_fair(node_type, node_mode) or passive_fair(node_type, node_mode):
+    if node_type == NodeType.FAIR:
         return FAIR_COMPOSE_PATH
     return COMPOSE_PATH
 
