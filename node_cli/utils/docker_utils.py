@@ -76,7 +76,13 @@ BASE_FAIR_BOOT_COMPOSE_SERVICES = {
     'boot-api': 'sk_boot_api',
 }
 
-BASE_PASSIVE_COMPOSE_SERVICES = {'admin': 'sk_admin', 'nginx': 'sk_nginx', **REDIS_SERVICE_DICT}
+BASE_PASSIVE_COMPOSE_SERVICES = {
+    'admin': 'sk_admin',
+    'nginx': 'sk_nginx',
+    'api': 'sk_api',
+    'watchdog': 'sk_watchdog',
+    **REDIS_SERVICE_DICT,
+}
 
 BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
     'admin': 'sk_admin',
