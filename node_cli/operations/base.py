@@ -291,6 +291,16 @@ def init_passive(
         env_filepath,
         env_type=env['ENV_TYPE'],
     )
+    failed_checks = run_host_checks(
+        env['BLOCK_DEVICE'],
+        TYPE,
+        NodeMode.PASSIVE,
+        env['ENV_TYPE'],
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.PREINSTALL
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
 
     set_passive_node_options(archive=archive, indexer=indexer)
 
