@@ -349,6 +349,17 @@ def update_passive(env_filepath: str, env: Dict) -> bool:
 
     prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
 
+    failed_checks = run_host_checks(
+        env['BLOCK_DEVICE'],
+        TYPE,
+        NodeMode.PASSIVE,
+        env['ENV_TYPE'],
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.PREINSTALL
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+
     meta_manager = CliMetaManager()
     meta_manager.update_meta(
         VERSION,
