@@ -160,48 +160,6 @@ def update(env_filepath: str, env: Dict, node_mode: NodeMode) -> bool:
 
 
 @checked_host
-def update_fair_boot(env_filepath: str, env: Dict, node_mode: NodeMode = NodeMode.ACTIVE) -> bool:
-    compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=env)
-    remove_dynamic_containers()
-    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
-
-    sync_skale_node()
-    ensure_btrfs_kernel_module_autoloaded()
-
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
-        configure_docker()
-
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
-
-    generate_nginx_config()
-    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
-
-    prepare_host(env_filepath, env['ENV_TYPE'])
-
-    meta_manager = FairCliMetaManager()
-    current_stream = meta_manager.get_meta_info().config_stream
-    skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['NODE_VERSION']:
-        logger.info(
-            'Stream version was changed from %s to %s',
-            current_stream,
-            env['NODE_VERSION'],
-        )
-        docker_cleanup()
-
-    meta_manager.update_meta(
-        VERSION,
-        env['NODE_VERSION'],
-        distro.id(),
-        distro.version(),
-    )
-    update_images(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
-    compose_up(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True)
-    return True
-
-
-@checked_host
 def init(env_filepath: str, env: dict, node_mode: NodeMode) -> None:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
@@ -234,39 +192,6 @@ def init(env_filepath: str, env: dict, node_mode: NodeMode) -> None:
     update_resource_allocation(env_type=env['ENV_TYPE'])
     update_images(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
     compose_up(env=env, node_type=NodeType.SKALE, node_mode=node_mode)
-
-
-@checked_host
-def init_fair_boot(env_filepath: str, env: dict, node_mode: NodeMode = NodeMode.ACTIVE) -> None:
-    sync_skale_node()
-    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
-
-    ensure_btrfs_kernel_module_autoloaded()
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
-        configure_docker()
-
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
-
-    prepare_host(env_filepath, env_type=env['ENV_TYPE'])
-    link_env_file()
-    mark_active_node()
-
-    configure_filebeat()
-    configure_flask()
-    generate_nginx_config()
-    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
-
-    meta_manager = FairCliMetaManager()
-    meta_manager.update_meta(
-        VERSION,
-        env['NODE_VERSION'],
-        distro.id(),
-        distro.version(),
-    )
-    update_images(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
-
-    compose_up(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True)
 
 
 def init_passive(
