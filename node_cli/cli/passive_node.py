@@ -69,7 +69,7 @@ def _init_passive(
 @click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
 @click.argument('env_file')
 @streamed_cmd
-def _update_passive(env_file, unsafe_ok):
+def _update_passive(env_file):
     update_passive(env_file)
 
 
