@@ -66,7 +66,6 @@ def _init_passive(
     expose_value=False,
     prompt='Are you sure you want to update SKALE node software?',
 )
-@click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
 @click.argument('env_file')
 @streamed_cmd
 def _update_passive(env_file):
