@@ -94,7 +94,6 @@ from node_cli.utils.texts import safe_load_texts
 logger = logging.getLogger(__name__)
 TEXTS = safe_load_texts()
 
-BASE_CONTAINERS_AMOUNT = 5
 BLUEPRINT_NAME = 'node'
 
 
