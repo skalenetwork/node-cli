@@ -42,7 +42,7 @@ def create_logs_dump(path, filter_container=None):
     if filter_container:
         containers = get_containers(filter_container)
     else:
-        containers = get_containers('skale')
+        containers = get_containers('sk_*')
 
     for container in containers:
         log_filepath = os.path.join(containers_logs_path, f'{container.name}.log')
