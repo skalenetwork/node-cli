@@ -529,7 +529,6 @@ class NFTablesManager:
 
     def get_base_ruleset(self) -> str:
         self.nft.set_json_output(False)
-        output = ''
         try:
             cmd = f'list chain {self.family} {self.table} {self.chain}'
             rc, output, error = self.nft.cmd(cmd)
@@ -539,7 +538,6 @@ class NFTablesManager:
         finally:
             self.nft.set_json_output(True)
 
-        return output
 
     def setup_firewall(self, enable_monitoring: bool = False) -> None:
         """Setup firewall rules."""
