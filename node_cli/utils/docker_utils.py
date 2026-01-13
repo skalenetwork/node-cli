@@ -211,12 +211,11 @@ def remove_schain_container_by_name(
 
 def backup_container_logs(
     container: Container,
-    head: int = DOCKER_DEFAULT_HEAD_LINES,
-    tail: int = DOCKER_DEFAULT_TAIL_LINES,
+    tail: int | str = DOCKER_DEFAULT_TAIL_LINES,
 ) -> None:
     logger.info(f'Going to backup container logs: {container.name}')
     logs_backup_filepath = get_logs_backup_filepath(container)
-    save_container_logs(container, logs_backup_filepath, tail)
+    save_container_logs(container, logs_backup_filepath, tail=tail)
     logger.info(f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
 
 
@@ -224,7 +223,7 @@ def save_container_logs(
     container: Container,
     log_filepath: str,
     head: int = DOCKER_DEFAULT_HEAD_LINES,
-    tail: int = DOCKER_DEFAULT_TAIL_LINES,
+    tail: int | str = DOCKER_DEFAULT_TAIL_LINES,
 ) -> None:
     separator = b'=' * 80 + b'\n'
     tail_lines = container.logs(tail=tail)
