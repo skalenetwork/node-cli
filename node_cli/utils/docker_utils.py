@@ -118,7 +118,11 @@ def get_sanitized_container_name(container_info: dict) -> str:
 
 
 def get_containers(container_name_filter=None, _all=True) -> list:
-    return docker_client().containers.list(all=_all, filters={'name': container_name_filter})
+    filters = {}
+    if container_name_filter:
+        filters['name'] = container_name_filter
+    return docker_client().containers.list(all=_all, filters=filters)
+
 
 def get_all_schain_containers(_all=True) -> list:
     return docker_client().containers.list(all=_all, filters={'name': 'sk_skaled_*'})
