@@ -385,7 +385,6 @@ class DockerChecker(BaseChecker):
         )
         output = v_cmd_result.stdout.decode('utf-8').rstrip()
         if v_cmd_result.returncode != 0:
-            info = f'Checking docker compose version failed with: {output}'
             return self._failed(name=name, info=output)
 
         actual_version = output.split(',')[0].split()[-1].strip()

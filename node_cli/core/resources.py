@@ -154,10 +154,7 @@ def get_cpu_alloc(common_config: Dict) -> ResourceAlloc:
     return ResourceAlloc(schain_max_cpu_shares), ResourceAlloc(ima_max_cpu_shares)
 
 
-def verify_disk_size(
-    disk_device: str,
-    env_configs: dict,
-) -> Dict:
+def verify_disk_size(disk_device: str, env_configs: dict):
     disk_size = get_disk_size(disk_device)
     env_disk_size = env_configs['server']['disk']
     check_disk_size(disk_size, env_disk_size)

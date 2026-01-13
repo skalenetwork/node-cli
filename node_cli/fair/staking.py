@@ -109,7 +109,6 @@ def get_exit_requests(raw: bool = False) -> None:
         exit_requests = payload.get('exit_requests')
         if not isinstance(exit_requests, list):
             error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
-            return
         if raw:
             print(json.dumps(exit_requests, indent=2))
             return
