@@ -262,6 +262,7 @@ def compose_node_env(
     else:
         user_config = get_validated_user_config(
             node_type=node_type,
+            node_mode=node_mode,
             env_filepath=INIT_ENV_FILEPATH,
             is_fair_boot=is_fair_boot,
             skip_user_conf_validation=skip_user_conf_validation,
