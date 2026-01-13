@@ -35,6 +35,7 @@ from node_cli.configs import (
     SCHAINS_MNT_DIR_REGULAR,
     VOLUME_GROUP,
 )
+from node_cli.operations.volume import ensure_filestorage_mapping
 from lvmpy.src.install import setup as setup_lvmpy
 
 logger = logging.getLogger(__name__)
@@ -47,11 +48,6 @@ def update_docker_lvmpy_env(env):
     env['MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
     env['PATH'] = os.environ.get('PATH', None)
     return env
-
-
-def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
-    if not os.path.isdir(FILESTORAGE_MAPPING):
-        os.makedirs(FILESTORAGE_MAPPING)
 
 
 def sync_docker_lvmpy_repo(env):
