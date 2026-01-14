@@ -38,7 +38,7 @@ from node_cli.core.nftables import configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_no_lvm_datadir
 from node_cli.core.static_config import get_fair_chain_name
-from node_cli.core.node_options import set_passive_node_options, upsert_node_mode
+from node_cli.core.node_options import mark_active_node, set_passive_node_options, upsert_node_mode
 from node_cli.fair.record.chain_record import (
     get_fair_chain_record,
     migrate_chain_record,
@@ -78,6 +78,39 @@ class FairUpdateType(Enum):
     REGULAR = 'regular'
     INFRA_ONLY = 'infra_only'
     FROM_BOOT = 'from_boot'
+
+
+@checked_host
+def init_fair_boot(env_filepath: str, env: dict) -> None:
+    sync_skale_node()
+    cleanup_volume_artifacts(env['BLOCK_DEVICE'])
+
+    ensure_btrfs_kernel_module_autoloaded()
+    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+        configure_docker()
+
+    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
+    configure_nftables(enable_monitoring=enable_monitoring)
+
+    prepare_host(env_filepath, env_type=env['ENV_TYPE'])
+    link_env_file()
+    mark_active_node()
+
+    configure_filebeat()
+    configure_flask()
+    generate_nginx_config()
+    prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
+
+    meta_manager = FairCliMetaManager()
+    meta_manager.update_meta(
+        VERSION,
+        env['NODE_VERSION'],
+        distro.id(),
+        distro.version(),
+    )
+    update_images(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
+
+    compose_up(env=env, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE, is_fair_boot=True)
 
 
 @checked_host

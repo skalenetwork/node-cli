@@ -19,7 +19,7 @@
 
 import logging
 import os
-from shutil import copyfile
+from shutil import copyfile, chown
 from urllib.parse import urlparse
 
 from node_cli.core.resources import update_resource_allocation
@@ -94,6 +94,7 @@ def prepare_host(env_filepath: str, env_type: str, allocation: bool = False) -> 
     try:
         logger.info('Preparing host started')
         make_dirs()
+        chown(REDIS_DATA_PATH, user=999, group=1000)
         save_env_params(env_filepath)
 
         if allocation:

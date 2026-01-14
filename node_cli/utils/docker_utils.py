@@ -35,7 +35,6 @@ from node_cli.configs import (
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SGX_CERTIFICATES_DIR_NAME,
-    PASSIVE_COMPOSE_PATH,
 )
 from node_cli.core.node_options import active_fair, active_skale, passive_fair, passive_skale
 from node_cli.utils.helper import run_cmd, str_to_bool
@@ -77,7 +76,13 @@ BASE_FAIR_BOOT_COMPOSE_SERVICES = {
     'boot-api': 'sk_boot_api',
 }
 
-BASE_PASSIVE_COMPOSE_SERVICES = {'admin': 'sk_admin', 'nginx': 'sk_nginx', **REDIS_SERVICE_DICT}
+BASE_PASSIVE_COMPOSE_SERVICES = {
+    'admin': 'sk_admin',
+    'nginx': 'sk_nginx',
+    'api': 'sk_api',
+    'watchdog': 'sk_watchdog',
+    **REDIS_SERVICE_DICT,
+}
 
 BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
     'admin': 'sk_admin',
@@ -113,7 +118,10 @@ def get_sanitized_container_name(container_info: dict) -> str:
 
 
 def get_containers(container_name_filter=None, _all=True) -> list:
-    return docker_client().containers.list(all=_all)
+    filters = {}
+    if container_name_filter:
+        filters['name'] = container_name_filter
+    return docker_client().containers.list(all=_all, filters=filters)
 
 
 def get_all_schain_containers(_all=True) -> list:
@@ -206,12 +214,11 @@ def remove_schain_container_by_name(
 
 def backup_container_logs(
     container: Container,
-    head: int = DOCKER_DEFAULT_HEAD_LINES,
-    tail: int = DOCKER_DEFAULT_TAIL_LINES,
+    tail: int | str = DOCKER_DEFAULT_TAIL_LINES,
 ) -> None:
     logger.info(f'Going to backup container logs: {container.name}')
     logs_backup_filepath = get_logs_backup_filepath(container)
-    save_container_logs(container, logs_backup_filepath, tail)
+    save_container_logs(container, logs_backup_filepath, tail=tail)
     logger.info(f'Old container logs saved to {logs_backup_filepath}, tail: {tail}')
 
 
@@ -219,7 +226,7 @@ def save_container_logs(
     container: Container,
     log_filepath: str,
     head: int = DOCKER_DEFAULT_HEAD_LINES,
-    tail: int = DOCKER_DEFAULT_TAIL_LINES,
+    tail: int | str = DOCKER_DEFAULT_TAIL_LINES,
 ) -> None:
     separator = b'=' * 80 + b'\n'
     tail_lines = container.logs(tail=tail)
@@ -292,9 +299,7 @@ def compose_build(env: dict, node_type: NodeType, node_mode: NodeMode):
 
 
 def get_compose_path(node_type: NodeType, node_mode: NodeMode) -> str:
-    if passive_skale(node_type, node_mode):
-        return PASSIVE_COMPOSE_PATH
-    elif active_fair(node_type, node_mode) or passive_fair(node_type, node_mode):
+    if node_type == NodeType.FAIR:
         return FAIR_COMPOSE_PATH
     return COMPOSE_PATH
 

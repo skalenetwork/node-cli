@@ -94,7 +94,6 @@ from node_cli.utils.texts import safe_load_texts
 logger = logging.getLogger(__name__)
 TEXTS = safe_load_texts()
 
-BASE_CONTAINERS_AMOUNT = 5
 BLUEPRINT_NAME = 'node'
 
 
@@ -207,7 +206,7 @@ def init_passive(
 
 @check_inited
 @check_user
-def update_passive(env_filepath: str, unsafe_ok: bool = False) -> None:
+def update_passive(env_filepath: str) -> None:
     logger.info('Node update started')
     prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
@@ -263,6 +262,7 @@ def compose_node_env(
     else:
         user_config = get_validated_user_config(
             node_type=node_type,
+            node_mode=node_mode,
             env_filepath=INIT_ENV_FILEPATH,
             is_fair_boot=is_fair_boot,
             skip_user_conf_validation=skip_user_conf_validation,
