@@ -127,6 +127,7 @@ class SkaleUserConfig(BaseUserConfig):
     disable_dry_run: str = ''
     default_gas_limit: str = ''
     default_gas_price_wei: str = ''
+    bite: str = ''
 
 
 @dataclass
@@ -136,6 +137,7 @@ class PassiveSkaleUserConfig(BaseUserConfig):
     schain_name: str = ''
     ima_contracts: str = ''
     enforce_btrfs: str = ''
+    bite: str = ''
 
 
 def get_validated_user_config(
