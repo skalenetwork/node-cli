@@ -422,7 +422,6 @@ def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.get_flask_secret_key'),
         mock.patch('node_cli.core.node.turn_on_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
@@ -474,6 +473,7 @@ def test_node_version(meta_file_v2):
             result.output
             == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_version': '1.1.2'}\n"
         )
+
 
 def test_cleanup_node(mocked_g_config):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)

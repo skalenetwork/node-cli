@@ -52,6 +52,7 @@ class ValidationResult(NamedTuple):
 class BaseUserConfig(ABC):
     node_version: str
     env_type: str
+    endpoint: str
     filebeat_host: str
     block_device: str
 
@@ -89,7 +90,6 @@ class BaseUserConfig(ABC):
 @dataclass
 class FairUserConfig(BaseUserConfig):
     fair_contracts: str
-    boot_endpoint: str
     sgx_server_url: str
     enforce_btrfs: str = ''
     telegraf: str = ''
@@ -99,13 +99,11 @@ class FairUserConfig(BaseUserConfig):
 @dataclass
 class PassiveFairUserConfig(BaseUserConfig):
     fair_contracts: str
-    boot_endpoint: str
     enforce_btrfs: str = ''
 
 
 @dataclass
 class FairBootUserConfig(BaseUserConfig):
-    endpoint: str
     manager_contracts: str
     ima_contracts: str
     sgx_server_url: str
@@ -114,7 +112,6 @@ class FairBootUserConfig(BaseUserConfig):
 
 @dataclass
 class SkaleUserConfig(BaseUserConfig):
-    endpoint: str
     manager_contracts: str
     ima_contracts: str
     docker_lvmpy_version: str
@@ -132,7 +129,6 @@ class SkaleUserConfig(BaseUserConfig):
 
 @dataclass
 class PassiveSkaleUserConfig(BaseUserConfig):
-    endpoint: str
     manager_contracts: str
     schain_name: str = ''
     ima_contracts: str = ''

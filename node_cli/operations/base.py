@@ -53,7 +53,7 @@ from node_cli.core.schains import (
     cleanup_no_lvm_datadir,
     update_node_cli_schain_status,
 )
-from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
+from node_cli.operations.common import configure_filebeat, unpack_backup_archive
 from node_cli.operations.config_repo import (
     download_skale_node,
     sync_skale_node,
@@ -76,6 +76,7 @@ from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
 from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
 from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
+from node_cli.utils.settings import save_settings
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,7 @@ def update(env_filepath: str, env: Dict, node_mode: NodeMode) -> bool:
     generate_nginx_config()
 
     prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
+    save_settings(node_type=NodeType.SKALE, node_mode=node_mode)
     init_shared_space_volume(env['ENV_TYPE'])
 
     meta_manager = CliMetaManager()
@@ -170,12 +172,12 @@ def init(env_filepath: str, env: dict, node_mode: NodeMode) -> None:
     configure_nftables(enable_monitoring=enable_monitoring)
 
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
+    save_settings(node_type=NodeType.SKALE, node_mode=node_mode)
     link_env_file()
 
     mark_active_node()
 
     configure_filebeat()
-    configure_flask()
     generate_nginx_config()
 
     lvmpy_install(env)
@@ -222,7 +224,7 @@ def init_passive(
         NodeMode.PASSIVE,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
-        check_type=CheckType.PREINSTALL
+        check_type=CheckType.PREINSTALL,
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)
@@ -280,7 +282,7 @@ def update_passive(env_filepath: str, env: Dict) -> bool:
         NodeMode.PASSIVE,
         env['ENV_TYPE'],
         CONTAINER_CONFIG_PATH,
-        check_type=CheckType.PREINSTALL
+        check_type=CheckType.PREINSTALL,
     )
     if failed_checks:
         print_failed_requirements_checks(failed_checks)

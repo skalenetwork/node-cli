@@ -39,6 +39,7 @@ from node_cli.configs import (
     SGX_CERTS_PATH,
     REPORTS_PATH,
     REDIS_DATA_PATH,
+    SETTINGS_DIR,
     SCHAINS_DATA_PATH,
     LOG_PATH,
     REMOVED_CONTAINERS_FOLDER_PATH,
@@ -50,7 +51,6 @@ from node_cli.configs import (
     NGINX_CONFIG_FILEPATH,
 )
 from node_cli.configs.cli_logger import LOG_DATA_PATH
-from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH
 from node_cli.core.nftables import NFTablesManager
 from node_cli.utils.helper import safe_mkdir
 
@@ -71,20 +71,6 @@ def fix_url(url):
         return url
     except ValueError:
         return False
-
-
-def get_flask_secret_key() -> str:
-    secret_key_filepath = os.path.join(NODE_DATA_PATH, 'flask_db_key.txt')
-
-    if not os.path.exists(secret_key_filepath):
-        error_exit(f'Flask secret key file not found at {secret_key_filepath}')
-
-    try:
-        with open(secret_key_filepath, 'r') as key_file:
-            secret_key = key_file.read().strip()
-            return secret_key
-    except (IOError, OSError) as e:
-        error_exit(f'Failed to read Flask secret key: {e}')
 
 
 def prepare_host(env_filepath: str, env_type: str, allocation: bool = False) -> None:
@@ -121,21 +107,12 @@ def make_dirs():
         LOG_PATH,
         REPORTS_PATH,
         REDIS_DATA_PATH,
+        SETTINGS_DIR,
         SKALE_RUN_DIR,
         SKALE_STATE_DIR,
         SKALE_TMP_DIR,
     ):
         safe_mkdir(dir_path)
-
-
-def save_env_params(env_filepath: str) -> None:
-    copyfile(env_filepath, SKALE_DIR_ENV_FILEPATH)
-
-
-def link_env_file():
-    if not (os.path.islink(CONFIGS_ENV_FILEPATH) or os.path.isfile(CONFIGS_ENV_FILEPATH)):
-        logger.info('Creating symlink %s → %s', SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH)
-        os.symlink(SKALE_DIR_ENV_FILEPATH, CONFIGS_ENV_FILEPATH)
 
 
 def init_logs_dir():

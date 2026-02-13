@@ -338,9 +338,6 @@ def compose_up(
         run_cmd(cmd=get_up_compose_cmd(node_type=node_type, node_mode=node_mode), env=env)
         return
 
-    if 'SGX_CERTIFICATES_DIR_NAME' not in env:
-        env['SGX_CERTIFICATES_DIR_NAME'] = SGX_CERTIFICATES_DIR_NAME
-
     if active_fair(node_type, node_mode):
         logger.info('Running fair base set of containers')
         if is_fair_boot:

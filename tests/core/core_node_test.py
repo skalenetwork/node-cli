@@ -243,7 +243,6 @@ def test_compose_node_env(
     inited_node,
     sync_schains,
     expected_mnt_dir,
-    expect_flask_key,
     expect_backup_run,
 ):
     user_config_path = request.getfixturevalue(test_user_conf)
@@ -251,7 +250,6 @@ def test_compose_node_env(
     with (
         mock.patch('node_cli.configs.user.validate_alias_or_address'),
         mock.patch('node_cli.core.node.save_env_params'),
-        mock.patch('node_cli.core.node.get_flask_secret_key', return_value='mock_secret'),
     ):
         result_env = compose_node_env(
             env_filepath=user_config_path.as_posix(),
@@ -264,11 +262,6 @@ def test_compose_node_env(
         )
 
     assert result_env['SCHAINS_MNT_DIR'] == expected_mnt_dir
-    assert (
-        'FLASK_SECRET_KEY' in result_env and result_env['FLASK_SECRET_KEY'] is not None
-    ) == expect_flask_key
-    if expect_flask_key:
-        assert result_env['FLASK_SECRET_KEY'] == 'mock_secret'
     should_have_backup = sync_schains and node_mode != NodeMode.PASSIVE
     assert ('BACKUP_RUN' in result_env and result_env['BACKUP_RUN'] == 'True') == should_have_backup
 
@@ -358,7 +351,6 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.core.node.update_op'),
-        mock.patch('node_cli.core.node.get_flask_secret_key'),
         mock.patch('node_cli.core.node.save_env_params'),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.core.host.prepare_host'),
@@ -500,4 +492,5 @@ def test_cleanup_success(
         skip_user_conf_validation=True,
     )
     mock_cleanup_skale_op.assert_called_once_with(
-        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)
+        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False
+    )

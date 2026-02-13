@@ -43,9 +43,8 @@ from node_cli.configs import (
     TM_INIT_TIMEOUT,
 )
 from node_cli.configs.cli_logger import LOG_DATA_PATH as CLI_LOG_DATA_PATH
-from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH, get_validated_user_config
 from node_cli.core.checks import run_checks as run_host_checks
-from node_cli.core.host import get_flask_secret_key, is_node_inited, save_env_params
+from node_cli.core.host import is_node_inited
 from node_cli.core.resources import update_resource_allocation
 from node_cli.core.node_options import (
     active_fair,
@@ -152,11 +151,11 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 
 
 @check_not_inited
-def init(env_filepath: str, node_type: NodeType) -> None:
+def init(config_file: str, node_type: NodeType) -> None:
     node_mode = NodeMode.ACTIVE
-    env = compose_node_env(env_filepath=env_filepath, node_type=node_type, node_mode=node_mode)
+    env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
-    init_op(env_filepath=env_filepath, env=env, node_mode=node_mode)
+    init_op(env_filepath=config_file, env=env, node_mode=node_mode)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
@@ -169,7 +168,7 @@ def init(env_filepath: str, node_type: NodeType) -> None:
 @check_not_inited
 def restore(backup_path, env_filepath, node_type: NodeType, no_snapshot=False, config_only=False):
     node_mode = NodeMode.ACTIVE
-    env = compose_node_env(env_filepath=env_filepath, node_type=node_type, node_mode=node_mode)
+    env = compose_node_env(node_type=node_type, node_mode=node_mode)
     if env is None:
         return
     save_env_params(env_filepath)
@@ -211,7 +210,7 @@ def update_passive(env_filepath: str) -> None:
     prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
-    env = compose_node_env(env_filepath, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    env = compose_node_env(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     update_ok = update_passive_op(env_filepath, env)
     if update_ok:
         logger.info('Waiting for containers initialization')
@@ -227,69 +226,22 @@ def update_passive(env_filepath: str) -> None:
 @check_user
 def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
     node_mode = upsert_node_mode(node_mode=node_mode)
-    env = compose_node_env(
-        SKALE_DIR_ENV_FILEPATH,
-        save=False,
-        node_type=NodeType.SKALE,
-        node_mode=node_mode,
-        skip_user_conf_validation=True,
-    )
+    env = compose_node_env(NodeType.SKALE, node_mode)
     cleanup_skale_op(node_mode=node_mode, env=env, prune=prune)
     logger.info('SKALE node was cleaned up, all containers and data removed')
 
 
-def compose_node_env(
-    env_filepath: str,
-    node_type: NodeType,
-    node_mode: NodeMode,
-    inited_node: bool = False,
-    sync_schains: Optional[bool] = None,
-    pull_config_for_schain: Optional[str] = None,
-    save: bool = True,
-    is_fair_boot: bool = False,
-    skip_user_conf_validation: bool = False,
-) -> dict[str, str]:
-    if env_filepath is not None:
-        user_config = get_validated_user_config(
-            node_type=node_type,
-            node_mode=node_mode,
-            env_filepath=env_filepath,
-            is_fair_boot=is_fair_boot,
-            skip_user_conf_validation=skip_user_conf_validation,
-        )
-        if save:
-            save_env_params(env_filepath)
-    else:
-        user_config = get_validated_user_config(
-            node_type=node_type,
-            node_mode=node_mode,
-            env_filepath=INIT_ENV_FILEPATH,
-            is_fair_boot=is_fair_boot,
-            skip_user_conf_validation=skip_user_conf_validation,
-        )
-
+def compose_node_env(node_type: NodeType, node_mode: NodeMode) -> dict[str, str]:
     if node_mode == NodeMode.PASSIVE or node_type == NodeType.FAIR:
         mnt_dir = SCHAINS_MNT_DIR_SINGLE_CHAIN
     else:
         mnt_dir = SCHAINS_MNT_DIR_REGULAR
-
     env = {
         'SKALE_DIR': SKALE_DIR,
         'SCHAINS_MNT_DIR': mnt_dir,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
         'SKALE_LIB_PATH': SKALE_STATE_DIR,
-        **user_config.to_env(),
     }
-
-    if inited_node and not node_mode == NodeMode.PASSIVE:
-        env['FLASK_SECRET_KEY'] = get_flask_secret_key()
-
-    if sync_schains and not node_mode == NodeMode.PASSIVE:
-        env['BACKUP_RUN'] = 'True'
-
-    if pull_config_for_schain:
-        env['PULL_CONFIG_FOR_SCHAIN'] = pull_config_for_schain
-
     return {k: v for k, v in env.items() if v != ''}
 
 
@@ -313,10 +265,10 @@ def update(
         migrate_2_6()
     logger.info('Node update started')
     env = compose_node_env(
-        env_filepath,
-        inited_node=True,
-        sync_schains=False,
-        pull_config_for_schain=pull_config_for_schain,
+        # env_filepath,
+        # inited_node=True,
+        # sync_schains=False,
+        # pull_config_for_schain=pull_config_for_schain,
         node_type=node_type,
         node_mode=node_mode,
     )

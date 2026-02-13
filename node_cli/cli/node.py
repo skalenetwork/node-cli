@@ -17,8 +17,11 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import get_args
+
 import click
 
+from skale.core.types import EnvType
 from node_cli.cli.info import TYPE
 from node_cli.core.node import (
     cleanup as cleanup_skale,
@@ -38,7 +41,6 @@ from node_cli.core.node import (
     run_checks,
 )
 from node_cli.configs import DEFAULT_NODE_BASE_PORT
-from node_cli.configs.user import ALLOWED_ENV_TYPES
 from node_cli.core.node_options import upsert_node_mode
 from node_cli.utils.decorators import check_inited
 from node_cli.utils.helper import abort_if_false, streamed_cmd, IP_TYPE
@@ -85,10 +87,10 @@ def register_node(name, ip, port, domain):
 
 
 @node.command('init', help='Initialize SKALE node')
-@click.argument('env_file')
+@click.argument('config_file')
 @streamed_cmd
-def init_node(env_file):
-    init(env_filepath=env_file, node_type=TYPE)
+def init_node(config_file):
+    init(config_file=config_file, node_type=TYPE)
 
 
 @node.command('update', help='Update node from .env file')
@@ -101,12 +103,12 @@ def init_node(env_file):
 )
 @click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
 @click.option('--unsafe', 'unsafe_ok', help='Allow unsafe update', hidden=True, is_flag=True)
-@click.argument('env_file')
+@click.argument('config_file')
 @streamed_cmd
-def update_node(env_file, pull_config_for_schain, unsafe_ok):
+def update_node(config_file, pull_config_for_schain, unsafe_ok):
     update(
         node_mode=NodeMode.ACTIVE,
-        env_filepath=env_file,
+        env_filepath=config_file,
         pull_config_for_schain=pull_config_for_schain,
         node_type=TYPE,
         unsafe_ok=unsafe_ok,
@@ -227,7 +229,7 @@ def _set_domain_name(domain):
 @click.option(
     '--network',
     '-n',
-    type=click.Choice(ALLOWED_ENV_TYPES),
+    type=click.Choice(get_args(EnvType)),
     default='mainnet',
     help='Network to check',
 )

@@ -46,7 +46,7 @@ from node_cli.fair.record.chain_record import (
 )
 from node_cli.migrations.fair.from_boot import migrate_nftables_from_boot
 from node_cli.operations.base import checked_host, turn_off
-from node_cli.operations.common import configure_filebeat, configure_flask, unpack_backup_archive
+from node_cli.operations.common import configure_filebeat, unpack_backup_archive
 from node_cli.operations.config_repo import (
     sync_skale_node,
     update_images,
@@ -70,6 +70,7 @@ from node_cli.utils.helper import cleanup_dir_content, rm_dir, str_to_bool
 from node_cli.utils.meta import FairCliMetaManager
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 from node_cli.utils.node_type import NodeMode, NodeType
+from node_cli.utils.settings import save_settings
 
 logger = logging.getLogger(__name__)
 
@@ -93,11 +94,11 @@ def init_fair_boot(env_filepath: str, env: dict) -> None:
     configure_nftables(enable_monitoring=enable_monitoring)
 
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
+    save_settings(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     link_env_file()
     mark_active_node()
 
     configure_filebeat()
-    configure_flask()
     generate_nginx_config()
     prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
 
@@ -131,10 +132,10 @@ def init(
 
     configure_nftables()
     configure_filebeat()
-    configure_flask()
     generate_nginx_config()
 
     prepare_host(env_filepath, env_type=env['ENV_TYPE'])
+    save_settings(node_type=NodeType.FAIR, node_mode=node_mode)
     link_env_file()
 
     prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
@@ -186,6 +187,7 @@ def update_fair_boot(env_filepath: str, env: dict, node_mode: NodeMode = NodeMod
     prepare_block_device(env['BLOCK_DEVICE'], force=env['ENFORCE_BTRFS'] == 'True')
 
     prepare_host(env_filepath, env['ENV_TYPE'])
+    save_settings(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
 
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
@@ -231,6 +233,7 @@ def update(
     generate_nginx_config()
 
     prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
+    save_settings(node_type=NodeType.FAIR, node_mode=node_mode)
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'

@@ -380,7 +380,7 @@ def fair_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
     try:
         test_env = """
-        BOOT_ENDPOINT=http://localhost:8545
+        ENDPOINT=http://localhost:8545
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
         SGX_SERVER_URL=http://127.0.0.1

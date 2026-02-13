@@ -10,15 +10,13 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = { file = "LICENSE" }
 keywords = ["skale", "cli"]
-authors = [
-  { name = "SKALE Labs", email = "support@skalelabs.com" }
-]
+authors = [{ name = "SKALE Labs", email = "support@skalelabs.com" }]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
-    "Natural Language :: English",
-    "Programming Language :: Python :: 3.13",
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3.13",
 ]
 
 dependencies = [
@@ -40,13 +38,14 @@ dependencies = [
   "MarkupSafe==3.0.3",
   "Flask==3.1.2",
   "itsdangerous==2.2.0",
-  "cryptography==46.0.3",
+  "cryptography==46.0.5",
   "filelock==3.20.0",
   "sh==2.2.2",
   "python-crontab==3.3.0",
   "requests-mock==1.12.1",
-  "redis==7.1.0",
-  "PyInstaller==6.16.0",
+  "redis==7.1.1",
+  "PyInstaller==6.18.0",
+  "skale.py==7.12dev2",
 ]
 
 [project.urls]
@@ -78,11 +77,13 @@ target-version = "py313"
 [tool.ruff.format]
 quote-style = "single"
 
+[tool.uv]
+prerelease = "allow"
+
+
 [tool.pytest.ini_options]
 log_cli = false
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
-filterwarnings = [
-    "ignore::DeprecationWarning",
-]
+filterwarnings = ["ignore::DeprecationWarning"]
