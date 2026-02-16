@@ -193,11 +193,7 @@ def test_is_base_containers_alive_empty(node_type, node_mode, is_boot):
         'fair',
     ],
 )
-def test_compose_node_env(
-    node_type,
-    node_mode,
-    expected_mnt_dir,
-):
+def test_compose_node_env(node_type, node_mode, expected_mnt_dir, regular_user_conf):
     result_env = compose_node_env(
         node_type=node_type,
         node_mode=node_mode,

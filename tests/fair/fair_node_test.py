@@ -227,11 +227,12 @@ def test_cleanup_fails_when_user_invalid(
         cleanup(node_mode=NodeMode.ACTIVE)
 
 
-def test_cleanup_fails_when_not_inited(ensure_meta_removed, active_node_option):
+def test_cleanup_fails_when_not_inited(ensure_meta_removed, active_node_option, fair_user_conf):
     import pytest
 
-    with pytest.raises(SystemExit):
-        cleanup(node_mode=NodeMode.ACTIVE)
+    with mock.patch('node_cli.operations.cleanup_fair_op', return_value=None):
+        with pytest.raises(SystemExit):
+            cleanup(node_mode=NodeMode.ACTIVE)
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
