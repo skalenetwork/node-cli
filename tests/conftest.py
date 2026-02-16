@@ -49,7 +49,16 @@ from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.utils.node_type import NodeMode
 from tests.fixtures.settings import (  # noqa: F401
+    INTERNAL_FAIR_ACTIVE,
+    INTERNAL_FAIR_PASSIVE,
+    INTERNAL_SKALE_ACTIVE,
+    INTERNAL_SKALE_PASSIVE,
+    NODE_FAIR_ACTIVE,
+    NODE_FAIR_PASSIVE,
+    NODE_SKALE_ACTIVE,
+    NODE_SKALE_PASSIVE,
     _cleanup_settings,
+    _write_settings,
     fair_active_settings,
     fair_passive_settings,
     skale_active_settings,
@@ -357,6 +366,7 @@ def set_env_var(name, value):
 @pytest.fixture
 def regular_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_SKALE_ACTIVE, NODE_SKALE_ACTIVE)
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
@@ -380,6 +390,7 @@ def regular_user_conf(tmp_path):
 @pytest.fixture
 def fair_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_FAIR_ACTIVE, NODE_FAIR_ACTIVE)
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
@@ -402,6 +413,7 @@ def fair_user_conf(tmp_path):
 @pytest.fixture
 def fair_boot_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_FAIR_ACTIVE, NODE_FAIR_ACTIVE)
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
@@ -423,6 +435,7 @@ def fair_boot_user_conf(tmp_path):
 @pytest.fixture
 def fair_passive_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_FAIR_PASSIVE, NODE_FAIR_PASSIVE)
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
@@ -444,6 +457,7 @@ def fair_passive_user_conf(tmp_path):
 @pytest.fixture
 def passive_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_SKALE_PASSIVE, NODE_SKALE_PASSIVE)
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
