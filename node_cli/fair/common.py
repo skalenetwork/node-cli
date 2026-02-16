@@ -76,7 +76,6 @@ def init(
     print('Fair node is initialized')
 
 
-@check_inited
 @check_user
 def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
     node_mode = upsert_node_mode(node_mode=node_mode)

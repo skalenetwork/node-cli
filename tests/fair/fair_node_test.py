@@ -28,9 +28,7 @@ def test_restore_fair(
 
     restore(backup_path, valid_env_file)
 
-    mock_compose_env.assert_called_once_with(
-        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
-    )
+    mock_compose_env.assert_called_once_with(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     mock_restore_op.assert_called_once_with(
         node_mode=NodeMode.ACTIVE,
         settings=mock.ANY,
@@ -58,9 +56,7 @@ def test_init_fair_boot(
 
     init_boot(valid_env_file)
 
-    mock_compose_env.assert_called_once_with(
-        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
-    )
+    mock_compose_env.assert_called_once_with(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     mock_init_op.assert_called_once_with(
         settings=mock.ANY,
         compose_env=mock_env,
@@ -95,9 +91,7 @@ def test_update_fair_boot(
 
     update(valid_env_file, pull_config_for_schain)
 
-    mock_compose_env.assert_called_once_with(
-        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
-    )
+    mock_compose_env.assert_called_once_with(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     mock_update_op.assert_called_once_with(
         settings=mock.ANY,
         compose_env=mock_env,
@@ -127,9 +121,7 @@ def test_migrate_from_boot(
 
     migrate_from_boot(valid_env_file)
 
-    mock_compose_env.assert_called_once_with(
-        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
-    )
+    mock_compose_env.assert_called_once_with(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     mock_migrate_op.assert_called_once_with(
         settings=mock.ANY,
         compose_env=mock_env,
@@ -146,19 +138,17 @@ def test_cleanup_success(
     mock_compose_env,
     mock_cleanup_fair_op,
     mock_is_user_valid,
-    inited_node,
     resource_alloc,
     meta_file_v3,
     active_node_option,
+    inited_node,
 ):
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
 
     cleanup(node_mode=NodeMode.ACTIVE)
 
-    mock_compose_env.assert_called_once_with(
-        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
-    )
+    mock_compose_env.assert_called_once_with(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     mock_cleanup_fair_op.assert_called_once_with(
         node_mode=NodeMode.ACTIVE, compose_env=mock_env, prune=False
     )
@@ -171,10 +161,10 @@ def test_cleanup_calls_operations_in_correct_order(
     mock_compose_env,
     mock_cleanup_fair_op,
     mock_is_user_valid,
-    inited_node,
     resource_alloc,
     meta_file_v3,
     active_node_option,
+    inited_node,
 ):
     from node_cli.fair.common import cleanup
 
@@ -204,10 +194,10 @@ def test_cleanup_continues_after_fair_op_error(
     mock_compose_env,
     mock_cleanup_fair_op,
     mock_is_user_valid,
-    inited_node,
     resource_alloc,
     meta_file_v3,
     active_node_option,
+    inited_node,
 ):
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env
@@ -224,9 +214,9 @@ def test_cleanup_continues_after_fair_op_error(
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=False)
 def test_cleanup_fails_when_user_invalid(
     mock_is_user_valid,
-    inited_node,
     resource_alloc,
     meta_file_v3,
+    inited_node,
 ):
     """Test that cleanup fails when user validation fails"""
     import pytest
@@ -253,10 +243,10 @@ def test_cleanup_logs_success_message(
     mock_compose_env,
     mock_cleanup_fair_op,
     mock_is_user_valid,
-    inited_node,
     resource_alloc,
     meta_file_v3,
     active_node_option,
+    inited_node,
 ):
     mock_env = {'ENV_TYPE': 'devnet'}
     mock_compose_env.return_value = mock_env

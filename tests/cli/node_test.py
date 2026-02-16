@@ -384,7 +384,7 @@ def test_maintenance_off(mocked_g_config):
     )
 
 
-def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node_option):
+def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node_option, skale_active_settings):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -415,7 +415,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node
             assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
-def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node_option):
+def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node_option, skale_active_settings):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),

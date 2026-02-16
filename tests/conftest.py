@@ -66,6 +66,28 @@ from tests.fixtures.settings import (  # noqa: F401
 )
 from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
+TIMEOUT_PATCHES = [
+    'node_cli.configs.TM_INIT_TIMEOUT',
+    'node_cli.configs.RESTORE_SLEEP_TIMEOUT',
+    'node_cli.configs.INIT_TIMEOUT',
+    'node_cli.core.node.TM_INIT_TIMEOUT',
+    'node_cli.core.node.RESTORE_SLEEP_TIMEOUT',
+    'node_cli.fair.common.TM_INIT_TIMEOUT',
+    'node_cli.fair.common.INIT_TIMEOUT',
+    'node_cli.fair.boot.TM_INIT_TIMEOUT',
+    'node_cli.fair.active.RESTORE_SLEEP_TIMEOUT',
+]
+
+
+@pytest.fixture(autouse=True, scope='session')
+def _fast_timeouts():
+    patchers = [mock.patch(target, 1) for target in TIMEOUT_PATCHES]
+    for p in patchers:
+        p.start()
+    yield
+    for p in patchers:
+        p.stop()
+
 
 @pytest.fixture()
 def tmp_dir_path():
