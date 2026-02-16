@@ -70,12 +70,6 @@ TIMEOUT_PATCHES = [
     'node_cli.configs.TM_INIT_TIMEOUT',
     'node_cli.configs.RESTORE_SLEEP_TIMEOUT',
     'node_cli.configs.INIT_TIMEOUT',
-    'node_cli.core.node.TM_INIT_TIMEOUT',
-    'node_cli.core.node.RESTORE_SLEEP_TIMEOUT',
-    'node_cli.fair.common.TM_INIT_TIMEOUT',
-    'node_cli.fair.common.INIT_TIMEOUT',
-    'node_cli.fair.boot.TM_INIT_TIMEOUT',
-    'node_cli.fair.active.RESTORE_SLEEP_TIMEOUT',
 ]
 
 
