@@ -416,10 +416,6 @@ def get_ssh_port(ssh_service_name='ssh'):
         return DEFAULT_SSH_PORT
 
 
-def is_contract_address(value: str) -> bool:
-    return bool(re.fullmatch(r'0x[a-fA-F0-9]{40}', value))
-
-
 def is_btrfs_subvolume(path: str) -> bool:
     """Check if the given path is a Btrfs subvolume."""
     try:

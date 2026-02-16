@@ -296,13 +296,9 @@ def tmp_passive_datadir():
 def valid_env_params():
     return {
         'ENDPOINT': 'http://localhost:8545',
-        'IMA_ENDPOINT': 'http://127.0.01',
-        'DB_USER': 'user',
-        'DB_PASSWORD': 'pass',
-        'DB_PORT': '3307',
         'NODE_VERSION': 'master',
         'FILEBEAT_HOST': '127.0.0.1:3010',
-        'SGX_SERVER_URL': 'http://127.0.0.1',
+        'SGX_URL': 'http://127.0.0.1',
         'BLOCK_DEVICE': '/dev/sss',
         'DOCKER_LVMPY_VERSION': 'master',
         'ENV_TYPE': 'devnet',
@@ -310,6 +306,7 @@ def valid_env_params():
         'ENFORCE_BTRFS': 'False',
         'MANAGER_CONTRACTS': 'test-manager',
         'IMA_CONTRACTS': 'test-ima',
+        'FAIR_CONTRACTS': 'test-fair',
     }
 
 
@@ -367,7 +364,7 @@ def regular_user_conf(tmp_path):
         ENDPOINT=http://localhost:8545
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
-        SGX_SERVER_URL=http://127.0.0.1
+        SGX_URL=http://127.0.0.1
         BLOCK_DEVICE=/dev/sss
         DOCKER_LVMPY_VERSION='master'
         ENV_TYPE='devnet'
@@ -389,7 +386,7 @@ def fair_user_conf(tmp_path):
         ENDPOINT=http://localhost:8545
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
-        SGX_SERVER_URL=http://127.0.0.1
+        SGX_URL=http://127.0.0.1
         BLOCK_DEVICE=/dev/sss
         ENV_TYPE='devnet'
         ENFORCE_BTRFS=False
@@ -410,11 +407,10 @@ def fair_boot_user_conf(tmp_path):
         ENDPOINT=http://localhost:8545
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
-        SGX_SERVER_URL=http://127.0.0.1
+        SGX_URL=http://127.0.0.1
         BLOCK_DEVICE=/dev/sss
         ENV_TYPE='devnet'
-        MANAGER_CONTRACTS='test-manager'
-        IMA_CONTRACTS='test-ima'
+        FAIR_CONTRACTS='test-fair'
         """
         with open(test_env_path, 'w') as env_file:
             env_file.write(test_env)
@@ -436,6 +432,7 @@ def passive_user_conf(tmp_path):
         SCHAIN_NAME='test-schain'
         ENFORCE_BTRFS=False
         MANAGER_CONTRACTS='test-manager'
+        IMA_CONTRACTS='test-ima'
         """
         with open(test_env_path, 'w') as env_file:
             env_file.write(test_env)
