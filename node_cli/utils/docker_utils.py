@@ -29,15 +29,16 @@ from docker.client import DockerClient
 from docker.errors import NotFound
 from docker.models.containers import Container
 
+from skale_core.settings import BaseNodeSettings
+
 from node_cli.configs import (
     COMPOSE_PATH,
     FAIR_COMPOSE_PATH,
     NGINX_CONTAINER_NAME,
     REMOVED_CONTAINERS_FOLDER_PATH,
-    SGX_CERTIFICATES_DIR_NAME,
 )
 from node_cli.core.node_options import active_fair, active_skale, passive_fair, passive_skale
-from node_cli.utils.helper import run_cmd, str_to_bool
+from node_cli.utils.helper import run_cmd
 from node_cli.utils.node_type import NodeMode, NodeType
 
 logger = logging.getLogger(__name__)
@@ -327,6 +328,7 @@ def get_up_compose_cmd(
 
 def compose_up(
     env,
+    settings: BaseNodeSettings,
     node_type: NodeType,
     node_mode: NodeMode,
     is_fair_boot: bool = False,
@@ -337,9 +339,6 @@ def compose_up(
         logger.info('Running containers for passive node')
         run_cmd(cmd=get_up_compose_cmd(node_type=node_type, node_mode=node_mode), env=env)
         return
-
-    if 'SGX_CERTIFICATES_DIR_NAME' not in env:
-        env['SGX_CERTIFICATES_DIR_NAME'] = SGX_CERTIFICATES_DIR_NAME
 
     if active_fair(node_type, node_mode):
         logger.info('Running fair base set of containers')
@@ -368,7 +367,7 @@ def compose_up(
         logger.debug('Launching skale node containers with env %s', env)
         run_cmd(cmd=get_up_compose_cmd(node_type=node_type, node_mode=node_mode), env=env)
 
-        if 'TG_API_KEY' in env and 'TG_CHAT_ID' in env:
+        if settings.tg_api_key and settings.tg_chat_id:
             logger.info('Running containers for Telegram notifications')
             run_cmd(
                 cmd=get_up_compose_cmd(
@@ -379,7 +378,7 @@ def compose_up(
                 env=env,
             )
 
-    if str_to_bool(env.get('MONITORING_CONTAINERS', 'False')):
+    if settings.monitoring_containers:
         logger.info('Running monitoring containers')
         run_cmd(
             cmd=get_up_compose_cmd(

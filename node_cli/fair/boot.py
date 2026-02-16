@@ -30,22 +30,19 @@ from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
+from node_cli.utils.settings import validate_and_save_node_settings
 
 logger = logging.getLogger(__name__)
 
 
 @check_not_inited
-def init(env_filepath: str) -> None:
+def init(config_file: str) -> None:
     node_mode = NodeMode.ACTIVE
     node_type = NodeType.FAIR
-    env = compose_node_env(
-        env_filepath,
-        node_type=node_type,
-        node_mode=node_mode,
-        is_fair_boot=True,
-    )
+    settings = validate_and_save_node_settings(config_file, node_type, node_mode)
+    compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
-    init_fair_boot_op(env_filepath, env, node_mode)
+    init_fair_boot_op(settings=settings, compose_env=compose_env, node_mode=node_mode)
     logger.info('Waiting for fair containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode, is_fair_boot=True):
@@ -55,19 +52,16 @@ def init(env_filepath: str) -> None:
 
 @check_inited
 @check_user
-def update(env_filepath: str, pull_config_for_schain: str) -> None:
+def update(config_file: str, pull_config_for_schain: str) -> None:
     logger.info('Fair boot node update started')
     node_mode = upsert_node_mode(node_mode=NodeMode.ACTIVE)
-    env = compose_node_env(
-        env_filepath,
-        inited_node=True,
-        sync_schains=False,
-        pull_config_for_schain=pull_config_for_schain,
-        node_type=NodeType.FAIR,
-        node_mode=node_mode,
-        is_fair_boot=True,
+    settings = validate_and_save_node_settings(config_file, NodeType.FAIR, node_mode)
+    compose_env = compose_node_env(node_type=NodeType.FAIR, node_mode=node_mode)
+    migrate_ok = update_fair_boot_op(
+        settings=settings,
+        compose_env=compose_env,
+        node_mode=NodeMode.ACTIVE,
     )
-    migrate_ok = update_fair_boot_op(env_filepath, env, node_mode=NodeMode.ACTIVE)
     if migrate_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)

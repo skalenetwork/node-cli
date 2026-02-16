@@ -339,9 +339,6 @@ def format_timestamp(value):
         return str(value)
 
 
-1
-
-
 def print_chain_record(record):
     print(
         inspect.cleandoc(f"""

@@ -19,6 +19,7 @@
 
 import os
 import sys
+from pathlib import Path
 
 from node_cli.utils.global_config import read_g_config
 
@@ -43,16 +44,18 @@ SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 SCHAIN_NODE_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 NODE_CLI_STATUS_FILENAME = 'node_cli.status'
+
+SETTINGS_DIR = Path(NODE_DATA_PATH) / 'settings'
+NODE_SETTINGS_PATH = SETTINGS_DIR / 'node.toml'
+INTERNAL_SETTINGS_PATH = SETTINGS_DIR / 'internal.toml'
+
 NODE_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'node_config.json')
 CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTAINER_CONFIG_TMP_PATH = os.path.join(SKALE_TMP_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 REPORTS_PATH = os.path.join(SKALE_DIR, 'reports')
 BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
-INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 SKALE_RUN_DIR = '/var/run/skale'
-
-SGX_CERTIFICATES_DIR_NAME = 'sgx_certs'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
 FAIR_COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose-fair.yml')
@@ -73,9 +76,6 @@ NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 
-CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
-DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
-
 SRC_FILEBEAT_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'filebeat.yml')
 FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 
@@ -94,9 +94,6 @@ LVMPY_LOG_DIR = '/var/log/docker-lvmpy'
 IPTABLES_DIR = '/etc/iptables/'
 IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')
 DEFAULT_SSH_PORT = 22
-
-FLASK_SECRET_KEY_FILENAME = 'flask_db_key.txt'
-FLASK_SECRET_KEY_FILE = os.path.join(NODE_DATA_PATH, FLASK_SECRET_KEY_FILENAME)
 
 DOCKER_CONFIG_FILEPATH = '/etc/docker/daemon.json'
 HIDE_STREAM_LOG = os.getenv('HIDE_STREAM_LOG')

@@ -15,15 +15,12 @@ logger = logging.getLogger(__name__)
 init_default_logger()
 
 
-def test_init_fair_passive(mocked_g_config, tmp_path):
-    env_file = tmp_path / 'test-env'
-    env_file.write_text('')
+def test_init_fair_passive(mocked_g_config, fair_passive_settings, fair_passive_user_conf):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.fair.common.init_fair_op', return_value=True),
         mock.patch('node_cli.fair.common.compose_node_env', return_value={}),
-        mock.patch('node_cli.fair.common.save_env_params'),
         mock.patch('node_cli.fair.passive.setup_fair_passive'),
         mock.patch('node_cli.fair.common.time.sleep'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
@@ -34,7 +31,7 @@ def test_init_fair_passive(mocked_g_config, tmp_path):
         result = run_command(
             init_passive_node,
             [
-                env_file.as_posix(),
+                fair_passive_user_conf.as_posix(),
                 '--id',
                 '1',
             ],
@@ -42,15 +39,14 @@ def test_init_fair_passive(mocked_g_config, tmp_path):
         assert result.exit_code == 0
 
 
-def test_init_fair_passive_snapshot_any(mocked_g_config, tmp_path):
-    env_file = tmp_path / 'test-env'
-    env_file.write_text('')
+def test_init_fair_passive_snapshot_any(
+    mocked_g_config, fair_passive_settings, fair_passive_user_conf
+):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.fair.common.init_fair_op', return_value=True),
         mock.patch('node_cli.fair.common.compose_node_env', return_value={}),
-        mock.patch('node_cli.fair.common.save_env_params'),
         mock.patch('node_cli.fair.passive.setup_fair_passive'),
         mock.patch('node_cli.fair.common.time.sleep'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
@@ -61,7 +57,7 @@ def test_init_fair_passive_snapshot_any(mocked_g_config, tmp_path):
         result = run_command(
             init_passive_node,
             [
-                env_file.as_posix(),
+                fair_passive_user_conf.as_posix(),
                 '--id',
                 '2',
                 '--snapshot',
@@ -71,9 +67,9 @@ def test_init_fair_passive_snapshot_any(mocked_g_config, tmp_path):
         assert result.exit_code == 0
 
 
-def test_update_fair_passive(mocked_g_config, tmp_path, clean_node_options):
-    env_file = tmp_path / 'test-env'
-    env_file.write_text('')
+def test_update_fair_passive(
+    mocked_g_config, fair_passive_settings, fair_passive_user_conf, clean_node_options
+):
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -84,7 +80,7 @@ def test_update_fair_passive(mocked_g_config, tmp_path, clean_node_options):
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
     ):
-        result = run_command(update_node, [env_file.as_posix(), '--yes'])
+        result = run_command(update_node, [fair_passive_user_conf.as_posix(), '--yes'])
         assert result.exit_code == 0
 
 
@@ -107,4 +103,5 @@ def test_cleanup_node(mocked_g_config):
         result = run_command(cleanup_node, ['--yes'])
         assert result.exit_code == 0
         cleanup_mock.assert_called_once_with(
-            node_mode=NodeMode.PASSIVE, prune=False, env={'SCHAIN_NAME': 'test'})
+            node_mode=NodeMode.PASSIVE, compose_env={'SCHAIN_NAME': 'test'}, prune=False
+        )

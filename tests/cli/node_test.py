@@ -347,18 +347,17 @@ def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config,
             return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
         ),
         patch('node_cli.operations.base.configure_nftables'),
-        patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         user_conf_path = request.getfixturevalue(test_user_conf).as_posix()
         result = run_command(restore_node, [backup_path, user_conf_path])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
-        assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') == 'True'
+        assert mock_restore_op.call_args.kwargs.get('backup_run') is True
 
         result = run_command(restore_node, [backup_path, user_conf_path, '--no-snapshot'])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
-        assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') is None
+        assert mock_restore_op.call_args.kwargs.get('backup_run') is False
 
 
 def test_maintenance_on():
@@ -385,14 +384,12 @@ def test_maintenance_off(mocked_g_config):
     )
 
 
-def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node_option):
+def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node_option, skale_active_settings):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.SKALE_DIR_ENV_FILEPATH', regular_user_conf.as_posix()),
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
         mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
@@ -418,15 +415,13 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node
             assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
-def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node_option):
+def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node_option, skale_active_settings):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.get_flask_secret_key'),
         mock.patch('node_cli.core.node.turn_on_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
         mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
@@ -475,6 +470,7 @@ def test_node_version(meta_file_v2):
             == "{'version': '0.1.1', 'config_stream': 'develop', 'docker_lvmpy_version': '1.1.2'}\n"
         )
 
+
 def test_cleanup_node(mocked_g_config):
     pathlib.Path(SKALE_DIR).mkdir(parents=True, exist_ok=True)
 
@@ -493,4 +489,4 @@ def test_cleanup_node(mocked_g_config):
     ):
         result = run_command(cleanup_node, ['--yes'])
         assert result.exit_code == 0
-        cleanup_mock.assert_called_once_with(node_mode=NodeMode.ACTIVE, prune=False, env={})
+        cleanup_mock.assert_called_once_with(node_mode=NodeMode.ACTIVE, prune=False, compose_env={})

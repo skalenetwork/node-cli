@@ -125,3 +125,4 @@ tests/.skale/node_data/node_options.json
 tests/.skale/config/nginx.conf.j2
 
 .zed
+uv.lock

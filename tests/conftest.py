@@ -48,7 +48,39 @@ from node_cli.core.node_options import NodeOptions
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.utils.node_type import NodeMode
+from tests.fixtures.settings import (  # noqa: F401
+    INTERNAL_FAIR_ACTIVE,
+    INTERNAL_FAIR_PASSIVE,
+    INTERNAL_SKALE_ACTIVE,
+    INTERNAL_SKALE_PASSIVE,
+    NODE_FAIR_ACTIVE,
+    NODE_FAIR_PASSIVE,
+    NODE_SKALE_ACTIVE,
+    NODE_SKALE_PASSIVE,
+    _cleanup_settings,
+    _write_settings,
+    fair_active_settings,
+    fair_passive_settings,
+    skale_active_settings,
+    skale_passive_settings,
+)
 from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
+
+TIMEOUT_PATCHES = [
+    'node_cli.configs.TM_INIT_TIMEOUT',
+    'node_cli.configs.RESTORE_SLEEP_TIMEOUT',
+    'node_cli.configs.INIT_TIMEOUT',
+]
+
+
+@pytest.fixture(autouse=True, scope='session')
+def _fast_timeouts():
+    patchers = [mock.patch(target, 1) for target in TIMEOUT_PATCHES]
+    for p in patchers:
+        p.start()
+    yield
+    for p in patchers:
+        p.stop()
 
 
 @pytest.fixture()
@@ -290,20 +322,13 @@ def tmp_passive_datadir():
 def valid_env_params():
     return {
         'ENDPOINT': 'http://localhost:8545',
-        'IMA_ENDPOINT': 'http://127.0.01',
-        'DB_USER': 'user',
-        'DB_PASSWORD': 'pass',
-        'DB_PORT': '3307',
         'NODE_VERSION': 'master',
         'FILEBEAT_HOST': '127.0.0.1:3010',
-        'SGX_SERVER_URL': 'http://127.0.0.1',
+        'SGX_URL': 'http://127.0.0.1',
         'BLOCK_DEVICE': '/dev/sss',
-        'DOCKER_LVMPY_VERSION': 'master',
         'ENV_TYPE': 'devnet',
-        'SCHAIN_NAME': 'test',
         'ENFORCE_BTRFS': 'False',
-        'MANAGER_CONTRACTS': 'test-manager',
-        'IMA_CONTRACTS': 'test-ima',
+        'FAIR_CONTRACTS': 'test-fair',
     }
 
 
@@ -319,6 +344,7 @@ def valid_env_file(valid_env_params):
     finally:
         if file_name:
             os.unlink(file_name)
+        _cleanup_settings()
 
 
 @pytest.fixture
@@ -356,12 +382,13 @@ def set_env_var(name, value):
 @pytest.fixture
 def regular_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_SKALE_ACTIVE, NODE_SKALE_ACTIVE)
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
-        SGX_SERVER_URL=http://127.0.0.1
+        SGX_URL=http://127.0.0.1
         BLOCK_DEVICE=/dev/sss
         DOCKER_LVMPY_VERSION='master'
         ENV_TYPE='devnet'
@@ -373,17 +400,19 @@ def regular_user_conf(tmp_path):
         yield test_env_path
     finally:
         test_env_path.unlink()
+        _cleanup_settings()
 
 
 @pytest.fixture
 def fair_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_FAIR_ACTIVE, NODE_FAIR_ACTIVE)
     try:
         test_env = """
-        BOOT_ENDPOINT=http://localhost:8545
+        ENDPOINT=http://localhost:8545
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
-        SGX_SERVER_URL=http://127.0.0.1
+        SGX_URL=http://127.0.0.1
         BLOCK_DEVICE=/dev/sss
         ENV_TYPE='devnet'
         ENFORCE_BTRFS=False
@@ -394,32 +423,57 @@ def fair_user_conf(tmp_path):
         yield test_env_path
     finally:
         test_env_path.unlink()
+        _cleanup_settings()
 
 
 @pytest.fixture
 def fair_boot_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_FAIR_ACTIVE, NODE_FAIR_ACTIVE)
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
         NODE_VERSION='main'
         FILEBEAT_HOST=127.0.0.1:3010
-        SGX_SERVER_URL=http://127.0.0.1
+        SGX_URL=http://127.0.0.1
         BLOCK_DEVICE=/dev/sss
         ENV_TYPE='devnet'
-        MANAGER_CONTRACTS='test-manager'
-        IMA_CONTRACTS='test-ima'
+        FAIR_CONTRACTS='test-fair'
         """
         with open(test_env_path, 'w') as env_file:
             env_file.write(test_env)
         yield test_env_path
     finally:
         test_env_path.unlink()
+        _cleanup_settings()
+
+
+@pytest.fixture
+def fair_passive_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_FAIR_PASSIVE, NODE_FAIR_PASSIVE)
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        NODE_VERSION='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        BLOCK_DEVICE=/dev/sss
+        ENV_TYPE='devnet'
+        ENFORCE_BTRFS=False
+        FAIR_CONTRACTS='test-fair'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+        _cleanup_settings()
 
 
 @pytest.fixture
 def passive_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
+    _write_settings(INTERNAL_SKALE_PASSIVE, NODE_SKALE_PASSIVE)
     try:
         test_env = """
         ENDPOINT=http://localhost:8545
@@ -430,12 +484,14 @@ def passive_user_conf(tmp_path):
         SCHAIN_NAME='test-schain'
         ENFORCE_BTRFS=False
         MANAGER_CONTRACTS='test-manager'
+        IMA_CONTRACTS='test-ima'
         """
         with open(test_env_path, 'w') as env_file:
             env_file.write(test_env)
         yield test_env_path
     finally:
         test_env_path.unlink()
+        _cleanup_settings()
 
 
 @pytest.fixture

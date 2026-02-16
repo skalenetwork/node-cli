@@ -21,6 +21,8 @@ from typing import Optional
 
 import click
 
+from skale_core.settings import get_settings
+
 from node_cli.utils.helper import abort_if_false, URL_TYPE
 from node_cli.core.schains import (
     describe,
@@ -104,8 +106,12 @@ def info_(schain_name: str, json_format: bool) -> None:
 @click.argument('schain_name')
 @click.argument('snapshot_path')
 @click.option('--schain-type', default='medium')
-@click.option('--env-type', default=None)
-def restore(
-    schain_name: str, snapshot_path: str, schain_type: str, env_type: Optional[str]
-) -> None:
-    restore_schain_from_snapshot(schain_name, snapshot_path, node_type=TYPE)
+def restore(schain_name: str, snapshot_path: str, schain_type: str) -> None:
+    settings = get_settings()
+    restore_schain_from_snapshot(
+        schain_name,
+        snapshot_path,
+        node_type=TYPE,
+        env_type=settings.env_type,
+        schain_type=schain_type,
+    )

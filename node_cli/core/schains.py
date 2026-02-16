@@ -26,6 +26,8 @@ import time
 from pathlib import Path
 from typing import Dict, Optional
 
+from skale_core.types import EnvType
+
 from lvmpy.src.core import mount, volume_mountpoint
 from node_cli.configs import (
     ALLOCATION_FILEPATH,
@@ -34,7 +36,6 @@ from node_cli.configs import (
     SCHAIN_NODE_DATA_PATH,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
 )
-from node_cli.configs.user import get_validated_user_config
 from node_cli.utils.docker_utils import ensure_volume, is_volume_exists
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import (
@@ -214,12 +215,9 @@ def restore_schain_from_snapshot(
     schain: str,
     snapshot_path: str,
     node_type: NodeType,
-    env_type: Optional[str] = None,
+    env_type: EnvType,
     schain_type: str = 'medium',
 ) -> None:
-    if env_type is None:
-        user_config = get_validated_user_config(node_type=node_type)
-        env_type = user_config.env_type
     ensure_schain_volume(schain, schain_type, env_type)
     block_number = get_block_number_from_path(snapshot_path)
     if block_number == -1:
@@ -242,12 +240,12 @@ def get_schains_by_artifacts() -> str:
     return '\n'.join(os.listdir(SCHAIN_NODE_DATA_PATH))
 
 
-def get_schain_volume_size(schain_type: str, env_type: str) -> int:
+def get_schain_volume_size(schain_type: str, env_type: EnvType) -> int:
     alloc = safe_load_yml(ALLOCATION_FILEPATH)
     return alloc[env_type]['disk'][schain_type]
 
 
-def ensure_schain_volume(schain: str, schain_type: str, env_type: str) -> None:
+def ensure_schain_volume(schain: str, schain_type: str, env_type: EnvType) -> None:
     if not is_volume_exists(schain):
         size = get_schain_volume_size(schain_type, env_type)
         ensure_volume(schain, size)

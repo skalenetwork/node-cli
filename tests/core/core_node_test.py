@@ -10,9 +10,13 @@ import mock
 import pytest
 import requests
 
-from node_cli.configs import NODE_DATA_PATH, SCHAINS_MNT_DIR_REGULAR, SCHAINS_MNT_DIR_SINGLE_CHAIN
+from node_cli.configs import (
+    NODE_DATA_PATH,
+    SCHAINS_MNT_DIR_REGULAR,
+    SCHAINS_MNT_DIR_SINGLE_CHAIN,
+)
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
-from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
+
 from node_cli.core.node import (
     cleanup,
     compose_node_env,
@@ -165,112 +169,38 @@ def test_is_base_containers_alive_empty(node_type, node_mode, is_boot):
 
 
 @pytest.mark.parametrize(
-    (
-        'node_type, node_mode, test_user_conf, is_boot, inited_node, sync_schains,'
-        'expected_mnt_dir, expect_flask_key, expect_backup_run'
-    ),
+    'node_type, node_mode, expected_mnt_dir',
     [
         (
             NodeType.SKALE,
             NodeMode.ACTIVE,
-            'regular_user_conf',
-            False,
-            True,
-            False,
             SCHAINS_MNT_DIR_REGULAR,
-            True,
-            False,
-        ),
-        (
-            NodeType.SKALE,
-            NodeMode.ACTIVE,
-            'regular_user_conf',
-            False,
-            True,
-            True,
-            SCHAINS_MNT_DIR_REGULAR,
-            True,
-            True,
         ),
         (
             NodeType.SKALE,
             NodeMode.PASSIVE,
-            'passive_user_conf',
-            False,
-            False,
-            False,
             SCHAINS_MNT_DIR_SINGLE_CHAIN,
-            False,
-            False,
         ),
         (
             NodeType.FAIR,
             NodeMode.ACTIVE,
-            'fair_boot_user_conf',
-            True,
-            True,
-            False,
             SCHAINS_MNT_DIR_SINGLE_CHAIN,
-            True,
-            False,
-        ),
-        (
-            NodeType.FAIR,
-            NodeMode.ACTIVE,
-            'fair_user_conf',
-            False,
-            True,
-            False,
-            SCHAINS_MNT_DIR_SINGLE_CHAIN,
-            True,
-            False,
         ),
     ],
     ids=[
         'regular',
-        'regular_passive_flag',
         'passive',
-        'fair_boot',
-        'fair_regular',
+        'fair',
     ],
 )
-def test_compose_node_env(
-    request,
-    node_type,
-    node_mode,
-    test_user_conf,
-    is_boot,
-    inited_node,
-    sync_schains,
-    expected_mnt_dir,
-    expect_flask_key,
-    expect_backup_run,
-):
-    user_config_path = request.getfixturevalue(test_user_conf)
-
-    with (
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.core.node.save_env_params'),
-        mock.patch('node_cli.core.node.get_flask_secret_key', return_value='mock_secret'),
-    ):
-        result_env = compose_node_env(
-            env_filepath=user_config_path.as_posix(),
-            inited_node=inited_node,
-            sync_schains=sync_schains,
-            node_type=node_type,
-            node_mode=node_mode,
-            is_fair_boot=is_boot,
-            save=True,
-        )
+def test_compose_node_env(node_type, node_mode, expected_mnt_dir, regular_user_conf):
+    result_env = compose_node_env(
+        node_type=node_type,
+        node_mode=node_mode,
+    )
 
     assert result_env['SCHAINS_MNT_DIR'] == expected_mnt_dir
-    assert (
-        'FLASK_SECRET_KEY' in result_env and result_env['FLASK_SECRET_KEY'] is not None
-    ) == expect_flask_key
-    if expect_flask_key:
-        assert result_env['FLASK_SECRET_KEY'] == 'mock_secret'
-    should_have_backup = sync_schains and node_mode != NodeMode.PASSIVE
-    assert ('BACKUP_RUN' in result_env and result_env['BACKUP_RUN'] == 'True') == should_have_backup
+    assert 'BACKUP_RUN' not in result_env
 
 
 @pytest.fixture
@@ -346,9 +276,8 @@ def test_init_node(regular_user_conf, no_resource_file):  # todo: write new init
         mock.patch('node_cli.core.node.init_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.utils.helper.post_request', resp_mock),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        init(env_filepath=regular_user_conf.as_posix(), node_type=NodeType.SKALE)
+        init(config_file=regular_user_conf.as_posix(), node_type=NodeType.SKALE)
         assert os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
 
 
@@ -358,8 +287,6 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.core.node.update_op'),
-        mock.patch('node_cli.core.node.get_flask_secret_key'),
-        mock.patch('node_cli.core.node.save_env_params'),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.core.host.prepare_host'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
@@ -370,7 +297,6 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
             'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         with mock.patch(
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
@@ -492,12 +418,7 @@ def test_cleanup_success(
 
     cleanup(node_mode=NodeMode.ACTIVE)
 
-    mock_compose_env.assert_called_once_with(
-        SKALE_DIR_ENV_FILEPATH,
-        save=False,
-        node_type=NodeType.SKALE,
-        node_mode=NodeMode.ACTIVE,
-        skip_user_conf_validation=True,
-    )
+    mock_compose_env.assert_called_once_with(NodeType.SKALE, NodeMode.ACTIVE)
     mock_cleanup_skale_op.assert_called_once_with(
-        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)
+        node_mode=NodeMode.ACTIVE, compose_env=mock_env, prune=False
+    )

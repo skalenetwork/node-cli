@@ -19,7 +19,6 @@
 
 import logging
 import os
-import secrets
 import shutil
 import stat
 import tarfile
@@ -27,7 +26,6 @@ from shutil import copyfile
 
 from node_cli.configs import (
     FILEBEAT_CONFIG_PATH,
-    FLASK_SECRET_KEY_FILE,
     G_CONF_HOME,
     SRC_FILEBEAT_CONFIG_PATH,
 )
@@ -41,17 +39,6 @@ def configure_filebeat():
     shutil.chown(FILEBEAT_CONFIG_PATH, user='root')
     os.chmod(FILEBEAT_CONFIG_PATH, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC)
     logger.info('Filebeat configured')
-
-
-def configure_flask():
-    if os.path.isfile(FLASK_SECRET_KEY_FILE):
-        logger.info('Flask secret key already exists')
-    else:
-        logger.info('Generating Flask secret key...')
-        flask_secret_key = secrets.token_urlsafe(16)
-        with open(FLASK_SECRET_KEY_FILE, 'w') as f:
-            f.write(flask_secret_key)
-        logger.info('Flask secret key generated and saved')
 
 
 def unpack_backup_archive(backup_path: str) -> None:

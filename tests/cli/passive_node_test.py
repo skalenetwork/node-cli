@@ -45,7 +45,6 @@ def test_init_passive(mocked_g_config, clean_node_options, passive_user_conf):
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         result = run_command(_init_passive, [passive_user_conf.as_posix()])
 
@@ -66,9 +65,11 @@ def test_init_passive_archive(mocked_g_config, clean_node_options, passive_user_
         mock.patch('node_cli.operations.base.sync_skale_node'),
         mock.patch('node_cli.operations.base.configure_docker'),
         mock.patch('node_cli.operations.base.prepare_host'),
+        mock.patch('node_cli.operations.base.save_internal_settings'),
+        mock.patch('node_cli.operations.base.run_host_checks', return_value=[]),
         mock.patch('node_cli.operations.base.ensure_filestorage_mapping'),
-        mock.patch('node_cli.operations.base.link_env_file'),
         mock.patch('node_cli.operations.base.generate_nginx_config'),
+        mock.patch('node_cli.operations.base.get_settings'),
         mock.patch('node_cli.operations.base.prepare_block_device'),
         mock.patch('node_cli.operations.base.CliMetaManager.update_meta'),
         mock.patch('node_cli.operations.base.update_resource_allocation'),
@@ -77,7 +78,6 @@ def test_init_passive_archive(mocked_g_config, clean_node_options, passive_user_
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
         mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command(_init_passive, [passive_user_conf.as_posix(), '--archive'])
@@ -121,7 +121,6 @@ def test_update_passive(passive_user_conf, mocked_g_config):
             'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         result = run_command(_update_passive, [passive_user_conf.as_posix(), '--yes'])
         assert result.exit_code == 0
@@ -146,4 +145,5 @@ def test_cleanup_node(mocked_g_config):
         result = run_command(cleanup_node, ['--yes'])
         assert result.exit_code == 0
         cleanup_mock.assert_called_once_with(
-            node_mode=NodeMode.PASSIVE, prune=False, env={'SCHAIN_NAME': 'test'})
+            node_mode=NodeMode.PASSIVE, prune=False, compose_env={'SCHAIN_NAME': 'test'}
+        )

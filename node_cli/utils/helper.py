@@ -30,6 +30,7 @@ import sys
 import urllib.parse
 import urllib.request
 import uuid
+from pathlib import Path
 from functools import wraps
 from logging import Formatter, StreamHandler
 from typing import Any, NoReturn, Optional
@@ -85,13 +86,13 @@ def write_json(path: str, content: dict) -> None:
         json.dump(content, outfile, indent=4)
 
 
-def save_json(path: str, content: dict) -> None:
+def save_json(path: str | Path, content: dict) -> None:
     tmp_path = get_tmp_path(path)
     write_json(tmp_path, content)
     shutil.move(tmp_path, path)
 
 
-def init_file(path, content=None):
+def init_file(path: str | Path, content=None):
     if not os.path.exists(path):
         write_json(path, content)
 
@@ -141,16 +142,6 @@ def process_template(source, destination, data):
 
 def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
-
-
-def str_to_bool(val: str) -> bool:
-    val = val.lower()
-    if val in ('y', 'yes', 't', 'true', 'on', '1'):
-        return True
-    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
-        return False
-    else:
-        raise ValueError(f'Invalid truth value {val!r}')
 
 
 def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> NoReturn:
@@ -339,7 +330,7 @@ def cleanup_dir_content(folder: str) -> None:
                 shutil.rmtree(file_path)
 
 
-def safe_mkdir(path: str, print_res: bool = False) -> None:
+def safe_mkdir(path: str | Path, print_res: bool = False) -> None:
     if os.path.exists(path):
         logger.debug(f'Directory {path} already exists')
         return
@@ -411,8 +402,8 @@ URL_OR_ANY_TYPE = UrlOrAnyType()
 IP_TYPE = IpType()
 
 
-def get_tmp_path(path: str) -> str:
-    base, ext = os.path.splitext(path)
+def get_tmp_path(path: str | Path) -> str:
+    base, ext = os.path.splitext(str(path))
     salt = uuid.uuid4().hex[:5]
     return base + salt + '.tmp' + ext
 
@@ -423,10 +414,6 @@ def get_ssh_port(ssh_service_name='ssh'):
     except OSError:
         logger.exception('Cannot get ssh service port')
         return DEFAULT_SSH_PORT
-
-
-def is_contract_address(value: str) -> bool:
-    return bool(re.fullmatch(r'0x[a-fA-F0-9]{40}', value))
 
 
 def is_btrfs_subvolume(path: str) -> bool:
