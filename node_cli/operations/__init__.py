@@ -20,11 +20,21 @@
 from node_cli.operations.base import (  # noqa
     update as update_op,
     init as init_op,
-    init_sync as init_sync_op,
-    update_sync as update_sync_op,
+    init_passive as init_passive_op,
+    update_passive as update_passive_op,
     turn_off as turn_off_op,
     turn_on as turn_on_op,
     restore as restore_op,
-    cleanup_sync as cleanup_sync_op,
+    cleanup as cleanup_skale_op,
     configure_nftables,
+)
+from node_cli.operations.fair import (  # noqa
+    init_fair_boot as init_fair_boot_op,
+    init as init_fair_op,
+    update_fair_boot as update_fair_boot_op,
+    update as update_fair_op,
+    FairUpdateType,
+    restore as restore_fair_op,
+    repair as repair_fair_op,
+    cleanup as cleanup_fair_op,
 )

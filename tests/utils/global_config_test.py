@@ -1,4 +1,3 @@
-
 import os
 import mock
 from node_cli.utils.global_config import read_g_config, generate_g_config_file

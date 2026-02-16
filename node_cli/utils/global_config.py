@@ -34,7 +34,7 @@ def get_home_dir() -> str:
 
 
 def read_g_config(g_skale_dir: str, g_skale_conf_filepath: str) -> dict:
-    """Read global SKALE config file, init if not exists"""
+    """Read global SKALE config file, init if it doesn't exist."""
     if not os.path.isfile(g_skale_conf_filepath):
         return generate_g_config_file(g_skale_dir, g_skale_conf_filepath)
     with open(g_skale_conf_filepath, encoding='utf-8') as data_file:
@@ -42,19 +42,20 @@ def read_g_config(g_skale_dir: str, g_skale_conf_filepath: str) -> dict:
 
 
 def generate_g_config_file(g_skale_dir: str, g_skale_conf_filepath: str) -> dict:
-    """Init global SKALE config file"""
+    """Init global SKALE config file."""
     print('Generating global SKALE config file...')
     os.makedirs(g_skale_dir, exist_ok=True)
-    g_config = {
-        'user': get_system_user(),
-        'home_dir': get_home_dir()
-    }
+    g_config = {'user': get_system_user(), 'home_dir': get_home_dir()}
     print(f'{g_skale_conf_filepath} content: {g_config}')
     try:
         with open(g_skale_conf_filepath, 'w') as outfile:
             json.dump(g_config, outfile, indent=4)
     except PermissionError as e:
         logger.exception(e)
-        print('No permissions to write into /etc directory')
+        print(f'No permissions to write into {g_skale_dir} directory')
+        sys.exit(7)
+    except OSError as e:
+        logger.exception(e)
+        print(f'Error writing to {g_skale_conf_filepath}: {e}')
         sys.exit(7)
     return g_config

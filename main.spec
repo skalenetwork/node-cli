@@ -1,16 +1,15 @@
 # -*- mode: python -*-
 
-import importlib.util
-
+import os
 
 block_cipher = None
 
 a = Analysis(
     ['node_cli/main.py'],
-    pathex=['.'],
+    pathex=[SPECPATH],
     datas=[
-       ("./text.yml", "data"),
-       ("./datafiles/skaled-ssl-test", "data/datafiles")
+       (os.path.join(SPECPATH, "text.yml"), "data"),
+       (os.path.join(SPECPATH, "datafiles/skaled-ssl-test"), "data/datafiles")
     ],
     hiddenimports=[],
     hookspath=[],

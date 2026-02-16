@@ -1,7 +1,6 @@
 import os
 import shutil
-import time
-from pip._internal import main as pipmain
+import subprocess
 
 import mock
 import pytest
@@ -19,8 +18,10 @@ from node_cli.core.checks import (
     MachineChecker,
     merge_reports,
     PackageChecker,
-    save_report
+    save_report,
 )
+
+from node_cli.utils.node_type import NodeMode, NodeType
 
 
 @pytest.fixture
@@ -31,19 +32,18 @@ def requirements_data():
             'cpu_physical': 1,
             'memory': 100,
             'swap': 100,
-            'disk': 100000000
+            'disk': 100000000,
         },
-        'package': {
-            'iptables_persistant': '0.0.0',
-            'lvm2': '0.0.0',
-            'test-package': '2.2.2'
-        },
-        'docker': {
-            'docker-engine': '0.0.0',
-            'docker-api': '0.0.0',
-            'docker-compose': '1.27.4'
-        }
+        'package': {'iptables_persistant': '0.0.0', 'lvm2': '0.0.0', 'test-package': '2.2.2'},
+        'docker': {'docker-engine': '0.0.0', 'docker-api': '0.0.0', 'docker-compose': '1.27.4'},
     }
+
+
+@pytest.fixture
+def fair_requirements_data(requirements_data):
+    reqs = {k: v.copy() for k, v in requirements_data.items()}
+    reqs['package']['lvm2'] = 'disabled'
+    return reqs
 
 
 @pytest.fixture
@@ -154,7 +154,7 @@ def test_checks_machine_check(server_req):
         {'name': 'disk', 'status': 'ok'},
         {'name': 'memory', 'status': 'ok'},
         {'name': 'network', 'status': 'ok'},
-        {'name': 'swap', 'status': 'ok'}
+        {'name': 'swap', 'status': 'ok'},
     ]
 
 
@@ -203,58 +203,37 @@ def test_checks_docker_api(docker_req):
     assert r.info['expected_version'] == '111.111.111'
 
 
-@pytest.fixture
-def docker_compose_pkg_1_27_4():
-    pipmain(['install', 'docker-compose==1.27.4'])
-    time.sleep(10)
-    yield
-    pipmain(['uninstall', 'docker-compose', '-y'])
-
-
-@pytest.fixture
-def docker_compose_pkg_1_24_1():
-    pipmain(['install', 'docker-compose==1.24.1'])
-    time.sleep(10)
-    yield
-    pipmain(['uninstall', 'docker-compose', '-y'])
-
-
-def test_checks_docker_compose_good_pkg(docker_req, docker_compose_pkg_1_27_4):
-    checker = DockerChecker(package_req)
-    r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
-
-
-def test_checks_docker_compose_no_pkg(docker_req):
-    checker = DockerChecker(package_req)
-    r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
-
-
-def test_checks_docker_compose_invalid_version(
-    docker_req,
-    docker_compose_pkg_1_24_1
-):
+@mock.patch('node_cli.utils.helper.subprocess.run')
+@mock.patch('node_cli.core.checks.shutil.which', return_value='/usr/bin/docker')
+def test_checks_docker_compose_version_mocked(mock_shutil_which, mock_subprocess_run, docker_req):
     checker = DockerChecker(docker_req)
+    expected_version = docker_req['docker-compose']
+
+    mock_output = f'Docker Compose version v{expected_version}, build somehash'.encode('utf-8')
+    mock_result = mock.Mock(spec=subprocess.CompletedProcess)
+    mock_result.stdout = mock_output
+    mock_result.stderr = None
+    mock_result.returncode = 0
+
+    mock_subprocess_run.return_value = mock_result
+
     r = checker.docker_compose()
-    r.name == 'docker-compose'
-    r.status == 'ok'
+
+    assert r.name == 'docker'
+    assert r.status == 'ok', f'Check failed: {r}'
+    assert isinstance(r.info, str)
+    assert f'expected docker compose version {expected_version}' in r.info.lower()
+    assert f'actual v{expected_version}' in r.info.lower()
 
 
 def test_checks_docker_config(docker_req):
     checker = DockerChecker(docker_req)
-    valid_config = {
-        'live-restore': True
-    }
+    valid_config = {'live-restore': True}
     r = checker._check_docker_alive_option(valid_config)
     assert r[0] is True
     assert r[1] == 'Docker daemon live-restore option is set as "true"'
 
-    invalid_config = {
-        'live-restore': False
-    }
+    invalid_config = {'live-restore': False}
     r = checker._check_docker_alive_option(invalid_config)
     assert r[0] is False
     assert r[1] == 'Docker daemon live-restore option should be set as "true"'
@@ -274,16 +253,22 @@ def test_checks_docker_hosts(docker_req):
     r = checker._check_docker_hosts_option(invalid_config)
     assert r == (
         False,
-        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']"  # noqa
+        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']",  # noqa
     )
 
     invalid_config = {'hosts': ['http://127.0.0.1:8080']}
     r = checker._check_docker_hosts_option(invalid_config)
-    assert r == (False, "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']")  # noqa
+    assert r == (
+        False,
+        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']",
+    )  # noqa
 
     invalid_config = {'hosts': ['fd://']}
     r = checker._check_docker_hosts_option(invalid_config)
-    assert r == (False, "Docker daemon hosts is misconfigured. Missing hosts: ['unix:///var/run/skale/docker.sock']")  # noqa
+    assert r == (
+        False,
+        "Docker daemon hosts is misconfigured. Missing hosts: ['unix:///var/run/skale/docker.sock']",
+    )  # noqa
 
 
 def test_checks_docker_pre_post_install_checks(docker_req):
@@ -333,24 +318,44 @@ def test_checks_apt_package(package_req):
         assert r.status == 'ok'
 
 
-def test_get_all_checkers(requirements_data):
+def test_get_all_checkers(requirements_data, active_node_option):
     disk = 'test-disk'
-    checkers = get_all_checkers(disk, requirements_data)
+    checkers = get_all_checkers(disk, requirements_data, node_mode=NodeMode.ACTIVE)
     assert len(checkers) == 3
-    assert isinstance(checkers[0], MachineChecker)
-    assert isinstance(checkers[1], PackageChecker)
-    assert isinstance(checkers[2], DockerChecker)
+    assert isinstance(checkers[0], PackageChecker)
+    assert isinstance(checkers[1], DockerChecker)
+    assert isinstance(checkers[2], MachineChecker)
 
 
-def test_get_checks(requirements_data):
+def test_get_all_checkers_passive(requirements_data, passive_node_option):
     disk = 'test-disk'
-    checkers = get_all_checkers(disk, requirements_data)
+    checkers = get_all_checkers(disk, requirements_data, node_mode=NodeMode.PASSIVE)
+    assert len(checkers) == 2
+    assert isinstance(checkers[0], PackageChecker)
+    assert isinstance(checkers[1], DockerChecker)
+
+
+def test_get_checks(requirements_data, active_node_option):
+    disk = 'test-disk'
+    checkers = get_all_checkers(disk, requirements_data, node_mode=NodeMode.ACTIVE)
     checks = get_checks(checkers)
     assert len(checks) == 16
     checks = get_checks(checkers, check_type=CheckType.PREINSTALL)
     assert len(checks) == 14
     checks = get_checks(checkers, check_type=CheckType.POSTINSTALL)
     assert len(checks) == 2
+
+
+def test_get_checks_fair(fair_requirements_data, active_node_option):
+    disk = 'test-disk'
+    fair_checkers = get_all_checkers(disk, fair_requirements_data, node_mode=NodeMode.ACTIVE)
+
+    fair_all_checks = get_checks(fair_checkers, CheckType.ALL)
+    fair_all_names = {f.func.__name__ for f in fair_all_checks}
+    assert 'network' in fair_all_names
+    assert 'lvm2' not in fair_all_names
+    assert 'cpu_total' in fair_all_names
+    assert 'btrfs_progs' in fair_all_names
 
 
 def test_get_save_report(tmp_dir_path):
@@ -367,23 +372,23 @@ def test_merge_report():
     old_report = [
         {'name': 'test1', 'status': 'ok', 'info': 'Test'},
         {'name': 'test2', 'status': 'failed', 'info': 'Test1'},
-        {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
+        {'name': 'test3', 'status': 'failed', 'info': 'Test1'},
     ]
     new_report = [
         {'name': 'test1', 'status': 'ok', 'info': 'Test'},
-        {'name': 'test2', 'status': 'ok', 'info': 'Test1'}
+        {'name': 'test2', 'status': 'ok', 'info': 'Test1'},
     ]
     report = merge_reports(old_report, new_report)
     assert report == [
         {'name': 'test1', 'status': 'ok', 'info': 'Test'},
         {'name': 'test2', 'status': 'ok', 'info': 'Test1'},
-        {'name': 'test3', 'status': 'failed', 'info': 'Test1'}
+        {'name': 'test3', 'status': 'failed', 'info': 'Test1'},
     ]
 
 
 def test_get_static_params(tmp_config_dir):
-    params = get_static_params()
+    params = get_static_params(NodeType.SKALE)
     shutil.copy(STATIC_PARAMS_FILEPATH, tmp_config_dir)
-    tmp_params = get_static_params(config_path=tmp_config_dir)
+    tmp_params = get_static_params(NodeType.SKALE, config_path=tmp_config_dir)
     assert params['server']['cpu_total'] == 8
     assert params == tmp_params

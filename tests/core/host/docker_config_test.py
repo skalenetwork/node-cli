@@ -62,7 +62,7 @@ def test_ensure_service_overriden_config(tmp_dir):
                 '[Service]',
                 'ExecStart=',
                 'ExecStart=/usr/bin/dockerd',
-                'ExecStartPre=/bin/mkdir -p /var/run/skale'
+                'ExecStartPre=/bin/mkdir -p /var/run/skale',
             ]
         )
     assert r == DockerConfigResult.CHANGED
@@ -74,7 +74,7 @@ def test_ensure_service_overriden_config(tmp_dir):
                 '[Service]',
                 'ExecStart=',
                 'ExecStart=/usr/bin/dockerd',
-                'ExecStartPre=/bin/mkdir -p /var/run/skale'
+                'ExecStartPre=/bin/mkdir -p /var/run/skale',
             ]
         )
     assert r == DockerConfigResult.UNCHANGED
@@ -93,10 +93,7 @@ def test_ensure_docker_daemon_config(tmp_dir):
     with open(daemon_config_path, 'r') as daemon_config_file:
         conf = json.load(daemon_config_file)
         assert conf['live-restore'] is True
-        assert conf['hosts'] == [
-            'fd://',
-            'unix:///var/run/skale/docker.sock'
-        ]
+        assert conf['hosts'] == ['fd://', 'unix:///var/run/skale/docker.sock']
     assert r == DockerConfigResult.CHANGED
 
     conf.pop('hosts')
@@ -108,10 +105,7 @@ def test_ensure_docker_daemon_config(tmp_dir):
     with open(daemon_config_path, 'r') as daemon_config_file:
         conf = json.load(daemon_config_file)
         assert conf['live-restore'] is True
-        assert conf['hosts'] == [
-            'fd://',
-            'unix:///var/run/skale/docker.sock'
-        ]
+        assert conf['hosts'] == ['fd://', 'unix:///var/run/skale/docker.sock']
         assert conf['test'] == 'TEST'
     assert r == DockerConfigResult.CHANGED
 
@@ -136,8 +130,8 @@ def container(dclient):
         c.remove(force=True)
 
 
-def test_assert_no_contaners():
-    assert_no_containers(ignore=('ganache',))
+def test_assert_no_containers():
+    assert_no_containers(ignore=('redis',))
 
 
 def test_assert_no_containers_failed(container):

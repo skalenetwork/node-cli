@@ -23,9 +23,7 @@ import logging
 import datetime
 
 from node_cli.utils.helper import run_cmd, safe_mkdir
-from node_cli.utils.docker_utils import (
-    save_container_logs, get_containers
-)
+from node_cli.utils.docker_utils import save_container_logs, get_containers
 from node_cli.configs import REMOVED_CONTAINERS_FOLDER_PATH, SKALE_TMP_DIR
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 
@@ -44,7 +42,7 @@ def create_logs_dump(path, filter_container=None):
     if filter_container:
         containers = get_containers(filter_container)
     else:
-        containers = get_containers('skale')
+        containers = get_containers('sk_*')
 
     for container in containers:
         log_filepath = os.path.join(containers_logs_path, f'{container.name}.log')
@@ -60,7 +58,7 @@ def create_logs_dump(path, filter_container=None):
 
 
 def create_dump_dir():
-    time = datetime.datetime.utcnow().strftime("%Y-%m-%d--%H-%M-%S")
+    time = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d--%H-%M-%S')
     folder_name = f'skale-logs-dump-{time}'
     folder_path = os.path.join(SKALE_TMP_DIR, folder_name)
     containers_path = os.path.join(folder_path, 'containers')

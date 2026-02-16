@@ -2,7 +2,7 @@
 #
 #   This file is part of node-cli
 #
-#   Copyright (C) 2019 SKALE Labs
+#   Copyright (C) 2025-Present SKALE Labs
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU Affero General Public License as published by
@@ -17,27 +17,14 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import click
-
-from node_cli.core.host import validate_abi_files
+from enum import Enum
 
 
-@click.group()
-def validate_cli():
-    pass
+class NodeType(str, Enum):
+    SKALE = 'skale'
+    FAIR = 'fair'
 
 
-@validate_cli.group(help="Validation commands")
-def validate():
-    pass
-
-
-@validate.command('abi', help="Validate contracts abi")
-@click.option(
-    '--json',
-    'json_format',
-    help='Show result in JSON format',
-    is_flag=True
-)
-def abi(json_format):
-    validate_abi_files(json_result=json_format)
+class NodeMode(str, Enum):
+    ACTIVE = 'active'
+    PASSIVE = 'passive'

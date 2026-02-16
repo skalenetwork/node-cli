@@ -20,10 +20,7 @@
 import json
 from terminaltables import SingleTable
 
-from node_cli.utils.print_formatters import (
-    print_containers,
-    print_schains_healthchecks
-)
+from node_cli.utils.print_formatters import print_containers, print_schains_healthchecks
 from node_cli.utils.helper import error_exit, get_request
 from node_cli.utils.exit_codes import CLIExitCodes
 
@@ -33,9 +30,7 @@ BLUEPRINT_NAME = 'health'
 
 def get_containers(_all):
     status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='containers',
-        params={'all': _all}
+        blueprint=BLUEPRINT_NAME, method='containers', params={'all': _all}
     )
     if status == 'ok':
         print_containers(payload)
@@ -44,10 +39,7 @@ def get_containers(_all):
 
 
 def get_schains_checks(json_format: bool = False) -> None:
-    status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='schains'
-    )
+    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='schains')
     if status == 'ok':
         if not payload:
             print('No sChains found')
@@ -61,10 +53,7 @@ def get_schains_checks(json_format: bool = False) -> None:
 
 
 def get_sgx_info():
-    status, payload = get_request(
-        blueprint=BLUEPRINT_NAME,
-        method='sgx'
-    )
+    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='sgx')
     if status == 'ok':
         data = payload
         table_data = [
@@ -73,7 +62,7 @@ def get_sgx_info():
             ['SGXWallet Version', data['sgx_wallet_version']],
             ['Node SGX keyname', data['sgx_keyname']],
             ['Status HTTPS', data['status_https']],
-            ['Status ZMQ', data['status_zmq']]
+            ['Status ZMQ', data['status_zmq']],
         ]
         table = SingleTable(table_data)
         print(table.table)

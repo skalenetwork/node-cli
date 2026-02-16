@@ -19,58 +19,48 @@
 
 import ipaddress
 import json
+import logging
+import logging.handlers as py_handlers
 import os
 import re
-import socket
-import sys
-import uuid
-from urllib.parse import urlparse
-from typing import Optional
-
-import yaml
 import shutil
-import requests
+import socket
 import subprocess
-import urllib.request
-
+import sys
 import urllib.parse
+import urllib.request
+import uuid
+from pathlib import Path
 from functools import wraps
-
-import logging
 from logging import Formatter, StreamHandler
-import logging.handlers as py_handlers
-
-import distutils
-import distutils.util
+from typing import Any, NoReturn, Optional
+from urllib.parse import urlparse
 
 import click
-
+import requests
+import yaml
 from jinja2 import Environment
 
-from node_cli.utils.print_formatters import print_err_response
-from node_cli.utils.exit_codes import CLIExitCodes
-from node_cli.configs.env import absent_params as absent_env_params, get_env_config
 from node_cli.configs import (
-    TEXT_FILE,
     ADMIN_HOST,
     ADMIN_PORT,
-    HIDE_STREAM_LOG,
-    GLOBAL_SKALE_DIR,
-    GLOBAL_SKALE_CONF_FILEPATH,
     DEFAULT_SSH_PORT,
+    GLOBAL_SKALE_CONF_FILEPATH,
+    GLOBAL_SKALE_DIR,
+    HIDE_STREAM_LOG,
 )
-from node_cli.configs.routes import get_route
-from node_cli.utils.global_config import read_g_config, get_system_user
-
 from node_cli.configs.cli_logger import (
+    DEBUG_LOG_FILEPATH,
     FILE_LOG_FORMAT,
     LOG_BACKUP_COUNT,
     LOG_FILE_SIZE_BYTES,
     LOG_FILEPATH,
     STREAM_LOG_FORMAT,
-    DEBUG_LOG_FILEPATH,
 )
-
+from node_cli.configs.routes import get_route
+from node_cli.utils.exit_codes import CLIExitCodes
+from node_cli.utils.global_config import get_system_user, read_g_config
+from node_cli.utils.print_formatters import print_err_response
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +68,7 @@ HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
 
 DEFAULT_ERROR_DATA = {
     'status': 'error',
-    'payload': 'Request failed. Check skale_api container logs',
+    'payload': 'Request failed. Check API container logs',
 }
 
 
@@ -96,13 +86,13 @@ def write_json(path: str, content: dict) -> None:
         json.dump(content, outfile, indent=4)
 
 
-def save_json(path: str, content: dict) -> None:
+def save_json(path: str | Path, content: dict) -> None:
     tmp_path = get_tmp_path(path)
     write_json(tmp_path, content)
     shutil.move(tmp_path, path)
 
 
-def init_file(path, content=None):
+def init_file(path: str | Path, content=None):
     if not os.path.exists(path):
         write_json(path, content)
 
@@ -154,28 +144,24 @@ def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
-def extract_env_params(env_filepath, sync_node=False, raise_for_status=True):
-    env_params = get_env_config(env_filepath, sync_node=sync_node)
-    absent_params = ', '.join(absent_env_params(env_params))
-    if absent_params:
-        click.echo(
-            f'Your env file({env_filepath}) have some absent params: '
-            f'{absent_params}.\n'
-            f'You should specify them to make sure that '
-            f'all services are working',
-            err=True,
-        )
-        if raise_for_status:
-            raise InvalidEnvFileError(f'Missing params: {absent_params}')
-        return None
-    return env_params
+def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> NoReturn:
+    """Print error message and exit the program with specified exit code.
 
+    Args:
+        error_payload: Error message string or list of error messages
+        exit_code: Exit code to use when terminating the program (default: FAILURE)
 
-def str_to_bool(val):
-    return bool(distutils.util.strtobool(val))
+    Raises:
+        TypeError: If exit_code is not CLIExitCodes
 
+    Example:
+        >>> error_exit("Permission denied", CLIExitCodes.BAD_USER_ERROR)
+        Permission denied
+        <exits with code 3>
+    """
+    if not isinstance(exit_code, CLIExitCodes):
+        raise TypeError('exit_code must be CLIExitCodes enum')
 
-def error_exit(error_payload, exit_code=CLIExitCodes.FAILURE):
     print_err_response(error_payload)
     sys.exit(exit_code.value)
 
@@ -186,14 +172,6 @@ def safe_get_config(config, key):
     except KeyError as e:
         logger.error(e)
         return None
-
-
-def safe_load_texts():
-    with open(TEXT_FILE, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
 
 
 def safe_load_yml(filepath):
@@ -220,21 +198,23 @@ def post_request(blueprint, method, json=None, files=None):
         response = requests.post(url, json=json, files=files)
         data = response.json()
     except Exception as err:
-        logger.error('Request failed', exc_info=err)
+        logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA
     status = data['status']
     payload = data['payload']
     return status, payload
 
 
-def get_request(blueprint: str, method: str, params: Optional[dict] = None) -> tuple[str, str]:
+def get_request(
+    blueprint: str, method: str, params: Optional[dict] = None
+) -> tuple[str, str | dict]:
     route = get_route(blueprint, method)
     url = construct_url(route)
     try:
         response = requests.get(url, params=params)
         data = response.json()
     except Exception as err:
-        logger.error('Request failed', exc_info=err)
+        logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA
 
     status = data['status']
@@ -299,23 +279,8 @@ def to_camel_case(snake_str):
     return components[0] + ''.join(x.title() for x in components[1:])
 
 
-def validate_abi(abi_filepath: str) -> dict:
-    if not os.path.isfile(abi_filepath):
-        return {'filepath': abi_filepath, 'status': 'error', 'msg': 'No such file'}
-    try:
-        with open(abi_filepath) as abi_file:
-            json.load(abi_file)
-    except Exception:
-        return {
-            'filepath': abi_filepath,
-            'status': 'error',
-            'msg': 'Failed to load abi file as json',
-        }
-    return {'filepath': abi_filepath, 'status': 'ok', 'msg': ''}
-
-
 def streamed_cmd(func):
-    """Decorator that allow function to print logs into stderr"""
+    """Decorator that allows function to print logs into stderr."""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -354,20 +319,41 @@ def rm_dir(folder: str) -> None:
         logger.info(f"{folder} doesn't exist, skipping...")
 
 
-def safe_mkdir(path: str, print_res: bool = False):
+def cleanup_dir_content(folder: str) -> None:
+    if os.path.exists(folder):
+        logger.info('Removing contents of %s', folder)
+        for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+
+
+def safe_mkdir(path: str | Path, print_res: bool = False) -> None:
     if os.path.exists(path):
+        logger.debug(f'Directory {path} already exists')
         return
+
     msg = f'Creating {path} directory...'
     logger.info(msg)
     if print_res:
         print(msg)
+
     os.makedirs(path, exist_ok=True)
 
 
 def rsync_dirs(src: str, dest: str) -> None:
-    logger.info(f'Syncing {dest} with {src}')
-    run_cmd(['rsync', '-r', f'{src}/', dest])
-    run_cmd(['rsync', '-r', f'{src}/.git', dest])
+    logger.info(f'Syncing directory {dest} with {src}')
+
+    try:
+        run_cmd(['rsync', '-r', f'{src}/', dest])
+        run_cmd(['rsync', '-r', f'{src}/.git', dest])
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Rsync failed: {e}')
+        error_exit(
+            f'Failed to sync directories: {e}', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR
+        )
 
 
 def ok_result(payload: dict = None):
@@ -391,6 +377,15 @@ class UrlType(click.ParamType):
         return value
 
 
+class UrlOrAnyType(UrlType):
+    name = 'url'
+
+    def convert(self, value, param, ctx):
+        if value == 'any':
+            return value
+        return super().convert(value, param, ctx)
+
+
 class IpType(click.ParamType):
     name = 'ip'
 
@@ -403,11 +398,12 @@ class IpType(click.ParamType):
 
 
 URL_TYPE = UrlType()
+URL_OR_ANY_TYPE = UrlOrAnyType()
 IP_TYPE = IpType()
 
 
-def get_tmp_path(path: str) -> str:
-    base, ext = os.path.splitext(path)
+def get_tmp_path(path: str | Path) -> str:
+    base, ext = os.path.splitext(str(path))
     salt = uuid.uuid4().hex[:5]
     return base + salt + '.tmp' + ext
 
@@ -418,3 +414,12 @@ def get_ssh_port(ssh_service_name='ssh'):
     except OSError:
         logger.exception('Cannot get ssh service port')
         return DEFAULT_SSH_PORT
+
+
+def is_btrfs_subvolume(path: str) -> bool:
+    """Check if the given path is a Btrfs subvolume."""
+    try:
+        output = run_cmd(['btrfs', 'subvolume', 'show', path], check_code=False)
+        return output.returncode == 0
+    except subprocess.CalledProcessError:
+        return False

@@ -2,7 +2,6 @@ import os
 import time
 import shlex
 import shutil
-from datetime import datetime
 
 import pytest
 import freezegun
@@ -11,10 +10,8 @@ from node_cli.core.logs import create_dump_dir, create_logs_dump
 from node_cli.configs import G_CONF_HOME, SKALE_TMP_DIR
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.helper import run_cmd, safe_mkdir
+from tests.helper import CURRENT_DATETIME
 
-
-CURRENT_TIMESTAMP = 1594903080
-CURRENT_DATETIME = datetime.utcfromtimestamp(CURRENT_TIMESTAMP)
 TEST_DUMP_DIR_PATH = os.path.join(SKALE_TMP_DIR, 'skale-logs-dump-2020-07-16--12-38-00')
 
 TEST_IMAGE = 'alpine'
@@ -44,10 +41,7 @@ def backup_func():
 def skale_container():
     client = docker_client()
     container = client.containers.run(
-        image=TEST_IMAGE,
-        name=TEST_SKALE_NAME,
-        detach=True,
-        entrypoint=TEST_ENTRYPOINT
+        image=TEST_IMAGE, name=TEST_SKALE_NAME, detach=True, entrypoint=TEST_ENTRYPOINT
     )
     time.sleep(10)
     try:
@@ -77,8 +71,8 @@ def test_create_logs_dump(backup_func, skale_container, removed_containers_folde
         content = data_file.readlines()
     assert content == [
         'Hello, SKALE!\n',
-        '================================================================================\n',   # noqa
-        'Hello, SKALE!\n'
+        '================================================================================\n',  # noqa
+        'Hello, SKALE!\n',
     ]
 
     assert os.path.exists(os.path.join(TEST_ARCHIVE_FOLDER_PATH, 'removed_containers'))

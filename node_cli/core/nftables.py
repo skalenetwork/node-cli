@@ -22,9 +22,9 @@ import logging
 import os
 import shutil
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-from dataclasses import dataclass
 
 from node_cli.configs import (
     ENV,
@@ -32,7 +32,7 @@ from node_cli.configs import (
     NFTABLES_CHAIN_FOLDER_PATH,
     NFTABLES_MAIN_CONFIG_PATH,
     NFTABLES_SKALE_BASE_CONFIG_PATH,
-    NFTABLES_USER_CONFIG_PATH
+    NFTABLES_USER_CONFIG_PATH,
 )
 from node_cli.utils.helper import get_ssh_port, run_cmd
 
@@ -44,7 +44,8 @@ class ServicePort:
     DNS: int = 53
     CADVISOR: int = 9100
     EXPORTER: int = 8080
-    WATCHDOG: int = 3009
+    WATCHDOG_HTTP: int = 3009
+    WATCHDOG_HTTPS: int = 311
     HTTPS: int = 443
     HTTP: int = 80
 
@@ -95,13 +96,7 @@ class Rule:
         if self.first_port is not None and self.last_port is None:
             self.last_port = self.first_port
         if all(
-            val is None
-            for val in (
-                self.first_port,
-                self.last_port,
-                self.protocol,
-                self.icmp_type
-            )
+            val is None for val in (self.first_port, self.last_port, self.protocol, self.icmp_type)
         ):
             raise NFTablesError('Rule has no meaningful fields')
 
@@ -179,9 +174,9 @@ class NFTablesManager:
         chain: str,
         policy: str = POLICY,
         family: Optional[str] = None,
-        table: Optional[str] = None
+        table: Optional[str] = None,
     ) -> None:
-        """Update specified chain if it exists. Otherwise do nothing"""
+        """Update specified chain if it exists. Otherwise do nothing."""
         family = family or self.family
         table = table or self.table
         if self.chain_exists(chain, family=family):
@@ -211,7 +206,7 @@ class NFTablesManager:
             return False
 
     def create_table_if_not_exists(self) -> None:
-        """Create table only if it doesn't exist"""
+        """Create table only if it doesn't exist."""
         if not self.table_exists():
             cmd = {'nftables': [{'add': {'table': {'family': self.family, 'name': self.table}}}]}
             self.execute_cmd(cmd)
@@ -220,7 +215,7 @@ class NFTablesManager:
             logger.info('Table already exists: %s', self.table)
 
     def get_rules(self, chain: str) -> list[dict]:
-        """Get existing rules for a chain"""
+        """Get existing rules for a chain."""
         try:
             cmd = f'list chain {self.family} {self.table} {chain}'
             rc, output, error = self.nft.cmd(cmd)
@@ -249,7 +244,6 @@ class NFTablesManager:
         return False
 
     def add_drop_rule(self, rule: Rule) -> None:
-
         expr = []
 
         if rule.first_port:
@@ -395,7 +389,7 @@ class NFTablesManager:
                 rule.chain,
                 rule.protocol,
                 rule.first_port,
-                rule.last_port
+                rule.last_port,
             )
         else:
             logger.info(
@@ -403,7 +397,7 @@ class NFTablesManager:
                 rule.chain,
                 rule.protocol,
                 rule.first_port,
-                rule.last_port
+                rule.last_port,
             )
 
     def remove_rule(self, rule: Rule) -> None:
@@ -464,7 +458,7 @@ class NFTablesManager:
                 rule.chain,
                 rule.protocol,
                 rule.first_port,
-                rule.last_port
+                rule.last_port,
             )
         else:
             logger.info(
@@ -472,7 +466,7 @@ class NFTablesManager:
                 rule.chain,
                 rule.protocol,
                 rule.first_port,
-                rule.last_port
+                rule.last_port,
             )
 
     def add_connection_tracking_rule(self, chain: str) -> None:
@@ -535,7 +529,6 @@ class NFTablesManager:
 
     def get_base_ruleset(self) -> str:
         self.nft.set_json_output(False)
-        output = ''
         try:
             cmd = f'list chain {self.family} {self.table} {self.chain}'
             rc, output, error = self.nft.cmd(cmd)
@@ -545,10 +538,9 @@ class NFTablesManager:
         finally:
             self.nft.set_json_output(True)
 
-        return output
 
     def setup_firewall(self, enable_monitoring: bool = False) -> None:
-        """Setup firewall rules"""
+        """Setup firewall rules."""
 
         logger.info('Configuring firewall rules')
         try:
@@ -568,7 +560,8 @@ class NFTablesManager:
                 ServicePort.DNS,
                 ServicePort.HTTPS,
                 ServicePort.HTTP,
-                ServicePort.WATCHDOG
+                ServicePort.WATCHDOG_HTTP,
+                ServicePort.WATCHDOG_HTTPS,
             ]
             if enable_monitoring:
                 tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
@@ -587,17 +580,14 @@ class NFTablesManager:
                     chain=self.chain,
                     first_port=SGXPort.HTTPS,
                     last_port=SGXPort.ZMQ,
-                    protocol='tcp'
+                    protocol='tcp',
                 )
             )
 
             self.add_drop_rule(Rule(chain=self.chain, protocol='udp'))
             logger.info('Making sure legacy chain has default policy %s', POLICY)
             self.update_chain_policy(
-                chain=LEGACY_CHAIN,
-                policy=POLICY,
-                family=LEGACY_FAMILY,
-                table=LEGACY_TABLE
+                chain=LEGACY_CHAIN, policy=POLICY, family=LEGACY_FAMILY, table=LEGACY_TABLE
             )
 
         except Exception as e:
@@ -606,12 +596,13 @@ class NFTablesManager:
         logger.info('Firewall rules are configured')
 
     def cleanup_legacy_rules(self, ssh: bool = False, dns: bool = False) -> None:
-        """Cleanups all node-cli generated rules"""
+        """Cleans up all node-cli generated rules."""
         self.remove_drop_rule('tcp')
         self.remove_drop_rule('udp')
         tcp_ports = [
             ServicePort.HTTPS,
-            ServicePort.WATCHDOG,
+            ServicePort.WATCHDOG_HTTP,
+            ServicePort.WATCHDOG_HTTPS,
             ServicePort.EXPORTER,
             ServicePort.CADVISOR,
             ServicePort.DNS,  # tcp is redundant, making sure it's removed
@@ -624,7 +615,7 @@ class NFTablesManager:
             self.remove_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
 
     def flush_chain(self, chain: str) -> None:
-        """Remove all rules from a specific chain"""
+        """Remove all rules from a specific chain."""
         json_cmd = {
             'nftables': [
                 {'flush': {'chain': {'family': self.family, 'table': self.table, 'name': chain}}}
@@ -678,10 +669,7 @@ def create_user_config_path() -> None:
 
 def update_main_nftables_config() -> None:
     logger.info('Updating main nftables rules')
-    content = (
-        f'#!/usr/sbin/nft -f\nflush ruleset\n'
-        f'include "{NFTABLES_SKALE_BASE_CONFIG_PATH}";'
-    )
+    content = f'#!/usr/sbin/nft -f\nflush ruleset\ninclude "{NFTABLES_SKALE_BASE_CONFIG_PATH}";'
     with open(NFTABLES_MAIN_CONFIG_PATH, 'w') as f:
         f.write(content)
 
