@@ -247,6 +247,7 @@ def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
 
 
 def compose_node_env(node_type: NodeType, node_mode: NodeMode) -> dict[str, str]:
+    st = get_settings()
     if node_mode == NodeMode.PASSIVE or node_type == NodeType.FAIR:
         mnt_dir = SCHAINS_MNT_DIR_SINGLE_CHAIN
     else:
@@ -256,6 +257,7 @@ def compose_node_env(node_type: NodeType, node_mode: NodeMode) -> dict[str, str]
         'SCHAINS_MNT_DIR': mnt_dir,
         'FILESTORAGE_MAPPING': FILESTORAGE_MAPPING,
         'SKALE_LIB_PATH': SKALE_STATE_DIR,
+        'FILEBEAT_HOST': st.filebeat_host,
     }
     return {k: v for k, v in env.items() if v != ''}
 

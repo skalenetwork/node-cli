@@ -67,7 +67,6 @@ def test_init_passive_archive(mocked_g_config, clean_node_options, passive_user_
         mock.patch('node_cli.operations.base.prepare_host'),
         mock.patch('node_cli.operations.base.save_internal_settings'),
         mock.patch('node_cli.operations.base.run_host_checks', return_value=[]),
-        mock.patch('node_cli.operations.base.set_passive_node_options'),
         mock.patch('node_cli.operations.base.ensure_filestorage_mapping'),
         mock.patch('node_cli.operations.base.generate_nginx_config'),
         mock.patch('node_cli.operations.base.get_settings'),
