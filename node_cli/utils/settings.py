@@ -17,19 +17,23 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import tomllib
+
+from dotenv.main import DotEnv
+
 from skale.core.settings import (
     SETTINGS_MAP,
-    write_node_settings_file,
-    write_internal_settings_file,
-    InternalSettings,
-    SkaleSettings,
-    SkalePassiveSettings,
-    FairSettings,
+    BaseNodeSettings,
     FairBaseSettings,
+    FairSettings,
+    InternalSettings,
+    SkalePassiveSettings,
+    SkaleSettings,
+    write_internal_settings_file,
+    write_node_settings_file,
 )
 
-from node_cli.configs import NODE_SETTINGS_PATH, INTERNAL_SETTINGS_PATH
-
+from node_cli.configs import INTERNAL_SETTINGS_PATH, NODE_SETTINGS_PATH, SKALE_DIR
 from node_cli.utils.node_type import NodeMode, NodeType
 
 InternalSettings.model_config['toml_file'] = INTERNAL_SETTINGS_PATH
@@ -39,9 +43,35 @@ FairSettings.model_config['toml_file'] = NODE_SETTINGS_PATH
 FairBaseSettings.model_config['toml_file'] = NODE_SETTINGS_PATH
 
 
-def save_settings(node_type: NodeType, node_mode: NodeMode) -> None:
-    write_internal_settings_file(path=INTERNAL_SETTINGS_PATH, data={})  # todof: fix
+def load_config_file(filepath: str) -> dict:
+    if filepath.endswith('.toml'):
+        with open(filepath, 'rb') as f:
+            return tomllib.load(f)
+    return {k.lower(): v for k, v in DotEnv(filepath).dict().items()}
+
+
+def validate_and_save_node_settings(
+    config_filepath: str,
+    node_type: NodeType,
+    node_mode: NodeMode,
+) -> BaseNodeSettings:
+    data = load_config_file(config_filepath)
     settings_type = SETTINGS_MAP[(node_type.value, node_mode.value)]
-    write_node_settings_file(
-        path=NODE_SETTINGS_PATH, settings_type=settings_type, data={}
-    )  # todof: fix
+    write_node_settings_file(path=NODE_SETTINGS_PATH, settings_type=settings_type, data=data)
+    return settings_type()
+
+
+def save_internal_settings(
+    node_type: NodeType,
+    node_mode: NodeMode,
+    backup_run: bool = False,
+    pull_config_for_schain: str | None = None,
+) -> None:
+    data = {
+        'node_type': node_type.value,
+        'node_mode': node_mode.value,
+        'skale_dir_host': str(SKALE_DIR),
+        'backup_run': backup_run,
+        'pull_config_for_schain': pull_config_for_schain,
+    }
+    write_internal_settings_file(path=INTERNAL_SETTINGS_PATH, data=data)

@@ -24,7 +24,9 @@ from typing import Dict
 
 import psutil
 
-from node_cli.configs.user import get_validated_user_config
+from skale.core.types import EnvType
+
+from node_cli.utils.settings import validate_and_save_node_settings
 from node_cli.utils.docker_utils import ensure_volume
 from node_cli.utils.schain_types import SchainTypes
 from node_cli.utils.helper import write_json, read_json, run_cmd, safe_load_yml
@@ -73,7 +75,7 @@ def get_resource_allocation_info():
         return None
 
 
-def compose_resource_allocation_config(env_type: str, params_by_env_type: Dict = None) -> Dict:
+def compose_resource_allocation_config(env_type: EnvType, params_by_env_type: Dict = None) -> Dict:
     params_by_env_type = params_by_env_type or safe_load_yml(STATIC_PARAMS_FILEPATH)
     common_config = params_by_env_type['common']
     schain_cpu_alloc, ima_cpu_alloc = get_cpu_alloc(common_config)
@@ -93,22 +95,20 @@ def compose_resource_allocation_config(env_type: str, params_by_env_type: Dict =
 
 
 def generate_resource_allocation_config(
-    env_file,
+    env_file: str,
     node_type: NodeType,
     node_mode: NodeMode,
-    force=False,
+    force: bool = False,
 ) -> None:
     if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
         msg = 'Resource allocation file already exists'
         logger.debug(msg)
         print(msg)
         return
-    user_config = get_validated_user_config(
-        node_type=node_type, node_mode=node_mode, env_filepath=env_file
-    )
+    settings = validate_and_save_node_settings(env_file, node_type, node_mode)
     logger.info('Generating resource allocation file ...')
     try:
-        update_resource_allocation(user_config.env_type)
+        update_resource_allocation(settings.env_type)
     except Exception as e:
         logger.exception(e)
         print("Can't generate resource allocation file, check out CLI logs")
@@ -116,7 +116,7 @@ def generate_resource_allocation_config(
         print(f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}')
 
 
-def update_resource_allocation(env_type: str) -> None:
+def update_resource_allocation(env_type: EnvType) -> None:
     resource_allocation_config = compose_resource_allocation_config(env_type)
     write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
 

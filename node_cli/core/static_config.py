@@ -28,10 +28,12 @@ from node_cli.configs import (
 )
 from node_cli.utils.node_type import NodeType
 
+from skale.core.types import EnvType
+
 
 def get_static_params(
     node_type: NodeType,
-    env_type: str = 'mainnet',
+    env_type: EnvType = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH,
 ) -> dict:
     if node_type == NodeType.FAIR:
@@ -46,7 +48,7 @@ def get_static_params(
         return ydata['envs'][env_type]
 
 
-def get_fair_chain_name(env: dict) -> str:
+def get_fair_chain_name(env_type: EnvType) -> str:
     node_type = NodeType.FAIR
-    params = get_static_params(node_type, env['ENV_TYPE'])
+    params = get_static_params(node_type, env_type)
     return params['info']['chain_name']

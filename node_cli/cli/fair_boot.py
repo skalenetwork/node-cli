@@ -88,6 +88,6 @@ def signature_boot(validator_id):
 @streamed_cmd
 def update_node(env_file, pull_config_for_schain):
     update(
-        env_filepath=env_file,
+        config_file=env_file,
         pull_config_for_schain=pull_config_for_schain,
     )

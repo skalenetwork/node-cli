@@ -108,7 +108,7 @@ def init_node(config_file):
 def update_node(config_file, pull_config_for_schain, unsafe_ok):
     update(
         node_mode=NodeMode.ACTIVE,
-        env_filepath=config_file,
+        config_file=config_file,
         pull_config_for_schain=pull_config_for_schain,
         node_type=TYPE,
         unsafe_ok=unsafe_ok,
@@ -145,7 +145,7 @@ def backup_node(backup_folder_path):
 def restore_node(backup_path, env_file, no_snapshot, config_only):
     restore(
         backup_path=backup_path,
-        env_filepath=env_file,
+        config_file=env_file,
         no_snapshot=no_snapshot,
         config_only=config_only,
         node_type=TYPE,

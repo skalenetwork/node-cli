@@ -48,6 +48,8 @@ import psutil  # type: ignore
 from debian import debian_support
 from packaging.version import parse as version_parse
 
+from skale.core.types import EnvType
+
 from node_cli.configs import (
     CHECK_REPORT_PATH,
     CONTAINER_CONFIG_PATH,
@@ -471,7 +473,7 @@ def run_checks(
     disk: str,
     node_type: NodeType,
     node_mode: NodeMode,
-    env_type: str = 'mainnet',
+    env_type: EnvType = 'mainnet',
     config_path: str = CONTAINER_CONFIG_PATH,
     check_type: CheckType = CheckType.ALL,
 ) -> ResultList:

@@ -48,6 +48,12 @@ from node_cli.core.node_options import NodeOptions
 from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.utils.node_type import NodeMode
+from tests.fixtures.settings import (  # noqa: F401
+    fair_active_settings,
+    fair_passive_settings,
+    skale_active_settings,
+    skale_passive_settings,
+)
 from tests.helper import TEST_META_V1, TEST_META_V2, TEST_META_V3, TEST_SCHAINS_MNT_DIR_SINGLE_CHAIN
 
 

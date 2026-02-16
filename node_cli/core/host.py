@@ -19,8 +19,10 @@
 
 import logging
 import os
-from shutil import copyfile, chown
+from shutil import chown
 from urllib.parse import urlparse
+
+from skale.core.types import EnvType
 
 from node_cli.core.resources import update_resource_allocation
 from node_cli.utils.helper import error_exit
@@ -73,15 +75,11 @@ def fix_url(url):
         return False
 
 
-def prepare_host(env_filepath: str, env_type: str, allocation: bool = False) -> None:
-    if not env_filepath or not env_type:
-        error_exit('Missing required parameters for host initialization')
-
+def prepare_host(env_type: EnvType, allocation: bool = False) -> None:
     try:
         logger.info('Preparing host started')
         make_dirs()
         chown(REDIS_DATA_PATH, user=999, group=1000)
-        save_env_params(env_filepath)
 
         if allocation:
             update_resource_allocation(env_type)

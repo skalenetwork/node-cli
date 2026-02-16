@@ -1,15 +1,17 @@
+import os
 from unittest import mock
 
 import pytest
 
 from node_cli.configs import SKALE_DIR
-from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
 from node_cli.fair.boot import init as init_boot
 from node_cli.fair.boot import update
 from node_cli.fair.common import cleanup
 from node_cli.fair.active import migrate_from_boot, restore
 from node_cli.operations.fair import FairUpdateType
 from node_cli.utils.node_type import NodeMode, NodeType
+
+SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 
 
 @mock.patch('node_cli.fair.active.time.sleep')
@@ -182,7 +184,8 @@ def test_cleanup_success(
         skip_user_conf_validation=True,
     )
     mock_cleanup_fair_op.assert_called_once_with(
-        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)
+        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False
+    )
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=True)
@@ -214,7 +217,8 @@ def test_cleanup_calls_operations_in_correct_order(
             save=False,
             node_type=mock.ANY,
             node_mode=NodeMode.ACTIVE,
-            skip_user_conf_validation=True),
+            skip_user_conf_validation=True,
+        ),
         mock.call.cleanup_fair_op(node_mode=NodeMode.ACTIVE, env=mock_env, prune=False),
     ]
     manager.assert_has_calls(expected_calls, any_order=False)
@@ -240,7 +244,8 @@ def test_cleanup_continues_after_fair_op_error(
 
     mock_compose_env.assert_called_once()
     mock_cleanup_fair_op.assert_called_once_with(
-        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False)
+        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False
+    )
 
 
 @mock.patch('node_cli.utils.decorators.is_user_valid', return_value=False)

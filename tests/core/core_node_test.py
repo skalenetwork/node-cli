@@ -10,9 +10,14 @@ import mock
 import pytest
 import requests
 
-from node_cli.configs import NODE_DATA_PATH, SCHAINS_MNT_DIR_REGULAR, SCHAINS_MNT_DIR_SINGLE_CHAIN
+from node_cli.configs import (
+    NODE_DATA_PATH,
+    SCHAINS_MNT_DIR_REGULAR,
+    SCHAINS_MNT_DIR_SINGLE_CHAIN,
+    SKALE_DIR,
+)
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
-from node_cli.configs.user import SKALE_DIR_ENV_FILEPATH
+
 from node_cli.core.node import (
     cleanup,
     compose_node_env,
@@ -32,6 +37,8 @@ dclient = docker.from_env()
 
 ALPINE_IMAGE_NAME = 'alpine:3.12'
 CMD = 'sleep 60'
+
+SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 
 WRONG_CONTAINERS = [
     'WRONG_CONTAINER_1',
@@ -165,105 +172,42 @@ def test_is_base_containers_alive_empty(node_type, node_mode, is_boot):
 
 
 @pytest.mark.parametrize(
-    (
-        'node_type, node_mode, test_user_conf, is_boot, inited_node, sync_schains,'
-        'expected_mnt_dir, expect_flask_key, expect_backup_run'
-    ),
+    'node_type, node_mode, expected_mnt_dir',
     [
         (
             NodeType.SKALE,
             NodeMode.ACTIVE,
-            'regular_user_conf',
-            False,
-            True,
-            False,
             SCHAINS_MNT_DIR_REGULAR,
-            True,
-            False,
-        ),
-        (
-            NodeType.SKALE,
-            NodeMode.ACTIVE,
-            'regular_user_conf',
-            False,
-            True,
-            True,
-            SCHAINS_MNT_DIR_REGULAR,
-            True,
-            True,
         ),
         (
             NodeType.SKALE,
             NodeMode.PASSIVE,
-            'passive_user_conf',
-            False,
-            False,
-            False,
             SCHAINS_MNT_DIR_SINGLE_CHAIN,
-            False,
-            False,
         ),
         (
             NodeType.FAIR,
             NodeMode.ACTIVE,
-            'fair_boot_user_conf',
-            True,
-            True,
-            False,
             SCHAINS_MNT_DIR_SINGLE_CHAIN,
-            True,
-            False,
-        ),
-        (
-            NodeType.FAIR,
-            NodeMode.ACTIVE,
-            'fair_user_conf',
-            False,
-            True,
-            False,
-            SCHAINS_MNT_DIR_SINGLE_CHAIN,
-            True,
-            False,
         ),
     ],
     ids=[
         'regular',
-        'regular_passive_flag',
         'passive',
-        'fair_boot',
-        'fair_regular',
+        'fair',
     ],
 )
 def test_compose_node_env(
-    request,
     node_type,
     node_mode,
-    test_user_conf,
-    is_boot,
-    inited_node,
-    sync_schains,
     expected_mnt_dir,
-    expect_backup_run,
 ):
-    user_config_path = request.getfixturevalue(test_user_conf)
-
-    with (
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
-        mock.patch('node_cli.core.node.save_env_params'),
-    ):
-        result_env = compose_node_env(
-            env_filepath=user_config_path.as_posix(),
-            inited_node=inited_node,
-            sync_schains=sync_schains,
-            node_type=node_type,
-            node_mode=node_mode,
-            is_fair_boot=is_boot,
-            save=True,
-        )
+    result_env = compose_node_env(
+        node_type=node_type,
+        node_mode=node_mode,
+    )
 
     assert result_env['SCHAINS_MNT_DIR'] == expected_mnt_dir
-    should_have_backup = sync_schains and node_mode != NodeMode.PASSIVE
-    assert ('BACKUP_RUN' in result_env and result_env['BACKUP_RUN'] == 'True') == should_have_backup
+    assert 'BACKUP_RUN' not in result_env
 
 
 @pytest.fixture

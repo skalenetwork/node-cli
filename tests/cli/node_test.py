@@ -353,12 +353,12 @@ def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config,
         result = run_command(restore_node, [backup_path, user_conf_path])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
-        assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') == 'True'
+        assert mock_restore_op.call_args.kwargs.get('backup_run') is True
 
         result = run_command(restore_node, [backup_path, user_conf_path, '--no-snapshot'])
         assert result.exit_code == 0
         assert 'Node is restored from backup\n' in result.output  # noqa
-        assert mock_restore_op.call_args[0][0].get('BACKUP_RUN') is None
+        assert mock_restore_op.call_args.kwargs.get('backup_run') is False
 
 
 def test_maintenance_on():

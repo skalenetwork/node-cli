@@ -144,16 +144,6 @@ def get_username():
     return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
-def str_to_bool(val: str) -> bool:
-    val = val.lower()
-    if val in ('y', 'yes', 't', 'true', 'on', '1'):
-        return True
-    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
-        return False
-    else:
-        raise ValueError(f'Invalid truth value {val!r}')
-
-
 def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> NoReturn:
     """Print error message and exit the program with specified exit code.
 

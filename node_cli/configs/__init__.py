@@ -55,7 +55,6 @@ CONTAINER_CONFIG_TMP_PATH = os.path.join(SKALE_TMP_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 REPORTS_PATH = os.path.join(SKALE_DIR, 'reports')
 BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
-INIT_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 SKALE_RUN_DIR = '/var/run/skale'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
@@ -76,9 +75,6 @@ NODE_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'ssl')
 
 SGX_CERTS_PATH = os.path.join(NODE_DATA_PATH, 'sgx_certs')
 SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
-
-CURRENT_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
-DOTENV_FILEPATH = os.path.join(os.path.dirname(CURRENT_FILE_LOCATION), '.env')
 
 SRC_FILEBEAT_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'filebeat.yml')
 FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')

@@ -33,7 +33,6 @@ from node_cli.configs import (
     BACKUP_ARCHIVE_NAME,
     CONTAINER_CONFIG_PATH,
     FILESTORAGE_MAPPING,
-    INIT_ENV_FILEPATH,
     LOG_PATH,
     RESTORE_SLEEP_TIMEOUT,
     SCHAINS_MNT_DIR_REGULAR,
@@ -88,6 +87,8 @@ from node_cli.utils.print_formatters import (
     print_node_cmd_error,
     print_node_info,
 )
+from node_cli.utils.settings import validate_and_save_node_settings
+from skale.core.settings import get_settings
 from node_cli.utils.texts import safe_load_texts
 
 logger = logging.getLogger(__name__)
@@ -153,49 +154,62 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 @check_not_inited
 def init(config_file: str, node_type: NodeType) -> None:
     node_mode = NodeMode.ACTIVE
-    env = compose_node_env(node_type=node_type, node_mode=node_mode)
+    settings = validate_and_save_node_settings(config_file, node_type, node_mode)
+    compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
-    init_op(env_filepath=config_file, env=env, node_mode=node_mode)
+    init_op(settings=settings, compose_env=compose_env, node_mode=node_mode)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
+    update_resource_allocation(settings.env_type)
     logger.info('Init procedure finished')
 
 
 @check_not_inited
-def restore(backup_path, env_filepath, node_type: NodeType, no_snapshot=False, config_only=False):
+def restore(
+    backup_path: str,
+    config_file: str,
+    node_type: NodeType,
+    no_snapshot: bool = False,
+    config_only: bool = False,
+):
     node_mode = NodeMode.ACTIVE
-    env = compose_node_env(node_type=node_type, node_mode=node_mode)
-    if env is None:
-        return
-    save_env_params(env_filepath)
-    env['SKALE_DIR'] = SKALE_DIR
+    settings = validate_and_save_node_settings(config_file, node_type, node_mode)
+    compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
-    if not no_snapshot:
-        logger.info('Adding BACKUP_RUN to env ...')
-        env['BACKUP_RUN'] = 'True'  # should be str
-
-    restored_ok = restore_op(env, backup_path, node_type=node_type, config_only=config_only)
+    restored_ok = restore_op(
+        settings=settings,
+        compose_env=compose_env,
+        backup_path=backup_path,
+        node_type=node_type,
+        config_only=config_only,
+        backup_run=not no_snapshot,
+    )
     if not restored_ok:
         error_exit('Restore operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     time.sleep(RESTORE_SLEEP_TIMEOUT)
     logger.info('Generating resource allocation file ...')
-    update_resource_allocation(env['ENV_TYPE'])
+    update_resource_allocation(settings.env_type)
     print('Node is restored from backup')
 
 
 @check_not_inited
 def init_passive(
-    env_filepath: str, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
+    config_file: str, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
     node_mode = NodeMode.PASSIVE
-    env = compose_node_env(env_filepath, node_type=NodeType.SKALE, node_mode=node_mode)
-    if env is None:
-        return
-    init_passive_op(env_filepath, env, indexer, archive, snapshot, snapshot_from)
+    settings = validate_and_save_node_settings(config_file, NodeType.SKALE, node_mode)
+    compose_env = compose_node_env(node_type=NodeType.SKALE, node_mode=node_mode)
+    init_passive_op(
+        settings=settings,
+        compose_env=compose_env,
+        indexer=indexer,
+        archive=archive,
+        snapshot=snapshot,
+        snapshot_from=snapshot_from,
+    )
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=NodeType.SKALE, node_mode=node_mode):
@@ -205,13 +219,14 @@ def init_passive(
 
 @check_inited
 @check_user
-def update_passive(env_filepath: str) -> None:
+def update_passive(config_file: str) -> None:
     logger.info('Node update started')
     prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
-    env = compose_node_env(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
-    update_ok = update_passive_op(env_filepath, env)
+    settings = validate_and_save_node_settings(config_file, NodeType.SKALE, NodeMode.PASSIVE)
+    compose_env = compose_node_env(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    update_ok = update_passive_op(settings=settings, compose_env=compose_env)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
@@ -248,7 +263,7 @@ def compose_node_env(node_type: NodeType, node_mode: NodeMode) -> dict[str, str]
 @check_inited
 @check_user
 def update(
-    env_filepath: str,
+    config_file: str,
     pull_config_for_schain: Optional[str],
     node_type: NodeType,
     node_mode: NodeMode,
@@ -264,15 +279,9 @@ def update(
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     logger.info('Node update started')
-    env = compose_node_env(
-        # env_filepath,
-        # inited_node=True,
-        # sync_schains=False,
-        # pull_config_for_schain=pull_config_for_schain,
-        node_type=node_type,
-        node_mode=node_mode,
-    )
-    update_ok = update_op(env_filepath, env, node_mode=node_mode)
+    settings = validate_and_save_node_settings(config_file, node_type, node_mode)
+    compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
+    update_ok = update_op(settings=settings, compose_env=compose_env, node_mode=node_mode)
     if update_ok:
         logger.info('Waiting for containers initialization')
         time.sleep(TM_INIT_TIMEOUT)
@@ -385,24 +394,24 @@ def turn_off(node_type: NodeType, maintenance_on: bool = False, unsafe_ok: bool 
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
     if maintenance_on:
         set_maintenance_mode_on()
-    env = compose_node_env(
-        SKALE_DIR_ENV_FILEPATH, save=False, node_type=node_type, node_mode=node_mode
-    )
-    turn_off_op(node_type=node_type, node_mode=node_mode, env=env)
+    compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
+    turn_off_op(compose_env=compose_env, node_type=node_type, node_mode=node_mode)
 
 
 @check_inited
 @check_user
-def turn_on(maintenance_off, sync_schains, env_file, node_type: NodeType) -> None:
+def turn_on(maintenance_off: bool, sync_schains: bool, env_file: str, node_type: NodeType) -> None:
     node_mode = upsert_node_mode()
-    env = compose_node_env(
-        env_file,
-        inited_node=True,
-        sync_schains=sync_schains,
+    settings = validate_and_save_node_settings(env_file, node_type, node_mode)
+    compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
+    backup_run = sync_schains and node_mode != NodeMode.PASSIVE
+    turn_on_op(
+        settings=settings,
+        compose_env=compose_env,
         node_type=node_type,
         node_mode=node_mode,
+        backup_run=backup_run,
     )
-    turn_on_op(env=env, node_type=node_type, node_mode=node_mode)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
@@ -497,8 +506,8 @@ def run_checks(
         return
 
     if disk is None:
-        env_config = get_validated_user_config(node_type=node_type, node_mode=node_mode)
-        disk = env_config.block_device
+        settings = get_settings()
+        disk = settings.block_device
     failed_checks = run_host_checks(disk, node_type, node_mode, network, container_config_path)
     if not failed_checks:
         print('Requirements checking successfully finished!')

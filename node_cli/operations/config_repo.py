@@ -33,12 +33,13 @@ from node_cli.utils.node_type import NodeType, NodeMode
 logger = logging.getLogger(__name__)
 
 
-def update_images(env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
-    local = env.get('CONTAINER_CONFIGS_DIR') != ''
-    if local:
-        compose_build(env=env, node_type=node_type, node_mode=node_mode)
+def update_images(
+    compose_env: dict, container_configs_dir: str, node_type: NodeType, node_mode: NodeMode
+) -> None:
+    if container_configs_dir:
+        compose_build(env=compose_env, node_type=node_type, node_mode=node_mode)
     else:
-        compose_pull(env=env, node_type=node_type, node_mode=node_mode)
+        compose_pull(env=compose_env, node_type=node_type, node_mode=node_mode)
 
 
 def download_skale_node(stream: Optional[str] = None, src: Optional[str] = None) -> None:

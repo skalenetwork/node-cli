@@ -22,6 +22,8 @@ import logging
 from typing import cast
 from datetime import datetime
 
+from skale.core.types import EnvType
+
 from node_cli.core.static_config import get_fair_chain_name
 from node_cli.fair.record.redis_record import FlatRedisRecord, FieldInfo
 
@@ -78,18 +80,17 @@ class ChainRecord(FlatRedisRecord):
         self._set_field('force_skaled_start', value)
 
 
-def get_fair_chain_record(env: dict) -> ChainRecord:
-    return ChainRecord(get_fair_chain_name(env))
+def get_fair_chain_record(env_type: EnvType) -> ChainRecord:
+    return ChainRecord(get_fair_chain_name(env_type))
 
 
-def migrate_chain_record(env: dict) -> None:
-    version = env['NODE_VERSION']
-    logger.info('Migrating fair chain record, setting config version to %s', version)
-    record = get_fair_chain_record(env)
-    record.set_config_version(version)
+def migrate_chain_record(env_type: EnvType, node_version: str) -> None:
+    logger.info('Migrating fair chain record, setting config version to %s', node_version)
+    record = get_fair_chain_record(env_type)
+    record.set_config_version(node_version)
 
 
-def update_chain_record(env: dict, force_skaled_start: bool) -> None:
-    record = get_fair_chain_record(env)
+def update_chain_record(env_type: EnvType, force_skaled_start: bool) -> None:
+    record = get_fair_chain_record(env_type)
     record.set_force_skaled_start(force_skaled_start)
     logger.info('Updated fair chain record with force_skaled_start=%s', force_skaled_start)

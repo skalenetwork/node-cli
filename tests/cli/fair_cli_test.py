@@ -20,6 +20,7 @@ from node_cli.utils.meta import CliMeta
 from tests.helper import run_command, subprocess_run_mock
 from tests.resources_test import BIG_DISK_SIZE
 
+
 @mock.patch('node_cli.cli.fair_node.restore_fair')
 def test_fair_node_restore(mock_restore_core, valid_env_file, tmp_path):
     runner = CliRunner()
@@ -105,7 +106,7 @@ def test_fair_node_migrate(mock_migrate_core, valid_env_file):
     result = runner.invoke(migrate_node, ['--yes', valid_env_file])
 
     assert result.exit_code == 0, f'Output: {result.output}\nException: {result.exception}'
-    mock_migrate_core.assert_called_once_with(env_filepath=valid_env_file)
+    mock_migrate_core.assert_called_once_with(config_file=valid_env_file)
 
 
 @mock.patch('node_cli.cli.fair_node.exit_fair')
@@ -136,4 +137,5 @@ def test_cleanup_node(mocked_g_config, inited_node):
         result = run_command(cleanup_node, ['--yes'])
         assert result.exit_code == 0
         cleanup_mock.assert_called_once_with(
-            node_mode=NodeMode.ACTIVE, prune=False, env={'SCHAIN_NAME': 'test'})
+            node_mode=NodeMode.ACTIVE, prune=False, env={'SCHAIN_NAME': 'test'}
+        )

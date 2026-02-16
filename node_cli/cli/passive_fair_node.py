@@ -49,7 +49,7 @@ def passive_node():
 
 
 @passive_node.command('init', help='Initialize a passive Fair node')
-@click.argument('env_filepath')
+@click.argument('config_file')
 @click.option('--id', required=True, type=int, help=TEXTS['fair']['node']['setup']['id'])
 @click.option('--indexer', help=TEXTS['passive_node']['init']['indexer'], is_flag=True)
 @click.option('--archive', help=TEXTS['passive_node']['init']['archive'], is_flag=True)
@@ -61,7 +61,7 @@ def passive_node():
 )
 @streamed_cmd
 def init_passive_node(
-    env_filepath: str, id: int, indexer: bool, archive: bool, snapshot: str | None
+    config_file: str, id: int, indexer: bool, archive: bool, snapshot: str | None
 ):
     if indexer and archive:
         error_exit('Cannot use both --indexer and --archive options')
@@ -69,7 +69,7 @@ def init_passive_node(
         error_exit('Cannot use any for indexer/archive node')
     init_fair(
         node_mode=NodeMode.PASSIVE,
-        env_filepath=env_filepath,
+        config_file=config_file,
         node_id=id,
         indexer=indexer,
         archive=archive,
@@ -78,7 +78,7 @@ def init_passive_node(
 
 
 @passive_node.command('update', help='Update Fair node')
-@click.argument('env_filepath')
+@click.argument('config_file')
 @click.option(
     '--yes',
     is_flag=True,
@@ -96,10 +96,10 @@ def init_passive_node(
     is_flag=True,
 )
 @streamed_cmd
-def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: bool):
+def update_node(config_file: str, pull_config_for_schain, force_skaled_start: bool):
     update_fair(
         node_mode=NodeMode.PASSIVE,
-        env_filepath=env_filepath,
+        config_file=config_file,
         pull_config_for_schain=pull_config_for_schain,
         force_skaled_start=force_skaled_start,
     )
@@ -146,7 +146,7 @@ def turn_off_node() -> None:
     expose_value=False,
     prompt='Are you sure you want to turn on the node?',
 )
-@click.argument('env_filepath')
+@click.argument('config_file')
 @streamed_cmd
-def turn_on_node(env_filepath: str) -> None:
-    turn_on_fair(env_file=env_filepath, node_type=TYPE)
+def turn_on_node(config_file: str) -> None:
+    turn_on_fair(env_file=config_file, node_type=TYPE)

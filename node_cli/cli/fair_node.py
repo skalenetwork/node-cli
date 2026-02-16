@@ -57,10 +57,10 @@ def fair_node_info(format):
 
 
 @node.command('init', help='Initialize regular Fair node')
-@click.argument('env_filepath')
+@click.argument('config_file')
 @streamed_cmd
-def init_node(env_filepath: str):
-    init_fair(node_mode=NodeMode.ACTIVE, env_filepath=env_filepath)
+def init_node(config_file: str):
+    init_fair(node_mode=NodeMode.ACTIVE, config_file=config_file)
 
 
 @node.command('register', help=TEXTS['fair']['node']['register']['help'])
@@ -70,7 +70,7 @@ def register(ip: str) -> None:
 
 
 @node.command('update', help='Update Fair node')
-@click.argument('env_filepath')
+@click.argument('config_file')
 @click.option(
     '--yes',
     is_flag=True,
@@ -88,10 +88,10 @@ def register(ip: str) -> None:
     is_flag=True,
 )
 @streamed_cmd
-def update_node(env_filepath: str, pull_config_for_schain, force_skaled_start: bool):
+def update_node(config_file: str, pull_config_for_schain, force_skaled_start: bool):
     update_fair(
         node_mode=NodeMode.ACTIVE,
-        env_filepath=env_filepath,
+        config_file=config_file,
         pull_config_for_schain=pull_config_for_schain,
         force_skaled_start=force_skaled_start,
     )
@@ -106,7 +106,7 @@ def backup_node(backup_folder_path):
 
 @node.command('restore', help='Restore Fair node from a backup file.')
 @click.argument('backup_path')
-@click.argument('env_file')
+@click.argument('config_file')
 @click.option(
     '--config-only',
     help='Only restore configuration files in .skale and artifacts',
@@ -114,12 +114,12 @@ def backup_node(backup_folder_path):
     hidden=True,
 )
 @streamed_cmd
-def restore_node(backup_path, env_file, config_only):
-    restore_fair(backup_path, env_file, config_only)
+def restore_node(backup_path, config_file, config_only):
+    restore_fair(backup_path, config_file, config_only)
 
 
 @node.command('migrate', help='Switch from boot to regular Fair node.')
-@click.argument('env_filepath')
+@click.argument('config_file')
 @click.option(
     '--yes',
     is_flag=True,
@@ -128,8 +128,8 @@ def restore_node(backup_path, env_file, config_only):
     prompt='Are you sure you want to migrate to regular Fair node? The action cannot be undone',
 )
 @streamed_cmd
-def migrate_node(env_filepath: str) -> None:
-    migrate_from_boot(env_filepath=env_filepath)
+def migrate_node(config_file: str) -> None:
+    migrate_from_boot(config_file=config_file)
 
 
 @node.command('repair', help='Toggle fair chain repair mode')
@@ -221,7 +221,7 @@ def turn_off_node() -> None:
     expose_value=False,
     prompt='Are you sure you want to turn on the node?',
 )
-@click.argument('env_filepath')
+@click.argument('config_file')
 @streamed_cmd
-def turn_on_node(env_filepath: str) -> None:
-    turn_on_fair(env_file=env_filepath, node_type=TYPE)
+def turn_on_node(config_file: str) -> None:
+    turn_on_fair(env_file=config_file, node_type=TYPE)

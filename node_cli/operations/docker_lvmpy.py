@@ -56,12 +56,10 @@ def sync_docker_lvmpy_repo(env):
     sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_VERSION'])
 
 
-def lvmpy_install(env):
+def lvmpy_install(block_device: str) -> None:
     ensure_filestorage_mapping()
     logging.info('Configuring and starting lvmpy')
-    setup_lvmpy(
-        block_device=env['BLOCK_DEVICE'], volume_group=VOLUME_GROUP, exec_start=LVMPY_RUN_CMD
-    )
+    setup_lvmpy(block_device=block_device, volume_group=VOLUME_GROUP, exec_start=LVMPY_RUN_CMD)
     init_healing_cron()
     logger.info('docker-lvmpy is configured and started')
 
