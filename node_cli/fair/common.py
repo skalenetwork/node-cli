@@ -40,7 +40,7 @@ from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
 from node_cli.utils.settings import validate_and_save_node_settings
 from node_cli.utils.texts import safe_load_texts
-from skale.core.settings import get_settings
+from skale_core.settings import get_settings
 
 logger = logging.getLogger(__name__)
 TEXTS = safe_load_texts()

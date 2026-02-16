@@ -21,7 +21,7 @@ from typing import Optional
 
 import click
 
-from skale.core.settings import get_settings
+from skale_core.settings import get_settings
 
 from node_cli.utils.helper import abort_if_false, URL_TYPE
 from node_cli.core.schains import (

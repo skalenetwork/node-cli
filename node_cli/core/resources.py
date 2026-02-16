@@ -24,7 +24,7 @@ from typing import Dict
 
 import psutil
 
-from skale.core.types import EnvType
+from skale_core.types import EnvType
 
 from node_cli.utils.settings import validate_and_save_node_settings
 from node_cli.utils.docker_utils import ensure_volume

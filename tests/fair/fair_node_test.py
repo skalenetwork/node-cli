@@ -1,9 +1,7 @@
-import os
 from unittest import mock
 
 import pytest
 
-from node_cli.configs import SKALE_DIR
 from node_cli.fair.boot import init as init_boot
 from node_cli.fair.boot import update
 from node_cli.fair.common import cleanup
@@ -11,16 +9,12 @@ from node_cli.fair.active import migrate_from_boot, restore
 from node_cli.operations.fair import FairUpdateType
 from node_cli.utils.node_type import NodeMode, NodeType
 
-SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
-
 
 @mock.patch('node_cli.fair.active.time.sleep')
 @mock.patch('node_cli.fair.active.restore_fair_op')
-@mock.patch('node_cli.fair.active.save_env_params')
 @mock.patch('node_cli.fair.active.compose_node_env')
 def test_restore_fair(
     mock_compose_env,
-    mock_save_env,
     mock_restore_op,
     mock_sleep,
     valid_env_file,
@@ -35,13 +29,12 @@ def test_restore_fair(
     restore(backup_path, valid_env_file)
 
     mock_compose_env.assert_called_once_with(
-        valid_env_file, node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
+        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
     )
-    mock_save_env.assert_called_once_with(valid_env_file)
-    expected_env = {**mock_env, 'SKALE_DIR': SKALE_DIR}
     mock_restore_op.assert_called_once_with(
         node_mode=NodeMode.ACTIVE,
-        env=expected_env,
+        settings=mock.ANY,
+        compose_env=mock_env,
         backup_path=backup_path,
         config_only=False,
     )
@@ -66,15 +59,12 @@ def test_init_fair_boot(
     init_boot(valid_env_file)
 
     mock_compose_env.assert_called_once_with(
-        valid_env_file,
-        node_type=NodeType.FAIR,
-        node_mode=NodeMode.ACTIVE,
-        is_fair_boot=True,
+        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
     )
     mock_init_op.assert_called_once_with(
-        valid_env_file,
-        mock_env,
-        NodeMode.ACTIVE,
+        settings=mock.ANY,
+        compose_env=mock_env,
+        node_mode=NodeMode.ACTIVE,
     )
     mock_sleep.assert_called_once()
     mock_is_alive.assert_called_once_with(
@@ -106,17 +96,11 @@ def test_update_fair_boot(
     update(valid_env_file, pull_config_for_schain)
 
     mock_compose_env.assert_called_once_with(
-        valid_env_file,
-        inited_node=True,
-        sync_schains=False,
-        pull_config_for_schain=pull_config_for_schain,
-        node_type=NodeType.FAIR,
-        node_mode=NodeMode.ACTIVE,
-        is_fair_boot=True,
+        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
     )
     mock_update_op.assert_called_once_with(
-        valid_env_file,
-        mock_env,
+        settings=mock.ANY,
+        compose_env=mock_env,
         node_mode=NodeMode.ACTIVE,
     )
     mock_sleep.assert_called_once()
@@ -144,15 +128,11 @@ def test_migrate_from_boot(
     migrate_from_boot(valid_env_file)
 
     mock_compose_env.assert_called_once_with(
-        valid_env_file,
-        inited_node=True,
-        sync_schains=False,
-        node_type=NodeType.FAIR,
-        node_mode=NodeMode.ACTIVE,
+        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
     )
     mock_migrate_op.assert_called_once_with(
-        valid_env_file,
-        mock_env,
+        settings=mock.ANY,
+        compose_env=mock_env,
         node_mode=NodeMode.ACTIVE,
         update_type=FairUpdateType.FROM_BOOT,
         force_skaled_start=False,
@@ -177,14 +157,10 @@ def test_cleanup_success(
     cleanup(node_mode=NodeMode.ACTIVE)
 
     mock_compose_env.assert_called_once_with(
-        SKALE_DIR_ENV_FILEPATH,
-        save=False,
-        node_type=NodeType.FAIR,
-        node_mode=NodeMode.ACTIVE,
-        skip_user_conf_validation=True,
+        node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE
     )
     mock_cleanup_fair_op.assert_called_once_with(
-        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False
+        node_mode=NodeMode.ACTIVE, compose_env=mock_env, prune=False
     )
 
 
@@ -213,13 +189,10 @@ def test_cleanup_calls_operations_in_correct_order(
 
     expected_calls = [
         mock.call.compose_env(
-            mock.ANY,
-            save=False,
-            node_type=mock.ANY,
+            node_type=NodeType.FAIR,
             node_mode=NodeMode.ACTIVE,
-            skip_user_conf_validation=True,
         ),
-        mock.call.cleanup_fair_op(node_mode=NodeMode.ACTIVE, env=mock_env, prune=False),
+        mock.call.cleanup_fair_op(node_mode=NodeMode.ACTIVE, compose_env=mock_env, prune=False),
     ]
     manager.assert_has_calls(expected_calls, any_order=False)
 
@@ -244,7 +217,7 @@ def test_cleanup_continues_after_fair_op_error(
 
     mock_compose_env.assert_called_once()
     mock_cleanup_fair_op.assert_called_once_with(
-        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False
+        node_mode=NodeMode.ACTIVE, compose_env=mock_env, prune=False
     )
 
 

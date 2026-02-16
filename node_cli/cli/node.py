@@ -21,7 +21,7 @@ from typing import get_args
 
 import click
 
-from skale.core.types import EnvType
+from skale_core.types import EnvType
 from node_cli.cli.info import TYPE
 from node_cli.core.node import (
     cleanup as cleanup_skale,

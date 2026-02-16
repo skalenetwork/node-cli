@@ -29,7 +29,7 @@ from docker.client import DockerClient
 from docker.errors import NotFound
 from docker.models.containers import Container
 
-from skale.core.settings import BaseNodeSettings
+from skale_core.settings import BaseNodeSettings
 
 from node_cli.configs import (
     COMPOSE_PATH,

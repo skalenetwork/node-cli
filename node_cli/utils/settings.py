@@ -21,7 +21,7 @@ import tomllib
 
 from dotenv.main import DotEnv
 
-from skale.core.settings import (
+from skale_core.settings import (
     SETTINGS_MAP,
     BaseNodeSettings,
     FairBaseSettings,

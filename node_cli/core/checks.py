@@ -48,7 +48,7 @@ import psutil  # type: ignore
 from debian import debian_support
 from packaging.version import parse as version_parse
 
-from skale.core.types import EnvType
+from skale_core.types import EnvType
 
 from node_cli.configs import (
     CHECK_REPORT_PATH,

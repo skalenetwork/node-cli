@@ -23,8 +23,8 @@ from enum import Enum
 
 import distro
 
-from skale.core.settings import BaseNodeSettings, FairBaseSettings, FairSettings, get_settings
-from skale.core.types import EnvType
+from skale_core.settings import BaseNodeSettings, FairBaseSettings, FairSettings, get_settings
+from skale_core.types import EnvType
 
 from node_cli.cli.info import TYPE, VERSION
 from node_cli.configs import (

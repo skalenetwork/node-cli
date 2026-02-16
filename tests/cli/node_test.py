@@ -347,7 +347,6 @@ def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config,
             return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
         ),
         patch('node_cli.operations.base.configure_nftables'),
-        patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         user_conf_path = request.getfixturevalue(test_user_conf).as_posix()
         result = run_command(restore_node, [backup_path, user_conf_path])
@@ -389,10 +388,8 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
-        mock.patch('node_cli.core.node.SKALE_DIR_ENV_FILEPATH', regular_user_conf.as_posix()),
         mock.patch('node_cli.core.node.turn_off_op'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
         mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
@@ -425,7 +422,6 @@ def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node
         mock.patch('node_cli.core.node.turn_on_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
         mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
@@ -493,4 +489,4 @@ def test_cleanup_node(mocked_g_config):
     ):
         result = run_command(cleanup_node, ['--yes'])
         assert result.exit_code == 0
-        cleanup_mock.assert_called_once_with(node_mode=NodeMode.ACTIVE, prune=False, env={})
+        cleanup_mock.assert_called_once_with(node_mode=NodeMode.ACTIVE, prune=False, compose_env={})

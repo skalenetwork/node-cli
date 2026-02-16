@@ -28,7 +28,7 @@ from node_cli.configs import (
 )
 from node_cli.utils.node_type import NodeType
 
-from skale.core.types import EnvType
+from skale_core.types import EnvType
 
 
 def get_static_params(

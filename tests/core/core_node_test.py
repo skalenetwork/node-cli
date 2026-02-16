@@ -14,7 +14,6 @@ from node_cli.configs import (
     NODE_DATA_PATH,
     SCHAINS_MNT_DIR_REGULAR,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
-    SKALE_DIR,
 )
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 
@@ -37,8 +36,6 @@ dclient = docker.from_env()
 
 ALPINE_IMAGE_NAME = 'alpine:3.12'
 CMD = 'sleep 60'
-
-SKALE_DIR_ENV_FILEPATH = os.path.join(SKALE_DIR, '.env')
 
 WRONG_CONTAINERS = [
     'WRONG_CONTAINER_1',
@@ -283,9 +280,8 @@ def test_init_node(regular_user_conf, no_resource_file):  # todo: write new init
         mock.patch('node_cli.core.node.init_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.utils.helper.post_request', resp_mock),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
-        init(env_filepath=regular_user_conf.as_posix(), node_type=NodeType.SKALE)
+        init(config_file=regular_user_conf.as_posix(), node_type=NodeType.SKALE)
         assert os.path.isfile(RESOURCE_ALLOCATION_FILEPATH)
 
 
@@ -295,7 +291,6 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.core.node.update_op'),
-        mock.patch('node_cli.core.node.save_env_params'),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.core.host.prepare_host'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
@@ -306,7 +301,6 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
             'node_cli.core.node.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
-        mock.patch('node_cli.configs.user.validate_alias_or_address'),
     ):
         with mock.patch(
             'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
@@ -428,13 +422,7 @@ def test_cleanup_success(
 
     cleanup(node_mode=NodeMode.ACTIVE)
 
-    mock_compose_env.assert_called_once_with(
-        SKALE_DIR_ENV_FILEPATH,
-        save=False,
-        node_type=NodeType.SKALE,
-        node_mode=NodeMode.ACTIVE,
-        skip_user_conf_validation=True,
-    )
+    mock_compose_env.assert_called_once_with(NodeType.SKALE, NodeMode.ACTIVE)
     mock_cleanup_skale_op.assert_called_once_with(
-        node_mode=NodeMode.ACTIVE, env=mock_env, prune=False
+        node_mode=NodeMode.ACTIVE, compose_env=mock_env, prune=False
     )

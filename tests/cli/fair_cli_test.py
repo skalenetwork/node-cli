@@ -137,5 +137,5 @@ def test_cleanup_node(mocked_g_config, inited_node):
         result = run_command(cleanup_node, ['--yes'])
         assert result.exit_code == 0
         cleanup_mock.assert_called_once_with(
-            node_mode=NodeMode.ACTIVE, prune=False, env={'SCHAIN_NAME': 'test'}
+            node_mode=NodeMode.ACTIVE, prune=False, compose_env={'SCHAIN_NAME': 'test'}
         )

@@ -88,7 +88,7 @@ from node_cli.utils.print_formatters import (
     print_node_info,
 )
 from node_cli.utils.settings import validate_and_save_node_settings
-from skale.core.settings import get_settings
+from skale_core.settings import get_settings
 from node_cli.utils.texts import safe_load_texts
 
 logger = logging.getLogger(__name__)
@@ -242,7 +242,7 @@ def update_passive(config_file: str) -> None:
 def cleanup(node_mode: NodeMode, prune: bool = False) -> None:
     node_mode = upsert_node_mode(node_mode=node_mode)
     env = compose_node_env(NodeType.SKALE, node_mode)
-    cleanup_skale_op(node_mode=node_mode, env=env, prune=prune)
+    cleanup_skale_op(node_mode=node_mode, compose_env=env, prune=prune)
     logger.info('SKALE node was cleaned up, all containers and data removed')
 
 

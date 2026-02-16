@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 from typing import Dict, Optional
 
-from skale.core.types import EnvType
+from skale_core.types import EnvType
 
 from lvmpy.src.core import mount, volume_mountpoint
 from node_cli.configs import (

@@ -20,7 +20,7 @@
 import pytest
 import tomli_w
 
-from skale.core.settings import get_internal_settings
+from skale_core.settings import get_internal_settings
 
 from node_cli.configs import INTERNAL_SETTINGS_PATH, NODE_SETTINGS_PATH
 

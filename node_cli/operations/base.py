@@ -24,7 +24,7 @@ from typing import Optional
 
 import distro
 
-from skale.core.settings import BaseNodeSettings, SkalePassiveSettings, SkaleSettings, get_settings
+from skale_core.settings import BaseNodeSettings, SkalePassiveSettings, SkaleSettings, get_settings
 
 from node_cli.cli.info import TYPE, VERSION
 from node_cli.configs import (

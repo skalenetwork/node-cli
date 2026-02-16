@@ -22,7 +22,7 @@ import logging
 from typing import cast
 from datetime import datetime
 
-from skale.core.types import EnvType
+from skale_core.types import EnvType
 
 from node_cli.core.static_config import get_fair_chain_name
 from node_cli.fair.record.redis_record import FlatRedisRecord, FieldInfo
