@@ -49,6 +49,7 @@ from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.utils.node_type import NodeMode
 from tests.fixtures.settings import (  # noqa: F401
+    _cleanup_settings,
     fair_active_settings,
     fair_passive_settings,
     skale_active_settings,
@@ -300,12 +301,8 @@ def valid_env_params():
         'FILEBEAT_HOST': '127.0.0.1:3010',
         'SGX_URL': 'http://127.0.0.1',
         'BLOCK_DEVICE': '/dev/sss',
-        'DOCKER_LVMPY_VERSION': 'master',
         'ENV_TYPE': 'devnet',
-        'SCHAIN_NAME': 'test',
         'ENFORCE_BTRFS': 'False',
-        'MANAGER_CONTRACTS': 'test-manager',
-        'IMA_CONTRACTS': 'test-ima',
         'FAIR_CONTRACTS': 'test-fair',
     }
 
@@ -322,6 +319,7 @@ def valid_env_file(valid_env_params):
     finally:
         if file_name:
             os.unlink(file_name)
+        _cleanup_settings()
 
 
 @pytest.fixture
@@ -376,6 +374,7 @@ def regular_user_conf(tmp_path):
         yield test_env_path
     finally:
         test_env_path.unlink()
+        _cleanup_settings()
 
 
 @pytest.fixture
@@ -397,6 +396,7 @@ def fair_user_conf(tmp_path):
         yield test_env_path
     finally:
         test_env_path.unlink()
+        _cleanup_settings()
 
 
 @pytest.fixture
@@ -417,6 +417,28 @@ def fair_boot_user_conf(tmp_path):
         yield test_env_path
     finally:
         test_env_path.unlink()
+        _cleanup_settings()
+
+
+@pytest.fixture
+def fair_passive_user_conf(tmp_path):
+    test_env_path = pathlib.Path(tmp_path / 'test-env')
+    try:
+        test_env = """
+        ENDPOINT=http://localhost:8545
+        NODE_VERSION='main'
+        FILEBEAT_HOST=127.0.0.1:3010
+        BLOCK_DEVICE=/dev/sss
+        ENV_TYPE='devnet'
+        ENFORCE_BTRFS=False
+        FAIR_CONTRACTS='test-fair'
+        """
+        with open(test_env_path, 'w') as env_file:
+            env_file.write(test_env)
+        yield test_env_path
+    finally:
+        test_env_path.unlink()
+        _cleanup_settings()
 
 
 @pytest.fixture
@@ -439,6 +461,7 @@ def passive_user_conf(tmp_path):
         yield test_env_path
     finally:
         test_env_path.unlink()
+        _cleanup_settings()
 
 
 @pytest.fixture
