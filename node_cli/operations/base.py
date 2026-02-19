@@ -178,7 +178,6 @@ def init(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> 
     configure_nftables(enable_monitoring=settings.monitoring_containers)
 
     prepare_host(env_type=settings.env_type)
-    save_internal_settings(node_type=NodeType.SKALE, node_mode=node_mode)
 
     mark_active_node()
 
