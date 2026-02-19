@@ -87,7 +87,7 @@ from node_cli.utils.print_formatters import (
     print_node_cmd_error,
     print_node_info,
 )
-from node_cli.utils.settings import validate_and_save_node_settings
+from node_cli.utils.settings import save_internal_settings, validate_and_save_node_settings
 from skale_core.settings import get_settings
 from node_cli.utils.texts import safe_load_texts
 
@@ -154,6 +154,7 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 @check_not_inited
 def init(config_file: str, node_type: NodeType) -> None:
     node_mode = NodeMode.ACTIVE
+    save_internal_settings(node_type=node_type, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, node_type, node_mode)
     compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
@@ -281,6 +282,7 @@ def update(
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
     logger.info('Node update started')
+    save_internal_settings(node_type=node_type, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, node_type, node_mode)
     compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
     update_ok = update_op(settings=settings, compose_env=compose_env, node_mode=node_mode)
