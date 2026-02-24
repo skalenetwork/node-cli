@@ -63,6 +63,7 @@ def validate_and_save_node_settings(
 ) -> BaseNodeSettings:
     data = load_config_file(config_filepath)
     settings_type = SETTINGS_MAP[(node_type.value, node_mode.value)]
+    settings_type.model_validate(data)
     _remove_if_exists(NODE_SETTINGS_PATH)
     write_node_settings_file(path=NODE_SETTINGS_PATH, settings_type=settings_type, data=data)
     return settings_type()
@@ -81,5 +82,6 @@ def save_internal_settings(
         'backup_run': backup_run,
         'pull_config_for_schain': pull_config_for_schain,
     }
+    InternalSettings.model_validate(data)
     _remove_if_exists(INTERNAL_SETTINGS_PATH)
     write_internal_settings_file(path=INTERNAL_SETTINGS_PATH, data=data)
