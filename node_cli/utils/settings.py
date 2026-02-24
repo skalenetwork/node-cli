@@ -18,6 +18,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import tomllib
+from pathlib import Path
 
 from dotenv.main import DotEnv
 
@@ -50,6 +51,11 @@ def load_config_file(filepath: str) -> dict:
     return {k.lower(): v for k, v in DotEnv(filepath).dict().items()}
 
 
+def _remove_if_exists(path: Path) -> None:
+    if path.exists():
+        path.unlink()
+
+
 def validate_and_save_node_settings(
     config_filepath: str,
     node_type: NodeType,
@@ -57,6 +63,7 @@ def validate_and_save_node_settings(
 ) -> BaseNodeSettings:
     data = load_config_file(config_filepath)
     settings_type = SETTINGS_MAP[(node_type.value, node_mode.value)]
+    _remove_if_exists(NODE_SETTINGS_PATH)
     write_node_settings_file(path=NODE_SETTINGS_PATH, settings_type=settings_type, data=data)
     return settings_type()
 
@@ -74,4 +81,5 @@ def save_internal_settings(
         'backup_run': backup_run,
         'pull_config_for_schain': pull_config_for_schain,
     }
+    _remove_if_exists(INTERNAL_SETTINGS_PATH)
     write_internal_settings_file(path=INTERNAL_SETTINGS_PATH, data=data)
