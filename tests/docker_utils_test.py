@@ -1,11 +1,18 @@
 import os
 import time
 from time import sleep
+from unittest.mock import MagicMock
 
 import mock
 import pytest
 
-from node_cli.utils.docker_utils import docker_cleanup, save_container_logs, safe_rm
+from node_cli.utils.docker_utils import (
+    docker_cleanup,
+    get_all_ima_containers,
+    get_all_skaled_containers,
+    save_container_logs,
+    safe_rm,
+)
 from node_cli.configs import REMOVED_CONTAINERS_FOLDER_PATH
 
 
@@ -95,3 +102,56 @@ def test_docker_cleanup(dclient, simple_container):
 
     with mock.patch('node_cli.utils.docker_utils.run_cmd', side_effect=ValueError):
         docker_cleanup(dclient=dclient)
+
+
+def _make_container(name: str) -> MagicMock:
+    c = MagicMock()
+    c.name = name
+    c.id = name
+    return c
+
+
+def test_get_all_skaled_containers_both_prefixes():
+    new_container = _make_container('sk_skaled_chain1')
+    legacy_container = _make_container('skale_schain_chain2')
+
+    def fake_list(all=True, filters=None):
+        prefix = filters['name']
+        if prefix == 'sk_skaled_':
+            return [new_container]
+        if prefix == 'skale_schain_':
+            return [legacy_container]
+        return []
+
+    mock_dc = MagicMock()
+    mock_dc.containers.list.side_effect = fake_list
+
+    with mock.patch('node_cli.utils.docker_utils.docker_client', return_value=mock_dc):
+        result = get_all_skaled_containers()
+
+    assert len(result) == 2
+    names = {c.name for c in result}
+    assert names == {'sk_skaled_chain1', 'skale_schain_chain2'}
+
+
+def test_get_all_ima_containers_both_prefixes():
+    new_container = _make_container('sk_ima_chain1')
+    legacy_container = _make_container('skale_ima_chain2')
+
+    def fake_list(all=True, filters=None):
+        prefix = filters['name']
+        if prefix == 'sk_ima_':
+            return [new_container]
+        if prefix == 'skale_ima_':
+            return [legacy_container]
+        return []
+
+    mock_dc = MagicMock()
+    mock_dc.containers.list.side_effect = fake_list
+
+    with mock.patch('node_cli.utils.docker_utils.docker_client', return_value=mock_dc):
+        result = get_all_ima_containers()
+
+    assert len(result) == 2
+    names = {c.name for c in result}
+    assert names == {'sk_ima_chain1', 'skale_ima_chain2'}
