@@ -125,26 +125,32 @@ def get_containers(container_name_filter=None, _all=True) -> list:
     return docker_client().containers.list(all=_all, filters=filters)
 
 
-def get_all_schain_containers(_all=True) -> list:
-    return docker_client().containers.list(all=_all, filters={'name': 'sk_skaled_*'})
+def get_all_skaled_containers(_all=True) -> list:
+    dc = docker_client()
+    return dc.containers.list(all=_all, filters={'name': 'sk_skaled_'}) + dc.containers.list(
+        all=_all, filters={'name': 'skale_schain_'}
+    )
 
 
 def get_all_ima_containers(_all=True) -> list:
-    return docker_client().containers.list(all=_all, filters={'name': 'sk_ima_*'})
+    dc = docker_client()
+    return dc.containers.list(all=_all, filters={'name': 'sk_ima_'}) + dc.containers.list(
+        all=_all, filters={'name': 'skale_ima_'}
+    )
 
 
 def remove_dynamic_containers() -> None:
-    logger.info('Removing sChains containers')
-    rm_all_schain_containers()
+    logger.info('Removing skaled containers')
+    rm_all_skaled_containers()
     logger.info('Removing IMA containers')
     rm_all_ima_containers()
     logger.info('Removing telegraf (if exists)')
     remove_telegraf()
 
 
-def rm_all_schain_containers():
-    schain_containers = get_all_schain_containers()
-    remove_containers(schain_containers, timeout=SCHAIN_REMOVE_TIMEOUT)
+def rm_all_skaled_containers():
+    skaled_containers = get_all_skaled_containers()
+    remove_containers(skaled_containers, timeout=SCHAIN_REMOVE_TIMEOUT)
 
 
 def rm_all_ima_containers():
