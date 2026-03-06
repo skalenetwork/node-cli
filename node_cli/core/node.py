@@ -177,6 +177,7 @@ def restore(
     config_only: bool = False,
 ):
     node_mode = NodeMode.ACTIVE
+    save_internal_settings(node_type=node_type, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, node_type, node_mode)
     compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
@@ -201,6 +202,7 @@ def init_passive(
     config_file: str, indexer: bool, archive: bool, snapshot: bool, snapshot_from: Optional[str]
 ) -> None:
     node_mode = NodeMode.PASSIVE
+    save_internal_settings(node_type=NodeType.SKALE, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, NodeType.SKALE, node_mode)
     compose_env = compose_node_env(node_type=NodeType.SKALE, node_mode=node_mode)
     init_passive_op(
@@ -225,6 +227,7 @@ def update_passive(config_file: str) -> None:
     prev_version = CliMetaManager().get_meta_info().version
     if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
         migrate_2_6()
+    save_internal_settings(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     settings = validate_and_save_node_settings(config_file, NodeType.SKALE, NodeMode.PASSIVE)
     compose_env = compose_node_env(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     update_ok = update_passive_op(settings=settings, compose_env=compose_env)

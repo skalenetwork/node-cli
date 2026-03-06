@@ -38,7 +38,7 @@ from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
-from node_cli.utils.settings import validate_and_save_node_settings
+from node_cli.utils.settings import save_internal_settings, validate_and_save_node_settings
 from node_cli.utils.texts import safe_load_texts
 from skale_core.settings import get_settings
 
@@ -55,6 +55,7 @@ def init(
     archive: bool = False,
     snapshot: str | None = None,
 ) -> None:
+    save_internal_settings(node_type=NodeType.FAIR, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, NodeType.FAIR, node_mode)
     compose_env = compose_node_env(node_type=NodeType.FAIR, node_mode=node_mode)
 
@@ -101,6 +102,7 @@ def update(
     )
     node_mode = upsert_node_mode(node_mode=node_mode)
 
+    save_internal_settings(node_type=NodeType.FAIR, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, NodeType.FAIR, node_mode)
     compose_env = compose_node_env(node_type=NodeType.FAIR, node_mode=node_mode)
     update_ok = update_fair_op(

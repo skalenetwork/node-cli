@@ -35,7 +35,7 @@ from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit, get_request, post_request
 from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error, print_node_info_fair
-from node_cli.utils.settings import validate_and_save_node_settings
+from node_cli.utils.settings import save_internal_settings, validate_and_save_node_settings
 from node_cli.utils.texts import safe_load_texts
 
 logger = logging.getLogger(__name__)
@@ -67,6 +67,7 @@ def migrate_from_boot(
     config_file: str,
 ) -> None:
     logger.info('Migrating from boot to fair node...')
+    save_internal_settings(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     settings = validate_and_save_node_settings(config_file, NodeType.FAIR, NodeMode.ACTIVE)
     compose_env = compose_node_env(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     migrate_ok = update_fair_op(
@@ -143,6 +144,7 @@ def exit() -> None:
 @check_not_inited
 def restore(backup_path: str, config_file: str, config_only: bool = False):
     node_mode = NodeMode.ACTIVE
+    save_internal_settings(node_type=NodeType.FAIR, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, NodeType.FAIR, node_mode)
     compose_env = compose_node_env(node_type=NodeType.FAIR, node_mode=node_mode)
 

@@ -30,7 +30,7 @@ from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_node_cmd_error
-from node_cli.utils.settings import validate_and_save_node_settings
+from node_cli.utils.settings import save_internal_settings, validate_and_save_node_settings
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 def init(config_file: str) -> None:
     node_mode = NodeMode.ACTIVE
     node_type = NodeType.FAIR
+    save_internal_settings(node_type=node_type, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, node_type, node_mode)
     compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
@@ -55,6 +56,7 @@ def init(config_file: str) -> None:
 def update(config_file: str, pull_config_for_schain: str) -> None:
     logger.info('Fair boot node update started')
     node_mode = upsert_node_mode(node_mode=NodeMode.ACTIVE)
+    save_internal_settings(node_type=NodeType.FAIR, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, NodeType.FAIR, node_mode)
     compose_env = compose_node_env(node_type=NodeType.FAIR, node_mode=node_mode)
     migrate_ok = update_fair_boot_op(
