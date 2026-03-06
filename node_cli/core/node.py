@@ -177,6 +177,7 @@ def restore(
     config_only: bool = False,
 ):
     node_mode = NodeMode.ACTIVE
+    save_internal_settings(node_type=node_type, node_mode=node_mode)
     settings = validate_and_save_node_settings(config_file, node_type, node_mode)
     compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
