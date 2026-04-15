@@ -179,7 +179,7 @@ def test_get_all_ima_containers_both_prefixes():
     assert names == {'sk_ima_chain1', 'skale_ima_chain2'}
 
 
-def test_rm_legacy_containers(dclient):
+def test_rm_legacy_containers(dclient, removed_containers_folder):
     names = ['skale_sync_admin', 'skale_api', 'skale_schain_old']
     containers = []
     try:
