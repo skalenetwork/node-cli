@@ -64,6 +64,7 @@ from node_cli.utils.docker_utils import (
     docker_cleanup,
     is_admin_running,
     remove_dynamic_containers,
+    rm_legacy_containers,
     start_container_by_name,
     stop_container_by_name,
     system_prune,
@@ -201,6 +202,7 @@ def update_fair_boot(
     node_mode: NodeMode = NodeMode.ACTIVE,
 ) -> bool:
     compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=compose_env)
+    rm_legacy_containers()
     remove_dynamic_containers()
     cleanup_volume_artifacts(settings.block_device)
 
@@ -260,6 +262,7 @@ def update(
     force_skaled_start: bool,
 ) -> bool:
     compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=compose_env)
+    rm_legacy_containers()
     if update_type not in (FairUpdateType.INFRA_ONLY, FairUpdateType.FROM_BOOT):
         remove_dynamic_containers()
 

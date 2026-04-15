@@ -71,6 +71,7 @@ from node_cli.utils.docker_utils import (
     compose_up,
     docker_cleanup,
     remove_dynamic_containers,
+    rm_legacy_containers,
     system_prune,
 )
 from node_cli.utils.helper import cleanup_dir_content, rm_dir
@@ -123,6 +124,7 @@ def checked_host(func):
 @checked_host
 def update(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> bool:
     compose_rm(node_type=NodeType.SKALE, node_mode=node_mode, env=compose_env)
+    rm_legacy_containers()
     remove_dynamic_containers()
 
     sync_skale_node()
@@ -273,6 +275,7 @@ def init_passive(
 
 def update_passive(settings: BaseNodeSettings, compose_env: dict) -> bool:
     compose_rm(env=compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    rm_legacy_containers()
     remove_dynamic_containers()
     cleanup_volume_artifacts(settings.block_device)
     download_skale_node(settings.node_version, settings.container_configs_dir or None)
@@ -326,6 +329,7 @@ def update_passive(settings: BaseNodeSettings, compose_env: dict) -> bool:
 def turn_off(compose_env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     logger.info('Turning off the node...')
     compose_rm(env=compose_env, node_type=node_type, node_mode=node_mode)
+    rm_legacy_containers()
     remove_dynamic_containers()
     logger.info('Node was successfully turned off')
 
