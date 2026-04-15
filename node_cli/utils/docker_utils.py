@@ -163,6 +163,11 @@ def remove_telegraf() -> None:
     remove_containers(telegraf, timeout=TELEGRAF_REMOVE_TIMEOUT)
 
 
+def rm_legacy_containers() -> None:
+    containers = docker_client().containers.list(all=True, filters={'name': 'skale_'})
+    remove_containers(containers, timeout=DOCKER_DEFAULT_STOP_TIMEOUT)
+
+
 def remove_containers(containers, timeout):
     for container in containers:
         safe_rm(container, timeout=timeout)

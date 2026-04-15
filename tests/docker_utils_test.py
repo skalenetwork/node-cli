@@ -10,6 +10,7 @@ from node_cli.utils.docker_utils import (
     docker_cleanup,
     get_all_ima_containers,
     get_all_skaled_containers,
+    rm_legacy_containers,
     save_container_logs,
     safe_rm,
 )
@@ -111,6 +112,27 @@ def _make_container(name: str) -> MagicMock:
     return c
 
 
+def test_get_all_skaled_containers_real(dclient):
+    containers = []
+    names = ['sk_skaled_test_chain', 'skale_schain_test_chain']
+    try:
+        for name in names:
+            c = dclient.containers.run('alpine', 'true', name=name, detach=True)
+            containers.append(c)
+        for c in containers:
+            c.wait()
+        result = get_all_skaled_containers()
+        result_names = {c.name for c in result}
+        for name in names:
+            assert name in result_names
+    finally:
+        for c in containers:
+            try:
+                c.remove(force=True)
+            except Exception:
+                pass
+
+
 def test_get_all_skaled_containers_both_prefixes():
     new_container = _make_container('sk_skaled_chain1')
     legacy_container = _make_container('skale_schain_chain2')
@@ -155,3 +177,27 @@ def test_get_all_ima_containers_both_prefixes():
     assert len(result) == 2
     names = {c.name for c in result}
     assert names == {'sk_ima_chain1', 'skale_ima_chain2'}
+
+
+def test_rm_legacy_containers(dclient, removed_containers_folder):
+    names = ['skale_sync_admin', 'skale_api', 'skale_schain_old']
+    containers = []
+    try:
+        for name in names:
+            c = dclient.containers.run('alpine', 'true', name=name, detach=True)
+            containers.append(c)
+        for c in containers:
+            c.wait()
+
+        rm_legacy_containers()
+
+        remaining = dclient.containers.list(all=True, filters={'name': 'skale_'})
+        remaining_names = {c.name for c in remaining}
+        for name in names:
+            assert name not in remaining_names
+    finally:
+        for c in containers:
+            try:
+                c.remove(force=True)
+            except Exception:
+                pass
