@@ -17,30 +17,45 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import json
 import datetime
+import inspect
+import json
+import os
+from typing import Any
+
 import texttable
 from dateutil import parser
-
-import inspect
 
 from node_cli.configs import LONG_LINE
 from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
 from node_cli.utils.meta import CliMeta
-from node_cli.utils.texts import Texts
+from node_cli.utils.texts import safe_load_texts
 
-TEXTS = Texts()
+TEXTS = safe_load_texts()
 
 
 def print_wallet_info(wallet):
-    print(inspect.cleandoc(f'''
+    print(
+        inspect.cleandoc(f"""
         {LONG_LINE}
         Address: {wallet['address'].lower()}
         ETH balance: {wallet['eth_balance']} ETH
         SKALE balance: {wallet['skale_balance']} SKALE
         {LONG_LINE}
-    '''))
+    """)
+    )
+
+
+def print_fair_wallet_info(wallet):
+    print(
+        inspect.cleandoc(f"""
+        {LONG_LINE}
+        Address: {wallet['address'].lower()}
+        Node balance: {wallet['fair_balance']} FAIR
+        Node balance WEI: {wallet['fair_balance_wei']} FAIR WEI
+        {LONG_LINE}
+        """)
+    )
 
 
 def get_tty_width():
@@ -63,31 +78,21 @@ class Formatter:
 
 
 def format_date(date):
-    return date.strftime("%b %d %Y %H:%M:%S")
+    return date.strftime('%b %d %Y %H:%M:%S')
 
 
 def print_containers(containers):
-    headers = [
-        'Name',
-        'Status',
-        'Started At',
-        'Image'
-    ]
+    headers = ['Name', 'Status', 'Started At', 'Image']
     rows = []
     for container in containers:
-        date = parser.parse(container["state"]["StartedAt"])
-        status = container["state"]["Status"].capitalize()
+        date = parser.parse(container['state']['StartedAt'])
+        status = container['state']['Status'].capitalize()
 
         if not container['state']['Running']:
-            finished_date = parser.parse(container["state"]["FinishedAt"])
+            finished_date = parser.parse(container['state']['FinishedAt'])
             status = f'{status} ({format_date(finished_date)})'
 
-        rows.append([
-            container['name'],
-            status,
-            format_date(date),
-            container['image']
-        ])
+        rows.append([container['name'], status, format_date(date), container['image']])
     print(Formatter().table(headers, rows))
 
 
@@ -106,38 +111,29 @@ def print_schains(schains):
     rows = []
     for schain in schains:
         date = datetime.datetime.fromtimestamp(schain['start_date'])
-        rows.append([
-            schain['name'],
-            schain['mainnet_owner'],
-            schain['part_of_node'],
-            schain['lifetime'],
-            format_date(date),
-            schain['deposit'],
-            schain['generation'],
-            schain['originator'],
-            schain['options']['allocation_type']
-        ])
+        rows.append(
+            [
+                schain['name'],
+                schain['mainnet_owner'],
+                schain['part_of_node'],
+                schain['lifetime'],
+                format_date(date),
+                schain['deposit'],
+                schain['generation'],
+                schain['originator'],
+                schain['options']['allocation_type'],
+            ]
+        )
     print(Formatter().table(headers, rows))
 
 
 def print_dkg_statuses(statuses):
-    headers = [
-        'sChain Name',
-        'DKG Status',
-        'Added At',
-        'sChain Status'
-    ]
+    headers = ['sChain Name', 'DKG Status', 'Added At', 'sChain Status']
     rows = []
     for status in statuses:
         date = datetime.datetime.fromtimestamp(status['added_at'])
-        schain_status = 'Deleted' \
-            if status['is_deleted'] else 'Exists'
-        rows.append([
-            status['name'],
-            status['dkg_status_name'],
-            format_date(date),
-            schain_status
-        ])
+        schain_status = 'Deleted' if status['is_deleted'] else 'Exists'
+        rows.append([status['name'], status['dkg_status_name'], format_date(date), schain_status])
     print(Formatter().table(headers, rows))
 
 
@@ -152,23 +148,25 @@ def print_schains_healthchecks(schains):
         'IMA',
         'Firewall',
         'RPC',
-        'Blocks'
+        'Blocks',
     ]
     rows = []
     for schain in schains:
         healthchecks = schain['healthchecks']
-        rows.append([
-            schain['name'],
-            healthchecks['config_dir'],
-            healthchecks['dkg'],
-            healthchecks['config'],
-            healthchecks['volume'],
-            healthchecks['skaled_container'],
-            healthchecks.get('ima_container', 'No IMA'),
-            healthchecks['firewall_rules'],
-            healthchecks['rpc'],
-            healthchecks['blocks']
-        ])
+        rows.append(
+            [
+                schain['name'],
+                healthchecks['config_dir'],
+                healthchecks['dkg'],
+                healthchecks['config'],
+                healthchecks['volume'],
+                healthchecks['skaled_container'],
+                healthchecks.get('ima_container', 'No IMA'),
+                healthchecks['firewall_rules'],
+                healthchecks['rpc'],
+                healthchecks['blocks'],
+            ]
+        )
     print(Formatter().table(headers, rows))
 
 
@@ -187,19 +185,11 @@ def print_schains_logs(schains_logs):
 
 
 def print_log_list(logs):
-    headers = [
-        'Name',
-        'Size',
-        'Created At'
-    ]
+    headers = ['Name', 'Size', 'Created At']
     rows = []
     for log in logs:
         date = datetime.datetime.fromtimestamp(log['created_at'])
-        rows.append([
-            log['name'],
-            log['size'],
-            format_date(date)
-        ])
+        rows.append([log['name'], log['size'], format_date(date)])
     print(Formatter().table(headers, rows))
 
 
@@ -209,10 +199,7 @@ def print_dict(title, rows, headers=['Key', 'Value']):
 
 
 def print_exit_status(exit_status_info):
-    headers = [
-        'Schain name',
-        'Status'
-    ]
+    headers = ['Schain name', 'Status']
     logs = exit_status_info['data']
     node_exit_status = exit_status_info['status'].lower()
     rows = [[log['name'], log['status'].lower()] for log in logs]
@@ -230,20 +217,14 @@ def print_firewall_rules(rules, raw=False):
         print('No allowed endpoints')
         return
     if raw:
-        print(json.dumpes(rules))
-    headers = [
-        'IP range',
-        'Port'
-    ]
+        print(json.dumps(rules))
+    headers = ['IP range', 'Port']
     rows = []
     for rule in sorted(rules, key=lambda r: r['port']):
         ip_range = 'All IPs'
-        if rule["first_ip"] and rule["last_ip"]:
+        if rule['first_ip'] and rule['last_ip']:
             ip_range = f'{rule["first_ip"]} - {rule["last_ip"]}'
-        rows.append([
-            ip_range,
-            rule['port']
-        ])
+        rows.append([ip_range, rule['port']])
     print(Formatter().table(headers, rows))
 
 
@@ -256,24 +237,13 @@ def print_schain_info(info: dict, raw: bool = False) -> None:
         print(Formatter().table(headers, [rows]))
 
 
-def print_abi_validation_errors(info: list, raw: bool = False) -> None:
-    if not info:
-        return
-    if raw:
-        print(json.dumps(info))
-    else:
-        headers = info[0].keys()
-        rows = [tuple(r.values()) for r in info]
-        headers = list(map(lambda h: h.capitalize(), headers))
-        print(Formatter().table(headers, rows))
-
-
 def print_node_cmd_error():
     print(TEXTS['node']['cmd_failed'].format(DEBUG_LOG_FILEPATH))
 
 
 def print_node_info(node, node_status):
-    print(inspect.cleandoc(f"""
+    print(
+        inspect.cleandoc(f"""
         {LONG_LINE}
         Node info
         Name: {node['name']}
@@ -284,20 +254,51 @@ def print_node_info(node, node_status):
         Domain name: {node['domain_name']}
         Status: {node_status}
         {LONG_LINE}
-    """))
+    """)
+    )
 
 
-def print_err_response(error_payload):
-    if isinstance(error_payload, list):
-        error_msg = '\n'.join(error_payload)
-    else:
-        error_msg = error_payload
+def print_node_info_fair(node):
+    print(
+        inspect.cleandoc(f"""
+        {LONG_LINE}
+        Node info
+        ID: {node['id']}
+        IP: {node['ip_str']}
+        Port: {node['port']}
+        Domain name: {node['domain_name']}
+        {LONG_LINE}
+    """)
+    )
 
-    print('Command failed with following errors:')
-    print(LONG_LINE)
-    print(error_msg)
-    print(LONG_LINE)
-    print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
+
+def print_err_response(error_payload: Any) -> None:
+    """Print formatted error message from API response payload.
+
+    Handles different types of error payloads (str, list, dict etc.) and formats them
+    into a user-friendly error message along with debug log file location.
+    """
+    try:
+        if isinstance(error_payload, (list, tuple)):
+            error_msg = '\n'.join(str(err) for err in error_payload)
+        elif isinstance(error_payload, dict):
+            error_msg = json.dumps(error_payload, indent=2)
+        else:
+            error_msg = str(error_payload)
+
+        print('Command failed with following errors:')
+        print(LONG_LINE)
+        print(error_msg)
+        print(LONG_LINE)
+        print(f'You can find more info in {DEBUG_LOG_FILEPATH}')
+
+    except Exception as e:
+        print('Error occurred while processing error payload:')
+        print(LONG_LINE)
+        print(f'Original error payload: {error_payload}')
+        print(f'Error while formatting: {str(e)}')
+        print(LONG_LINE)
+        print(f'Check logs at {DEBUG_LOG_FILEPATH} for more details')
 
 
 def print_failed_requirements_checks(failed_checks: list) -> None:
@@ -313,10 +314,66 @@ def print_failed_requirements_checks(failed_checks: list) -> None:
 
 
 def print_meta_info(meta_info: CliMeta) -> None:
-    print(inspect.cleandoc(f"""
+    print(
+        inspect.cleandoc(f"""
         {LONG_LINE}
         Version: {meta_info.version}
         Config Stream: {meta_info.config_stream}
-        Lvmpy stream: {meta_info.docker_lvmpy_stream}
+        Lvmpy stream: {meta_info.docker_lvmpy_version}
         {LONG_LINE}
-    """))
+    """)
+    )
+
+
+def format_timestamp(value):
+    if value is None or value == 'N/A' or value == 0 or value == 0.0:
+        return 'N/A'
+    try:
+        timestamp = float(value)
+        if timestamp == 0:
+            return 'N/A'
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        human_date = dt.strftime('%Y-%m-%d %H:%M:%S')
+        return f'{human_date} ({timestamp})'
+    except (ValueError, TypeError):
+        return str(value)
+
+
+def print_chain_record(record):
+    print(
+        inspect.cleandoc(f"""
+        {LONG_LINE}
+        Fair Chain Record
+        Chain Name: {record.get('name', 'N/A')}
+        Config Version: {record.get('config_version', 'N/A')}
+        Sync Config Run: {record.get('sync_config_run', 'N/A')}
+        First Run: {record.get('first_run', 'N/A')}
+        Backup Run: {record.get('backup_run', 'N/A')}
+        Restart Count: {record.get('restart_count', 'N/A')}
+        Failed RPC Count: {record.get('failed_rpc_count', 'N/A')}
+        Monitor Last Seen: {format_timestamp(record.get('monitor_last_seen', 'N/A'))}
+        SSL Change Date: {format_timestamp(record.get('ssl_change_date', 'N/A'))}
+        Repair Date: {format_timestamp(record.get('repair_date', 'N/A'))}
+        DKG Status: {record.get('dkg_status', 'N/A')}
+        Repair Timestamp: {format_timestamp(record.get('repair_ts', 'N/A'))}
+        Snapshot From: {record.get('snapshot_from', 'N/A')}
+        Restart Timestamp: {format_timestamp(record.get('restart_ts', 'N/A'))}
+        Force Skaled Start: {record.get('force_skaled_start', 'N/A')}
+        {LONG_LINE}
+    """)
+    )
+
+
+def print_chain_checks(checks):
+    def format_checks(check_dict, title):
+        print(f'\n{title}:')
+        for name, result in check_dict.items():
+            status = 'PASS' if result else 'FAIL'
+            print(f'  {name}: {status}')
+
+    print(f'{LONG_LINE}')
+    print('Fair Chain Checks')
+    print(f'{LONG_LINE}')
+    format_checks(checks['config_checks'], 'Config Checks')
+    format_checks(checks['skaled_checks'], 'Skaled Checks')
+    print(f'{LONG_LINE}')

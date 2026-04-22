@@ -1,17 +1,12 @@
 import os
-import datetime
-from unittest import mock
 from pathlib import Path
-
+from unittest import mock
 
 import freezegun
 
-from node_cli.core.schains import cleanup_sync_datadir, toggle_schain_repair_mode
+from node_cli.core.schains import cleanup_no_lvm_datadir, toggle_schain_repair_mode
 from node_cli.utils.helper import read_json
-
-
-CURRENT_TIMESTAMP = 1594903080
-CURRENT_DATETIME = datetime.datetime.utcfromtimestamp(CURRENT_TIMESTAMP)
+from tests.helper import CURRENT_DATETIME, CURRENT_TIMESTAMP
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
@@ -39,9 +34,9 @@ def test_toggle_repair_mode(tmp_schains_dir):
 
 
 @freezegun.freeze_time(CURRENT_DATETIME)
-def test_cleanup_sync_datadir(tmp_sync_datadir):
+def test_cleanup_passive_datadir(tmp_passive_datadir):
     schain_name = 'test_schain'
-    base_folder = Path(tmp_sync_datadir).joinpath(schain_name)
+    base_folder = Path(tmp_passive_datadir).joinpath(schain_name)
     base_folder.mkdir()
     folders = [
         '28e07f34',
@@ -85,6 +80,9 @@ def test_cleanup_sync_datadir(tmp_sync_datadir):
             hash_path = snapshot_folder.joinpath('snapshot_hash.txt')
             hash_path.touch()
 
-    with mock.patch('node_cli.core.schains.rm_btrfs_subvolume'):
-        cleanup_sync_datadir(schain_name, base_path=tmp_sync_datadir)
+    with (
+        mock.patch('node_cli.core.schains.rm_btrfs_subvolume'),
+        mock.patch('node_cli.core.schains.run_cmd'),
+    ):
+        cleanup_no_lvm_datadir(schain_name, base_path=tmp_passive_datadir)
         assert not os.path.isdir(base_folder)

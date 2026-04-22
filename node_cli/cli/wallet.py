@@ -32,22 +32,26 @@ def wallet_cli():
     pass
 
 
-@wallet_cli.group('wallet', help="Node wallet commands")
+@wallet_cli.group('wallet', help='Node wallet commands')
 def wallet():
     pass
 
 
-@wallet.command('info', help="Get info about SKALE node wallet")
+@wallet.command('info', help='Get info about SKALE node wallet')
 @click.option('--format', '-f', type=click.Choice(['json', 'text']))
 def wallet_info(format):
     get_wallet_info(format)
 
 
-@wallet.command('send', help="Send ETH from SKALE node wallet to address")
+@wallet.command('send', help='Send ETH from SKALE node wallet to address')
 @click.argument('address')
 @click.argument('amount', type=float)
-@click.option('--yes', is_flag=True, callback=abort_if_false,
-              expose_value=False,
-              prompt='Are you sure you want to send ETH tokens?')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to send ETH tokens?',
+)
 def send(address, amount):
     send_eth(address, amount)

@@ -30,8 +30,8 @@ from node_cli.configs import (
     DOCKER_LVMPY_REPO_URL,
     FILESTORAGE_MAPPING,
     SCHAINS_MNT_DIR_REGULAR,
-    SCHAINS_MNT_DIR_SYNC,
-    SKALE_STATE_DIR
+    SCHAINS_MNT_DIR_SINGLE_CHAIN,
+    SKALE_STATE_DIR,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class FilesystemExistsError(Exception):
 
 
 def update_docker_lvmpy_env(env):
-    env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
+    env['PHYSICAL_VOLUME'] = env['BLOCK_DEVICE']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
     env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
@@ -58,11 +58,7 @@ def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
 def sync_docker_lvmpy_repo(env):
     if os.path.isdir(DOCKER_LVMPY_PATH):
         shutil.rmtree(DOCKER_LVMPY_PATH)
-    sync_repo(
-        DOCKER_LVMPY_REPO_URL,
-        DOCKER_LVMPY_PATH,
-        env["DOCKER_LVMPY_STREAM"]
-    )
+    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_VERSION'])
 
 
 def docker_lvmpy_update(env):
@@ -70,10 +66,7 @@ def docker_lvmpy_update(env):
     ensure_filestorage_mapping()
     logger.info('Running docker-lvmpy update script')
     update_docker_lvmpy_env(env)
-    run_cmd(
-        cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/update.sh'.split(),
-        env=env
-    )
+    run_cmd(cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/update.sh'.split(), env=env)
     logger.info('docker-lvmpy update done')
 
 
@@ -81,10 +74,7 @@ def docker_lvmpy_install(env):
     sync_docker_lvmpy_repo(env)
     ensure_filestorage_mapping()
     update_docker_lvmpy_env(env)
-    run_cmd(
-        cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/install.sh'.split(),
-        env=env
-    )
+    run_cmd(cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/install.sh'.split(), env=env)
     logger.info('docker-lvmpy installed')
 
 
@@ -147,7 +137,7 @@ def prepare_block_device(block_device, force=False):
     else:
         logger.info('%s contains %s filesystem', block_device, filesystem)
         format_as_btrfs(block_device)
-    mount_device(block_device, SCHAINS_MNT_DIR_SYNC)
+    mount_device(block_device, SCHAINS_MNT_DIR_SINGLE_CHAIN)
 
 
 def max_resize_btrfs(path):

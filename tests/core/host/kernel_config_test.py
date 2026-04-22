@@ -2,10 +2,7 @@ import os
 
 import pytest
 
-from node_cli.core.host import (
-    is_btrfs_module_autoloaded,
-    ensure_btrfs_kernel_module_autoloaded
-)
+from node_cli.core.host import is_btrfs_module_autoloaded, ensure_btrfs_kernel_module_autoloaded
 
 
 @pytest.fixture

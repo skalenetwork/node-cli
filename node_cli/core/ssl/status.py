@@ -38,10 +38,9 @@ def cert_status():
     if status == 'error':
         return err_result(CERTS_INVALID_FORMAT)
     else:
-        return ok_result(payload={
-            'issued_to': info['issued_to'],
-            'expiration_date': info['expiration_date']
-        })
+        return ok_result(
+            payload={'issued_to': info['issued_to'], 'expiration_date': info['expiration_date']}
+        )
 
 
 def get_cert_info(cert):
@@ -50,14 +49,10 @@ def get_cert_info(cert):
         subject = crypto_cert.get_subject()
         issued_to = subject.CN
         expiration_date_raw = crypto_cert.get_notAfter()
-        expiration_date = parser.parse(
-            expiration_date_raw
-        ).strftime('%Y-%m-%dT%H:%M:%S')
+        expiration_date = parser.parse(expiration_date_raw).strftime('%Y-%m-%dT%H:%M:%S')
     except Exception as err:
         logger.exception('Error during parsing certs')
         return err_result(str(err))
-    return ok_result({
-        'subject': subject,
-        'issued_to': issued_to,
-        'expiration_date': expiration_date
-    })
+    return ok_result(
+        {'subject': subject, 'issued_to': issued_to, 'expiration_date': expiration_date}
+    )

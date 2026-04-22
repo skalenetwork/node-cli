@@ -7,7 +7,7 @@ echo PROJECT_DIR: $GITHUB_WORKSPACE
 export BRANCH=${GITHUB_REF##*/}
 echo "Branch $BRANCH"
 
-export VERSION=$(python setup.py --version)
+export VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
 export VERSION=$(bash ./helper-scripts/calculate_version.sh)
 
 echo "VERSION=$VERSION" >> $GITHUB_ENV

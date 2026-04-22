@@ -17,76 +17,83 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time
-
-import distro
 import functools
 import logging
-from typing import Dict, Optional
+import time
+from typing import Optional
 
-from node_cli.cli.info import VERSION
+import distro
+
+from skale_core.settings import BaseNodeSettings, SkalePassiveSettings, SkaleSettings, get_settings
+
+from node_cli.cli.info import TYPE, VERSION
 from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     CONTAINER_CONFIG_TMP_PATH,
-    SKALE_DIR,
     GLOBAL_SKALE_DIR,
+    NFTABLES_CHAIN_FOLDER_PATH,
+    SKALE_DIR,
 )
+from node_cli.core.checks import CheckType
+from node_cli.core.checks import run_checks as run_host_checks
+from node_cli.core.docker_config import cleanup_docker_configuration, configure_docker
 from node_cli.core.host import (
     ensure_btrfs_kernel_module_autoloaded,
-    link_env_file,
     prepare_host,
 )
-
-from node_cli.core.docker_config import configure_docker
-from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.nftables import configure_nftables
-from node_cli.core.node_options import NodeOptions
-from node_cli.core.resources import update_resource_allocation, init_shared_space_volume
-
-from node_cli.operations.common import (
-    backup_old_contracts,
-    download_contracts,
-    configure_filebeat,
-    configure_flask,
-    unpack_backup_archive,
+from node_cli.core.nginx import generate_nginx_config
+from node_cli.core.node_options import (
+    mark_active_node,
+    set_passive_node_options,
+    upsert_node_mode,
 )
-from node_cli.operations.volume import (
-    cleanup_volume_artifacts,
-    ensure_filestorage_mapping,
-    prepare_block_device,
+from node_cli.core.resources import init_shared_space_volume, update_resource_allocation
+from node_cli.core.schains import (
+    cleanup_lvm_datadir,
+    cleanup_no_lvm_datadir,
+    update_node_cli_schain_status,
 )
-from node_cli.operations.docker_lvmpy import lvmpy_install  # noqa
-from node_cli.operations.skale_node import (
+from node_cli.operations.common import configure_filebeat, unpack_backup_archive
+from node_cli.operations.config_repo import (
     download_skale_node,
     sync_skale_node,
     update_images,
 )
-from node_cli.core.checks import CheckType, run_checks as run_host_checks
-from node_cli.core.schains import (
-    update_node_cli_schain_status,
-    cleanup_sync_datadir,
+from node_cli.operations.docker_lvmpy import lvmpy_install
+from node_cli.operations.volume import (
+    cleanup_volume_artifacts,
+    ensure_filestorage_mapping,
+    prepare_block_device,
 )
 from node_cli.utils.docker_utils import (
     compose_rm,
     compose_up,
     docker_cleanup,
     remove_dynamic_containers,
+    rm_legacy_containers,
+    system_prune,
 )
-from node_cli.utils.meta import get_meta_info, update_meta
+from node_cli.utils.helper import cleanup_dir_content, rm_dir
+from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
+from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
-from node_cli.utils.helper import str_to_bool, rm_dir
-
+from node_cli.utils.settings import save_internal_settings
 
 logger = logging.getLogger(__name__)
 
 
 def checked_host(func):
     @functools.wraps(func)
-    def wrapper(env_filepath: str, env: Dict, *args, **kwargs):
-        download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
+    def wrapper(
+        settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode, *args, **kwargs
+    ):
+        download_skale_node(settings.node_version, settings.container_configs_dir or None)
         failed_checks = run_host_checks(
-            env['DISK_MOUNTPOINT'],
-            env['ENV_TYPE'],
+            settings.block_device,
+            TYPE,
+            node_mode,
+            settings.env_type,
             CONTAINER_CONFIG_TMP_PATH,
             check_type=CheckType.PREINSTALL,
         )
@@ -94,13 +101,15 @@ def checked_host(func):
             print_failed_requirements_checks(failed_checks)
             return False
 
-        result = func(env_filepath, env, *args, **kwargs)
+        result = func(settings, compose_env, node_mode, *args, **kwargs)
         if not result:
             return result
 
         failed_checks = run_host_checks(
-            env['DISK_MOUNTPOINT'],
-            env['ENV_TYPE'],
+            settings.block_device,
+            TYPE,
+            node_mode,
+            settings.env_type,
             CONTAINER_CONFIG_PATH,
             check_type=CheckType.POSTINSTALL,
         )
@@ -113,207 +122,270 @@ def checked_host(func):
 
 
 @checked_host
-def update(env_filepath: str, env: Dict) -> None:
-    compose_rm(env)
+def update(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> bool:
+    compose_rm(node_type=NodeType.SKALE, node_mode=node_mode, env=compose_env)
+    rm_legacy_containers()
     remove_dynamic_containers()
 
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
 
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+    if not settings.skip_docker_config:
         configure_docker()
 
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
+    configure_nftables(enable_monitoring=settings.monitoring_containers)
 
-    backup_old_contracts()
-    download_contracts(env)
-
-    lvmpy_install(env)
+    lvmpy_install(settings.block_device)
     generate_nginx_config()
 
-    prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
-    init_shared_space_volume(env['ENV_TYPE'])
+    prepare_host(settings.env_type, allocation=True)
+    save_internal_settings(node_type=NodeType.SKALE, node_mode=node_mode)
+    init_shared_space_volume(settings.env_type)
 
-    current_stream = get_meta_info().config_stream
-    skip_cleanup = env.get('SKIP_DOCKER_CLEANUP') == 'True'
-    if not skip_cleanup and current_stream != env['CONTAINER_CONFIGS_STREAM']:
+    meta_manager = CliMetaManager()
+    current_stream = meta_manager.get_meta_info().config_stream
+    if not settings.skip_docker_cleanup and current_stream != settings.node_version:
         logger.info(
             'Stream version was changed from %s to %s',
             current_stream,
-            env['CONTAINER_CONFIGS_STREAM'],
+            settings.node_version,
         )
         docker_cleanup()
 
-    update_meta(
+    skale_settings = get_settings(SkaleSettings)
+    meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        settings.node_version,
+        skale_settings.docker_lvmpy_version,
         distro.id(),
         distro.version(),
     )
-    update_images(env=env)
-    compose_up(env)
+    update_images(
+        compose_env=compose_env,
+        container_configs_dir=settings.container_configs_dir,
+        node_type=NodeType.SKALE,
+        node_mode=node_mode,
+    )
+    compose_up(env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=node_mode)
     return True
 
 
 @checked_host
-def init(env_filepath: str, env: dict) -> bool:
+def init(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> None:
     sync_skale_node()
-
     ensure_btrfs_kernel_module_autoloaded()
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+    if not settings.skip_docker_config:
         configure_docker()
 
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
+    configure_nftables(enable_monitoring=settings.monitoring_containers)
 
-    prepare_host(env_filepath, env_type=env['ENV_TYPE'])
-    link_env_file()
-    download_contracts(env)
+    prepare_host(env_type=settings.env_type)
+
+    mark_active_node()
 
     configure_filebeat()
-    configure_flask()
     generate_nginx_config()
 
-    lvmpy_install(env)
-    init_shared_space_volume(env['ENV_TYPE'])
+    lvmpy_install(settings.block_device)
+    init_shared_space_volume(settings.env_type)
 
-    update_meta(
+    skale_settings = get_settings(SkaleSettings)
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        settings.node_version,
+        skale_settings.docker_lvmpy_version,
         distro.id(),
         distro.version(),
     )
-    update_resource_allocation(env_type=env['ENV_TYPE'])
-    update_images(env=env)
+    update_resource_allocation(env_type=settings.env_type)
+    update_images(
+        compose_env=compose_env,
+        container_configs_dir=settings.container_configs_dir,
+        node_type=NodeType.SKALE,
+        node_mode=node_mode,
+    )
+    compose_up(env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=node_mode)
 
-    compose_up(env)
-    return True
 
-
-def init_sync(
-    env_filepath: str,
-    env: dict,
+def init_passive(
+    settings: BaseNodeSettings,
+    compose_env: dict,
     indexer: bool,
     archive: bool,
     snapshot: bool,
     snapshot_from: Optional[str],
-) -> bool:
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-    download_skale_node(env.get('CONTAINER_CONFIGS_STREAM'), env.get('CONTAINER_CONFIGS_DIR'))
+) -> None:
+    cleanup_volume_artifacts(settings.block_device)
+    download_skale_node(settings.node_version, settings.container_configs_dir or None)
     sync_skale_node()
 
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+    if not settings.skip_docker_config:
         configure_docker()
 
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
+    configure_nftables(enable_monitoring=settings.monitoring_containers)
 
-    prepare_host(
-        env_filepath,
-        env_type=env['ENV_TYPE'],
+    prepare_host(env_type=settings.env_type)
+    save_internal_settings(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    failed_checks = run_host_checks(
+        settings.block_device,
+        TYPE,
+        NodeMode.PASSIVE,
+        settings.env_type,
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.PREINSTALL,
     )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
 
-    node_options = NodeOptions()
-    node_options.archive = archive or indexer
-    node_options.catchup = archive or indexer
-    node_options.historic_state = archive
+    set_passive_node_options(archive=archive, indexer=indexer)
 
     ensure_filestorage_mapping()
-    link_env_file()
-    download_contracts(env)
 
     generate_nginx_config()
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+    passive_settings = get_settings(SkalePassiveSettings)
+    prepare_block_device(settings.block_device, force=passive_settings.enforce_btrfs)
 
-    update_meta(
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        settings.node_version,
+        None,
         distro.id(),
         distro.version(),
     )
-    update_resource_allocation(env_type=env['ENV_TYPE'])
+    update_resource_allocation(env_type=settings.env_type)
 
-    schain_name = env['SCHAIN_NAME']
-    if snapshot or snapshot_from:
+    if passive_settings.schain_name and (snapshot or snapshot_from):
         ts = int(time.time())
-        update_node_cli_schain_status(schain_name, repair_ts=ts, snapshot_from=snapshot_from)
+        update_node_cli_schain_status(
+            passive_settings.schain_name, repair_ts=ts, snapshot_from=snapshot_from
+        )
 
-    update_images(env=env, sync_node=True)
+    update_images(
+        compose_env=compose_env,
+        container_configs_dir=settings.container_configs_dir,
+        node_type=NodeType.SKALE,
+        node_mode=NodeMode.PASSIVE,
+    )
+    compose_up(
+        env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
+    )
 
-    compose_up(env, sync_node=True)
-    return True
 
-
-def update_sync(env_filepath: str, env: Dict) -> bool:
-    compose_rm(env, sync_node=True)
+def update_passive(settings: BaseNodeSettings, compose_env: dict) -> bool:
+    compose_rm(env=compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    rm_legacy_containers()
     remove_dynamic_containers()
-    cleanup_volume_artifacts(env['DISK_MOUNTPOINT'])
-    download_skale_node(env['CONTAINER_CONFIGS_STREAM'], env.get('CONTAINER_CONFIGS_DIR'))
+    cleanup_volume_artifacts(settings.block_device)
+    download_skale_node(settings.node_version, settings.container_configs_dir or None)
     sync_skale_node()
 
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+    if not settings.skip_docker_config:
         configure_docker()
 
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
+    configure_nftables(enable_monitoring=settings.monitoring_containers)
 
     ensure_filestorage_mapping()
-    backup_old_contracts()
-    download_contracts(env)
 
-    prepare_block_device(env['DISK_MOUNTPOINT'], force=env['ENFORCE_BTRFS'] == 'True')
+    passive_settings = get_settings(SkalePassiveSettings)
+    prepare_block_device(settings.block_device, force=passive_settings.enforce_btrfs)
     generate_nginx_config()
 
-    prepare_host(env_filepath, env['ENV_TYPE'], allocation=True)
+    prepare_host(settings.env_type, allocation=True)
+    save_internal_settings(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
 
-    update_meta(
+    failed_checks = run_host_checks(
+        settings.block_device,
+        TYPE,
+        NodeMode.PASSIVE,
+        settings.env_type,
+        CONTAINER_CONFIG_PATH,
+        check_type=CheckType.PREINSTALL,
+    )
+    if failed_checks:
+        print_failed_requirements_checks(failed_checks)
+
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        settings.node_version,
+        None,
         distro.id(),
         distro.version(),
     )
-    update_images(env=env, sync_node=True)
-
-    compose_up(env, sync_node=True)
+    update_images(
+        compose_env=compose_env,
+        container_configs_dir=settings.container_configs_dir,
+        node_type=NodeType.SKALE,
+        node_mode=NodeMode.PASSIVE,
+    )
+    compose_up(
+        env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
+    )
     return True
 
 
-def turn_off(env: dict, sync_node: bool = False) -> None:
+def turn_off(compose_env: dict, node_type: NodeType, node_mode: NodeMode) -> None:
     logger.info('Turning off the node...')
-    compose_rm(env=env, sync_node=sync_node)
+    compose_rm(env=compose_env, node_type=node_type, node_mode=node_mode)
+    rm_legacy_containers()
     remove_dynamic_containers()
     logger.info('Node was successfully turned off')
 
 
-def turn_on(env: dict) -> None:
+def turn_on(
+    settings: BaseNodeSettings,
+    compose_env: dict,
+    node_type: NodeType,
+    node_mode: NodeMode,
+    backup_run: bool = False,
+) -> None:
     logger.info('Turning on the node...')
-    update_meta(
-        VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
-        distro.id(),
-        distro.version(),
-    )
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+    if node_type == NodeType.FAIR:
+        meta_manager = FairCliMetaManager()
+        meta_manager.update_meta(
+            VERSION,
+            settings.node_version,
+            distro.id(),
+            distro.version(),
+        )
+    else:
+        skale_settings = get_settings((SkaleSettings, SkalePassiveSettings))
+        docker_lvmpy_version = (
+            skale_settings.docker_lvmpy_version
+            if isinstance(skale_settings, SkaleSettings)
+            else None
+        )
+        meta_manager = CliMetaManager()
+        meta_manager.update_meta(
+            VERSION, settings.node_version, docker_lvmpy_version, distro.id(), distro.version()
+        )
+    if not settings.skip_docker_config:
         configure_docker()
 
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
+    configure_nftables(enable_monitoring=settings.monitoring_containers)
 
+    save_internal_settings(node_type=node_type, node_mode=node_mode, backup_run=backup_run)
     logger.info('Launching containers on the node...')
-    compose_up(env)
+    compose_up(env=compose_env, settings=settings, node_type=node_type, node_mode=node_mode)
 
 
-def restore(env, backup_path, config_only=False):
+def restore(
+    settings: BaseNodeSettings,
+    compose_env: dict,
+    backup_path: str,
+    node_type: NodeType,
+    config_only: bool = False,
+    backup_run: bool = False,
+) -> bool:
+    node_mode = upsert_node_mode(node_mode=NodeMode.ACTIVE)
     unpack_backup_archive(backup_path)
     failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
-        env['ENV_TYPE'],
+        settings.block_device,
+        TYPE,
+        node_mode,
+        settings.env_type,
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.PREINSTALL,
     )
@@ -323,31 +395,32 @@ def restore(env, backup_path, config_only=False):
 
     ensure_btrfs_kernel_module_autoloaded()
 
-    if env.get('SKIP_DOCKER_CONFIG') != 'True':
+    if not settings.skip_docker_config:
         configure_docker()
 
-    enable_monitoring = str_to_bool(env.get('MONITORING_CONTAINERS', 'False'))
-    configure_nftables(enable_monitoring=enable_monitoring)
+    configure_nftables(enable_monitoring=settings.monitoring_containers)
 
-    link_env_file()
-    lvmpy_install(env)
-    init_shared_space_volume(env['ENV_TYPE'])
+    lvmpy_install(settings.block_device)
+    init_shared_space_volume(settings.env_type)
 
-    update_meta(
+    skale_settings = get_settings(SkaleSettings)
+    meta_manager = CliMetaManager()
+    meta_manager.update_meta(
         VERSION,
-        env['CONTAINER_CONFIGS_STREAM'],
-        env['DOCKER_LVMPY_STREAM'],
+        settings.node_version,
+        skale_settings.docker_lvmpy_version,
         distro.id(),
         distro.version(),
     )
-    update_resource_allocation(env_type=env['ENV_TYPE'])
-
+    save_internal_settings(node_type=node_type, node_mode=node_mode, backup_run=backup_run)
     if not config_only:
-        compose_up(env)
+        compose_up(env=compose_env, settings=settings, node_type=node_type, node_mode=node_mode)
 
     failed_checks = run_host_checks(
-        env['DISK_MOUNTPOINT'],
-        env['ENV_TYPE'],
+        settings.block_device,
+        TYPE,
+        node_mode,
+        settings.env_type,
         CONTAINER_CONFIG_PATH,
         check_type=CheckType.POSTINSTALL,
     )
@@ -357,8 +430,24 @@ def restore(env, backup_path, config_only=False):
     return True
 
 
-def cleanup_sync(env, schain_name: str) -> None:
-    turn_off(env, sync_node=True)
-    cleanup_sync_datadir(schain_name=schain_name)
+def cleanup_passive(compose_env: dict, schain_name: str) -> None:
+    turn_off(compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    cleanup_no_lvm_datadir(chain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
+
+
+def cleanup(
+    node_mode: NodeMode, compose_env: dict, schain_name: Optional[str] = None, prune: bool = False
+) -> None:
+    turn_off(compose_env, node_type=NodeType.SKALE, node_mode=node_mode)
+    if prune:
+        system_prune()
+    if node_mode == NodeMode.PASSIVE:
+        cleanup_no_lvm_datadir(chain_name=schain_name)
+    else:
+        cleanup_lvm_datadir()
+    rm_dir(GLOBAL_SKALE_DIR)
+    rm_dir(SKALE_DIR)
+    cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
+    cleanup_docker_configuration()

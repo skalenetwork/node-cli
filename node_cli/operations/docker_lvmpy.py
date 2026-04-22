@@ -33,15 +33,16 @@ from node_cli.configs import (
     LVMPY_CRON_LOG_PATH,
     LVMPY_CRON_SCHEDULE_MINUTES,
     SCHAINS_MNT_DIR_REGULAR,
-    VOLUME_GROUP
+    VOLUME_GROUP,
 )
+from node_cli.operations.volume import ensure_filestorage_mapping
 from lvmpy.src.install import setup as setup_lvmpy
 
 logger = logging.getLogger(__name__)
 
 
 def update_docker_lvmpy_env(env):
-    env['PHYSICAL_VOLUME'] = env['DISK_MOUNTPOINT']
+    env['PHYSICAL_VOLUME'] = env['BLOCK_DEVICE']
     env['VOLUME_GROUP'] = 'schains'
     env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
     env['MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
@@ -49,29 +50,16 @@ def update_docker_lvmpy_env(env):
     return env
 
 
-def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
-    if not os.path.isdir(FILESTORAGE_MAPPING):
-        os.makedirs(FILESTORAGE_MAPPING)
-
-
 def sync_docker_lvmpy_repo(env):
     if os.path.isdir(DOCKER_LVMPY_PATH):
         shutil.rmtree(DOCKER_LVMPY_PATH)
-    sync_repo(
-        DOCKER_LVMPY_REPO_URL,
-        DOCKER_LVMPY_PATH,
-        env["DOCKER_LVMPY_STREAM"]
-    )
+    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_VERSION'])
 
 
-def lvmpy_install(env):
+def lvmpy_install(block_device: str) -> None:
     ensure_filestorage_mapping()
     logging.info('Configuring and starting lvmpy')
-    setup_lvmpy(
-        block_device=env['DISK_MOUNTPOINT'],
-        volume_group=VOLUME_GROUP,
-        exec_start=LVMPY_RUN_CMD
-    )
+    setup_lvmpy(block_device=block_device, volume_group=VOLUME_GROUP, exec_start=LVMPY_RUN_CMD)
     init_healing_cron()
     logger.info('docker-lvmpy is configured and started')
 
@@ -86,7 +74,5 @@ def init_healing_cron():
         if legacy_line in jobs:
             c.remove_all(command=legacy_line)
         if cron_line not in jobs:
-            job = c.new(
-                command=cron_line
-            )
+            job = c.new(command=cron_line)
             job.minute.every(LVMPY_CRON_SCHEDULE_MINUTES)

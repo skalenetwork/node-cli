@@ -1,0 +1,227 @@
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of node-cli
+#
+#   Copyright (C) 2025-Present SKALE Labs
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import click
+
+from node_cli.cli.info import TYPE
+from node_cli.core.node import backup
+from node_cli.fair.active import change_ip as change_ip_fair
+from node_cli.fair.active import exit as exit_fair
+from node_cli.fair.active import get_node_info, migrate_from_boot
+from node_cli.fair.active import register as register_fair
+from node_cli.fair.active import restore as restore_fair
+from node_cli.fair.active import set_domain_name as set_domain_name_fair
+from node_cli.fair.common import cleanup as cleanup_fair
+from node_cli.fair.common import init as init_fair
+from node_cli.fair.common import repair_chain
+from node_cli.fair.common import turn_off as turn_off_fair
+from node_cli.fair.common import turn_on as turn_on_fair
+from node_cli.fair.common import update as update_fair
+from node_cli.utils.helper import IP_TYPE, URL_OR_ANY_TYPE, abort_if_false, streamed_cmd
+from node_cli.utils.node_type import NodeMode
+from node_cli.utils.texts import safe_load_texts
+
+TEXTS = safe_load_texts()
+
+
+@click.group()
+def fair_node_cli():
+    pass
+
+
+@fair_node_cli.group(help='Commands for regular Fair Node operations.')
+def node():
+    pass
+
+
+@node.command('info', help='Get info about Fair node.')
+@click.option('--format', '-f', type=click.Choice(['json', 'text']))
+def fair_node_info(format):
+    get_node_info(format)
+
+
+@node.command('init', help='Initialize regular Fair node')
+@click.argument('config_file')
+@streamed_cmd
+def init_node(config_file: str):
+    init_fair(node_mode=NodeMode.ACTIVE, config_file=config_file)
+
+
+@node.command('register', help=TEXTS['fair']['node']['register']['help'])
+@click.option('--ip', required=True, type=IP_TYPE, help=TEXTS['fair']['node']['register']['ip'])
+def register(ip: str) -> None:
+    register_fair(ip=ip)
+
+
+@node.command('update', help='Update Fair node')
+@click.argument('config_file')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to update Fair node software?',
+)
+@click.option('--pull-config', 'pull_config_for_schain', hidden=True, type=str)
+@click.option(
+    '--force-skaled-start',
+    'force_skaled_start',
+    hidden=True,
+    type=bool,
+    default=False,
+    is_flag=True,
+)
+@streamed_cmd
+def update_node(config_file: str, pull_config_for_schain, force_skaled_start: bool):
+    update_fair(
+        node_mode=NodeMode.ACTIVE,
+        config_file=config_file,
+        pull_config_for_schain=pull_config_for_schain,
+        force_skaled_start=force_skaled_start,
+    )
+
+
+@node.command('backup', help='Generate backup file for the Fair node.')
+@click.argument('backup_folder_path')
+@streamed_cmd
+def backup_node(backup_folder_path):
+    backup(backup_folder_path)
+
+
+@node.command('restore', help='Restore Fair node from a backup file.')
+@click.argument('backup_path')
+@click.argument('config_file')
+@click.option(
+    '--config-only',
+    help='Only restore configuration files in .skale and artifacts',
+    is_flag=True,
+    hidden=True,
+)
+@streamed_cmd
+def restore_node(backup_path, config_file, config_only):
+    restore_fair(backup_path, config_file, config_only)
+
+
+@node.command('migrate', help='Switch from boot to regular Fair node.')
+@click.argument('config_file')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to migrate to regular Fair node? The action cannot be undone',
+)
+@streamed_cmd
+def migrate_node(config_file: str) -> None:
+    migrate_from_boot(config_file=config_file)
+
+
+@node.command('repair', help='Toggle fair chain repair mode')
+@click.option(
+    '--snapshot',
+    type=URL_OR_ANY_TYPE,
+    default='any',
+    hidden=True,
+    help=TEXTS['fair']['node']['repair']['snapshot'],
+)
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt=TEXTS['fair']['node']['repair']['warning'],
+)
+@streamed_cmd
+def repair(snapshot: str = 'any') -> None:
+    repair_chain(snapshot_from=snapshot)
+
+
+@node.command('cleanup', help='Remove all FAIR node data and containers.')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to remove all FAIR node data and containers?',
+)
+@click.option('--prune', is_flag=True, help='Prune docker system.')
+@streamed_cmd
+def cleanup_node(prune):
+    cleanup_fair(node_mode=NodeMode.ACTIVE, prune=prune)
+
+
+@node.command('change-ip', help=TEXTS['fair']['node']['change-ip']['help'])
+@click.argument('ip', type=IP_TYPE)
+@streamed_cmd
+def change_ip(ip: str) -> None:
+    change_ip_fair(ip=ip)
+
+
+@node.command('exit', help=TEXTS['fair']['node']['exit']['help'])
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt=TEXTS['fair']['node']['exit']['prompt'],
+)
+@streamed_cmd
+def exit_node() -> None:
+    exit_fair()
+
+
+@node.command('set-domain', help='Set node domain name')
+@click.option('--domain', '-d', prompt='Enter node domain name', type=str, help='Node domain name')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to set domain name?',
+)
+@streamed_cmd
+def set_domain_name(domain):
+    set_domain_name_fair(domain)
+
+
+@node.command('turn-off', help='Turn off the node')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to turn off the node?',
+)
+@streamed_cmd
+def turn_off_node() -> None:
+    turn_off_fair(node_type=TYPE)
+
+
+@node.command('turn-on', help='Turn on the node')
+@click.option(
+    '--yes',
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt='Are you sure you want to turn on the node?',
+)
+@click.argument('config_file')
+@streamed_cmd
+def turn_on_node(config_file: str) -> None:
+    turn_on_fair(env_file=config_file, node_type=TYPE)
