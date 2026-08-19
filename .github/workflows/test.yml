@@ -1,9 +1,11 @@
+# ABOUTME: Runs linting, binary builds, and tests for node-cli.
+# ABOUTME: Verifies the project with Python 3.13 on Ubuntu 24.04.
 name: Test
 on: [push]
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ['3.13']
@@ -38,6 +40,8 @@ jobs:
       run: |
         uv venv
         uv pip install -e ".[dev]"
+        site_packages=$(uv run python -c 'import site; print(site.getsitepackages()[0])')
+        echo /usr/lib/python3/dist-packages > "$site_packages/ubuntu-system-packages.pth"
 
     - name: Generate info
       run: bash ./scripts/generate_info.sh 1.0.0 my-branch skale
@@ -77,7 +81,6 @@ jobs:
 
     - name: Run tests
       run: |
-        export PYTHONPATH=${PYTHONPATH}:/usr/lib/python3/dist-packages/
         uv run bash ./scripts/run_tests.sh
 
     - name: Run nftables tests
