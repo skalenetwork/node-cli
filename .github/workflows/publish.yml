@@ -1,5 +1,3 @@
-# ABOUTME: Builds node-cli binaries and publishes merged release pull requests.
-# ABOUTME: Produces release artifacts in an Ubuntu 24.04 build environment.
 name: Build and publish
 
 on:

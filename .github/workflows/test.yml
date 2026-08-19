@@ -1,5 +1,3 @@
-# ABOUTME: Runs linting, binary builds, and tests for node-cli.
-# ABOUTME: Verifies the project with Python 3.13 on Ubuntu 24.04.
 name: Test
 on: [push]
 

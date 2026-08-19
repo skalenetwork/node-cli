@@ -1,5 +1,3 @@
-# ABOUTME: Defines the Ubuntu 24.04 environment used to build node-cli binaries.
-# ABOUTME: Installs Python 3.13 dependencies and required Ubuntu system packages.
 FROM ubuntu:24.04 AS builder
 
 ARG PYTHON_VERSION=3.13
