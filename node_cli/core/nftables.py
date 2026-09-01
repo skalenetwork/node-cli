@@ -27,14 +27,16 @@ from pathlib import Path
 from typing import Optional
 
 from node_cli.configs import (
+    DEFAULT_NODE_BASE_PORT,
     ENV,
     NFTABLES_CHAIN_CONFIG_WILDCARD,
     NFTABLES_CHAIN_FOLDER_PATH,
     NFTABLES_MAIN_CONFIG_PATH,
     NFTABLES_SKALE_BASE_CONFIG_PATH,
     NFTABLES_USER_CONFIG_PATH,
+    NODE_CONFIG_PATH,
 )
-from node_cli.utils.helper import get_ssh_port, run_cmd
+from node_cli.utils.helper import get_ssh_port, read_json, run_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,31 @@ LEGACY_TABLE = 'filter'
 CHAIN_PRIORITY = 1
 HOOK = 'input'
 POLICY = 'accept'
+POLICY_DROP = 'drop'
+
+# Prefix of the dynamic per-sChain chains managed by skale-admin
+# in the same inet/firewall table (skale-<schain>, skale-network-scope, ...)
+DYNAMIC_CHAIN_PREFIX = 'skale-'
+
+# sChain base ports are allocated as node_base_port + schain_index * 64
+# (PORTS_PER_SCHAIN in skale.py); 128 slots cover every possible allocation
+SCHAIN_PORTS_PER_NODE = 128 * 64
+SCHAIN_BASE_PORT_ENV = 'SCHAIN_BASE_PORT'
+FIREWALL_DEFAULT_DROP_ENV = 'FIREWALL_DEFAULT_DROP'
+MIN_SCHAIN_BASE_PORT = 2000
+MAX_PORT = 65535
+
+# Without these a drop policy on an inet chain breaks IPv6 neighbor
+# discovery and path MTU discovery
+ICMPV6_ACCEPT_TYPES = (
+    'destination-unreachable',
+    'packet-too-big',
+    'time-exceeded',
+    'parameter-problem',
+    'nd-router-advert',
+    'nd-neighbor-solicit',
+    'nd-neighbor-advert',
+)
 
 
 try:
@@ -180,23 +207,27 @@ class NFTablesManager:
         family = family or self.family
         table = table or self.table
         if self.chain_exists(chain, family=family):
-            cmd = [
-                'nft',
-                'add',
-                'chain',
-                family,
-                table,
-                chain,
-                '{',
-                'policy',
-                POLICY,
-                ';',
-                '}',
-            ]
-            run_cmd(cmd)
+            cmd = f'add chain {family} {table} {chain} {{ policy {policy} ; }}'
+            rc, output, error = self.nft.cmd(cmd)
+            if rc != 0:
+                raise NFTablesError(f'Failed to set policy {policy} on {chain}: {error}')
             logger.info('Updated chain policy: %s %s', chain, policy)
         else:
             logger.info('Chain %s does not exist', chain)
+
+    def get_chain_policy(self, chain: str) -> Optional[str]:
+        """Return the policy of a chain in the managed table or None."""
+        try:
+            rc, output, error = self.nft.cmd(f'list chain {self.family} {self.table} {chain}')
+            if rc != 0:
+                return None
+            data = json.loads(output)
+            for item in data.get('nftables', []):
+                if 'chain' in item and item['chain'].get('name') == chain:
+                    return item['chain'].get('policy')
+        except Exception as e:
+            logger.error('Failed to get policy of chain %s: %s', chain, e)
+        return None
 
     def table_exists(self) -> bool:
         try:
@@ -339,7 +370,7 @@ class NFTablesManager:
                         {
                             'match': {
                                 'op': '==',
-                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
                                 'right': rule.first_port,
                             }
                         }
@@ -349,16 +380,16 @@ class NFTablesManager:
                         {
                             'match': {
                                 'op': '==',
-                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
                                 'right': {'range': [rule.first_port, rule.last_port]},
                             }
                         }
                     )
-        elif rule.protocol == 'icmp' and rule.icmp_type:
+        elif rule.protocol in ['icmp', 'icmpv6'] and rule.icmp_type:
             expr.append(
                 {
                     'match': {
-                        'left': {'payload': {'protocol': 'icmp', 'field': 'type'}},
+                        'left': {'payload': {'protocol': rule.protocol, 'field': 'type'}},
                         'op': '==',
                         'right': rule.icmp_type,
                     }
@@ -410,7 +441,7 @@ class NFTablesManager:
                         {
                             'match': {
                                 'op': '==',
-                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
                                 'right': rule.first_port,
                             }
                         }
@@ -420,7 +451,7 @@ class NFTablesManager:
                         {
                             'match': {
                                 'op': '==',
-                                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                                'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
                                 'right': {'range': [rule.first_port, rule.last_port]},
                             }
                         }
@@ -527,6 +558,129 @@ class NFTablesManager:
         else:
             logger.info('Loopback rule already exists in chain %s', chain)
 
+    def get_dynamic_chain_port_ranges(self) -> list[tuple[str, int, int]]:
+        """Min/max tcp dport covered by each dynamic skale-admin chain."""
+        try:
+            rc, output, error = self.nft.cmd(f'list table {self.family} {self.table}')
+            if rc != 0:
+                if error and 'No such file or directory' in error:
+                    return []
+                raise NFTablesError(f'Failed to list table {self.table}: {error}')
+            data = json.loads(output)
+        except NFTablesError:
+            raise
+        except Exception as e:
+            logger.error('Failed to get dynamic chain ranges: %s', e)
+            raise NFTablesError(e)
+
+        ports: dict[str, list[int]] = {}
+        for item in data.get('nftables', []):
+            rule = item.get('rule')
+            if not rule or not rule.get('chain', '').startswith(DYNAMIC_CHAIN_PREFIX):
+                continue
+            for statement in rule.get('expr', []):
+                match = statement.get('match', {})
+                if match.get('left', {}).get('payload', {}).get('field') != 'dport':
+                    continue
+                right = match.get('right')
+                chain_ports = ports.setdefault(rule['chain'], [])
+                if isinstance(right, dict) and 'range' in right:
+                    chain_ports.extend(right['range'])
+                elif isinstance(right, int):
+                    chain_ports.append(right)
+        return [(chain, min(values), max(values)) for chain, values in ports.items() if values]
+
+    def validate_dynamic_ranges(self, envelope: tuple[int, int]) -> None:
+        """Ensure ports of every dynamic skale-admin chain fit into the envelope."""
+        for chain, first_port, last_port in self.get_dynamic_chain_port_ranges():
+            if first_port < envelope[0] or last_port > envelope[1]:
+                raise NFTablesError(
+                    f'Ports {first_port}-{last_port} of dynamic chain {chain} are outside '
+                    f'of the allowed sChain ports range {envelope[0]}-{envelope[1]}. '
+                    f'Set {SCHAIN_BASE_PORT_ENV} env variable to the base port the node '
+                    'was registered with and rerun the command'
+                )
+
+    def verify_critical_accepts(self) -> None:
+        """Ensure lockout-critical accept rules are in place before setting drop policy."""
+        conntrack_expr = [
+            {
+                'match': {
+                    'left': {'ct': {'key': 'state'}},
+                    'op': 'in',
+                    'right': ['established', 'related'],
+                }
+            },
+            {'counter': None},
+            {'accept': None},
+        ]
+        ssh_expr = [
+            {
+                'match': {
+                    'op': '==',
+                    'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                    'right': get_ssh_port(),
+                }
+            },
+            {'counter': None},
+            {'accept': None},
+        ]
+        for name, expr in (('conntrack', conntrack_expr), ('ssh', ssh_expr)):
+            if not self.rule_exists(self.chain, expr):
+                raise NFTablesError(
+                    f'Refusing to set drop policy: {name} accept rule is missing '
+                    f'in chain {self.chain}'
+                )
+
+    def ensure_default_drop(self, envelope: tuple[int, int]) -> None:
+        """Switch the skale chain policy to drop after validating the accepts."""
+        self.validate_dynamic_ranges(envelope)
+        self.verify_critical_accepts()
+        if self.get_chain_policy(self.chain) != POLICY_DROP:
+            self.update_chain_policy(chain=self.chain, policy=POLICY_DROP)
+
+    def ensure_default_accept(self) -> None:
+        """Rollback path: switch the skale chain policy back to accept."""
+        if self.get_chain_policy(self.chain) == POLICY_DROP:
+            self.update_chain_policy(chain=self.chain, policy=POLICY)
+
+    def delete_rule_by_handle(self, handle: int) -> None:
+        cmd = {
+            'nftables': [
+                {
+                    'delete': {
+                        'rule': {
+                            'family': self.family,
+                            'table': self.table,
+                            'chain': self.chain,
+                            'handle': handle,
+                        }
+                    }
+                }
+            ]
+        }
+        self.execute_cmd(cmd)
+
+    def remove_stale_envelope_rules(self, envelope: tuple[int, int]) -> None:
+        """Remove sChain envelope accepts anchored at a different base port."""
+        for rule in self.get_rules(self.chain):
+            expr = rule.get('expr', [])
+            if {'accept': None} not in expr:
+                continue
+            for statement in expr:
+                match = statement.get('match', {})
+                right = match.get('right')
+                if (
+                    match.get('left', {}).get('payload', {}).get('field') == 'dport'
+                    and isinstance(right, dict)
+                    and 'range' in right
+                    and right['range'][1] - right['range'][0] == SCHAIN_PORTS_PER_NODE - 1
+                    and tuple(right['range']) != envelope
+                    and rule.get('handle') is not None
+                ):
+                    logger.info('Removing stale envelope rule %s', right['range'])
+                    self.delete_rule_by_handle(rule['handle'])
+
     def get_base_ruleset(self) -> str:
         self.nft.set_json_output(False)
         try:
@@ -538,13 +692,17 @@ class NFTablesManager:
         finally:
             self.nft.set_json_output(True)
 
-
     def setup_firewall(self, enable_monitoring: bool = False) -> None:
         """Setup firewall rules."""
 
         logger.info('Configuring firewall rules')
+        envelope = get_schain_ports_envelope()
+        default_drop = firewall_default_drop_enabled()
         try:
             self.create_table_if_not_exists()
+            # Fail fast, before any rule is touched, if the envelope does not
+            # cover the chains skale-admin already created on this node
+            self.validate_dynamic_ranges(envelope)
 
             base_chains_config = {'skale': {'hook': 'input', 'policy': 'accept'}}
 
@@ -575,6 +733,21 @@ class NFTablesManager:
             for icmp_type in icmp_types:
                 self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
 
+            for icmpv6_type in ICMPV6_ACCEPT_TYPES:
+                self.add_rule(Rule(chain=self.chain, protocol='icmpv6', icmp_type=icmpv6_type))
+
+            # Fine-grained filtering inside the envelope is enforced by the
+            # dynamic skale-admin chains that run earlier (priority 0)
+            self.remove_stale_envelope_rules(envelope)
+            self.add_rule(
+                Rule(
+                    chain=self.chain,
+                    protocol='tcp',
+                    first_port=envelope[0],
+                    last_port=envelope[1],
+                )
+            )
+
             self.add_drop_rule(
                 Rule(
                     chain=self.chain,
@@ -590,10 +763,18 @@ class NFTablesManager:
                 chain=LEGACY_CHAIN, policy=POLICY, family=LEGACY_FAMILY, table=LEGACY_TABLE
             )
 
+            if default_drop:
+                self.ensure_default_drop(envelope)
+            else:
+                self.ensure_default_accept()
+
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
             raise NFTablesError(e)
-        logger.info('Firewall rules are configured')
+        logger.info(
+            'Firewall rules are configured, default policy: %s',
+            POLICY_DROP if default_drop else POLICY,
+        )
 
     def cleanup_legacy_rules(self, ssh: bool = False, dns: bool = False) -> None:
         """Cleans up all node-cli generated rules."""
@@ -629,6 +810,39 @@ class NFTablesManager:
         except Exception as e:
             logger.error(f'Failed to flush chain: {str(e)}')
             raise NFTablesError('Flushing chain errored')
+
+
+def firewall_default_drop_enabled() -> bool:
+    value = os.getenv(FIREWALL_DEFAULT_DROP_ENV, 'True')
+    return value.lower() not in ('false', '0', 'no', 'off')
+
+
+def get_registered_base_port() -> Optional[int]:
+    """sChain base port saved to the node config during registration."""
+    if not os.path.isfile(NODE_CONFIG_PATH):
+        return None
+    try:
+        node_config = read_json(NODE_CONFIG_PATH)
+    except Exception as e:
+        logger.warning('Failed to read node config: %s', e)
+        return None
+    base_port = node_config.get('schain_base_port') or 0
+    return base_port if base_port > 0 else None
+
+
+def get_schain_ports_envelope() -> tuple[int, int]:
+    """Range of ports that can be allocated to sChains on this node."""
+    env_value = os.getenv(SCHAIN_BASE_PORT_ENV)
+    if env_value:
+        try:
+            base_port = int(env_value)
+        except ValueError:
+            raise NFTablesError(f'{SCHAIN_BASE_PORT_ENV} must be an integer, got {env_value}')
+    else:
+        base_port = get_registered_base_port() or DEFAULT_NODE_BASE_PORT
+    if not MIN_SCHAIN_BASE_PORT <= base_port <= MAX_PORT - SCHAIN_PORTS_PER_NODE + 1:
+        raise NFTablesError(f'Invalid sChain base port {base_port}')
+    return base_port, base_port + SCHAIN_PORTS_PER_NODE - 1
 
 
 def prepare_directories() -> None:

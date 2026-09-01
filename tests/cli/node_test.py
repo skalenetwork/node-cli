@@ -58,7 +58,12 @@ init_default_logger()
 
 def test_register_node(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
-    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+    with (
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.save_registered_base_port'),
+        mock.patch('node_cli.core.node.configure_nftables'),
+        mock.patch('node_cli.core.node.get_settings'),
+    ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -93,7 +98,12 @@ def test_register_node_with_error(inited_node, resource_alloc, mocked_g_config):
 
 def test_register_node_with_prompted_ip(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
-    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+    with (
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.save_registered_base_port'),
+        mock.patch('node_cli.core.node.configure_nftables'),
+        mock.patch('node_cli.core.node.get_settings'),
+    ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -110,7 +120,12 @@ def test_register_node_with_prompted_ip(inited_node, resource_alloc, mocked_g_co
 
 def test_register_node_with_default_port(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
-    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+    with (
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.save_registered_base_port'),
+        mock.patch('node_cli.core.node.configure_nftables'),
+        mock.patch('node_cli.core.node.get_settings'),
+    ):
         result = run_command_mock(
             'node_cli.utils.helper.requests.post',
             resp_mock,
@@ -384,7 +399,9 @@ def test_maintenance_off(mocked_g_config):
     )
 
 
-def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node_option, skale_active_settings):
+def test_turn_off_maintenance_on(
+    mocked_g_config, regular_user_conf, active_node_option, skale_active_settings
+):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -415,7 +432,9 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node
             assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
-def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node_option, skale_active_settings):
+def test_turn_on_maintenance_off(
+    mocked_g_config, regular_user_conf, active_node_option, skale_active_settings
+):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),

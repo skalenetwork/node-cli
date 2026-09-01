@@ -34,6 +34,7 @@ from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     FILESTORAGE_MAPPING,
     LOG_PATH,
+    NODE_CONFIG_PATH,
     RESTORE_SLEEP_TIMEOUT,
     SCHAINS_MNT_DIR_REGULAR,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
@@ -79,6 +80,8 @@ from node_cli.utils.helper import (
     error_exit,
     get_request,
     post_request,
+    read_json,
+    save_json,
 )
 from node_cli.utils.meta import CliMetaManager
 from node_cli.utils.node_type import NodeType, NodeMode
@@ -145,10 +148,25 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
         msg = TEXTS['node']['registered']
         logger.info(msg)
         print(msg)
+        save_registered_base_port(port)
+        logger.info('Reconfiguring firewall for the registered base port %d', port)
+        configure_nftables(enable_monitoring=get_settings().monitoring_containers)
     else:
         error_msg = payload
         logger.error(f'Registration error {error_msg}')
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def save_registered_base_port(port: int) -> None:
+    """Persist the sChain base port to the node config.
+
+    skale-admin saves it during registration as well - this covers setups
+    where the admin container predates that behavior.
+    """
+    node_config = read_json(NODE_CONFIG_PATH) if os.path.isfile(NODE_CONFIG_PATH) else {}
+    if node_config.get('schain_base_port') != port:
+        node_config['schain_base_port'] = port
+        save_json(NODE_CONFIG_PATH, node_config)
 
 
 @check_not_inited
