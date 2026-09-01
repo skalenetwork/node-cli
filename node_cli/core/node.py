@@ -158,14 +158,16 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
 
 
 def save_registered_base_port(port: int) -> None:
-    """Persist the sChain base port to the node config.
+    """Persist the node base port to the node config.
 
-    skale-admin saves it during registration as well - this covers setups
-    where the admin container predates that behavior.
+    Kept separate from schain_base_port, which holds an already-allocated
+    sChain port in passive mode. skale-admin saves node_base_port during
+    registration as well - this covers setups where the admin container
+    predates that behavior.
     """
     node_config = read_json(NODE_CONFIG_PATH) if os.path.isfile(NODE_CONFIG_PATH) else {}
-    if node_config.get('schain_base_port') != port:
-        node_config['schain_base_port'] = port
+    if node_config.get('node_base_port') != port:
+        node_config['node_base_port'] = port
         save_json(NODE_CONFIG_PATH, node_config)
 
 

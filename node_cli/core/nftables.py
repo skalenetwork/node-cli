@@ -818,7 +818,13 @@ def firewall_default_drop_enabled() -> bool:
 
 
 def get_registered_base_port() -> Optional[int]:
-    """sChain base port saved to the node config during registration."""
+    """Base port for the envelope, taken from the node config.
+
+    node_base_port is the port the node was registered with (saved by
+    skale-admin at registration and backfilled from the contracts on admin
+    restarts). schain_base_port is the fallback for passive and fair nodes,
+    where it holds the single hosted chain's base port - a valid anchor too.
+    """
     if not os.path.isfile(NODE_CONFIG_PATH):
         return None
     try:
@@ -826,7 +832,7 @@ def get_registered_base_port() -> Optional[int]:
     except Exception as e:
         logger.warning('Failed to read node config: %s', e)
         return None
-    base_port = node_config.get('schain_base_port') or 0
+    base_port = node_config.get('node_base_port') or node_config.get('schain_base_port') or 0
     return base_port if base_port > 0 else None
 
 

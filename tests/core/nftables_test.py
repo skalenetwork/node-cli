@@ -398,8 +398,16 @@ def test_get_schain_ports_envelope_env_override(monkeypatch):
 
 def test_get_schain_ports_envelope_from_node_config(monkeypatch, tmp_path):
     config_path = tmp_path / 'node_config.json'
-    config_path.write_text(json.dumps({'node_id': 1, 'schain_base_port': 20128}))
     monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(config_path))
+
+    # active node: node_base_port saved at registration wins
+    config_path.write_text(
+        json.dumps({'node_id': 1, 'node_base_port': 20128, 'schain_base_port': 30000})
+    )
+    assert get_schain_ports_envelope() == (20128, 28319)
+
+    # passive/fair node: only schain_base_port is present
+    config_path.write_text(json.dumps({'node_id': 1, 'schain_base_port': 20128}))
     assert get_schain_ports_envelope() == (20128, 28319)
 
 
