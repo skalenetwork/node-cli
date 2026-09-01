@@ -681,6 +681,77 @@ class NFTablesManager:
                     logger.info('Removing stale envelope rule %s', right['range'])
                     self.delete_rule_by_handle(rule['handle'])
 
+    @staticmethod
+    def _normalized_expr(expr: list[dict]) -> list[dict]:
+        return [{'counter': None} if 'counter' in statement else statement for statement in expr]
+
+    def remove_misordered_udp_drop(self) -> None:
+        """Delete the blanket udp drop when it shadows the udp DNS accept.
+
+        Rulesets created before the udp payload fix have the drop above the
+        accept; setup re-adds the drop after all accept rules.
+        """
+        udp_drop = [
+            {
+                'match': {
+                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
+                    'op': '==',
+                    'right': 'udp',
+                }
+            },
+            {'counter': None},
+            {'drop': None},
+        ]
+        udp_dns_accept = [
+            {
+                'match': {
+                    'op': '==',
+                    'left': {'payload': {'protocol': 'udp', 'field': 'dport'}},
+                    'right': ServicePort.DNS,
+                }
+            },
+            {'counter': None},
+            {'accept': None},
+        ]
+        drop_handle, drop_index, accept_index = None, None, None
+        for index, rule in enumerate(self.get_rules(self.chain)):
+            expr = self._normalized_expr(rule.get('expr', []))
+            if expr == udp_drop:
+                drop_handle, drop_index = rule.get('handle'), index
+            elif expr == udp_dns_accept:
+                accept_index = index
+        if drop_handle is not None and (accept_index is None or drop_index < accept_index):
+            logger.info('Removing misordered udp drop rule')
+            self.delete_rule_by_handle(drop_handle)
+
+    def apply_user_rules(self) -> None:
+        """Load user.conf rules into the live chain.
+
+        The file is included into the saved config, but the live chain is
+        managed through the API - without this, rules added to the file would
+        apply only after a reboot and would be missing from the live chain
+        when the policy flips to drop.
+        """
+        if not os.path.isfile(NFTABLES_USER_CONFIG_PATH):
+            return
+        with open(NFTABLES_USER_CONFIG_PATH) as user_config:
+            lines = [line.strip() for line in user_config.readlines()]
+        lines = [line for line in lines if line and not line.startswith('#')]
+        if not lines:
+            return
+        current_rules = self.get_base_ruleset()
+        # insert in reverse to keep the file order at the top of the chain,
+        # mirroring the include position in the saved config
+        for line in reversed(lines):
+            if line in current_rules:
+                continue
+            rc, output, error = self.nft.cmd(
+                f'insert rule {self.family} {self.table} {self.chain} {line}'
+            )
+            if rc != 0:
+                raise NFTablesError(f'Failed to apply user.conf rule "{line}": {error}')
+            logger.info('Applied user.conf rule: %s', line)
+
     def get_base_ruleset(self) -> str:
         self.nft.set_json_output(False)
         try:
@@ -692,17 +763,27 @@ class NFTablesManager:
         finally:
             self.nft.set_json_output(True)
 
-    def setup_firewall(self, enable_monitoring: bool = False) -> None:
-        """Setup firewall rules."""
+    def setup_firewall(
+        self, enable_monitoring: bool = False, defer_default_drop: bool = False
+    ) -> None:
+        """Setup firewall rules.
+
+        defer_default_drop keeps the accept policy for now - used when the
+        envelope base port is not known yet (fresh passive init, where
+        skale-admin computes it only after the containers start).
+        """
 
         logger.info('Configuring firewall rules')
         envelope = get_schain_ports_envelope()
-        default_drop = firewall_default_drop_enabled()
+        default_drop = firewall_default_drop_enabled() and not defer_default_drop
         try:
             self.create_table_if_not_exists()
-            # Fail fast, before any rule is touched, if the envelope does not
-            # cover the chains skale-admin already created on this node
-            self.validate_dynamic_ranges(envelope)
+            if default_drop:
+                # Fail fast, before any rule is touched, if the envelope does
+                # not cover the chains skale-admin already created on this
+                # node. Skipped on rollback so that a mismatched envelope
+                # cannot block restoring the accept policy.
+                self.validate_dynamic_ranges(envelope)
 
             base_chains_config = {'skale': {'hook': 'input', 'policy': 'accept'}}
 
@@ -726,6 +807,7 @@ class NFTablesManager:
             for port in tcp_ports:
                 self.add_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
 
+            self.remove_misordered_udp_drop()
             self.add_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
             self.add_loopback_rule(chain=self.chain)
 
@@ -762,6 +844,8 @@ class NFTablesManager:
             self.update_chain_policy(
                 chain=LEGACY_CHAIN, policy=POLICY, family=LEGACY_FAMILY, table=LEGACY_TABLE
             )
+
+            self.apply_user_rules()
 
             if default_drop:
                 self.ensure_default_drop(envelope)
@@ -857,11 +941,13 @@ def prepare_directories() -> None:
     create_user_config_path()
 
 
-def configure_nftables(enable_monitoring: bool = False) -> None:
+def configure_nftables(enable_monitoring: bool = False, defer_default_drop: bool = False) -> None:
     prepare_directories()
     enable_nftables_service()
     nft_mgr = NFTablesManager()
-    nft_mgr.setup_firewall(enable_monitoring=enable_monitoring)
+    nft_mgr.setup_firewall(
+        enable_monitoring=enable_monitoring, defer_default_drop=defer_default_drop
+    )
     ruleset = nft_mgr.get_base_ruleset()
     save_nftables_rules(ruleset)
     remove_legacy_saved_rules()

@@ -53,6 +53,7 @@ from node_cli.core.node_options import (
     passive_skale,
     passive_fair,
 )
+from node_cli.core.nftables import get_registered_base_port
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
     cleanup_skale_op,
@@ -148,9 +149,17 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
         msg = TEXTS['node']['registered']
         logger.info(msg)
         print(msg)
-        save_registered_base_port(port)
-        logger.info('Reconfiguring firewall for the registered base port %d', port)
-        configure_nftables(enable_monitoring=get_settings().monitoring_containers)
+        try:
+            save_registered_base_port(port)
+            logger.info('Reconfiguring firewall for the registered base port %d', port)
+            configure_nftables(enable_monitoring=get_settings().monitoring_containers)
+        except Exception:
+            # registration already succeeded on-chain - do not fail the command
+            logger.exception('Post-registration firewall reconfiguration failed')
+            print(
+                'Node is registered, but firewall reconfiguration failed. '
+                'Run < skale node configure-firewall > to complete the setup'
+            )
     else:
         error_msg = payload
         logger.error(f'Registration error {error_msg}')
@@ -237,7 +246,33 @@ def init_passive(
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=NodeType.SKALE, node_mode=node_mode):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
+    enable_firewall_default_drop_when_port_available(settings)
     logger.info('Passive node initialized successfully')
+
+
+def enable_firewall_default_drop_when_port_available(
+    settings, timeout: int = 300, interval: int = 5
+) -> None:
+    """Flip the firewall to default drop once admin saves the base port.
+
+    Passive init configures nftables before skale-admin computes the mirrored
+    chain's base port, so the drop policy is deferred until the port is known.
+    """
+    start = time.monotonic()
+    while time.monotonic() - start < timeout:
+        if get_registered_base_port() is not None:
+            configure_nftables(enable_monitoring=settings.monitoring_containers)
+            return
+        time.sleep(interval)
+    logger.warning(
+        'Node base port is not available after %d seconds - firewall default '
+        'drop is postponed until the next node update',
+        timeout,
+    )
+    print(
+        'Firewall default drop policy is postponed: the chain base port is not '
+        'known yet. It will be applied on the next < skale node update-passive >'
+    )
 
 
 @check_inited

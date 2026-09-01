@@ -415,6 +415,7 @@ def test_get_schain_ports_envelope_from_node_config(monkeypatch, tmp_path):
 def test_setup_firewall(mock_execute, nft_manager, monkeypatch, tmp_path):
     """Test complete firewall setup."""
     monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(tmp_path / 'nonexistent.json'))
+    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'user.conf'))
     with patch.multiple(
         NFTablesManager,
         table_exists=Mock(return_value=False),
@@ -456,22 +457,129 @@ def test_setup_firewall(mock_execute, nft_manager, monkeypatch, tmp_path):
 
 @patch.object(NFTablesManager, 'execute_cmd')
 def test_setup_firewall_default_drop_disabled(mock_execute, nft_manager, monkeypatch, tmp_path):
-    """Test that FIREWALL_DEFAULT_DROP=False keeps the accept policy."""
+    """Test that FIREWALL_DEFAULT_DROP=False keeps the accept policy.
+
+    Rollback must not be blocked by envelope validation.
+    """
     monkeypatch.setenv('FIREWALL_DEFAULT_DROP', 'False')
     monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(tmp_path / 'nonexistent.json'))
+    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'user.conf'))
     with patch.multiple(
         NFTablesManager,
         table_exists=Mock(return_value=True),
         chain_exists=Mock(return_value=True),
         rule_exists=Mock(return_value=True),
-        get_dynamic_chain_port_ranges=Mock(return_value=[]),
+        validate_dynamic_ranges=Mock(),
         ensure_default_drop=Mock(),
         ensure_default_accept=Mock(),
         update_chain_policy=Mock(),
     ):
         nft_manager.setup_firewall()
+        NFTablesManager.validate_dynamic_ranges.assert_not_called()
         NFTablesManager.ensure_default_drop.assert_not_called()
         NFTablesManager.ensure_default_accept.assert_called_once()
+
+
+@patch.object(NFTablesManager, 'execute_cmd')
+def test_setup_firewall_defer_default_drop(mock_execute, nft_manager, monkeypatch, tmp_path):
+    """Test that defer_default_drop keeps the accept policy (passive init)."""
+    monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(tmp_path / 'nonexistent.json'))
+    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'user.conf'))
+    with patch.multiple(
+        NFTablesManager,
+        table_exists=Mock(return_value=True),
+        chain_exists=Mock(return_value=True),
+        rule_exists=Mock(return_value=True),
+        validate_dynamic_ranges=Mock(),
+        ensure_default_drop=Mock(),
+        ensure_default_accept=Mock(),
+        update_chain_policy=Mock(),
+    ):
+        nft_manager.setup_firewall(defer_default_drop=True)
+        NFTablesManager.ensure_default_drop.assert_not_called()
+        NFTablesManager.ensure_default_accept.assert_called_once()
+
+
+def test_remove_misordered_udp_drop(nft_manager):
+    udp_drop = {
+        'handle': 5,
+        'expr': [
+            {
+                'match': {
+                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
+                    'op': '==',
+                    'right': 'udp',
+                }
+            },
+            {'counter': {'packets': 0, 'bytes': 0}},
+            {'drop': None},
+        ],
+    }
+    udp_dns_accept = {
+        'handle': 6,
+        'expr': [
+            {
+                'match': {
+                    'op': '==',
+                    'left': {'payload': {'protocol': 'udp', 'field': 'dport'}},
+                    'right': 53,
+                }
+            },
+            {'counter': {'packets': 0, 'bytes': 0}},
+            {'accept': None},
+        ],
+    }
+    # drop shadows the accept -> removed
+    with patch.multiple(
+        NFTablesManager,
+        get_rules=Mock(return_value=[udp_drop, udp_dns_accept]),
+        delete_rule_by_handle=Mock(),
+    ):
+        nft_manager.remove_misordered_udp_drop()
+        NFTablesManager.delete_rule_by_handle.assert_called_once_with(5)
+
+    # accept missing -> drop removed so the accept can land above it
+    with patch.multiple(
+        NFTablesManager,
+        get_rules=Mock(return_value=[udp_drop]),
+        delete_rule_by_handle=Mock(),
+    ):
+        nft_manager.remove_misordered_udp_drop()
+        NFTablesManager.delete_rule_by_handle.assert_called_once_with(5)
+
+    # correct order -> untouched
+    with patch.multiple(
+        NFTablesManager,
+        get_rules=Mock(return_value=[udp_dns_accept, udp_drop]),
+        delete_rule_by_handle=Mock(),
+    ):
+        nft_manager.remove_misordered_udp_drop()
+        NFTablesManager.delete_rule_by_handle.assert_not_called()
+
+
+@patch('nftables.Nftables.cmd')
+def test_apply_user_rules(mock_cmd, nft_manager, monkeypatch, tmp_path):
+    user_conf = tmp_path / 'user.conf'
+    user_conf.write_text(
+        '# custom services\ntcp dport 5000 counter accept\n\ntcp dport 6000 counter accept\n'
+    )
+    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(user_conf))
+
+    mock_cmd.return_value = (0, '', '')
+    with patch.object(
+        NFTablesManager,
+        'get_base_ruleset',
+        return_value='chain skale {\n\t\ttcp dport 5000 counter accept\n}',
+    ):
+        nft_manager.apply_user_rules()
+
+    applied = [call.args[0] for call in mock_cmd.call_args_list]
+    assert applied == ['insert rule inet filter skale tcp dport 6000 counter accept']
+
+    mock_cmd.return_value = (1, '', 'syntax error')
+    with patch.object(NFTablesManager, 'get_base_ruleset', return_value=''):
+        with pytest.raises(NFTablesError):
+            nft_manager.apply_user_rules()
 
 
 def test_invalid_protocol(nft_manager):
