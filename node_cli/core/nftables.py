@@ -70,8 +70,6 @@ HOOK = 'input'
 POLICY = 'accept'
 POLICY_DROP = 'drop'
 
-# Prefix of the dynamic per-sChain chains managed by skale-admin
-# in the same inet/firewall table (skale-<schain>, skale-network-scope, ...)
 DYNAMIC_CHAIN_PREFIX = 'skale-'
 
 # sChain base ports are allocated as node_base_port + schain_index * 64
@@ -82,8 +80,6 @@ FIREWALL_DEFAULT_DROP_ENV = 'FIREWALL_DEFAULT_DROP'
 MIN_SCHAIN_BASE_PORT = 2000
 MAX_PORT = 65535
 
-# Without these a drop policy on an inet chain breaks IPv6 neighbor
-# discovery and path MTU discovery
 ICMPV6_ACCEPT_TYPES = (
     'destination-unreachable',
     'packet-too-big',
@@ -764,25 +760,22 @@ class NFTablesManager:
             self.nft.set_json_output(True)
 
     def setup_firewall(
-        self, enable_monitoring: bool = False, defer_default_drop: bool = False
+        self, enable_monitoring: bool = False, keep_accept_policy: bool = False
     ) -> None:
         """Setup firewall rules.
 
-        defer_default_drop keeps the accept policy for now - used when the
-        envelope base port is not known yet (fresh passive init, where
-        skale-admin computes it only after the containers start).
+        keep_accept_policy leaves the chain on the accept policy for this
+        run - used when the envelope base port is not known yet (fresh
+        passive init, where skale-admin computes it only after the
+        containers start).
         """
 
         logger.info('Configuring firewall rules')
         envelope = get_schain_ports_envelope()
-        default_drop = firewall_default_drop_enabled() and not defer_default_drop
+        default_drop = firewall_default_drop_enabled() and not keep_accept_policy
         try:
             self.create_table_if_not_exists()
             if default_drop:
-                # Fail fast, before any rule is touched, if the envelope does
-                # not cover the chains skale-admin already created on this
-                # node. Skipped on rollback so that a mismatched envelope
-                # cannot block restoring the accept policy.
                 self.validate_dynamic_ranges(envelope)
 
             base_chains_config = {'skale': {'hook': 'input', 'policy': 'accept'}}
@@ -941,12 +934,12 @@ def prepare_directories() -> None:
     create_user_config_path()
 
 
-def configure_nftables(enable_monitoring: bool = False, defer_default_drop: bool = False) -> None:
+def configure_nftables(enable_monitoring: bool = False, keep_accept_policy: bool = False) -> None:
     prepare_directories()
     enable_nftables_service()
     nft_mgr = NFTablesManager()
     nft_mgr.setup_firewall(
-        enable_monitoring=enable_monitoring, defer_default_drop=defer_default_drop
+        enable_monitoring=enable_monitoring, keep_accept_policy=keep_accept_policy
     )
     ruleset = nft_mgr.get_base_ruleset()
     save_nftables_rules(ruleset)

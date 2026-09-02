@@ -154,11 +154,14 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
             logger.info('Reconfiguring firewall for the registered base port %d', port)
             configure_nftables(enable_monitoring=get_settings().monitoring_containers)
         except Exception:
-            # registration already succeeded on-chain - do not fail the command
+            # on-chain registration already succeeded - retrying register
+            # would fail, so the error must say the node is registered
             logger.exception('Post-registration firewall reconfiguration failed')
-            print(
-                'Node is registered, but firewall reconfiguration failed. '
-                'Run < skale node configure-firewall > to complete the setup'
+            error_exit(
+                'Node is successfully registered in SKALE manager, but firewall '
+                'reconfiguration failed. Run < skale node configure-firewall > '
+                'to complete the setup',
+                exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR,
             )
     else:
         error_msg = payload

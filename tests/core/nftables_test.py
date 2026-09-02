@@ -481,8 +481,8 @@ def test_setup_firewall_default_drop_disabled(mock_execute, nft_manager, monkeyp
 
 
 @patch.object(NFTablesManager, 'execute_cmd')
-def test_setup_firewall_defer_default_drop(mock_execute, nft_manager, monkeypatch, tmp_path):
-    """Test that defer_default_drop keeps the accept policy (passive init)."""
+def test_setup_firewall_keep_accept_policy(mock_execute, nft_manager, monkeypatch, tmp_path):
+    """Test that keep_accept_policy skips the drop flip (passive init)."""
     monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(tmp_path / 'nonexistent.json'))
     monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'user.conf'))
     with patch.multiple(
@@ -495,7 +495,7 @@ def test_setup_firewall_defer_default_drop(mock_execute, nft_manager, monkeypatc
         ensure_default_accept=Mock(),
         update_chain_policy=Mock(),
     ):
-        nft_manager.setup_firewall(defer_default_drop=True)
+        nft_manager.setup_firewall(keep_accept_policy=True)
         NFTablesManager.ensure_default_drop.assert_not_called()
         NFTablesManager.ensure_default_accept.assert_called_once()
 

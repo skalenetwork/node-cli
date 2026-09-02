@@ -78,7 +78,7 @@ def test_register_node(inited_node, resource_alloc, mocked_g_config):
 
 
 def test_register_node_firewall_failure(inited_node, resource_alloc, mocked_g_config):
-    """Post-registration firewall errors must not fail the command."""
+    """Post-registration firewall errors fail the command but report the registration."""
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
@@ -95,11 +95,16 @@ def test_register_node_firewall_failure(inited_node, resource_alloc, mocked_g_co
             register_node,
             ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080', '-d', 'skale.test'],
         )
-    assert result.exit_code == 0
+    assert result.exit_code == CLIExitCodes.OPERATION_EXECUTION_ERROR.value
     assert result.output == (
         'Node registered in SKALE manager.\nFor more info run < skale node info >\n'
-        'Node is registered, but firewall reconfiguration failed. '
-        'Run < skale node configure-firewall > to complete the setup\n'
+        'Command failed with following errors:\n'
+        '--------------------------------------------------\n'
+        'Node is successfully registered in SKALE manager, but firewall '
+        'reconfiguration failed. Run < skale node configure-firewall > '
+        'to complete the setup\n'
+        '--------------------------------------------------\n'
+        f'You can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'
     )
 
 

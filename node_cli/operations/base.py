@@ -223,9 +223,7 @@ def init_passive(
     if not settings.skip_docker_config:
         configure_docker()
 
-    # The mirrored chain's base port is computed by skale-admin only after
-    # the containers start - keep accept policy until it is known
-    configure_nftables(enable_monitoring=settings.monitoring_containers, defer_default_drop=True)
+    configure_nftables(enable_monitoring=settings.monitoring_containers, keep_accept_policy=True)
 
     prepare_host(env_type=settings.env_type)
     save_internal_settings(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
