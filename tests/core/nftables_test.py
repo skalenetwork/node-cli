@@ -143,6 +143,14 @@ def test_get_chain_policy(mock_cmd, nft_manager):
     mock_cmd.return_value = (1, '', 'No such file or directory')
     assert nft_manager.get_chain_policy('skale') is None
 
+    mock_cmd.return_value = (0, 'not-json', '')
+    assert nft_manager.get_chain_policy('skale') is None
+
+    # malformed but valid JSON must not raise - rollback depends on it
+    for output in ('[]', 'null', '{"nftables": [{"chain": null}]}', '{"nftables": "x"}'):
+        mock_cmd.return_value = (0, output, '')
+        assert nft_manager.get_chain_policy('skale') is None
+
 
 @pytest.mark.parametrize(
     'rule_data',
@@ -321,6 +329,15 @@ def test_ensure_default_accept(nft_manager):
         nft_manager.ensure_default_accept()
         NFTablesManager.update_chain_policy.assert_not_called()
 
+    # unreadable policy must not skip the rollback
+    with patch.multiple(
+        NFTablesManager,
+        get_chain_policy=Mock(return_value=None),
+        update_chain_policy=Mock(),
+    ):
+        nft_manager.ensure_default_accept()
+        NFTablesManager.update_chain_policy.assert_called_once_with(chain='skale', policy='accept')
+
 
 def test_remove_stale_envelope_rules(nft_manager):
     stale_rule = {
@@ -396,6 +413,26 @@ def test_get_schain_ports_envelope_env_override(monkeypatch):
         get_schain_ports_envelope()
 
 
+def test_get_schain_ports_envelope_malformed_node_config(monkeypatch, tmp_path):
+    config_path = tmp_path / 'node_config.json'
+    monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(config_path))
+
+    for content in (
+        'not-json',
+        '[1, 2]',
+        '{"node_base_port": "not-a-port"}',
+        '{"node_base_port": true}',
+        '{"node_base_port": -1}',
+    ):
+        config_path.write_text(content)
+        # falls back to the default base port
+        assert get_schain_ports_envelope() == (10000, 18191)
+
+    # an invalid primary value must not mask a valid fallback
+    config_path.write_text(json.dumps({'node_base_port': 'bad', 'schain_base_port': 20128}))
+    assert get_schain_ports_envelope() == (20128, 28319)
+
+
 def test_get_schain_ports_envelope_from_node_config(monkeypatch, tmp_path):
     config_path = tmp_path / 'node_config.json'
     monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(config_path))
@@ -448,6 +485,9 @@ def test_setup_firewall(mock_execute, nft_manager, monkeypatch, tmp_path):
             == 'icmpv6'
         ]
         assert len(icmpv6_exprs) == len(nftables_core.ICMPV6_ACCEPT_TYPES)
+        assert not any(
+            expr[0].get('match', {}).get('right') == 'source-quench' for expr in added_exprs
+        )
 
         NFTablesManager.update_chain_policy.assert_any_call(
             chain='INPUT', policy='accept', family='ip', table='filter'
@@ -498,6 +538,52 @@ def test_setup_firewall_keep_accept_policy(mock_execute, nft_manager, monkeypatc
         nft_manager.setup_firewall(keep_accept_policy=True)
         NFTablesManager.ensure_default_drop.assert_not_called()
         NFTablesManager.ensure_default_accept.assert_called_once()
+
+
+def test_remove_source_quench_rule(nft_manager):
+    source_quench_rule = {
+        'handle': 11,
+        'expr': [
+            {
+                'match': {
+                    'left': {'payload': {'protocol': 'icmp', 'field': 'type'}},
+                    'op': '==',
+                    'right': 'source-quench',
+                }
+            },
+            {'counter': {'packets': 0, 'bytes': 0}},
+            {'accept': None},
+        ],
+    }
+    other_rule = {
+        'handle': 12,
+        'expr': [
+            {
+                'match': {
+                    'left': {'payload': {'protocol': 'icmp', 'field': 'type'}},
+                    'op': '==',
+                    'right': 'destination-unreachable',
+                }
+            },
+            {'counter': {'packets': 0, 'bytes': 0}},
+            {'accept': None},
+        ],
+    }
+    with patch.multiple(
+        NFTablesManager,
+        get_rules=Mock(return_value=[source_quench_rule, other_rule]),
+        delete_rule_by_handle=Mock(),
+    ):
+        nft_manager.remove_source_quench_rule()
+        NFTablesManager.delete_rule_by_handle.assert_called_once_with(11)
+
+    with patch.multiple(
+        NFTablesManager,
+        get_rules=Mock(return_value=[other_rule]),
+        delete_rule_by_handle=Mock(),
+    ):
+        nft_manager.remove_source_quench_rule()
+        NFTablesManager.delete_rule_by_handle.assert_not_called()
 
 
 def test_remove_misordered_udp_drop(nft_manager):

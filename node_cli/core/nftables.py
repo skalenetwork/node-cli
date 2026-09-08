@@ -218,10 +218,15 @@ class NFTablesManager:
             if rc != 0:
                 return None
             data = json.loads(output)
+            if not isinstance(data, dict):
+                return None
             for item in data.get('nftables', []):
-                if 'chain' in item and item['chain'].get('name') == chain:
-                    return item['chain'].get('policy')
-        except Exception as e:
+                if not isinstance(item, dict):
+                    continue
+                chain_data = item.get('chain')
+                if isinstance(chain_data, dict) and chain_data.get('name') == chain:
+                    return chain_data.get('policy')
+        except (TypeError, ValueError) as e:
             logger.error('Failed to get policy of chain %s: %s', chain, e)
         return None
 
@@ -636,8 +641,12 @@ class NFTablesManager:
             self.update_chain_policy(chain=self.chain, policy=POLICY_DROP)
 
     def ensure_default_accept(self) -> None:
-        """Rollback path: switch the skale chain policy back to accept."""
-        if self.get_chain_policy(self.chain) == POLICY_DROP:
+        """Rollback path: switch the skale chain policy back to accept.
+
+        Flips whenever the policy cannot be confirmed as accept, so an
+        unreadable policy does not silently skip the rollback.
+        """
+        if self.get_chain_policy(self.chain) != POLICY:
             self.update_chain_policy(chain=self.chain, policy=POLICY)
 
     def delete_rule_by_handle(self, handle: int) -> None:
@@ -719,6 +728,27 @@ class NFTablesManager:
         if drop_handle is not None and (accept_index is None or drop_index < accept_index):
             logger.info('Removing misordered udp drop rule')
             self.delete_rule_by_handle(drop_handle)
+
+    def remove_source_quench_rule(self) -> None:
+        """Remove the legacy icmp source-quench accept (deprecated by RFC 6633)."""
+        expr = [
+            {
+                'match': {
+                    'left': {'payload': {'protocol': 'icmp', 'field': 'type'}},
+                    'op': '==',
+                    'right': 'source-quench',
+                }
+            },
+            {'counter': None},
+            {'accept': None},
+        ]
+        for rule in self.get_rules(self.chain):
+            if (
+                self._normalized_expr(rule.get('expr', [])) == expr
+                and rule.get('handle') is not None
+            ):
+                logger.info('Removing legacy source-quench rule')
+                self.delete_rule_by_handle(rule['handle'])
 
     def apply_user_rules(self) -> None:
         """Load user.conf rules into the live chain.
@@ -804,7 +834,8 @@ class NFTablesManager:
             self.add_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
             self.add_loopback_rule(chain=self.chain)
 
-            icmp_types = ['destination-unreachable', 'source-quench', 'time-exceeded']
+            self.remove_source_quench_rule()
+            icmp_types = ['destination-unreachable', 'time-exceeded']
             for icmp_type in icmp_types:
                 self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
 
@@ -906,11 +937,17 @@ def get_registered_base_port() -> Optional[int]:
         return None
     try:
         node_config = read_json(NODE_CONFIG_PATH)
-    except Exception as e:
+    except (OSError, ValueError) as e:
         logger.warning('Failed to read node config: %s', e)
         return None
-    base_port = node_config.get('node_base_port') or node_config.get('schain_base_port') or 0
-    return base_port if base_port > 0 else None
+    if not isinstance(node_config, dict):
+        logger.warning('Node config is malformed')
+        return None
+    for key in ('node_base_port', 'schain_base_port'):
+        value = node_config.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+            return value
+    return None
 
 
 def get_schain_ports_envelope() -> tuple[int, int]:
