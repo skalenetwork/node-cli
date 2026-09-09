@@ -291,24 +291,21 @@ def test_verify_critical_accepts(nft_manager):
 def test_ensure_default_drop(nft_manager):
     with patch.multiple(
         NFTablesManager,
-        validate_dynamic_ranges=Mock(),
         verify_critical_accepts=Mock(),
         get_chain_policy=Mock(return_value='accept'),
         update_chain_policy=Mock(),
     ):
-        nft_manager.ensure_default_drop((10000, 18191))
-        NFTablesManager.validate_dynamic_ranges.assert_called_once_with((10000, 18191))
+        nft_manager.ensure_default_drop()
         NFTablesManager.verify_critical_accepts.assert_called_once()
         NFTablesManager.update_chain_policy.assert_called_once_with(chain='skale', policy='drop')
 
     with patch.multiple(
         NFTablesManager,
-        validate_dynamic_ranges=Mock(),
         verify_critical_accepts=Mock(),
         get_chain_policy=Mock(return_value='drop'),
         update_chain_policy=Mock(),
     ):
-        nft_manager.ensure_default_drop((10000, 18191))
+        nft_manager.ensure_default_drop()
         NFTablesManager.update_chain_policy.assert_not_called()
 
 
@@ -462,9 +459,11 @@ def test_setup_firewall(mock_execute, nft_manager, monkeypatch, tmp_path):
         get_dynamic_chain_port_ranges=Mock(return_value=[]),
         get_chain_policy=Mock(return_value='accept'),
         update_chain_policy=Mock(),
+        apply_user_rules=Mock(),
     ):
         nft_manager.setup_firewall()
         assert mock_execute.called
+        NFTablesManager.apply_user_rules.assert_called_once()
 
         added_exprs = [
             call.args[0]['nftables'][0]['add']['rule']['expr']
@@ -513,6 +512,7 @@ def test_setup_firewall_default_drop_disabled(mock_execute, nft_manager, monkeyp
         ensure_default_drop=Mock(),
         ensure_default_accept=Mock(),
         update_chain_policy=Mock(),
+        apply_user_rules=Mock(),
     ):
         nft_manager.setup_firewall()
         NFTablesManager.validate_dynamic_ranges.assert_not_called()
@@ -534,9 +534,32 @@ def test_setup_firewall_keep_accept_policy(mock_execute, nft_manager, monkeypatc
         ensure_default_drop=Mock(),
         ensure_default_accept=Mock(),
         update_chain_policy=Mock(),
+        apply_user_rules=Mock(),
     ):
         nft_manager.setup_firewall(keep_accept_policy=True)
         NFTablesManager.ensure_default_drop.assert_not_called()
+        NFTablesManager.ensure_default_accept.assert_called_once()
+
+
+@patch.object(NFTablesManager, 'execute_cmd')
+def test_setup_firewall_rollback_flips_accept_early(
+    mock_execute, nft_manager, monkeypatch, tmp_path
+):
+    """A failing step must not block the rollback to accept."""
+    monkeypatch.setenv('FIREWALL_DEFAULT_DROP', 'False')
+    monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(tmp_path / 'nonexistent.json'))
+    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'user.conf'))
+    with patch.multiple(
+        NFTablesManager,
+        table_exists=Mock(return_value=True),
+        chain_exists=Mock(return_value=True),
+        rule_exists=Mock(return_value=True),
+        update_chain_policy=Mock(),
+        ensure_default_accept=Mock(),
+        apply_user_rules=Mock(side_effect=NFTablesError('bad user rule')),
+    ):
+        with pytest.raises(NFTablesError):
+            nft_manager.setup_firewall()
         NFTablesManager.ensure_default_accept.assert_called_once()
 
 
@@ -575,7 +598,7 @@ def test_remove_source_quench_rule(nft_manager):
         delete_rule_by_handle=Mock(),
     ):
         nft_manager.remove_source_quench_rule()
-        NFTablesManager.delete_rule_by_handle.assert_called_once_with(11)
+        NFTablesManager.delete_rule_by_handle.assert_called_once_with(11, chain='skale')
 
     with patch.multiple(
         NFTablesManager,
@@ -652,20 +675,90 @@ def test_apply_user_rules(mock_cmd, nft_manager, monkeypatch, tmp_path):
     monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(user_conf))
 
     mock_cmd.return_value = (0, '', '')
-    with patch.object(
-        NFTablesManager,
-        'get_base_ruleset',
-        return_value='chain skale {\n\t\ttcp dport 5000 counter accept\n}',
-    ):
-        nft_manager.apply_user_rules()
+    nft_manager.apply_user_rules()
+    assert mock_cmd.call_args[0][0] == (
+        'flush chain inet filter skale_user\n'
+        'add rule inet filter skale_user tcp dport 5000 counter accept\n'
+        'add rule inet filter skale_user tcp dport 6000 counter accept'
+    )
 
-    applied = [call.args[0] for call in mock_cmd.call_args_list]
-    assert applied == ['insert rule inet filter skale tcp dport 6000 counter accept']
+    # missing file still flushes, so removed rules disappear
+    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'absent'))
+    nft_manager.apply_user_rules()
+    assert mock_cmd.call_args[0][0] == 'flush chain inet filter skale_user'
 
     mock_cmd.return_value = (1, '', 'syntax error')
-    with patch.object(NFTablesManager, 'get_base_ruleset', return_value=''):
-        with pytest.raises(NFTablesError):
-            nft_manager.apply_user_rules()
+    with pytest.raises(NFTablesError):
+        nft_manager.apply_user_rules()
+
+
+@patch.object(NFTablesManager, 'execute_cmd')
+def test_ensure_user_chain_jump(mock_execute, nft_manager):
+    with patch.object(NFTablesManager, 'rule_exists', return_value=False):
+        nft_manager.ensure_user_chain_jump()
+    cmd = mock_execute.call_args[0][0]['nftables'][0]
+    assert cmd['insert']['rule']['expr'] == [{'jump': {'target': 'skale_user'}}]
+
+    mock_execute.reset_mock()
+    with patch.object(NFTablesManager, 'rule_exists', return_value=True):
+        nft_manager.ensure_user_chain_jump()
+    mock_execute.assert_not_called()
+
+
+@patch.object(NFTablesManager, 'execute_cmd')
+def test_create_user_chain_if_not_exists(mock_execute, nft_manager):
+    with patch.object(NFTablesManager, 'chain_exists', return_value=False):
+        nft_manager.create_user_chain_if_not_exists()
+    chain = mock_execute.call_args[0][0]['nftables'][0]['add']['chain']
+    assert chain == {'family': 'inet', 'table': 'filter', 'name': 'skale_user'}
+    # regular chain: no hook, priority or policy
+
+    mock_execute.reset_mock()
+    with patch.object(NFTablesManager, 'chain_exists', return_value=True):
+        nft_manager.create_user_chain_if_not_exists()
+    mock_execute.assert_not_called()
+
+
+@patch('nftables.Nftables.cmd')
+def test_remove_user_rules_from_main_chain(mock_cmd, nft_manager, monkeypatch, tmp_path):
+    user_conf = tmp_path / 'user.conf'
+    user_conf.write_text('tcp dport 5000 counter accept\n')
+    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(user_conf))
+
+    listing = (
+        'chain skale { # handle 1\n'
+        '\ttcp dport 5000 counter accept # handle 7\n'
+        '\ttcp dport 22 counter accept # handle 8\n'
+        '}\n'
+    )
+    mock_cmd.return_value = (0, listing, '')
+    with patch.object(NFTablesManager, 'delete_rule_by_handle') as mock_delete:
+        nft_manager.remove_user_rules_from_main_chain()
+        mock_delete.assert_called_once_with(7)
+
+
+def test_save_nftables_base_rules(monkeypatch, tmp_path):
+    base_conf = tmp_path / 'base.conf'
+    monkeypatch.setattr(nftables_core, 'NFTABLES_SKALE_BASE_CONFIG_PATH', str(base_conf))
+    ruleset = (
+        'table inet firewall {\n'
+        '\tchain skale {\n'
+        '\t\ttype filter hook input priority filter + 1; policy drop;\n'
+        '\t\tjump skale_user\n'
+        '\t\tct state established,related counter accept\n'
+        '\t}\n'
+        '}'
+    )
+    nftables_core.save_nftables_base_rules(ruleset)
+    saved = base_conf.read_text()
+
+    # user chain is declared before the skale chain that jumps to it
+    assert saved.index('chain skale_user {') < saved.index('chain skale {')
+    assert nftables_core.NFTABLES_USER_CONFIG_PATH in saved
+    assert nftables_core.NFTABLES_CHAIN_CONFIG_WILDCARD in saved
+    # the include lives only inside the user chain, not in the skale chain
+    skale_chain_part = saved[saved.index('chain skale {') :]
+    assert 'include "' + nftables_core.NFTABLES_USER_CONFIG_PATH not in skale_chain_part
 
 
 def test_invalid_protocol(nft_manager):

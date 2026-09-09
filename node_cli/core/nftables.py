@@ -40,6 +40,16 @@ from node_cli.utils.helper import get_ssh_port, read_json, run_cmd
 
 logger = logging.getLogger(__name__)
 
+try:
+    import nftables
+except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
+    if 'pytest' in sys.modules or ENV == 'dev':
+        from collections import namedtuple  # hotfix for tests
+
+        iptc = namedtuple('nftables', ['Chain', 'Rule'])
+    else:
+        logger.error(f'Unable to import nftables due to an error {err}')
+
 
 @dataclass
 class ServicePort:
@@ -67,10 +77,12 @@ LEGACY_FAMILY = 'ip'
 LEGACY_TABLE = 'filter'
 CHAIN_PRIORITY = 1
 HOOK = 'input'
-POLICY = 'accept'
+POLICY_ACCEPT = 'accept'
 POLICY_DROP = 'drop'
 
 DYNAMIC_CHAIN_PREFIX = 'skale-'
+
+USER_CHAIN = 'skale_user'
 
 # sChain base ports are allocated as node_base_port + schain_index * 64
 # (PORTS_PER_SCHAIN in skale.py); 128 slots cover every possible allocation
@@ -80,6 +92,7 @@ FIREWALL_DEFAULT_DROP_ENV = 'FIREWALL_DEFAULT_DROP'
 MIN_SCHAIN_BASE_PORT = 2000
 MAX_PORT = 65535
 
+ICMP_ACCEPT_TYPES = ('destination-unreachable', 'time-exceeded')
 ICMPV6_ACCEPT_TYPES = (
     'destination-unreachable',
     'packet-too-big',
@@ -91,19 +104,61 @@ ICMPV6_ACCEPT_TYPES = (
 )
 
 
-try:
-    import nftables
-except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
-    if 'pytest' in sys.modules or ENV == 'dev':
-        from collections import namedtuple  # hotfix for tests
-
-        iptc = namedtuple('nftables', ['Chain', 'Rule'])
-    else:
-        logger.error(f'Unable to import nftables due to an error {err}')
-
-
 class NFTablesError(Exception):
     pass
+
+
+def dport_match(protocol: str, first_port: int, last_port: int) -> dict:
+    right = first_port if last_port == first_port else {'range': [first_port, last_port]}
+    return {
+        'match': {
+            'op': '==',
+            'left': {'payload': {'protocol': protocol, 'field': 'dport'}},
+            'right': right,
+        }
+    }
+
+
+def icmp_match(protocol: str, icmp_type: str) -> dict:
+    return {
+        'match': {
+            'left': {'payload': {'protocol': protocol, 'field': 'type'}},
+            'op': '==',
+            'right': icmp_type,
+        }
+    }
+
+
+def ip_protocol_match(protocol: str) -> dict:
+    return {
+        'match': {
+            'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
+            'op': '==',
+            'right': protocol,
+        }
+    }
+
+
+def conntrack_accept_expr() -> list[dict]:
+    return [
+        {
+            'match': {
+                'left': {'ct': {'key': 'state'}},
+                'op': 'in',
+                'right': ['established', 'related'],
+            }
+        },
+        {'counter': None},
+        {'accept': None},
+    ]
+
+
+def loopback_accept_expr() -> list[dict]:
+    return [
+        {'match': {'left': {'meta': {'key': 'iifname'}}, 'op': '==', 'right': 'lo'}},
+        {'counter': None},
+        {'accept': None},
+    ]
 
 
 @dataclass
@@ -118,10 +173,16 @@ class Rule:
     def __post_init__(self):
         if self.first_port is not None and self.last_port is None:
             self.last_port = self.first_port
-        if all(
-            val is None for val in (self.first_port, self.last_port, self.protocol, self.icmp_type)
-        ):
-            raise NFTablesError('Rule has no meaningful fields')
+        if self.protocol in ('icmp', 'icmpv6') and not self.icmp_type:
+            raise NFTablesError(f'{self.protocol} rule requires icmp_type')
+
+    def to_expr(self) -> list[dict]:
+        matches = []
+        if self.protocol in ('tcp', 'udp') and self.first_port:
+            matches.append(dport_match(self.protocol, self.first_port, self.last_port))
+        elif self.protocol in ('icmp', 'icmpv6'):
+            matches.append(icmp_match(self.protocol, self.icmp_type))
+        return [*matches, {'counter': None}, {self.action: None}]
 
 
 class NFTablesManager:
@@ -167,7 +228,7 @@ class NFTablesManager:
         return chain in self.get_chains(family=family)
 
     def create_chain_if_not_exists(
-        self, chain: str, hook: str, priority: int = CHAIN_PRIORITY, policy: str = POLICY
+        self, chain: str, hook: str, priority: int = CHAIN_PRIORITY, policy: str = POLICY_ACCEPT
     ) -> None:
         if not self.chain_exists(chain):
             cmd = {
@@ -195,7 +256,7 @@ class NFTablesManager:
     def update_chain_policy(
         self,
         chain: str,
-        policy: str = POLICY,
+        policy: str = POLICY_ACCEPT,
         family: Optional[str] = None,
         table: Optional[str] = None,
     ) -> None:
@@ -262,302 +323,90 @@ class NFTablesManager:
             logger.error('Failed to get rules: %s', e)
             return []
 
-    def rule_exists(self, chain: str, new_rule_expr: list[dict]) -> bool:
-        existing_rules = self.get_rules(chain)
+    @staticmethod
+    def _normalized_expr(expr: list[dict]) -> list[dict]:
+        return [{'counter': None} if 'counter' in statement else statement for statement in expr]
 
-        for rule in existing_rules:
-            expr = rule.get('expr')
-            for i, statement in enumerate(expr):
-                if 'counter' in statement:
-                    expr[i] = {'counter': None}
-            rule['counter'] = None
-            if expr == new_rule_expr:
-                return True
-        return False
+    def rule_exists(self, chain: str, new_rule_expr: list[dict]) -> bool:
+        target = self._normalized_expr(new_rule_expr)
+        return any(
+            self._normalized_expr(rule.get('expr', [])) == target for rule in self.get_rules(chain)
+        )
+
+    def _execute_rule_with_op(
+        self,
+        op: str,
+        chain: str,
+        expr: Optional[list[dict]] = None,
+        handle: Optional[int] = None,
+    ) -> None:
+        rule: dict = {'family': self.family, 'table': self.table, 'chain': chain}
+        if expr is not None:
+            rule['expr'] = expr
+        if handle is not None:
+            rule['handle'] = handle
+        self.execute_cmd({'nftables': [{op: {'rule': rule}}]})
+
+    def _ensure_rule(
+        self, chain: str, expr: list[dict], op: str = 'add', label: str = 'rule'
+    ) -> None:
+        if self.rule_exists(chain, expr):
+            logger.info('%s already exists in chain %s', label, chain)
+            return
+        self._execute_rule_with_op(op, chain, expr=expr)
+        logger.info('Added %s to chain %s', label, chain)
+
+    def _find_rule_handle(self, chain: str, expr: list[dict]) -> Optional[int]:
+        target = self._normalized_expr(expr)
+        for rule in self.get_rules(chain):
+            if (
+                self._normalized_expr(rule.get('expr', [])) == target
+                and rule.get('handle') is not None
+            ):
+                return rule['handle']
+        return None
+
+    def _remove_rule_by_expr(self, chain: str, expr: list[dict]) -> bool:
+        handle = self._find_rule_handle(chain, expr)
+        if handle is None:
+            return False
+        self.delete_rule_by_handle(handle, chain=chain)
+        return True
+
+    @staticmethod
+    def _protocol_drop_expr(rule: Rule) -> list[dict]:
+        matches = []
+        if rule.first_port:
+            matches.append(dport_match('tcp', rule.first_port, rule.last_port))
+        matches.append(ip_protocol_match(rule.protocol))
+        return [*matches, {'counter': None}, {'drop': None}]
 
     def add_drop_rule(self, rule: Rule) -> None:
-        expr = []
-
-        if rule.first_port:
-            if rule.last_port == rule.first_port:
-                expr.append(
-                    {
-                        'match': {
-                            'op': '==',
-                            'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
-                            'right': rule.first_port,
-                        }
-                    }
-                )
-            else:
-                expr.append(
-                    {
-                        'match': {
-                            'op': '==',
-                            'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
-                            'right': {'range': [rule.first_port, rule.last_port]},
-                        }
-                    }
-                )
-        expr.append(
-            {
-                'match': {
-                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
-                    'op': '==',
-                    'right': rule.protocol,
-                }
-            },
+        self._ensure_rule(
+            rule.chain,
+            self._protocol_drop_expr(rule),
+            label=f'{rule.protocol} drop rule',
         )
-        expr.extend([{'counter': None}, {'drop': None}])
-        if not self.rule_exists(self.chain, expr):
-            cmd = {
-                'nftables': [
-                    {
-                        'add': {
-                            'rule': {
-                                'family': self.family,
-                                'table': self.table,
-                                'chain': rule.chain,
-                                'expr': expr,
-                            }
-                        }
-                    }
-                ]
-            }
-            self.execute_cmd(cmd)
-            logger.info('Added drop rule %s', Rule)
 
     def remove_drop_rule(self, protocol: str) -> None:
-        expr = [
-            {
-                'match': {
-                    'op': '==',
-                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
-                    'right': protocol,
-                }
-            },
-            {'counter': None},
-            {'drop': None},
-        ]
-
-        # Check if the drop rule exists before attempting to remove it
-        if self.rule_exists(self.chain, expr):
-            cmd = {
-                'nftables': [
-                    {
-                        'delete': {
-                            'rule': {
-                                'family': self.family,
-                                'table': self.table,
-                                'chain': self.chain,
-                                'expr': expr,
-                            }
-                        }
-                    }
-                ]
-            }
-            self.execute_cmd(cmd)
+        expr = [ip_protocol_match(protocol), {'counter': None}, {'drop': None}]
+        if self._remove_rule_by_expr(self.chain, expr):
             logger.info('Removed drop rule for %s', protocol)
         else:
             logger.info('Drop rule does not exist for %s', protocol)
 
     def add_rule(self, rule: Rule) -> None:
-        expr = []
-
-        if rule.protocol in ['tcp', 'udp']:
-            if rule.first_port:
-                if rule.last_port == rule.first_port:
-                    expr.append(
-                        {
-                            'match': {
-                                'op': '==',
-                                'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                                'right': rule.first_port,
-                            }
-                        }
-                    )
-                else:
-                    expr.append(
-                        {
-                            'match': {
-                                'op': '==',
-                                'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                                'right': {'range': [rule.first_port, rule.last_port]},
-                            }
-                        }
-                    )
-        elif rule.protocol in ['icmp', 'icmpv6'] and rule.icmp_type:
-            expr.append(
-                {
-                    'match': {
-                        'left': {'payload': {'protocol': rule.protocol, 'field': 'type'}},
-                        'op': '==',
-                        'right': rule.icmp_type,
-                    }
-                }
-            )
-
-        expr.append({'counter': None})
-        expr.append({rule.action: None})
-
-        if not self.rule_exists(rule.chain, expr):
-            cmd = {
-                'nftables': [
-                    {
-                        'add': {
-                            'rule': {
-                                'family': self.family,
-                                'table': self.table,
-                                'chain': rule.chain,
-                                'expr': expr,
-                            }
-                        }
-                    }
-                ]
-            }
-            self.execute_cmd(cmd)
-            logger.info(
-                'Added new rule to chain %s: %s ports [%s, %s]',
-                rule.chain,
-                rule.protocol,
-                rule.first_port,
-                rule.last_port,
-            )
-        else:
-            logger.info(
-                'Rule already exists in chain %s: %s ports [%s, %s]',
-                rule.chain,
-                rule.protocol,
-                rule.first_port,
-                rule.last_port,
-            )
+        self._ensure_rule(
+            rule.chain,
+            rule.to_expr(),
+            label=f'{rule.protocol} {rule.icmp_type or rule.first_port} {rule.action} rule',
+        )
 
     def remove_rule(self, rule: Rule) -> None:
-        expr = []
-
-        if rule.protocol in ['tcp', 'udp']:
-            if rule.first_port:
-                if rule.last_port == rule.first_port:
-                    expr.append(
-                        {
-                            'match': {
-                                'op': '==',
-                                'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                                'right': rule.first_port,
-                            }
-                        }
-                    )
-                else:
-                    expr.append(
-                        {
-                            'match': {
-                                'op': '==',
-                                'left': {'payload': {'protocol': rule.protocol, 'field': 'dport'}},
-                                'right': {'range': [rule.first_port, rule.last_port]},
-                            }
-                        }
-                    )
-        elif rule.protocol == 'icmp' and rule.icmp_type:
-            expr.append(
-                {
-                    'match': {
-                        'left': {'payload': {'protocol': 'icmp', 'field': 'type'}},
-                        'op': '==',
-                        'right': rule.icmp_type,
-                    }
-                }
-            )
-
-        # Check if the rule exists before attempting to remove it
-        if self.rule_exists(rule.chain, expr):
-            cmd = {
-                'nftables': [
-                    {
-                        'delete': {
-                            'rule': {
-                                'family': self.family,
-                                'table': self.table,
-                                'chain': rule.chain,
-                                'expr': expr,
-                            }
-                        }
-                    }
-                ]
-            }
-            self.execute_cmd(cmd)
-            logger.info(
-                'Removed rule from chain %s: %s ports [%s, %s]',
-                rule.chain,
-                rule.protocol,
-                rule.first_port,
-                rule.last_port,
-            )
+        if self._remove_rule_by_expr(rule.chain, rule.to_expr()):
+            logger.info('Removed %s rule for %s', rule.protocol, rule.first_port)
         else:
-            logger.info(
-                'Rule does not exist in chain %s: %s ports [%s, %s]',
-                rule.chain,
-                rule.protocol,
-                rule.first_port,
-                rule.last_port,
-            )
-
-    def add_connection_tracking_rule(self, chain: str) -> None:
-        expr = [
-            {
-                'match': {
-                    'left': {'ct': {'key': 'state'}},
-                    'op': 'in',
-                    'right': ['established', 'related'],
-                }
-            },
-            {'counter': None},
-            {'accept': None},
-        ]
-
-        if not self.rule_exists(chain, expr):
-            cmd = {
-                'nftables': [
-                    {
-                        'add': {
-                            'rule': {
-                                'family': self.family,
-                                'table': self.table,
-                                'chain': chain,
-                                'expr': expr,
-                            }
-                        }
-                    }
-                ]
-            }
-            self.execute_cmd(cmd)
-            logger.info('Added connection tracking rule to chain %s', chain)
-        else:
-            logger.info('Connection tracking rule already exists in chain %s', chain)
-
-    def add_loopback_rule(self, chain) -> None:
-        expr = [
-            {'match': {'left': {'meta': {'key': 'iifname'}}, 'op': '==', 'right': 'lo'}},
-            {'counter': None},
-            {'accept': None},
-        ]
-        if not self.rule_exists(chain, expr):
-            json_cmd = {
-                'nftables': [
-                    {
-                        'add': {
-                            'rule': {
-                                'family': self.family,
-                                'table': self.table,
-                                'chain': self.chain,
-                                'expr': expr,
-                            }
-                        }
-                    }
-                ]
-            }
-            self.execute_cmd(json_cmd)
-        else:
-            logger.info('Loopback rule already exists in chain %s', chain)
+            logger.info('No %s rule for %s to remove', rule.protocol, rule.first_port)
 
     def get_dynamic_chain_port_ranges(self) -> list[tuple[str, int, int]]:
         """Min/max tcp dport covered by each dynamic skale-admin chain."""
@@ -604,67 +453,27 @@ class NFTablesManager:
 
     def verify_critical_accepts(self) -> None:
         """Ensure lockout-critical accept rules are in place before setting drop policy."""
-        conntrack_expr = [
-            {
-                'match': {
-                    'left': {'ct': {'key': 'state'}},
-                    'op': 'in',
-                    'right': ['established', 'related'],
-                }
-            },
-            {'counter': None},
-            {'accept': None},
-        ]
-        ssh_expr = [
-            {
-                'match': {
-                    'op': '==',
-                    'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
-                    'right': get_ssh_port(),
-                }
-            },
-            {'counter': None},
-            {'accept': None},
-        ]
-        for name, expr in (('conntrack', conntrack_expr), ('ssh', ssh_expr)):
+        ssh_port = get_ssh_port()
+        ssh_expr = Rule(chain=self.chain, protocol='tcp', first_port=ssh_port).to_expr()
+        for name, expr in (('conntrack', conntrack_accept_expr()), ('ssh', ssh_expr)):
             if not self.rule_exists(self.chain, expr):
                 raise NFTablesError(
                     f'Refusing to set drop policy: {name} accept rule is missing '
                     f'in chain {self.chain}'
                 )
 
-    def ensure_default_drop(self, envelope: tuple[int, int]) -> None:
-        """Switch the skale chain policy to drop after validating the accepts."""
-        self.validate_dynamic_ranges(envelope)
+    def ensure_default_drop(self) -> None:
+        """Switch the skale chain policy to drop after verifying the accepts."""
         self.verify_critical_accepts()
         if self.get_chain_policy(self.chain) != POLICY_DROP:
             self.update_chain_policy(chain=self.chain, policy=POLICY_DROP)
 
     def ensure_default_accept(self) -> None:
-        """Rollback path: switch the skale chain policy back to accept.
+        if self.get_chain_policy(self.chain) != POLICY_ACCEPT:
+            self.update_chain_policy(chain=self.chain, policy=POLICY_ACCEPT)
 
-        Flips whenever the policy cannot be confirmed as accept, so an
-        unreadable policy does not silently skip the rollback.
-        """
-        if self.get_chain_policy(self.chain) != POLICY:
-            self.update_chain_policy(chain=self.chain, policy=POLICY)
-
-    def delete_rule_by_handle(self, handle: int) -> None:
-        cmd = {
-            'nftables': [
-                {
-                    'delete': {
-                        'rule': {
-                            'family': self.family,
-                            'table': self.table,
-                            'chain': self.chain,
-                            'handle': handle,
-                        }
-                    }
-                }
-            ]
-        }
-        self.execute_cmd(cmd)
+    def delete_rule_by_handle(self, handle: int, chain: Optional[str] = None) -> None:
+        self._execute_rule_with_op('delete', chain or self.chain, handle=handle)
 
     def remove_stale_envelope_rules(self, envelope: tuple[int, int]) -> None:
         """Remove sChain envelope accepts anchored at a different base port."""
@@ -696,25 +505,9 @@ class NFTablesManager:
         Rulesets created before the udp payload fix have the drop above the
         accept; setup re-adds the drop after all accept rules.
         """
-        udp_drop = [
-            {
-                'match': {
-                    'left': {'payload': {'protocol': 'ip', 'field': 'protocol'}},
-                    'op': '==',
-                    'right': 'udp',
-                }
-            },
-            {'counter': None},
-            {'drop': None},
-        ]
+        udp_drop = [ip_protocol_match('udp'), {'counter': None}, {'drop': None}]
         udp_dns_accept = [
-            {
-                'match': {
-                    'op': '==',
-                    'left': {'payload': {'protocol': 'udp', 'field': 'dport'}},
-                    'right': ServicePort.DNS,
-                }
-            },
+            dport_match('udp', ServicePort.DNS, ServicePort.DNS),
             {'counter': None},
             {'accept': None},
         ]
@@ -731,52 +524,78 @@ class NFTablesManager:
 
     def remove_source_quench_rule(self) -> None:
         """Remove the legacy icmp source-quench accept (deprecated by RFC 6633)."""
-        expr = [
-            {
-                'match': {
-                    'left': {'payload': {'protocol': 'icmp', 'field': 'type'}},
-                    'op': '==',
-                    'right': 'source-quench',
-                }
-            },
-            {'counter': None},
-            {'accept': None},
-        ]
-        for rule in self.get_rules(self.chain):
-            if (
-                self._normalized_expr(rule.get('expr', [])) == expr
-                and rule.get('handle') is not None
-            ):
-                logger.info('Removing legacy source-quench rule')
-                self.delete_rule_by_handle(rule['handle'])
+        expr = [icmp_match('icmp', 'source-quench'), {'counter': None}, {'accept': None}]
+        if self._remove_rule_by_expr(self.chain, expr):
+            logger.info('Removed legacy source-quench rule')
 
-    def apply_user_rules(self) -> None:
-        """Load user.conf rules into the live chain.
+    def create_user_chain_if_not_exists(self) -> None:
+        """Create the regular chain holding user.conf rules."""
+        if not self.chain_exists(USER_CHAIN):
+            cmd = {
+                'nftables': [
+                    {
+                        'add': {
+                            'chain': {
+                                'family': self.family,
+                                'table': self.table,
+                                'name': USER_CHAIN,
+                            }
+                        }
+                    }
+                ]
+            }
+            self.execute_cmd(cmd)
+            logger.info('Created user rules chain %s', USER_CHAIN)
 
-        The file is included into the saved config, but the live chain is
-        managed through the API - without this, rules added to the file would
-        apply only after a reboot and would be missing from the live chain
-        when the policy flips to drop.
-        """
+    def ensure_user_chain_jump(self) -> None:
+        expr = [{'jump': {'target': USER_CHAIN}}]
+        self._ensure_rule(self.chain, expr, op='insert', label='user chain jump')
+
+    @staticmethod
+    def read_user_rule_lines() -> list[str]:
         if not os.path.isfile(NFTABLES_USER_CONFIG_PATH):
-            return
+            return []
         with open(NFTABLES_USER_CONFIG_PATH) as user_config:
             lines = [line.strip() for line in user_config.readlines()]
-        lines = [line for line in lines if line and not line.startswith('#')]
+        return [line for line in lines if line and not line.startswith('#')]
+
+    def apply_user_rules(self) -> None:
+        """Reload user.conf into the live user rules chain.
+        Flush plus re-add in one transaction keeps the chain exactly in sync
+        with the file
+        """
+        commands = [f'flush chain {self.family} {self.table} {USER_CHAIN}']
+        commands.extend(
+            f'add rule {self.family} {self.table} {USER_CHAIN} {line}'
+            for line in self.read_user_rule_lines()
+        )
+        rc, output, error = self.nft.cmd('\n'.join(commands))
+        if rc != 0:
+            raise NFTablesError(f'Failed to apply user.conf rules: {error}')
+
+    def remove_user_rules_from_main_chain(self) -> None:
+        """Remove user.conf rules that older saved configs loaded into the
+        skale chain directly, so they are not snapshotted as duplicates."""
+        lines = self.read_user_rule_lines()
         if not lines:
             return
-        current_rules = self.get_base_ruleset()
-        # insert in reverse to keep the file order at the top of the chain,
-        # mirroring the include position in the saved config
-        for line in reversed(lines):
-            if line in current_rules:
+        self.nft.set_json_output(False)
+        self.nft.set_handle_output(True)
+        try:
+            rc, output, error = self.nft.cmd(f'list chain {self.family} {self.table} {self.chain}')
+        finally:
+            self.nft.set_handle_output(False)
+            self.nft.set_json_output(True)
+        if rc != 0:
+            return
+        for listed in output.split('\n'):
+            listed = listed.strip()
+            if ' # handle ' not in listed:
                 continue
-            rc, output, error = self.nft.cmd(
-                f'insert rule {self.family} {self.table} {self.chain} {line}'
-            )
-            if rc != 0:
-                raise NFTablesError(f'Failed to apply user.conf rule "{line}": {error}')
-            logger.info('Applied user.conf rule: %s', line)
+            rule_text, _, handle = listed.rpartition(' # handle ')
+            if rule_text in lines and handle.isdigit():
+                logger.info('Moving user rule out of the main chain: %s', rule_text)
+                self.delete_rule_by_handle(int(handle))
 
     def get_base_ruleset(self) -> str:
         self.nft.set_json_output(False)
@@ -789,16 +608,54 @@ class NFTablesManager:
         finally:
             self.nft.set_json_output(True)
 
+    def _setup_user_chain(self) -> None:
+        self.create_user_chain_if_not_exists()
+        self.ensure_user_chain_jump()
+        self.remove_user_rules_from_main_chain()
+
+    def _add_service_accepts(self, enable_monitoring: bool) -> None:
+        self._ensure_rule(self.chain, conntrack_accept_expr(), label='connection tracking rule')
+        tcp_ports = [
+            get_ssh_port(),
+            ServicePort.DNS,
+            ServicePort.HTTPS,
+            ServicePort.HTTP,
+            ServicePort.WATCHDOG_HTTP,
+            ServicePort.WATCHDOG_HTTPS,
+        ]
+        if enable_monitoring:
+            tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
+        for port in tcp_ports:
+            self.add_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
+        self.remove_misordered_udp_drop()
+        self.add_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
+        self._ensure_rule(self.chain, loopback_accept_expr(), label='loopback rule')
+
+    def _add_icmp_accepts(self) -> None:
+        self.remove_source_quench_rule()
+        for icmp_type in ICMP_ACCEPT_TYPES:
+            self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
+        for icmpv6_type in ICMPV6_ACCEPT_TYPES:
+            self.add_rule(Rule(chain=self.chain, protocol='icmpv6', icmp_type=icmpv6_type))
+
+    def _ensure_envelope(self, envelope: tuple[int, int]) -> None:
+        # Fine-grained filtering inside the envelope is enforced by the
+        # dynamic skale-admin chains that run earlier (priority 0)
+        self.remove_stale_envelope_rules(envelope)
+        self.add_rule(
+            Rule(chain=self.chain, protocol='tcp', first_port=envelope[0], last_port=envelope[1])
+        )
+
+    def _add_drop_rules(self) -> None:
+        self.add_drop_rule(
+            Rule(chain=self.chain, protocol='tcp', first_port=SGXPort.HTTPS, last_port=SGXPort.ZMQ)
+        )
+        self.add_drop_rule(Rule(chain=self.chain, protocol='udp'))
+
     def setup_firewall(
         self, enable_monitoring: bool = False, keep_accept_policy: bool = False
     ) -> None:
-        """Setup firewall rules.
-
-        keep_accept_policy leaves the chain on the accept policy for this
-        run - used when the envelope base port is not known yet (fresh
-        passive init, where skale-admin computes it only after the
-        containers start).
-        """
+        """Setup firewall rules."""
 
         logger.info('Configuring firewall rules')
         envelope = get_schain_ports_envelope()
@@ -806,82 +663,34 @@ class NFTablesManager:
         try:
             self.create_table_if_not_exists()
             if default_drop:
+                # fail fast, before any rule is touched
                 self.validate_dynamic_ranges(envelope)
+            self.create_chain_if_not_exists(chain=self.chain, hook=HOOK, policy=POLICY_ACCEPT)
+            if not default_drop:
+                # rollback must not be blocked by any later failing step
+                self.ensure_default_accept()
 
-            base_chains_config = {'skale': {'hook': 'input', 'policy': 'accept'}}
+            self._setup_user_chain()
+            self._add_service_accepts(enable_monitoring)
+            self._add_icmp_accepts()
+            self._ensure_envelope(envelope)
+            self._add_drop_rules()
 
-            for chain, config in base_chains_config.items():
-                self.create_chain_if_not_exists(
-                    chain=chain, hook=config['hook'], policy=config['policy']
-                )
-
-            self.add_connection_tracking_rule(self.chain)
-
-            tcp_ports = [
-                get_ssh_port(),
-                ServicePort.DNS,
-                ServicePort.HTTPS,
-                ServicePort.HTTP,
-                ServicePort.WATCHDOG_HTTP,
-                ServicePort.WATCHDOG_HTTPS,
-            ]
-            if enable_monitoring:
-                tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
-            for port in tcp_ports:
-                self.add_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
-
-            self.remove_misordered_udp_drop()
-            self.add_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
-            self.add_loopback_rule(chain=self.chain)
-
-            self.remove_source_quench_rule()
-            icmp_types = ['destination-unreachable', 'time-exceeded']
-            for icmp_type in icmp_types:
-                self.add_rule(Rule(chain=self.chain, protocol='icmp', icmp_type=icmp_type))
-
-            for icmpv6_type in ICMPV6_ACCEPT_TYPES:
-                self.add_rule(Rule(chain=self.chain, protocol='icmpv6', icmp_type=icmpv6_type))
-
-            # Fine-grained filtering inside the envelope is enforced by the
-            # dynamic skale-admin chains that run earlier (priority 0)
-            self.remove_stale_envelope_rules(envelope)
-            self.add_rule(
-                Rule(
-                    chain=self.chain,
-                    protocol='tcp',
-                    first_port=envelope[0],
-                    last_port=envelope[1],
-                )
-            )
-
-            self.add_drop_rule(
-                Rule(
-                    chain=self.chain,
-                    first_port=SGXPort.HTTPS,
-                    last_port=SGXPort.ZMQ,
-                    protocol='tcp',
-                )
-            )
-
-            self.add_drop_rule(Rule(chain=self.chain, protocol='udp'))
-            logger.info('Making sure legacy chain has default policy %s', POLICY)
+            logger.info('Making sure legacy chain has default policy %s', POLICY_ACCEPT)
             self.update_chain_policy(
-                chain=LEGACY_CHAIN, policy=POLICY, family=LEGACY_FAMILY, table=LEGACY_TABLE
+                chain=LEGACY_CHAIN, policy=POLICY_ACCEPT, family=LEGACY_FAMILY, table=LEGACY_TABLE
             )
-
             self.apply_user_rules()
 
             if default_drop:
-                self.ensure_default_drop(envelope)
-            else:
-                self.ensure_default_accept()
+                self.ensure_default_drop()
 
         except Exception as e:
             logger.error('Failed to setup firewall: %s', e)
             raise NFTablesError(e)
         logger.info(
             'Firewall rules are configured, default policy: %s',
-            POLICY_DROP if default_drop else POLICY,
+            POLICY_DROP if default_drop else POLICY_ACCEPT,
         )
 
     def cleanup_legacy_rules(self, ssh: bool = False, dns: bool = False) -> None:
@@ -926,13 +735,6 @@ def firewall_default_drop_enabled() -> bool:
 
 
 def get_registered_base_port() -> Optional[int]:
-    """Base port for the envelope, taken from the node config.
-
-    node_base_port is the port the node was registered with (saved by
-    skale-admin at registration and backfilled from the contracts on admin
-    restarts). schain_base_port is the fallback for passive and fair nodes,
-    where it holds the single hosted chain's base port - a valid anchor too.
-    """
     if not os.path.isfile(NODE_CONFIG_PATH):
         return None
     try:
@@ -991,8 +793,12 @@ def enable_nftables_service() -> None:
 def save_nftables_base_rules(ruleset: str) -> None:
     ruleset_lines = ruleset.split('\n')
     chain_include_line = f'\tinclude "{NFTABLES_CHAIN_CONFIG_WILDCARD}"'
-    user_include_line = f'\t\tinclude "{NFTABLES_USER_CONFIG_PATH}"'
-    ruleset_lines.insert(3, user_include_line)
+    user_chain_lines = [
+        f'\tchain {USER_CHAIN} {{',
+        f'\t\tinclude "{NFTABLES_USER_CONFIG_PATH}"',
+        '\t}',
+    ]
+    ruleset_lines[1:1] = user_chain_lines
     ruleset_lines.insert(-2, chain_include_line)
     with open(NFTABLES_SKALE_BASE_CONFIG_PATH, 'w') as f:
         f.write('\n'.join(ruleset_lines))

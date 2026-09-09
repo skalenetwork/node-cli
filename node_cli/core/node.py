@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import docker
+from filelock import FileLock
 
 from node_cli.cli import __version__
 from node_cli.configs import (
@@ -154,8 +155,6 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
             logger.info('Reconfiguring firewall for the registered base port %d', port)
             configure_nftables(enable_monitoring=get_settings().monitoring_containers)
         except Exception:
-            # on-chain registration already succeeded - retrying register
-            # would fail, so the error must say the node is registered
             logger.exception('Post-registration firewall reconfiguration failed')
             error_exit(
                 'Node is successfully registered in SKALE manager, but firewall '
@@ -174,13 +173,14 @@ def save_registered_base_port(port: int) -> None:
 
     Kept separate from schain_base_port, which holds an already-allocated
     sChain port in passive mode. skale-admin saves node_base_port during
-    registration as well - this covers setups where the admin container
-    predates that behavior.
+    registration as well
     """
-    node_config = read_json(NODE_CONFIG_PATH) if os.path.isfile(NODE_CONFIG_PATH) else {}
-    if node_config.get('node_base_port') != port:
-        node_config['node_base_port'] = port
-        save_json(NODE_CONFIG_PATH, node_config)
+    lock = FileLock(f'{NODE_CONFIG_PATH}.lock')
+    with lock:
+        node_config = read_json(NODE_CONFIG_PATH) if os.path.isfile(NODE_CONFIG_PATH) else {}
+        if node_config.get('node_base_port') != port:
+            node_config['node_base_port'] = port
+            save_json(NODE_CONFIG_PATH, node_config)
 
 
 @check_not_inited
