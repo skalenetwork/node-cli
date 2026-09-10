@@ -36,7 +36,7 @@ from node_cli.configs import (
     NFTABLES_USER_CONFIG_PATH,
     NODE_CONFIG_PATH,
 )
-from node_cli.utils.helper import get_ssh_port, read_json, run_cmd
+from node_cli.utils.helper import get_ssh_ports, read_json, run_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,8 @@ USER_CHAIN = 'skale_user'
 
 # sChain base ports are allocated as node_base_port + schain_index * 64
 # (PORTS_PER_SCHAIN in skale.py); 128 slots cover every possible allocation
-SCHAIN_PORTS_PER_NODE = 128 * 64
+PORTS_PER_SCHAIN = 64
+SCHAIN_PORTS_PER_NODE = 128 * PORTS_PER_SCHAIN
 SCHAIN_BASE_PORT_ENV = 'SCHAIN_BASE_PORT'
 FIREWALL_DEFAULT_DROP_ENV = 'FIREWALL_DEFAULT_DROP'
 MIN_SCHAIN_BASE_PORT = 2000
@@ -453,9 +454,12 @@ class NFTablesManager:
 
     def verify_critical_accepts(self) -> None:
         """Ensure lockout-critical accept rules are in place before setting drop policy."""
-        ssh_port = get_ssh_port()
-        ssh_expr = Rule(chain=self.chain, protocol='tcp', first_port=ssh_port).to_expr()
-        for name, expr in (('conntrack', conntrack_accept_expr()), ('ssh', ssh_expr)):
+        accepts = [('conntrack', conntrack_accept_expr())]
+        accepts.extend(
+            (f'ssh port {port}', Rule(chain=self.chain, protocol='tcp', first_port=port).to_expr())
+            for port in get_ssh_ports()
+        )
+        for name, expr in accepts:
             if not self.rule_exists(self.chain, expr):
                 raise NFTablesError(
                     f'Refusing to set drop policy: {name} accept rule is missing '
@@ -476,7 +480,12 @@ class NFTablesManager:
         self._execute_rule_with_op('delete', chain or self.chain, handle=handle)
 
     def remove_stale_envelope_rules(self, envelope: tuple[int, int]) -> None:
-        """Remove sChain envelope accepts anchored at a different base port."""
+        """Remove sChain envelope accepts anchored at a different base port.
+
+        Both envelope shapes are recognized: the full node allocation and
+        the single-chain range used on passive and fair nodes.
+        """
+        envelope_spans = (SCHAIN_PORTS_PER_NODE - 1, PORTS_PER_SCHAIN - 1)
         for rule in self.get_rules(self.chain):
             expr = rule.get('expr', [])
             if {'accept': None} not in expr:
@@ -488,16 +497,12 @@ class NFTablesManager:
                     match.get('left', {}).get('payload', {}).get('field') == 'dport'
                     and isinstance(right, dict)
                     and 'range' in right
-                    and right['range'][1] - right['range'][0] == SCHAIN_PORTS_PER_NODE - 1
+                    and right['range'][1] - right['range'][0] in envelope_spans
                     and tuple(right['range']) != envelope
                     and rule.get('handle') is not None
                 ):
                     logger.info('Removing stale envelope rule %s', right['range'])
                     self.delete_rule_by_handle(rule['handle'])
-
-    @staticmethod
-    def _normalized_expr(expr: list[dict]) -> list[dict]:
-        return [{'counter': None} if 'counter' in statement else statement for statement in expr]
 
     def remove_misordered_udp_drop(self) -> None:
         """Delete the blanket udp drop when it shadows the udp DNS accept.
@@ -551,51 +556,50 @@ class NFTablesManager:
         expr = [{'jump': {'target': USER_CHAIN}}]
         self._ensure_rule(self.chain, expr, op='insert', label='user chain jump')
 
-    @staticmethod
-    def read_user_rule_lines() -> list[str]:
-        if not os.path.isfile(NFTABLES_USER_CONFIG_PATH):
-            return []
-        with open(NFTABLES_USER_CONFIG_PATH) as user_config:
-            lines = [line.strip() for line in user_config.readlines()]
-        return [line for line in lines if line and not line.startswith('#')]
-
     def apply_user_rules(self) -> None:
         """Reload user.conf into the live user rules chain.
-        Flush plus re-add in one transaction keeps the chain exactly in sync
-        with the file
+
+        The file content is fed through the native nft parser inside the
+        chain declaration - exactly how the boot include reads it - so
+        comments and multiline rules behave identically in both paths.
+        Flush plus reload in one transaction keeps the chain in sync with
+        the file.
         """
-        commands = [f'flush chain {self.family} {self.table} {USER_CHAIN}']
-        commands.extend(
-            f'add rule {self.family} {self.table} {USER_CHAIN} {line}'
-            for line in self.read_user_rule_lines()
+        content = ''
+        if os.path.isfile(NFTABLES_USER_CONFIG_PATH):
+            with open(NFTABLES_USER_CONFIG_PATH) as user_config:
+                content = user_config.read()
+        commands = (
+            f'flush chain {self.family} {self.table} {USER_CHAIN}\n'
+            f'table {self.family} {self.table} {{\n'
+            f'chain {USER_CHAIN} {{\n'
+            f'{content}\n'
+            f'}}\n'
+            f'}}'
         )
-        rc, output, error = self.nft.cmd('\n'.join(commands))
+        rc, output, error = self.nft.cmd(commands)
         if rc != 0:
             raise NFTablesError(f'Failed to apply user.conf rules: {error}')
 
     def remove_user_rules_from_main_chain(self) -> None:
         """Remove user.conf rules that older saved configs loaded into the
-        skale chain directly, so they are not snapshotted as duplicates."""
-        lines = self.read_user_rule_lines()
-        if not lines:
+        skale chain directly, so they are not snapshotted as duplicates.
+
+        The freshly reloaded user chain is the parsed form of user.conf, so
+        rules are matched by expression - immune to comments, multiline
+        formatting and rendering differences. Runs before the service rules
+        are re-added, so removing an expression they share cannot last.
+        """
+        user_exprs = [
+            self._normalized_expr(rule.get('expr', [])) for rule in self.get_rules(USER_CHAIN)
+        ]
+        if not user_exprs:
             return
-        self.nft.set_json_output(False)
-        self.nft.set_handle_output(True)
-        try:
-            rc, output, error = self.nft.cmd(f'list chain {self.family} {self.table} {self.chain}')
-        finally:
-            self.nft.set_handle_output(False)
-            self.nft.set_json_output(True)
-        if rc != 0:
-            return
-        for listed in output.split('\n'):
-            listed = listed.strip()
-            if ' # handle ' not in listed:
-                continue
-            rule_text, _, handle = listed.rpartition(' # handle ')
-            if rule_text in lines and handle.isdigit():
-                logger.info('Moving user rule out of the main chain: %s', rule_text)
-                self.delete_rule_by_handle(int(handle))
+        for rule in self.get_rules(self.chain):
+            expr = self._normalized_expr(rule.get('expr', []))
+            if expr in user_exprs and rule.get('handle') is not None:
+                logger.info('Moving user rule out of the main chain')
+                self.delete_rule_by_handle(rule['handle'])
 
     def get_base_ruleset(self) -> str:
         self.nft.set_json_output(False)
@@ -611,12 +615,13 @@ class NFTablesManager:
     def _setup_user_chain(self) -> None:
         self.create_user_chain_if_not_exists()
         self.ensure_user_chain_jump()
+        self.apply_user_rules()
         self.remove_user_rules_from_main_chain()
 
     def _add_service_accepts(self, enable_monitoring: bool) -> None:
         self._ensure_rule(self.chain, conntrack_accept_expr(), label='connection tracking rule')
         tcp_ports = [
-            get_ssh_port(),
+            *get_ssh_ports(),
             ServicePort.DNS,
             ServicePort.HTTPS,
             ServicePort.HTTP,
@@ -658,17 +663,19 @@ class NFTablesManager:
         """Setup firewall rules."""
 
         logger.info('Configuring firewall rules')
-        envelope = get_schain_ports_envelope()
         default_drop = firewall_default_drop_enabled() and not keep_accept_policy
         try:
             self.create_table_if_not_exists()
+            self.create_chain_if_not_exists(chain=self.chain, hook=HOOK, policy=POLICY_ACCEPT)
+            if not default_drop:
+                # rollback must not be blocked by any later failing step,
+                # including an invalid envelope configuration
+                self.ensure_default_accept()
+
+            envelope = get_schain_ports_envelope()
             if default_drop:
                 # fail fast, before any rule is touched
                 self.validate_dynamic_ranges(envelope)
-            self.create_chain_if_not_exists(chain=self.chain, hook=HOOK, policy=POLICY_ACCEPT)
-            if not default_drop:
-                # rollback must not be blocked by any later failing step
-                self.ensure_default_accept()
 
             self._setup_user_chain()
             self._add_service_accepts(enable_monitoring)
@@ -680,7 +687,6 @@ class NFTablesManager:
             self.update_chain_policy(
                 chain=LEGACY_CHAIN, policy=POLICY_ACCEPT, family=LEGACY_FAMILY, table=LEGACY_TABLE
             )
-            self.apply_user_rules()
 
             if default_drop:
                 self.ensure_default_drop()
@@ -706,7 +712,7 @@ class NFTablesManager:
             ServicePort.DNS,  # tcp is redundant, making sure it's removed
         ]
         if ssh:
-            tcp_ports.append(get_ssh_port())
+            tcp_ports.extend(get_ssh_ports())
         for port in tcp_ports:
             self.remove_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
         if dns:
@@ -734,7 +740,13 @@ def firewall_default_drop_enabled() -> bool:
     return value.lower() not in ('false', '0', 'no', 'off')
 
 
-def get_registered_base_port() -> Optional[int]:
+def get_registered_base_port() -> Optional[tuple[int, int]]:
+    """Base port and envelope size from the node config.
+
+    node_base_port is a node registration port and reserves the full node
+    allocation; schain_base_port (passive and fair nodes) is one already
+    allocated chain's base port and reserves that single chain's range.
+    """
     if not os.path.isfile(NODE_CONFIG_PATH):
         return None
     try:
@@ -745,10 +757,13 @@ def get_registered_base_port() -> Optional[int]:
     if not isinstance(node_config, dict):
         logger.warning('Node config is malformed')
         return None
-    for key in ('node_base_port', 'schain_base_port'):
+    for key, size in (
+        ('node_base_port', SCHAIN_PORTS_PER_NODE),
+        ('schain_base_port', PORTS_PER_SCHAIN),
+    ):
         value = node_config.get(key)
         if isinstance(value, int) and not isinstance(value, bool) and value > 0:
-            return value
+            return value, size
     return None
 
 
@@ -757,14 +772,17 @@ def get_schain_ports_envelope() -> tuple[int, int]:
     env_value = os.getenv(SCHAIN_BASE_PORT_ENV)
     if env_value:
         try:
-            base_port = int(env_value)
+            base_port, size = int(env_value), SCHAIN_PORTS_PER_NODE
         except ValueError:
             raise NFTablesError(f'{SCHAIN_BASE_PORT_ENV} must be an integer, got {env_value}')
     else:
-        base_port = get_registered_base_port() or DEFAULT_NODE_BASE_PORT
-    if not MIN_SCHAIN_BASE_PORT <= base_port <= MAX_PORT - SCHAIN_PORTS_PER_NODE + 1:
+        base_port, size = get_registered_base_port() or (
+            DEFAULT_NODE_BASE_PORT,
+            SCHAIN_PORTS_PER_NODE,
+        )
+    if base_port < MIN_SCHAIN_BASE_PORT or base_port + size - 1 > MAX_PORT:
         raise NFTablesError(f'Invalid sChain base port {base_port}')
-    return base_port, base_port + SCHAIN_PORTS_PER_NODE - 1
+    return base_port, base_port + size - 1
 
 
 def prepare_directories() -> None:

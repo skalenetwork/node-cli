@@ -9,6 +9,7 @@ from node_cli.core.nftables import (
     NFTablesError,
     NFTablesManager,
     Rule,
+    dport_match,
     get_schain_ports_envelope,
 )
 
@@ -21,6 +22,11 @@ def nft_manager():
         yield manager
     finally:
         manager.flush()
+
+
+@pytest.fixture(autouse=True)
+def ssh_ports(monkeypatch):
+    monkeypatch.setattr(nftables_core, 'get_ssh_ports', lambda: [22])
 
 
 @pytest.fixture
@@ -387,6 +393,36 @@ def test_remove_stale_envelope_rules(nft_manager):
         nft_manager.remove_stale_envelope_rules((30000, 38191))
         NFTablesManager.delete_rule_by_handle.assert_called_once_with(7)
 
+    def envelope_rule(handle, first_port, last_port):
+        return {
+            'handle': handle,
+            'expr': [
+                dport_match('tcp', first_port, last_port),
+                {'counter': None},
+                {'accept': None},
+            ],
+        }
+
+    # passive node: the single-chain envelope moved to a new base port
+    rules = [envelope_rule(11, 58128, 58191), envelope_rule(12, 58192, 58255)]
+    with patch.multiple(
+        NFTablesManager,
+        get_rules=Mock(return_value=rules),
+        delete_rule_by_handle=Mock(),
+    ):
+        nft_manager.remove_stale_envelope_rules((58192, 58255))
+        NFTablesManager.delete_rule_by_handle.assert_called_once_with(11)
+
+    # upgrade transition: full-node envelope replaced by a single-chain one
+    rules = [envelope_rule(13, 10000, 18191), envelope_rule(14, 58128, 58191)]
+    with patch.multiple(
+        NFTablesManager,
+        get_rules=Mock(return_value=rules),
+        delete_rule_by_handle=Mock(),
+    ):
+        nft_manager.remove_stale_envelope_rules((58128, 58191))
+        NFTablesManager.delete_rule_by_handle.assert_called_once_with(13)
+
 
 def test_get_schain_ports_envelope_default(monkeypatch, tmp_path):
     monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(tmp_path / 'nonexistent.json'))
@@ -425,24 +461,39 @@ def test_get_schain_ports_envelope_malformed_node_config(monkeypatch, tmp_path):
         # falls back to the default base port
         assert get_schain_ports_envelope() == (10000, 18191)
 
-    # an invalid primary value must not mask a valid fallback
+    # an invalid primary value must not mask a valid fallback, which then
+    # carries its own single-chain envelope size
     config_path.write_text(json.dumps({'node_base_port': 'bad', 'schain_base_port': 20128}))
-    assert get_schain_ports_envelope() == (20128, 28319)
+    assert get_schain_ports_envelope() == (20128, 20191)
 
 
 def test_get_schain_ports_envelope_from_node_config(monkeypatch, tmp_path):
     config_path = tmp_path / 'node_config.json'
     monkeypatch.setattr(nftables_core, 'NODE_CONFIG_PATH', str(config_path))
 
-    # active node: node_base_port saved at registration wins
+    # active node: node_base_port saved at registration wins, full allocation
     config_path.write_text(
         json.dumps({'node_id': 1, 'node_base_port': 20128, 'schain_base_port': 30000})
     )
     assert get_schain_ports_envelope() == (20128, 28319)
 
-    # passive/fair node: only schain_base_port is present
+    # passive/fair node: schain_base_port is one allocated chain's base port
+    # and reserves only that chain's range
     config_path.write_text(json.dumps({'node_id': 1, 'schain_base_port': 20128}))
-    assert get_schain_ports_envelope() == (20128, 28319)
+    assert get_schain_ports_envelope() == (20128, 20191)
+
+    # a chain at the top of a high node allocation is valid on passive nodes
+    config_path.write_text(json.dumps({'node_id': 1, 'schain_base_port': 58128}))
+    assert get_schain_ports_envelope() == (58128, 58191)
+
+    # while a full node allocation must fit below the port maximum
+    config_path.write_text(json.dumps({'node_id': 1, 'node_base_port': 58128}))
+    with pytest.raises(NFTablesError):
+        get_schain_ports_envelope()
+
+    config_path.write_text(json.dumps({'node_id': 1, 'schain_base_port': 65500}))
+    with pytest.raises(NFTablesError):
+        get_schain_ports_envelope()
 
 
 @patch.object(NFTablesManager, 'execute_cmd')
@@ -563,6 +614,25 @@ def test_setup_firewall_rollback_flips_accept_early(
         NFTablesManager.ensure_default_accept.assert_called_once()
 
 
+@patch.object(NFTablesManager, 'execute_cmd')
+def test_setup_firewall_rollback_survives_bad_envelope(
+    mock_execute, nft_manager, monkeypatch, tmp_path
+):
+    """An invalid base port configuration must not block the rollback."""
+    monkeypatch.setenv('FIREWALL_DEFAULT_DROP', 'False')
+    monkeypatch.setenv('SCHAIN_BASE_PORT', 'not-a-port')
+    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'user.conf'))
+    with patch.multiple(
+        NFTablesManager,
+        table_exists=Mock(return_value=True),
+        chain_exists=Mock(return_value=True),
+        ensure_default_accept=Mock(),
+    ):
+        with pytest.raises(NFTablesError):
+            nft_manager.setup_firewall()
+        NFTablesManager.ensure_default_accept.assert_called_once()
+
+
 def test_remove_source_quench_rule(nft_manager):
     source_quench_rule = {
         'handle': 11,
@@ -669,23 +739,34 @@ def test_remove_misordered_udp_drop(nft_manager):
 @patch('nftables.Nftables.cmd')
 def test_apply_user_rules(mock_cmd, nft_manager, monkeypatch, tmp_path):
     user_conf = tmp_path / 'user.conf'
-    user_conf.write_text(
-        '# custom services\ntcp dport 5000 counter accept\n\ntcp dport 6000 counter accept\n'
+    # inline comments and multiline rules must reach the nft parser verbatim,
+    # exactly as the boot include would read them
+    content = (
+        '# custom services\n'
+        'tcp dport 5000 counter accept # legacy exporter\n'
+        'tcp dport {\n'
+        '    6000,\n'
+        '    6001,\n'
+        '} counter accept\n'
     )
+    user_conf.write_text(content)
     monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(user_conf))
 
     mock_cmd.return_value = (0, '', '')
     nft_manager.apply_user_rules()
     assert mock_cmd.call_args[0][0] == (
         'flush chain inet filter skale_user\n'
-        'add rule inet filter skale_user tcp dport 5000 counter accept\n'
-        'add rule inet filter skale_user tcp dport 6000 counter accept'
+        'table inet filter {\n'
+        'chain skale_user {\n'
+        f'{content}\n'
+        '}\n'
+        '}'
     )
 
     # missing file still flushes, so removed rules disappear
     monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'absent'))
     nft_manager.apply_user_rules()
-    assert mock_cmd.call_args[0][0] == 'flush chain inet filter skale_user'
+    assert mock_cmd.call_args[0][0].startswith('flush chain inet filter skale_user')
 
     mock_cmd.return_value = (1, '', 'syntax error')
     with pytest.raises(NFTablesError):
@@ -719,22 +800,32 @@ def test_create_user_chain_if_not_exists(mock_execute, nft_manager):
     mock_execute.assert_not_called()
 
 
-@patch('nftables.Nftables.cmd')
-def test_remove_user_rules_from_main_chain(mock_cmd, nft_manager, monkeypatch, tmp_path):
-    user_conf = tmp_path / 'user.conf'
-    user_conf.write_text('tcp dport 5000 counter accept\n')
-    monkeypatch.setattr(nftables_core, 'NFTABLES_USER_CONFIG_PATH', str(user_conf))
-
-    listing = (
-        'chain skale { # handle 1\n'
-        '\ttcp dport 5000 counter accept # handle 7\n'
-        '\ttcp dport 22 counter accept # handle 8\n'
-        '}\n'
-    )
-    mock_cmd.return_value = (0, listing, '')
-    with patch.object(NFTablesManager, 'delete_rule_by_handle') as mock_delete:
+def test_remove_user_rules_from_main_chain(nft_manager):
+    user_rule_expr = Rule(chain='skale_user', protocol='tcp', first_port=5000).to_expr()
+    chains = {
+        # the reloaded user chain is the parsed form of user.conf; native
+        # comments live outside expr, so matching ignores them
+        'skale_user': [{'handle': 3, 'expr': user_rule_expr, 'comment': 'service #1'}],
+        'skale': [
+            {'handle': 7, 'expr': user_rule_expr},
+            {'handle': 8, 'expr': Rule(chain='skale', protocol='tcp', first_port=22).to_expr()},
+        ],
+    }
+    with (
+        patch.object(NFTablesManager, 'get_rules', side_effect=lambda chain: chains[chain]),
+        patch.object(NFTablesManager, 'delete_rule_by_handle') as mock_delete,
+    ):
         nft_manager.remove_user_rules_from_main_chain()
         mock_delete.assert_called_once_with(7)
+
+    # nothing loaded from user.conf - main chain untouched
+    chains['skale_user'] = []
+    with (
+        patch.object(NFTablesManager, 'get_rules', side_effect=lambda chain: chains[chain]),
+        patch.object(NFTablesManager, 'delete_rule_by_handle') as mock_delete,
+    ):
+        nft_manager.remove_user_rules_from_main_chain()
+        mock_delete.assert_not_called()
 
 
 def test_save_nftables_base_rules(monkeypatch, tmp_path):

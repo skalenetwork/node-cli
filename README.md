@@ -119,6 +119,23 @@ Options:
 
 > Prefix: `skale node`
 
+#### Configure firewall
+
+SSH allow rules use all listening ports reported by `sshd -T`, including ports
+configured through included files and `ListenAddress`. If detection fails, the
+command stops before enabling the default-drop policy.
+
+For a port configured through sshd command-line options or socket activation,
+set the `SSH_PORT` environment variable explicitly when running commands that
+configure the firewall (including node init and update):
+
+```shell
+sudo SSH_PORT=2222 skale node configure-firewall
+```
+
+The override replaces automatic detection and accepts one port from 1 to 65535.
+It must be passed in the command environment, not only in the node settings file.
+
 #### Node information
 
 Get base info about the standard SKALE node.
