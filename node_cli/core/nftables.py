@@ -479,11 +479,7 @@ class NFTablesManager:
         self._execute_rule_with_op('delete', chain or self.chain, handle=handle)
 
     def remove_stale_envelope_rules(self, envelope: tuple[int, int]) -> None:
-        """Remove sChain envelope accepts anchored at a different base port.
-
-        Both envelope shapes are recognized: the full node allocation and
-        the single-chain range used on passive and fair nodes.
-        """
+        """Remove sChain envelope accepts anchored at a different base port."""
         envelope_spans = (SCHAIN_PORTS_PER_NODE - 1, PORTS_PER_SCHAIN - 1)
         for rule in self.get_rules(self.chain):
             expr = rule.get('expr', [])
@@ -504,11 +500,7 @@ class NFTablesManager:
                     self.delete_rule_by_handle(rule['handle'])
 
     def remove_misordered_udp_drop(self) -> None:
-        """Delete the blanket udp drop when it shadows the udp DNS accept.
-
-        Rulesets created before the udp payload fix have the drop above the
-        accept; setup re-adds the drop after all accept rules.
-        """
+        """Delete the blanket udp drop when it shadows the udp DNS accept. """
         udp_drop = [ip_protocol_match('udp'), {'counter': None}, {'drop': None}]
         udp_dns_accept = [
             dport_match('udp', ServicePort.DNS, ServicePort.DNS),
@@ -556,14 +548,7 @@ class NFTablesManager:
         self._ensure_rule(self.chain, expr, op='insert', label='user chain jump')
 
     def apply_user_rules(self) -> None:
-        """Reload user.conf into the live user rules chain.
-
-        The file content is fed through the native nft parser inside the
-        chain declaration - exactly how the boot include reads it - so
-        comments and multiline rules behave identically in both paths.
-        Flush plus reload in one transaction keeps the chain in sync with
-        the file.
-        """
+        """Reload user.conf into the live user rules chain."""
         content = ''
         if os.path.isfile(NFTABLES_USER_CONFIG_PATH):
             with open(NFTABLES_USER_CONFIG_PATH) as user_config:
@@ -582,12 +567,7 @@ class NFTablesManager:
 
     def remove_user_rules_from_main_chain(self) -> None:
         """Remove user.conf rules that older saved configs loaded into the
-        skale chain directly, so they are not snapshotted as duplicates.
-
-        The freshly reloaded user chain is the parsed form of user.conf, so
-        rules are matched by expression - immune to comments, multiline
-        formatting and rendering differences. Runs before the service rules
-        are re-added, so removing an expression they share cannot last.
+        skale chain directly.
         """
         user_exprs = [
             self._normalized_expr(rule.get('expr', [])) for rule in self.get_rules(USER_CHAIN)
@@ -740,12 +720,7 @@ def firewall_default_drop_enabled() -> bool:
 
 
 def get_registered_base_port() -> Optional[tuple[int, int]]:
-    """Base port and envelope size from the node config.
-
-    node_base_port is a node registration port and reserves the full node
-    allocation; schain_base_port (passive and fair nodes) is one already
-    allocated chain's base port and reserves that single chain's range.
-    """
+    """Base port and envelope size from the node config."""
     if not os.path.isfile(NODE_CONFIG_PATH):
         return None
     try:
