@@ -31,6 +31,7 @@ from node_cli.cli.node import (
     _turn_on,
     backup_node,
     cleanup_node,
+    configure_firewall,
     node_info,
     register_node,
     remove_node_from_maintenance,
@@ -54,6 +55,19 @@ from tests.resources_test import BIG_DISK_SIZE
 
 logger = logging.getLogger(__name__)
 init_default_logger()
+
+
+def test_configure_firewall_without_monitoring_option():
+    with mock.patch('node_cli.cli.node.configure_firewall_rules') as configure:
+        result = run_command(configure_firewall, ['--yes'])
+        assert result.exit_code == 0, result.output
+        configure.assert_called_once_with()
+
+        configure.reset_mock()
+        result = run_command(configure_firewall, ['--yes', '--monitoring'])
+        assert result.exit_code == 2
+        assert 'No such option: --monitoring' in result.output
+        configure.assert_not_called()
 
 
 def test_register_node(inited_node, resource_alloc, mocked_g_config):

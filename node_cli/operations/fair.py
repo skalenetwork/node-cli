@@ -98,7 +98,7 @@ def init_fair_boot(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     prepare_host(env_type=settings.env_type)
     save_internal_settings(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
@@ -212,7 +212,7 @@ def update_fair_boot(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     generate_nginx_config()
     fair_settings = get_settings((FairSettings, FairBaseSettings))
@@ -346,7 +346,7 @@ def restore(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(

@@ -153,7 +153,7 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
         try:
             save_registered_base_port(port)
             logger.info('Reconfiguring firewall for the registered base port %d', port)
-            configure_nftables(enable_monitoring=get_settings().monitoring_containers)
+            configure_nftables()
         except Exception:
             logger.exception('Post-registration firewall reconfiguration failed')
             error_exit(
@@ -249,13 +249,11 @@ def init_passive(
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=NodeType.SKALE, node_mode=node_mode):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
-    enable_firewall_default_drop_when_port_available(settings)
+    enable_firewall_default_drop_when_port_available()
     logger.info('Passive node initialized successfully')
 
 
-def enable_firewall_default_drop_when_port_available(
-    settings, timeout: int = 300, interval: int = 5
-) -> None:
+def enable_firewall_default_drop_when_port_available(timeout: int = 300, interval: int = 5) -> None:
     """Flip the firewall to default drop once admin saves the base port.
 
     Passive init configures nftables before skale-admin computes the mirrored
@@ -264,7 +262,7 @@ def enable_firewall_default_drop_when_port_available(
     start = time.monotonic()
     while time.monotonic() - start < timeout:
         if get_registered_base_port() is not None:
-            configure_nftables(enable_monitoring=settings.monitoring_containers)
+            configure_nftables()
             return
         time.sleep(interval)
     logger.warning(
@@ -581,5 +579,5 @@ def run_checks(
         print_failed_requirements_checks(failed_checks)
 
 
-def configure_firewall_rules(enable_monitoring: bool = False) -> None:
-    configure_nftables(enable_monitoring=enable_monitoring)
+def configure_firewall_rules() -> None:
+    configure_nftables()

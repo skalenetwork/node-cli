@@ -21,7 +21,7 @@ def test_allow_all_ssh_ports(manager):
         patch.object(manager, 'remove_misordered_udp_drop'),
         patch.object(manager, 'add_rule', side_effect=rules.append),
     ):
-        manager._add_service_accepts(enable_monitoring=False)
+        manager._add_service_accepts()
     allowed_tcp_ports = {rule.first_port for rule in rules if rule.protocol == 'tcp'}
     assert {2200, 2222} <= allowed_tcp_ports
     assert 22 not in allowed_tcp_ports

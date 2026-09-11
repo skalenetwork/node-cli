@@ -500,7 +500,7 @@ class NFTablesManager:
                     self.delete_rule_by_handle(rule['handle'])
 
     def remove_misordered_udp_drop(self) -> None:
-        """Delete the blanket udp drop when it shadows the udp DNS accept. """
+        """Delete the blanket udp drop when it shadows the udp DNS accept."""
         udp_drop = [ip_protocol_match('udp'), {'counter': None}, {'drop': None}]
         udp_dns_accept = [
             dport_match('udp', ServicePort.DNS, ServicePort.DNS),
@@ -597,7 +597,22 @@ class NFTablesManager:
         self.apply_user_rules()
         self.remove_user_rules_from_main_chain()
 
-    def _add_service_accepts(self, enable_monitoring: bool) -> None:
+    def remove_monitoring_accepts(self) -> None:
+        """Remove every legacy monitoring accept from the managed base chain."""
+        ssh_ports = get_ssh_ports()
+        monitoring_exprs = [
+            Rule(chain=self.chain, protocol='tcp', first_port=port).to_expr()
+            for port in (ServicePort.EXPORTER, ServicePort.CADVISOR)
+            if port not in ssh_ports
+        ]
+        for rule in self.get_rules(self.chain):
+            if (
+                self._normalized_expr(rule.get('expr', [])) in monitoring_exprs
+                and rule.get('handle') is not None
+            ):
+                self.delete_rule_by_handle(rule['handle'])
+
+    def _add_service_accepts(self) -> None:
         self._ensure_rule(self.chain, conntrack_accept_expr(), label='connection tracking rule')
         tcp_ports = [
             *get_ssh_ports(),
@@ -607,8 +622,6 @@ class NFTablesManager:
             ServicePort.WATCHDOG_HTTP,
             ServicePort.WATCHDOG_HTTPS,
         ]
-        if enable_monitoring:
-            tcp_ports.extend([ServicePort.EXPORTER, ServicePort.CADVISOR])
         for port in tcp_ports:
             self.add_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
         self.remove_misordered_udp_drop()
@@ -636,9 +649,7 @@ class NFTablesManager:
         )
         self.add_drop_rule(Rule(chain=self.chain, protocol='udp'))
 
-    def setup_firewall(
-        self, enable_monitoring: bool = False, keep_accept_policy: bool = False
-    ) -> None:
+    def setup_firewall(self, keep_accept_policy: bool = False) -> None:
         """Setup firewall rules."""
 
         logger.info('Configuring firewall rules')
@@ -657,7 +668,8 @@ class NFTablesManager:
                 self.validate_dynamic_ranges(envelope)
 
             self._setup_user_chain()
-            self._add_service_accepts(enable_monitoring)
+            self.remove_monitoring_accepts()
+            self._add_service_accepts()
             self._add_icmp_accepts()
             self._ensure_envelope(envelope)
             self._add_drop_rules()
@@ -765,13 +777,11 @@ def prepare_directories() -> None:
     create_user_config_path()
 
 
-def configure_nftables(enable_monitoring: bool = False, keep_accept_policy: bool = False) -> None:
+def configure_nftables(keep_accept_policy: bool = False) -> None:
     prepare_directories()
     enable_nftables_service()
     nft_mgr = NFTablesManager()
-    nft_mgr.setup_firewall(
-        enable_monitoring=enable_monitoring, keep_accept_policy=keep_accept_policy
-    )
+    nft_mgr.setup_firewall(keep_accept_policy=keep_accept_policy)
     ruleset = nft_mgr.get_base_ruleset()
     save_nftables_rules(ruleset)
     remove_legacy_saved_rules()

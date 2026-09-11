@@ -133,7 +133,7 @@ def update(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     lvmpy_install(settings.block_device)
     generate_nginx_config()
@@ -177,7 +177,7 @@ def init(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> 
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     prepare_host(env_type=settings.env_type)
 
@@ -223,7 +223,7 @@ def init_passive(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers, keep_accept_policy=True)
+    configure_nftables(keep_accept_policy=True)
 
     prepare_host(env_type=settings.env_type)
     save_internal_settings(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
@@ -284,7 +284,7 @@ def update_passive(settings: BaseNodeSettings, compose_env: dict) -> bool:
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     ensure_filestorage_mapping()
 
@@ -364,7 +364,7 @@ def turn_on(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     save_internal_settings(node_type=node_type, node_mode=node_mode, backup_run=backup_run)
     logger.info('Launching containers on the node...')
@@ -398,7 +398,7 @@ def restore(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     lvmpy_install(settings.block_device)
     init_shared_space_volume(settings.env_type)
