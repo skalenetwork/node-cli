@@ -9,6 +9,7 @@ from node_cli.core.nftables import (
     NFTablesError,
     NFTablesManager,
     Rule,
+    conntrack_accept_expr,
     dport_match,
     get_schain_ports_envelope,
 )
@@ -836,6 +837,104 @@ def test_remove_user_rules_from_main_chain(nft_manager):
     ):
         nft_manager.remove_user_rules_from_main_chain()
         mock_delete.assert_not_called()
+
+
+@patch.object(NFTablesManager, 'execute_cmd')
+def test_delete_chain(mock_execute, nft_manager):
+    nft_manager.delete_chain('skale-test')
+    chain_spec = {'family': 'inet', 'table': 'filter', 'name': 'skale-test'}
+    assert mock_execute.call_args[0][0] == {
+        'nftables': [{'flush': {'chain': chain_spec}}, {'delete': {'chain': chain_spec}}]
+    }
+
+
+def test_cleanup_firewall(nft_manager):
+    critical_rule = {'handle': 1, 'expr': conntrack_accept_expr()}
+    envelope_rule = {
+        'handle': 2,
+        'expr': [dport_match('tcp', 10000, 18191), {'counter': None}, {'accept': None}],
+    }
+    watchdog_rule = {
+        'handle': 3,
+        'expr': Rule(chain='skale', protocol='tcp', first_port=3009).to_expr(),
+    }
+    ssh_rule = {'handle': 4, 'expr': Rule(chain='skale', protocol='tcp', first_port=22).to_expr()}
+    with patch.multiple(
+        NFTablesManager,
+        ensure_default_accept=Mock(),
+        _remove_rule_by_expr=Mock(),
+        _table_chain_names=Mock(return_value=['skale', 'skale_user', 'skale-mychain']),
+        delete_chain=Mock(),
+        get_rules=Mock(return_value=[critical_rule, envelope_rule, watchdog_rule, ssh_rule]),
+        delete_rule_by_handle=Mock(),
+    ):
+        nft_manager.cleanup_firewall()
+        NFTablesManager.ensure_default_accept.assert_called_once()
+        NFTablesManager._remove_rule_by_expr.assert_called_once_with(
+            'skale', [{'jump': {'target': 'skale_user'}}]
+        )
+        assert sorted(call.args[0] for call in NFTablesManager.delete_chain.call_args_list) == [
+            'skale-mychain',
+            'skale_user',
+        ]
+        deleted = sorted(
+            call.args[0] for call in NFTablesManager.delete_rule_by_handle.call_args_list
+        )
+        assert deleted == [2, 3]
+
+
+def test_cleanup_firewall_without_ssh_detection(nft_manager, monkeypatch):
+    def raise_runtime_error():
+        raise RuntimeError('SSH_PORT required')
+
+    monkeypatch.setattr(nftables_core, 'get_ssh_ports', raise_runtime_error)
+    ssh_rule = {'handle': 4, 'expr': Rule(chain='skale', protocol='tcp', first_port=22).to_expr()}
+    with patch.multiple(
+        NFTablesManager,
+        ensure_default_accept=Mock(),
+        _remove_rule_by_expr=Mock(),
+        _table_chain_names=Mock(return_value=['skale']),
+        delete_chain=Mock(),
+        get_rules=Mock(return_value=[ssh_rule]),
+        delete_rule_by_handle=Mock(),
+    ):
+        # without detection the ssh rule is not in the keep set, which is
+        # safe because the policy is accept by then
+        nft_manager.cleanup_firewall()
+        NFTablesManager.delete_rule_by_handle.assert_called_once_with(4)
+
+
+def test_cleanup_nftables(monkeypatch, tmp_path):
+    chains_dir = tmp_path / 'chains'
+    chains_dir.mkdir()
+    (chains_dir / 'skale-x.conf').write_text('chain skale-x {\n}\n')
+    base_conf = tmp_path / 'base.conf'
+    base_conf.write_text('old content')
+    monkeypatch.setattr(nftables_core, 'NFTABLES_CHAIN_FOLDER_PATH', str(chains_dir))
+    monkeypatch.setattr(nftables_core, 'NFTABLES_SKALE_BASE_CONFIG_PATH', str(base_conf))
+
+    with patch.multiple(
+        NFTablesManager,
+        table_exists=Mock(return_value=True),
+        chain_exists=Mock(return_value=True),
+        cleanup_firewall=Mock(),
+        get_base_ruleset=Mock(return_value='table inet firewall {\n\tchain skale {\n\t}\n}'),
+    ):
+        nftables_core.cleanup_nftables()
+        NFTablesManager.cleanup_firewall.assert_called_once()
+    assert list(chains_dir.iterdir()) == []
+    assert base_conf.read_text() == 'table inet firewall {\n\tchain skale {\n\t}\n}'
+
+    # nothing configured: only the persisted state is cleared
+    base_conf.write_text('old content')
+    with patch.multiple(
+        NFTablesManager,
+        table_exists=Mock(return_value=False),
+        cleanup_firewall=Mock(),
+    ):
+        nftables_core.cleanup_nftables()
+        NFTablesManager.cleanup_firewall.assert_not_called()
+    assert base_conf.read_text() == ''
 
 
 def test_save_nftables_base_rules(monkeypatch, tmp_path):

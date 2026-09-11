@@ -31,7 +31,6 @@ from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     CONTAINER_CONFIG_TMP_PATH,
     GLOBAL_SKALE_DIR,
-    NFTABLES_CHAIN_FOLDER_PATH,
     SKALE_DIR,
 )
 from node_cli.core.checks import CheckType
@@ -41,7 +40,7 @@ from node_cli.core.host import (
     ensure_btrfs_kernel_module_autoloaded,
     prepare_host,
 )
-from node_cli.core.nftables import configure_nftables
+from node_cli.core.nftables import cleanup_nftables, configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.node_options import (
     mark_active_node,
@@ -74,7 +73,7 @@ from node_cli.utils.docker_utils import (
     rm_legacy_containers,
     system_prune,
 )
-from node_cli.utils.helper import cleanup_dir_content, rm_dir
+from node_cli.utils.helper import rm_dir
 from node_cli.utils.meta import CliMetaManager, FairCliMetaManager
 from node_cli.utils.node_type import NodeMode, NodeType
 from node_cli.utils.print_formatters import print_failed_requirements_checks
@@ -432,6 +431,7 @@ def restore(
 
 def cleanup_passive(compose_env: dict, schain_name: str) -> None:
     turn_off(compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
+    cleanup_nftables()
     cleanup_no_lvm_datadir(chain_name=schain_name)
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
@@ -441,6 +441,7 @@ def cleanup(
     node_mode: NodeMode, compose_env: dict, schain_name: Optional[str] = None, prune: bool = False
 ) -> None:
     turn_off(compose_env, node_type=NodeType.SKALE, node_mode=node_mode)
+    cleanup_nftables()
     if prune:
         system_prune()
     if node_mode == NodeMode.PASSIVE:
@@ -449,5 +450,4 @@ def cleanup(
         cleanup_lvm_datadir()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
-    cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
     cleanup_docker_configuration()

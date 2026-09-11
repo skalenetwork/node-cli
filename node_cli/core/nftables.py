@@ -36,7 +36,7 @@ from node_cli.configs import (
     NFTABLES_USER_CONFIG_PATH,
     NODE_CONFIG_PATH,
 )
-from node_cli.utils.helper import get_ssh_ports, read_json, run_cmd
+from node_cli.utils.helper import cleanup_dir_content, get_ssh_ports, read_json, run_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -409,12 +409,12 @@ class NFTablesManager:
         else:
             logger.info('No %s rule for %s to remove', rule.protocol, rule.first_port)
 
-    def get_dynamic_chain_port_ranges(self) -> list[tuple[str, int, int]]:
-        """Min/max tcp dport covered by each dynamic skale-admin chain."""
+    def _table_listing(self) -> dict:
+        """Parsed json listing of the managed table; empty when absent."""
         rc, output, error = self.nft.cmd(f'list table {self.family} {self.table}')
         if rc != 0:
             if error and 'No such file or directory' in error:
-                return []
+                return {}
             raise NFTablesError(f'Failed to list table {self.table}: {error}')
         try:
             data = json.loads(output)
@@ -422,6 +422,18 @@ class NFTablesManager:
             raise NFTablesError(f'Failed to parse table {self.table} listing: {err}') from err
         if not isinstance(data, dict):
             raise NFTablesError(f'Malformed table {self.table} listing')
+        return data
+
+    def _table_chain_names(self) -> list[str]:
+        return [
+            item['chain']['name']
+            for item in self._table_listing().get('nftables', [])
+            if isinstance(item, dict) and isinstance(item.get('chain'), dict)
+        ]
+
+    def get_dynamic_chain_port_ranges(self) -> list[tuple[str, int, int]]:
+        """Min/max tcp dport covered by each dynamic skale-admin chain."""
+        data = self._table_listing()
 
         ports: dict[str, list[int]] = {}
         for item in data.get('nftables', []):
@@ -725,6 +737,47 @@ class NFTablesManager:
             logger.error(f'Failed to flush chain: {str(e)}')
             raise NFTablesError('Flushing chain errored')
 
+    def delete_chain(self, chain: str) -> None:
+        chain_spec = {'family': self.family, 'table': self.table, 'name': chain}
+        self.execute_cmd(
+            {'nftables': [{'flush': {'chain': chain_spec}}, {'delete': {'chain': chain_spec}}]}
+        )
+        logger.info('Deleted chain %s', chain)
+
+    def _critical_accept_exprs(self) -> list[list[dict]]:
+        """Rules that keep the node reachable: conntrack, loopback, ssh, DNS."""
+        exprs = [conntrack_accept_expr(), loopback_accept_expr()]
+        try:
+            ssh_ports = get_ssh_ports()
+        except (RuntimeError, ValueError):
+            # the policy is accept during cleanup, so reachability is safe
+            # even when ssh detection is impossible
+            ssh_ports = []
+        for port in (*ssh_ports, ServicePort.DNS):
+            exprs.append(Rule(chain=self.chain, protocol='tcp', first_port=port).to_expr())
+        exprs.append(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS).to_expr())
+        return exprs
+
+    def cleanup_firewall(self) -> None:
+        """Reset the firewall to a minimal state that keeps the node reachable.
+
+        Restores the accept policy, removes the user and dynamic chains and
+        every rule except the critical accepts: conntrack, loopback, ssh
+        and DNS.
+        """
+        self.ensure_default_accept()
+        self._remove_rule_by_expr(self.chain, [{'jump': {'target': USER_CHAIN}}])
+        for chain in self._table_chain_names():
+            if chain == USER_CHAIN or chain.startswith(DYNAMIC_CHAIN_PREFIX):
+                self.delete_chain(chain)
+        keep = [self._normalized_expr(expr) for expr in self._critical_accept_exprs()]
+        for rule in self.get_rules(self.chain):
+            if (
+                self._normalized_expr(rule.get('expr', [])) not in keep
+                and rule.get('handle') is not None
+            ):
+                self.delete_rule_by_handle(rule['handle'])
+
 
 def firewall_default_drop_enabled() -> bool:
     value = os.getenv(FIREWALL_DEFAULT_DROP_ENV, 'True')
@@ -785,6 +838,23 @@ def configure_nftables(keep_accept_policy: bool = False) -> None:
     ruleset = nft_mgr.get_base_ruleset()
     save_nftables_rules(ruleset)
     remove_legacy_saved_rules()
+
+
+def cleanup_nftables() -> None:
+    """Reset the firewall after node cleanup and persist the minimal state."""
+    logger.info('Cleaning up firewall rules')
+    nft_mgr = NFTablesManager()
+    ruleset = ''
+    if nft_mgr.table_exists() and nft_mgr.chain_exists(nft_mgr.chain):
+        nft_mgr.cleanup_firewall()
+        ruleset = nft_mgr.get_base_ruleset()
+    if os.path.isdir(NFTABLES_CHAIN_FOLDER_PATH):
+        cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
+    if os.path.isdir(os.path.dirname(NFTABLES_SKALE_BASE_CONFIG_PATH)):
+        # a plain snapshot with no includes - reboot restores the same
+        # minimal ruleset
+        with open(NFTABLES_SKALE_BASE_CONFIG_PATH, 'w') as base_config:
+            base_config.write(ruleset)
 
 
 def enable_nftables_service() -> None:

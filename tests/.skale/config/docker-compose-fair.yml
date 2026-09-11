@@ -1,5 +1,0 @@
-services:
-  test:
-    container_name: test
-    image: alpine:latest
-    network_mode: host
