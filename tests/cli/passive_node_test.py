@@ -42,6 +42,7 @@ def test_init_passive(mocked_g_config, clean_node_options, passive_user_conf):
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.core.node.init_passive_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
+        mock.patch('node_cli.core.node.enable_firewall_default_drop_when_port_available'),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=False),
@@ -60,6 +61,7 @@ def test_init_passive_archive(mocked_g_config, clean_node_options, passive_user_
     pathlib.Path(NODE_DATA_PATH).mkdir(parents=True, exist_ok=True)
     with (
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
+        mock.patch('node_cli.core.node.enable_firewall_default_drop_when_port_available'),
         mock.patch('node_cli.operations.base.cleanup_volume_artifacts'),
         mock.patch('node_cli.operations.base.download_skale_node'),
         mock.patch('node_cli.operations.base.sync_skale_node'),

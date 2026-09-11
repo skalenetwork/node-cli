@@ -10,5 +10,5 @@ docker run \
     -e GLOBAL_SKALE_DIR="$PROJECT_DIR/tests/etc/skale" \
     -e DOTENV_FILEPATH='tests/test-env' \
     --cap-add=NET_ADMIN --cap-add=NET_RAW \
-    --name ncli-tester ncli-tester py.test tests/core/migration_test.py tests/core/nftables_test.py $@
+    --name ncli-tester ncli-tester py.test tests/core/migration_test.py tests/core/nftables_test.py tests/core/monitoring_firewall_test.py $@
 
