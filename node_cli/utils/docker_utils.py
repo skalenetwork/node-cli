@@ -94,10 +94,6 @@ BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
     **REDIS_SERVICE_DICT,
 }
 
-MONITORING_COMPOSE_SERVICES = {
-    'node-exporter': 'monitor_node_exporter',
-    'advisor': 'monitor_cadvisor',
-}
 TELEGRAF_SERVICES = ('telegraf',)
 NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 COMPOSE_TIMEOUT = 10
@@ -388,17 +384,6 @@ def compose_up(
                 ),
                 env=env,
             )
-
-    if settings.monitoring_containers:
-        logger.info('Running monitoring containers')
-        run_cmd(
-            cmd=get_up_compose_cmd(
-                node_type=NodeType.SKALE,
-                node_mode=node_mode,
-                services=list(MONITORING_COMPOSE_SERVICES),
-            ),
-            env=env,
-        )
 
 
 def restart_nginx_container(dutils=None):
