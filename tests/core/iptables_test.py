@@ -35,8 +35,21 @@ def test_effective_sshd_ports(config, expected):
         run.return_value.stdout = config
         assert get_ssh_ports() == expected
         run.assert_called_once_with(
-            ['/usr/sbin/sshd', '-T'], capture_output=True, text=True, check=True, timeout=10
+            ['/usr/sbin/sshd', '-T'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+            timeout=10,
         )
+
+
+def test_sshd_invocation_arguments_are_valid():
+    """Run a real process: mocks cannot catch invalid subprocess.run
+    argument combinations such as capture_output with stdout/stderr."""
+    with mock.patch('node_cli.utils.helper.shutil.which', return_value='/bin/echo'):
+        with pytest.raises(ValueError, match='SSH_PORT'):
+            get_ssh_ports()
 
 
 def test_ssh_port_override(monkeypatch):

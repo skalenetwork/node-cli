@@ -414,9 +414,12 @@ SSH_PORTS_ERROR = 'Cannot determine valid SSH ports. Set SSH_PORT to an integer 
 def _effective_sshd_config_ports() -> list[str]:
     """Port values from `sshd -T`; ListenAddress entries take precedence."""
     try:
+        # explicit pipes instead of capture_output: environments that wrap
+        # subprocess.run with their own stdout/stderr reject the combination
         result = subprocess.run(
             [shutil.which('sshd') or '/usr/sbin/sshd', '-T'],
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
             check=True,
             timeout=10,
