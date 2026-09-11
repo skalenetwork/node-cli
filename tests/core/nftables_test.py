@@ -273,6 +273,16 @@ def test_get_dynamic_chain_port_ranges(mock_cmd, nft_manager):
     mock_cmd.return_value = (1, '', 'No such file or directory')
     assert nft_manager.get_dynamic_chain_port_ranges() == []
 
+    mock_cmd.return_value = (1, '', 'some other error')
+    with pytest.raises(NFTablesError):
+        nft_manager.get_dynamic_chain_port_ranges()
+
+    # unparseable or wrong-shaped output keeps the typed contract
+    for output in ('not-json', 'null', '[]'):
+        mock_cmd.return_value = (0, output, '')
+        with pytest.raises(NFTablesError):
+            nft_manager.get_dynamic_chain_port_ranges()
+
 
 def test_validate_dynamic_ranges(nft_manager):
     """Test envelope validation against dynamic chain ranges."""

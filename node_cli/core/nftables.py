@@ -411,22 +411,21 @@ class NFTablesManager:
 
     def get_dynamic_chain_port_ranges(self) -> list[tuple[str, int, int]]:
         """Min/max tcp dport covered by each dynamic skale-admin chain."""
+        rc, output, error = self.nft.cmd(f'list table {self.family} {self.table}')
+        if rc != 0:
+            if error and 'No such file or directory' in error:
+                return []
+            raise NFTablesError(f'Failed to list table {self.table}: {error}')
         try:
-            rc, output, error = self.nft.cmd(f'list table {self.family} {self.table}')
-            if rc != 0:
-                if error and 'No such file or directory' in error:
-                    return []
-                raise NFTablesError(f'Failed to list table {self.table}: {error}')
             data = json.loads(output)
-        except NFTablesError:
-            raise
-        except Exception as e:
-            logger.error('Failed to get dynamic chain ranges: %s', e)
-            raise NFTablesError(e)
+        except (TypeError, ValueError) as err:
+            raise NFTablesError(f'Failed to parse table {self.table} listing: {err}') from err
+        if not isinstance(data, dict):
+            raise NFTablesError(f'Malformed table {self.table} listing')
 
         ports: dict[str, list[int]] = {}
         for item in data.get('nftables', []):
-            rule = item.get('rule')
+            rule = item.get('rule') if isinstance(item, dict) else None
             if not rule or not rule.get('chain', '').startswith(DYNAMIC_CHAIN_PREFIX):
                 continue
             for statement in rule.get('expr', []):
