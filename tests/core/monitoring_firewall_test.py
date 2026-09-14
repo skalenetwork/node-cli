@@ -11,7 +11,6 @@ from node_cli.core.nftables import NFTablesManager, Rule
 def monitoring_firewall(monkeypatch, tmp_path):
     """Run only in the isolated nftables test container (requires NET_ADMIN)."""
     monkeypatch.setenv('SSH_PORT', '22')
-    monkeypatch.setenv('MONITORING_CONTAINERS', 'True')
     monkeypatch.delenv('SCHAIN_BASE_PORT', raising=False)
     monkeypatch.delenv('FIREWALL_DEFAULT_DROP', raising=False)
     monkeypatch.setattr(firewall, 'NODE_CONFIG_PATH', str(tmp_path / 'node.json'))
