@@ -30,14 +30,13 @@ from node_cli.cli.info import TYPE, VERSION
 from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     GLOBAL_SKALE_DIR,
-    NFTABLES_CHAIN_FOLDER_PATH,
     SKALE_DIR,
 )
 from node_cli.core.checks import CheckType
 from node_cli.core.checks import run_checks as run_host_checks
 from node_cli.core.docker_config import cleanup_docker_configuration, configure_docker
 from node_cli.core.host import ensure_btrfs_kernel_module_autoloaded, prepare_host
-from node_cli.core.nftables import configure_nftables
+from node_cli.core.nftables import cleanup_nftables, configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_no_lvm_datadir
 from node_cli.core.static_config import get_fair_chain_name
@@ -70,7 +69,7 @@ from node_cli.utils.docker_utils import (
     system_prune,
     wait_for_container,
 )
-from node_cli.utils.helper import cleanup_dir_content, rm_dir
+from node_cli.utils.helper import rm_dir
 from node_cli.utils.meta import FairCliMetaManager
 from node_cli.utils.print_formatters import print_failed_requirements_checks
 from node_cli.utils.node_type import NodeMode, NodeType
@@ -98,7 +97,7 @@ def init_fair_boot(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     prepare_host(env_type=settings.env_type)
     save_internal_settings(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
@@ -212,7 +211,7 @@ def update_fair_boot(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     generate_nginx_config()
     fair_settings = get_settings((FairSettings, FairBaseSettings))
@@ -346,7 +345,7 @@ def restore(
     if not settings.skip_docker_config:
         configure_docker()
 
-    configure_nftables(enable_monitoring=settings.monitoring_containers)
+    configure_nftables()
 
     meta_manager = FairCliMetaManager()
     meta_manager.update_meta(
@@ -375,12 +374,12 @@ def restore(
 
 def cleanup(node_mode: NodeMode, compose_env: dict, prune: bool = False) -> None:
     turn_off(compose_env, node_type=NodeType.FAIR, node_mode=node_mode)
+    cleanup_nftables()
     if prune:
         system_prune()
     cleanup_no_lvm_datadir()
     rm_dir(GLOBAL_SKALE_DIR)
     rm_dir(SKALE_DIR)
-    cleanup_dir_content(NFTABLES_CHAIN_FOLDER_PATH)
     cleanup_docker_configuration()
 
 

@@ -23,7 +23,7 @@ from node_cli.core.nftables import (
     LEGACY_CHAIN,
     LEGACY_FAMILY,
     LEGACY_TABLE,
-    POLICY,
+    POLICY_ACCEPT,
     NFTablesManager,
     remove_legacy_saved_rules,
 )
@@ -121,7 +121,7 @@ def remove_old_iptables_rules() -> None:
 def migrate() -> None:
     nft = NFTablesManager(family=LEGACY_FAMILY, table=LEGACY_TABLE, chain=LEGACY_CHAIN)
     logger.info('Making sure legacy chain has default policy accept')
-    nft.update_chain_policy(chain=LEGACY_CHAIN, policy=POLICY)
+    nft.update_chain_policy(chain=LEGACY_CHAIN, policy=POLICY_ACCEPT)
 
     logger.info('Running migration from focal to jammy')
     remove_old_iptables_rules()
