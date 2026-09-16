@@ -26,6 +26,7 @@ from node_cli.utils.exit_codes import CLIExitCodes
 
 
 BLUEPRINT_NAME = 'health'
+INFO_BLUEPRINT_NAME = 'info'
 
 
 def get_containers(_all):
@@ -53,7 +54,7 @@ def get_schains_checks(json_format: bool = False) -> None:
 
 
 def get_sgx_info():
-    status, payload = get_request(blueprint=BLUEPRINT_NAME, method='sgx')
+    status, payload = get_request(blueprint=INFO_BLUEPRINT_NAME, method='sgx')
     if status == 'ok':
         data = payload
         table_data = [
