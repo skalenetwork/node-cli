@@ -20,7 +20,8 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    4. [sChain commands (Standard)](#schain-commands-standard)
    5. [Health commands (Standard)](#health-commands-standard)
    6. [SSL commands (Standard)](#ssl-commands-standard)
-   7. [Logs commands (Standard)](#logs-commands-standard)
+   7. [SGX commands (Standard)](#sgx-commands-standard)
+   8. [Logs commands (Standard)](#logs-commands-standard)
 3. [Passive Node Usage (`skale` - Passive Build)](#passive-node-usage-skale---passive-build)
    1. [Top level commands (Passive)](#top-level-commands-passive)
    2. [Passive node commands](#passive-node-commands)
@@ -32,8 +33,9 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    5. [Fair Wallet commands](#fair-wallet-commands)
    6. [Fair Logs commands](#fair-logs-commands)
    7. [Fair SSL commands](#fair-ssl-commands)
-   8. [Fair Staking commands](#fair-staking-commands)
-   9. [Passive Fair Node commands](#passive-fair-node-commands)
+   8. [Fair SGX commands](#fair-sgx-commands)
+   9. [Fair Staking commands](#fair-staking-commands)
+   10. [Passive Fair Node commands](#passive-fair-node-commands)
 5. [Exit codes](#exit-codes)
 6. [Development](#development)
 
@@ -498,6 +500,48 @@ Options:
 * `--type/-t` - Check type (`openssl` - openssl cli check, `skaled` - skaled-based check, `all` - both).
 * `--port/-p` - Port to start healthcheck server (default: `4536`).
 * `--no-client` - Skip client connection (only make sure server started without errors).
+
+### SGX commands (Standard)
+
+> Prefix: `skale sgx`
+
+Manage the client certificate that node services use to authenticate to the SGX wallet.
+The files live in `~/.skale/node_data/sgx_certs` and are read by the SKALE containers.
+These commands work directly with those files and the SGX server; they do not go through
+the node API.
+
+#### SGX certificate status
+
+Show the certificate files, the certificate details and its expiry.
+
+```shell
+skale sgx status [--json] [--check]
+```
+
+Options:
+
+* `--json` - Show data in JSON format.
+* `--check` - Also verify that the SGX server accepts the certificate.
+
+#### Renew SGX certificate
+
+Issue a new client certificate from the SGX server and install it. The current
+certificate stays in place until the new one is signed and verified against the server.
+The previous files are copied to `~/.skale/node_data/sgx_certs_backup/<timestamp>`.
+If the SGX server requires manual approval of signing requests, the command prints the
+request hash and waits until it is approved. Node services pick up the new certificate
+on their next SGX request; no restart is needed. `skale health sgx` confirms afterwards
+that node services reach the SGX server.
+
+```shell
+skale sgx renew [--yes] [--timeout <SECONDS>] [--skip-verify]
+```
+
+Options:
+
+* `--yes` - Do not ask for confirmation.
+* `--timeout` - Seconds to wait for the SGX server to sign the request (default: `600`).
+* `--skip-verify` - Install the certificate without testing it against the SGX server first.
 
 ### Logs commands (Standard)
 
@@ -1118,6 +1162,25 @@ Options:
 * `--type`/`-t` - Check type: `all`, `openssl`, or `skaled` (default: `all`).
 * `--no-client` - Skip client connection for openssl check.
 * `--no-wss` - Skip WSS server starting for skaled check.
+
+### Fair SGX commands
+
+> Prefix: `fair sgx`
+
+Manage the client certificate that node services use to authenticate to the SGX wallet.
+See [SGX commands (Standard)](#sgx-commands-standard) for details; the behaviour is the same.
+
+#### Fair SGX Status
+
+```shell
+fair sgx status [--json] [--check]
+```
+
+#### Fair SGX Renew
+
+```shell
+fair sgx renew [--yes] [--timeout <SECONDS>] [--skip-verify]
+```
 
 ### Fair Staking commands
 

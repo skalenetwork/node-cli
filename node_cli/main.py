@@ -36,6 +36,7 @@ from node_cli.cli.node import node_cli
 from node_cli.cli.schains import schains_cli
 from node_cli.cli.wallet import wallet_cli
 from node_cli.cli.ssl import ssl_cli
+from node_cli.cli.sgx import sgx_cli
 from node_cli.cli.passive_node import passive_node_cli
 from node_cli.cli.fair_boot import fair_boot_cli
 from node_cli.cli.fair_node import fair_node_cli
@@ -106,6 +107,7 @@ def get_command_groups() -> List[click.Group]:
             staking_cli,
             wallet_cli,
             ssl_cli,
+            sgx_cli,
         ]
     else:
         return [  # type: ignore
@@ -116,6 +118,7 @@ def get_command_groups() -> List[click.Group]:
             passive_node_cli,
             wallet_cli,
             ssl_cli,
+            sgx_cli,
             exit_cli,
             lvmpy_cli,
         ]
