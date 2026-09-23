@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import pytest
 import requests_mock
 
-from node_cli.cli.sgx import options, renew, sgx_cli, status
+from node_cli.cli.sgx import cert_status, options, renew, sgx_cli
 from node_cli.core import sgx as core_sgx
 from node_cli.utils import api_auth, helper
 from node_cli.utils.exit_codes import CLIExitCodes
@@ -93,8 +93,8 @@ def test_options_needs_an_sgx_node(
     assert not rpc.called
 
 
-def test_status_without_certificate(certs_dir):
-    result = run_command(status)
+def test_cert_status_without_certificate(certs_dir):
+    result = run_command(sgx_cli, ['sgx', 'cert-status'])
     assert result.exit_code == 0
     assert 'Private key' in result.output
     # three file rows plus the notice
@@ -102,18 +102,18 @@ def test_status_without_certificate(certs_dir):
     assert 'skale sgx renew' in result.output
 
 
-def test_status_shows_certificate_details(certs_dir, rpc):
+def test_cert_status_shows_certificate_details(certs_dir, rpc):
     FakeSgxWallet(rpc).issue_files(certs_dir)
-    result = run_command(status)
+    result = run_command(cert_status)
     assert result.exit_code == 0
     assert 'sgx-wallet-ca' in result.output
     assert 'yes' in result.output
     assert 'renew' not in result.output
 
 
-def test_status_json(certs_dir, rpc):
+def test_cert_status_json(certs_dir, rpc):
     FakeSgxWallet(rpc).issue_files(certs_dir)
-    result = run_command(status, ['--json'])
+    result = run_command(cert_status, ['--json'])
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert data['complete'] is True
@@ -121,24 +121,24 @@ def test_status_json(certs_dir, rpc):
     assert data['issuer'] == 'sgx-wallet-ca'
 
 
-def test_status_check_uses_configured_sgx_url(certs_dir, rpc, skale_active_settings):
+def test_cert_status_check_uses_configured_sgx_url(certs_dir, rpc, skale_active_settings):
     wallet = FakeSgxWallet(rpc, SETTINGS_SGX_URL)
     wallet.issue_files(certs_dir)
-    result = run_command(status, ['--check'])
+    result = run_command(cert_status, ['--check'])
     assert result.exit_code == 0, result.output
     assert 'accepted the certificate, version 1.83.0' in result.output
     assert wallet.calls == [('sgx', 'getServerVersion')]
 
 
-def test_status_check_reports_rejection(certs_dir, rpc, skale_active_settings):
+def test_cert_status_check_reports_rejection(certs_dir, rpc, skale_active_settings):
     FakeSgxWallet(rpc, SETTINGS_SGX_URL, reject_clients=True).issue_files(certs_dir)
-    result = run_command(status, ['--check', '--json'])
+    result = run_command(cert_status, ['--check', '--json'])
     assert result.exit_code == CLIExitCodes.OPERATION_EXECUTION_ERROR.value
     assert 'rejected the TLS connection' in result.output
 
 
-def test_status_check_needs_an_sgx_node(certs_dir, skale_passive_settings):
-    result = run_command(status, ['--check'])
+def test_cert_status_check_needs_an_sgx_node(certs_dir, skale_passive_settings):
+    result = run_command(cert_status, ['--check'])
     assert result.exit_code == CLIExitCodes.NODE_STATE_ERROR.value
     assert 'no SGX server configured' in result.output
 

@@ -76,10 +76,10 @@ def options(json_format: bool) -> None:
         print(SingleTable(rows).table)
 
 
-@sgx.command('status', help=TEXTS['status']['help'])
+@sgx.command('cert-status', help=TEXTS['status']['help'])
 @click.option('--json', 'json_format', is_flag=True, help=G_TEXTS['common']['json'])
 @click.option('--check', is_flag=True, help=TEXTS['status']['check'])
-def status(json_format: bool, check: bool) -> None:
+def cert_status(json_format: bool, check: bool) -> None:
     try:
         info = get_certificate_status()
     except SgxCertificateError as err:
