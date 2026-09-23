@@ -58,6 +58,7 @@ from node_cli.configs.cli_logger import (
     STREAM_LOG_FORMAT,
 )
 from node_cli.configs.routes import get_route
+from node_cli.utils.api_auth import APIAuthError, get_api_headers
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.global_config import get_system_user, read_g_config
 from node_cli.utils.print_formatters import print_err_response
@@ -65,6 +66,11 @@ from node_cli.utils.print_formatters import print_err_response
 logger = logging.getLogger(__name__)
 
 HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
+
+# Local operator credentials must not be sent through environment proxies or
+# replaced by netrc credentials.
+api_session = requests.Session()
+api_session.trust_env = False
 
 DEFAULT_ERROR_DATA = {
     'status': 'error',
@@ -195,8 +201,12 @@ def post_request(blueprint, method, json=None, files=None):
     route = get_route(blueprint, method)
     url = construct_url(route)
     try:
-        response = requests.post(url, json=json, files=files)
+        response = api_session.post(
+            url, json=json, files=files, headers=get_api_headers(), allow_redirects=False
+        )
         data = response.json()
+    except APIAuthError as err:
+        return 'error', str(err)
     except Exception as err:
         logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA
@@ -211,8 +221,12 @@ def get_request(
     route = get_route(blueprint, method)
     url = construct_url(route)
     try:
-        response = requests.get(url, params=params)
+        response = api_session.get(
+            url, params=params, headers=get_api_headers(), allow_redirects=False
+        )
         data = response.json()
+    except APIAuthError as err:
+        return 'error', str(err)
     except Exception as err:
         logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA

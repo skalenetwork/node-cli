@@ -30,6 +30,7 @@ from skale_core.settings import (
     InternalSettings,
     SkalePassiveSettings,
     SkaleSettings,
+    get_settings,
     write_internal_settings_file,
     write_node_settings_file,
 )
@@ -85,3 +86,9 @@ def save_internal_settings(
     InternalSettings.model_validate(data)
     _remove_if_exists(INTERNAL_SETTINGS_PATH)
     write_internal_settings_file(path=INTERNAL_SETTINGS_PATH, data=data)
+
+
+def get_sgx_url() -> str | None:
+    """SGX server URL of the node, or None when its mode has no SGX server (passive)."""
+    sgx_url = getattr(get_settings(), 'sgx_url', None)
+    return str(sgx_url).rstrip('/') if sgx_url else None

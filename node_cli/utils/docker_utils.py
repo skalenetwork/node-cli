@@ -38,6 +38,7 @@ from node_cli.configs import (
     REMOVED_CONTAINERS_FOLDER_PATH,
 )
 from node_cli.core.node_options import active_fair, active_skale, passive_fair, passive_skale
+from node_cli.utils.api_auth import ensure_api_token
 from node_cli.utils.helper import run_cmd
 from node_cli.utils.node_type import NodeMode, NodeType
 
@@ -341,6 +342,7 @@ def compose_up(
     is_fair_boot: bool = False,
     services: list[str] | None = None,
 ):
+    ensure_api_token()
     env['PASSIVE_NODE'] = str(node_mode == NodeMode.PASSIVE)
     if passive_skale(node_type, node_mode) or passive_fair(node_type, node_mode):
         logger.info('Running containers for passive node')
