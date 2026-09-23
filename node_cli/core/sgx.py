@@ -113,8 +113,12 @@ def get_certificate_status(directory: str | Path | None = None) -> dict:
         return status
     cert = _load_certificate(paths['crt'])
     now = datetime.datetime.now(datetime.timezone.utc)
-    not_before = cert.not_valid_before_utc
-    not_after = cert.not_valid_after_utc
+    try:
+        not_before = cert.not_valid_before_utc
+        not_after = cert.not_valid_after_utc
+    except AttributeError:
+        not_before = cert.not_valid_before.replace(tzinfo=datetime.timezone.utc)
+        not_after = cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
     days_left = (not_after - now).days
     status.update(
         {

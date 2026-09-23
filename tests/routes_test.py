@@ -21,6 +21,7 @@ ALL_V1_ROUTES = [
     '/api/v1/health/containers',
     '/api/v1/health/schains',
     '/api/v1/info/sgx',
+    '/api/v1/info/sgx-options',
     '/api/v1/schains/config',
     '/api/v1/schains/list',
     '/api/v1/schains/dkg-statuses',

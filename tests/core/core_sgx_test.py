@@ -1,3 +1,4 @@
+import datetime
 import json
 import stat
 from pathlib import Path
@@ -79,6 +80,43 @@ def test_status_describes_certificate(certs_dir, rpc):
         ':'
     )
     json.dumps(status)
+
+
+@pytest.mark.parametrize(
+    'starts_in, ends_in, expired, not_yet_valid, expires_soon',
+    [
+        (-1, 365, False, False, False),
+        (-2, -1, True, False, False),
+        (1, 365, False, True, False),
+        (-1, 1, False, False, True),
+    ],
+)
+def test_status_with_legacy_certificate_dates(
+    certs_dir, rpc, monkeypatch, starts_in, ends_in, expired, not_yet_valid, expires_soon
+):
+    wallet = FakeSgxWallet(rpc)
+    wallet.issue_files(certs_dir)
+    now = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+    start = now + datetime.timedelta(days=starts_in)
+    end = now + datetime.timedelta(days=ends_in)
+
+    class LegacyCertificate:
+        not_valid_before = start.replace(tzinfo=None)
+        not_valid_after = end.replace(tzinfo=None)
+
+        def __getattr__(self, name):
+            if name in ('not_valid_before_utc', 'not_valid_after_utc'):
+                raise AttributeError(name)
+            return getattr(wallet.last_issued, name)
+
+    monkeypatch.setattr(sgx, '_load_certificate', lambda _: LegacyCertificate())
+    status = sgx.get_certificate_status(certs_dir)
+    assert status['not_valid_before'] == start.isoformat(timespec='seconds')
+    assert status['not_valid_after'] == end.isoformat(timespec='seconds')
+    assert status['expired'] is expired
+    assert status['not_yet_valid'] is not_yet_valid
+    assert status['expires_soon'] is expires_soon
+    assert status['key_matches'] is True
 
 
 def test_status_detects_key_mismatch_and_partial_sets(certs_dir, rpc):
