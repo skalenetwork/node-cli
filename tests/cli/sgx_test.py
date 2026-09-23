@@ -4,8 +4,9 @@ from unittest.mock import Mock
 import pytest
 import requests_mock
 
-from node_cli.cli.sgx import renew, status
+from node_cli.cli.sgx import options, renew, sgx_cli, status
 from node_cli.core import sgx as core_sgx
+from node_cli.utils import api_auth, helper
 from node_cli.utils.exit_codes import CLIExitCodes
 from tests.fixtures.settings import NODE_SKALE_ACTIVE
 from tests.fixtures.sgx import FakeSgxWallet
@@ -28,6 +29,68 @@ def certs_dir(tmp_path, monkeypatch):
 def rpc():
     with requests_mock.Mocker() as mock:
         yield mock
+
+
+@pytest.fixture
+def api_token(tmp_path, monkeypatch):
+    path = tmp_path / 'admin-api.token'
+    path.write_text('ab' * 32 + '\n')
+    path.chmod(0o600)
+    monkeypatch.setattr(api_auth, 'ADMIN_API_TOKEN_PATH', path)
+    return 'ab' * 32
+
+
+@pytest.mark.parametrize('json_format', [False, True])
+def test_options_through_admin(
+    rpc, api_token, inited_node, skale_active_settings, mocked_g_config, json_format
+):
+    payload = {
+        'flags': {'auto_sign': False, 'log_level': 2},
+        'effective': {'rpc_port': 1026, 'rpc_client_certificate_required': True},
+        'build': None,
+    }
+    rpc.get(
+        helper.construct_url('/api/v1/info/sgx-options'),
+        json={'status': 'ok', 'payload': payload},
+    )
+    args = ['sgx', 'options'] + (['--json'] if json_format else [])
+    result = run_command(sgx_cli, args)
+    assert result.exit_code == 0, result.output
+    if json_format:
+        assert json.loads(result.output) == payload
+    else:
+        assert 'SGX option' in result.output
+        assert 'flags.auto_sign' in result.output
+        assert 'false' in result.output
+    assert len(rpc.request_history) == 1
+    assert rpc.last_request.method == 'GET'
+    assert rpc.last_request.headers['Authorization'] == f'Bearer {api_token}'
+
+
+@pytest.mark.parametrize(
+    ('code', 'message'),
+    [(401, 'A valid node CLI credential is required'), (503, 'SGX server unavailable')],
+)
+def test_options_reports_api_errors(
+    rpc, api_token, inited_node, skale_active_settings, mocked_g_config, code, message
+):
+    rpc.get(
+        helper.construct_url('/api/v1/info/sgx-options'),
+        status_code=code,
+        json={'status': 'error', 'payload': message},
+    )
+    result = run_command(options, ['--json'])
+    assert result.exit_code == CLIExitCodes.BAD_API_RESPONSE.value
+    assert message in result.output
+
+
+def test_options_needs_an_sgx_node(
+    rpc, api_token, inited_node, skale_passive_settings, mocked_g_config
+):
+    result = run_command(options)
+    assert result.exit_code == CLIExitCodes.NODE_STATE_ERROR.value
+    assert 'no SGX server configured' in result.output
+    assert not rpc.called
 
 
 def test_status_without_certificate(certs_dir):

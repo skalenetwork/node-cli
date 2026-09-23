@@ -104,8 +104,10 @@ fair:
       prompt: Are you sure you want to remove the node from Fair manager?
 
 sgx:
-  help: SGX wallet client certificate commands
+  help: SGX wallet options and client certificate commands
   no_sgx: This node has no SGX server configured (passive nodes do not use SGX)
+  options:
+    help: Show SGX server options through the node API
   status:
     help: Show the SGX client certificate used by node services
     check: Also verify that the SGX server accepts the certificate

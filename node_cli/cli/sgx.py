@@ -27,6 +27,7 @@ from node_cli.core.sgx import (
     SgxCertificateError,
     check_certificate,
     get_certificate_status,
+    get_server_options,
     renew_certificate,
 )
 from node_cli.utils.decorators import check_inited, check_user
@@ -47,6 +48,32 @@ def sgx_cli():
 @sgx_cli.group('sgx', help=TEXTS['help'])
 def sgx():
     pass
+
+
+@sgx.command('options', help=TEXTS['options']['help'])
+@click.option('--json', 'json_format', is_flag=True, help=G_TEXTS['common']['json'])
+@check_inited
+@check_user
+def options(json_format: bool) -> None:
+    _configured_sgx_url()
+    status, payload = get_server_options()
+    if status != 'ok':
+        error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+    if json_format:
+        print(json.dumps(payload))
+    else:
+        rows = [['SGX option', 'Value']]
+        for group, values in payload.items():
+            entries = (
+                [(f'{group}.{key}', value) for key, value in values.items()]
+                if isinstance(values, dict)
+                else [(group, values)]
+            )
+            rows.extend(
+                [key, value if isinstance(value, str) else json.dumps(value)]
+                for key, value in entries
+            )
+        print(SingleTable(rows).table)
 
 
 @sgx.command('status', help=TEXTS['status']['help'])

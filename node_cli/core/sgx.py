@@ -17,7 +17,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""SGX wallet client certificate management.
+"""SGX wallet options and client certificate management.
 
 Node services authenticate to the SGX wallet with a client certificate kept in
 ``node_data/sgx_certs``. The sgx client library inside the containers expects exactly
@@ -25,7 +25,8 @@ three files there (``sgx.key``, ``sgx.csr`` and ``sgx.crt``) and issues a certif
 its own only when one of them is missing, so this module never leaves that directory
 incomplete: new material is prepared next to it and moved into place with per-file
 atomic renames, and the current certificate is kept until the new one is signed.
-Everything here talks to the SGX server directly; the node API is not involved.
+Certificate operations talk to the SGX server directly. Server options are queried
+through the authenticated node API.
 """
 
 import datetime
@@ -61,6 +62,7 @@ from node_cli.configs.sgx import (
     SGX_SIGN_POLL_INTERVAL,
     SGX_SIGN_TIMEOUT,
 )
+from node_cli.utils.helper import get_request
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +75,11 @@ Logger = Callable[[str], None]
 
 class SgxCertificateError(Exception):
     """Raised when the SGX client certificate cannot be read, issued or installed."""
+
+
+def get_server_options() -> tuple[str, str | dict]:
+    """Query SGX options through the admin API using the node's CLI credential."""
+    return get_request(blueprint='info', method='sgx-options')
 
 
 def certificate_paths(directory: str | Path | None = None) -> dict[str, Path]:
