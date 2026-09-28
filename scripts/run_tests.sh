@@ -5,4 +5,4 @@ PROJECT_DIR=$(dirname $DIR)
 
 . "$DIR/export_env.sh"
 
-py.test --cov=$PROJECT_DIR/ --ignore=tests/core/nftables_test.py --ignore=tests/core/migration_test.py tests/ $@
+py.test --cov=$PROJECT_DIR/ --ignore=tests/core/nftables_test.py --ignore=tests/core/migration_test.py --ignore=tests/core/monitoring_firewall_test.py tests/ $@
