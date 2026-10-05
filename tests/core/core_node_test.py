@@ -299,7 +299,7 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
         ),
     ):
         with mock.patch(
-            'node_cli.utils.helper.requests.get', return_value=safe_update_api_response()
+            'node_cli.utils.helper.api_session.get', return_value=safe_update_api_response()
         ):  # noqa
             result = update(
                 regular_user_conf.as_posix(),
@@ -320,7 +320,7 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
 )
 @mock.patch('node_cli.core.node.is_admin_running', return_value=False)
 @mock.patch('node_cli.core.node.is_api_running', return_value=False)
-@mock.patch('node_cli.utils.helper.requests.get')
+@mock.patch('node_cli.utils.helper.api_session.get')
 def test_is_update_safe_when_admin_and_api_not_running(
     mock_requests_get, mock_is_api_running, mock_is_admin_running, node_type, node_mode
 ):
@@ -330,7 +330,7 @@ def test_is_update_safe_when_admin_and_api_not_running(
 
 @mock.patch('node_cli.core.node.is_admin_running', return_value=False)
 @mock.patch('node_cli.core.node.is_api_running', return_value=True)
-@mock.patch('node_cli.utils.helper.requests.get')
+@mock.patch('node_cli.utils.helper.api_session.get')
 def test_is_update_safe_when_admin_not_running_for_passive(
     mock_requests_get, mock_is_api_running, mock_is_admin_running
 ):
@@ -352,7 +352,7 @@ def test_is_update_safe_when_admin_not_running_for_passive(
     ids=['api_safe', 'api_unsafe'],
 )
 @mock.patch('node_cli.core.node.is_admin_running', return_value=True)
-@mock.patch('node_cli.utils.helper.requests.get')
+@mock.patch('node_cli.utils.helper.api_session.get')
 def test_is_update_safe_when_admin_running(
     mock_requests_get, mock_is_admin_running, api_is_safe, expected_result, node_type, node_mode
 ):
@@ -369,7 +369,7 @@ def test_is_update_safe_when_admin_running(
 )
 @mock.patch('node_cli.core.node.is_admin_running', return_value=False)
 @mock.patch('node_cli.core.node.is_api_running', return_value=True)
-@mock.patch('node_cli.utils.helper.requests.get')
+@mock.patch('node_cli.utils.helper.api_session.get')
 def test_is_update_safe_when_only_api_running_for_regular(
     mock_requests_get,
     mock_is_api_running,
@@ -392,7 +392,7 @@ def test_is_update_safe_when_only_api_running_for_regular(
     ],
 )
 @mock.patch('node_cli.core.node.is_admin_running', return_value=True)
-@mock.patch('node_cli.utils.helper.requests.get')
+@mock.patch('node_cli.utils.helper.api_session.get')
 def test_is_update_safe_when_api_call_fails(
     mock_requests_get, mock_is_admin_running, node_type, node_mode
 ):

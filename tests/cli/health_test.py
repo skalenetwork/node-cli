@@ -47,7 +47,7 @@ OK_LS_RESPONSE_DATA = {
 
 def test_containers():
     resp_mock = response_mock(requests.codes.ok, json_data=OK_LS_RESPONSE_DATA)
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, containers)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, containers)
     assert result.exit_code == 0
     assert (
         result.output
@@ -73,7 +73,7 @@ def test_checks():
         }
     ]
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, schains)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, schains)
 
     assert result.exit_code == 0
     assert (
@@ -81,7 +81,7 @@ def test_checks():
         == 'sChain Name   Config directory    DKG    Config file   Volume   Container    IMA    Firewall    RPC    Blocks\n-------------------------------------------------------------------------------------------------------------\ntest_schain   True               False   False         False    False       False   False      False   False \n'  # noqa
     )
 
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, schains, ['--json'])
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, schains, ['--json'])
 
     assert result.exit_code == 0
     assert (
@@ -99,7 +99,7 @@ def test_sgx_status():
         'status_https': True,
     }
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, sgx)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, sgx)
 
     assert result.exit_code == 0
     assert (

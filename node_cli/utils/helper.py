@@ -58,6 +58,7 @@ from node_cli.configs.cli_logger import (
     STREAM_LOG_FORMAT,
 )
 from node_cli.configs.routes import get_route
+from node_cli.utils.api_auth import APIAuthError, get_api_headers
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.global_config import get_system_user, read_g_config
 from node_cli.utils.print_formatters import print_err_response
@@ -65,6 +66,11 @@ from node_cli.utils.print_formatters import print_err_response
 logger = logging.getLogger(__name__)
 
 HOST = f'http://{ADMIN_HOST}:{ADMIN_PORT}'
+
+# Local operator credentials must not be sent through environment proxies or
+# replaced by netrc credentials.
+api_session = requests.Session()
+api_session.trust_env = False
 
 DEFAULT_ERROR_DATA = {
     'status': 'error',
@@ -195,8 +201,12 @@ def post_request(blueprint, method, json=None, files=None):
     route = get_route(blueprint, method)
     url = construct_url(route)
     try:
-        response = requests.post(url, json=json, files=files)
+        response = api_session.post(
+            url, json=json, files=files, headers=get_api_headers(), allow_redirects=False
+        )
         data = response.json()
+    except APIAuthError as err:
+        return 'error', str(err)
     except Exception as err:
         logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA
@@ -211,8 +221,12 @@ def get_request(
     route = get_route(blueprint, method)
     url = construct_url(route)
     try:
-        response = requests.get(url, params=params)
+        response = api_session.get(
+            url, params=params, headers=get_api_headers(), allow_redirects=False
+        )
         data = response.json()
+    except APIAuthError as err:
+        return 'error', str(err)
     except Exception as err:
         logger.exception('Request failed', exc_info=err)
         data = DEFAULT_ERROR_DATA
@@ -408,7 +422,61 @@ def get_tmp_path(path: str | Path) -> str:
     return base + salt + '.tmp' + ext
 
 
-def get_ssh_port(ssh_service_name='ssh'):
+SSH_PORTS_ERROR = 'Cannot determine valid SSH ports. Set SSH_PORT to an integer from 1 to 65535.'
+
+
+def _effective_sshd_config_ports() -> list[str]:
+    """Port values from `sshd -T`; ListenAddress entries take precedence."""
+    try:
+        # explicit pipes instead of capture_output: environments that wrap
+        # subprocess.run with their own stdout/stderr reject the combination
+        result = subprocess.run(
+            [shutil.which('sshd') or '/usr/sbin/sshd', '-T'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError) as err:
+        raise RuntimeError(
+            'Cannot determine SSH ports from sshd -T. Set SSH_PORT to the '
+            'SSH listening port before configuring the firewall.'
+        ) from err
+    ports, listen_ports = [], []
+    for line in result.stdout.splitlines():
+        fields = line.split()
+        if len(fields) < 2:
+            continue
+        if fields[0] == 'port':
+            ports.append(fields[1])
+        elif fields[0] == 'listenaddress':
+            # sshd -T expands addresses to IPv4:port or [IPv6]:port.
+            listen_ports.append(fields[1].rsplit(':', 1)[-1])
+    return listen_ports or ports
+
+
+def _validated_ssh_ports(values: list[str]) -> list[int]:
+    try:
+        ports = sorted({int(value) for value in values})
+    except ValueError as err:
+        raise ValueError(SSH_PORTS_ERROR) from err
+    if not ports or any(not 1 <= port <= 65535 for port in ports):
+        raise ValueError(SSH_PORTS_ERROR)
+    return ports
+
+
+def get_ssh_ports() -> list[int]:
+    """Return SSH_PORT or the ports from the effective default sshd config."""
+    override = os.getenv('SSH_PORT')
+    values = [override] if override is not None else _effective_sshd_config_ports()
+    return _validated_ssh_ports(values)
+
+
+def get_ssh_port(ssh_service_name='ssh') -> int:
+    """Return the first SSH port; firewall callers must use get_ssh_ports()."""
+    if ssh_service_name == 'ssh':
+        return get_ssh_ports()[0]
     try:
         return socket.getservbyname(ssh_service_name)
     except OSError:

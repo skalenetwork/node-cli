@@ -35,7 +35,7 @@ def test_wallet_info():
     response_mock = MagicMock()
     response_mock.status_code = requests.codes.ok
     response_mock.json = Mock(return_value=response_data)
-    result = run_command_mock('node_cli.utils.helper.requests.get', response_mock, wallet_info)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', response_mock, wallet_info)
     assert result.exit_code == 0
     expected = (
         '--------------------------------------------------\n'
@@ -47,7 +47,7 @@ def test_wallet_info():
     assert result.output == expected
 
     result = run_command_mock(
-        'node_cli.utils.helper.requests.get', response_mock, wallet_info, ['--format', 'json']
+        'node_cli.utils.helper.api_session.get', response_mock, wallet_info, ['--format', 'json']
     )
     assert result.exit_code == 0
     expected = '{"address": "simple_address", "eth_balance": 13, "skale_balance": 123}\n'
@@ -57,7 +57,7 @@ def test_wallet_info():
 def test_wallet_send():
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     result = run_command_mock(
-        'node_cli.utils.helper.requests.post',
+        'node_cli.utils.helper.api_session.post',
         resp_mock,
         send,
         ['0x00000000000000000000000000000000', '10', '--yes'],
@@ -72,7 +72,7 @@ def test_wallet_send_with_error():
         {'status': 'error', 'payload': ['Strange error']},
     )
     result = run_command_mock(
-        'node_cli.utils.helper.requests.post',
+        'node_cli.utils.helper.api_session.post',
         resp_mock,
         send,
         ['0x00000000000000000000000000000000', '10', '--yes'],

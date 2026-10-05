@@ -34,32 +34,52 @@ def test_ls():
         {
             'name': 'test_schain1',
             'mainnet_owner': '0x123',
-            'index_owner_list': 3,
+            'index_in_owner_list': 3,
             'part_of_node': 0,
             'lifetime': 5,
             'start_date': 1570115385,
+            'start_block': 1000,
             'deposit': 1000000000000000000,
             'index': 3,
             'generation': 1,
             'originator': '0x465',
-            'options': {'allocation_type': 0},  # noqa
+            'schain_hash': 'c55c12fc3ded931fbc34715443023a4a72e53f32aaafa42659cbef7b60e7d06a',
+            'options': {
+                'multitransaction_mode': True,
+                'threshold_encryption': True,
+                'allocation_type': 0,
+                'external_gas_difficulty': '0x01',
+                'min_gas_price': None,
+                'max_gas_price': None,
+            },
+            'active': True,
         },
         {
             'name': 'crazy_cats1',
             'mainnet_owner': '0x321',
-            'index_owner_list': 8,
+            'index_in_owner_list': 8,
             'part_of_node': 0,
             'lifetime': 5,
             'start_date': 1570469410,
+            'start_block': 1000,
             'deposit': 1000000000000000000,
             'index': 8,
             'generation': 0,
             'originator': '0x0',
-            'options': {'allocation_type': 0},  # noqa
+            'schain_hash': '139f942ee2f304b59143e340621139f58a7bb37d58e30a0ec46fdd1aaf79632a',
+            'options': {
+                'multitransaction_mode': True,
+                'threshold_encryption': True,
+                'allocation_type': 0,
+                'external_gas_difficulty': '0x01',
+                'min_gas_price': None,
+                'max_gas_price': None,
+            },
+            'active': True,
         },
     ]
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, ls)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, ls)
     assert result.exit_code == 0
     assert (
         result.output
@@ -80,14 +100,14 @@ def test_dkg():
         }
     ]
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, dkg)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, dkg)
     assert result.exit_code == 0
     assert (
         result.output
         == '  sChain Name      DKG Status          Added At         sChain Status\n---------------------------------------------------------------------\nmelodic-aldhibah   IN_PROGRESS   Jan 08 2020 15:26:52   Exists       \n'  # noqa
     )
 
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, dkg, ['--all'])
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, dkg, ['--all'])
     assert result.exit_code == 0
     assert (
         result.output
@@ -144,7 +164,7 @@ def test_get_schain_config():
     }
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock(
-        'node_cli.utils.helper.requests.get', resp_mock, get_schain_config, ['test1']
+        'node_cli.utils.helper.api_session.get', resp_mock, get_schain_config, ['test1']
     )
     assert result.exit_code == 0
     assert (
@@ -169,7 +189,7 @@ def test_schain_rules():
     }
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock(
-        'node_cli.utils.helper.requests.get', resp_mock, show_rules, ['schain-test']
+        'node_cli.utils.helper.api_session.get', resp_mock, show_rules, ['schain-test']
     )
     assert result.exit_code == 0
     print(repr(result.output))
@@ -201,7 +221,7 @@ def test_info():
     }
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
     result = run_command_mock(
-        'node_cli.utils.helper.requests.get', resp_mock, info_, ['attractive-ed-asich']
+        'node_cli.utils.helper.api_session.get', resp_mock, info_, ['attractive-ed-asich']
     )
     assert (
         result.output
@@ -212,7 +232,7 @@ def test_info():
     payload = ['error']
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'error'})
     result = run_command_mock(
-        'node_cli.utils.helper.requests.get', resp_mock, info_, ['schain not found']
+        'node_cli.utils.helper.api_session.get', resp_mock, info_, ['schain not found']
     )
     assert (
         result.output

@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import docker
+from filelock import FileLock
 
 from node_cli.cli import __version__
 from node_cli.configs import (
@@ -34,6 +35,7 @@ from node_cli.configs import (
     CONTAINER_CONFIG_PATH,
     FILESTORAGE_MAPPING,
     LOG_PATH,
+    NODE_CONFIG_PATH,
     RESTORE_SLEEP_TIMEOUT,
     SCHAINS_MNT_DIR_REGULAR,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
@@ -52,6 +54,7 @@ from node_cli.core.node_options import (
     passive_skale,
     passive_fair,
 )
+from node_cli.core.nftables import get_registered_base_port
 from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
     cleanup_skale_op,
@@ -79,6 +82,8 @@ from node_cli.utils.helper import (
     error_exit,
     get_request,
     post_request,
+    read_json,
+    save_json,
 )
 from node_cli.utils.meta import CliMetaManager
 from node_cli.utils.node_type import NodeType, NodeMode
@@ -145,10 +150,37 @@ def register_node(name, p2p_ip, public_ip, port, domain_name):
         msg = TEXTS['node']['registered']
         logger.info(msg)
         print(msg)
+        try:
+            save_registered_base_port(port)
+            logger.info('Reconfiguring firewall for the registered base port %d', port)
+            configure_nftables()
+        except Exception:
+            logger.exception('Post-registration firewall reconfiguration failed')
+            error_exit(
+                'Node is successfully registered in SKALE manager, but firewall '
+                'reconfiguration failed. Run < skale node configure-firewall > '
+                'to complete the setup',
+                exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR,
+            )
     else:
         error_msg = payload
         logger.error(f'Registration error {error_msg}')
         error_exit(error_msg, exit_code=CLIExitCodes.BAD_API_RESPONSE)
+
+
+def save_registered_base_port(port: int) -> None:
+    """Persist the node base port to the node config.
+
+    Kept separate from schain_base_port, which holds an already-allocated
+    sChain port in passive mode. skale-admin saves node_base_port during
+    registration as well
+    """
+    lock = FileLock(f'{NODE_CONFIG_PATH}.lock')
+    with lock:
+        node_config = read_json(NODE_CONFIG_PATH) if os.path.isfile(NODE_CONFIG_PATH) else {}
+        if node_config.get('node_base_port') != port:
+            node_config['node_base_port'] = port
+            save_json(NODE_CONFIG_PATH, node_config)
 
 
 @check_not_inited
@@ -217,7 +249,31 @@ def init_passive(
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=NodeType.SKALE, node_mode=node_mode):
         error_exit('Containers are not running', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
+    enable_firewall_default_drop_when_port_available()
     logger.info('Passive node initialized successfully')
+
+
+def enable_firewall_default_drop_when_port_available(timeout: int = 300, interval: int = 5) -> None:
+    """Flip the firewall to default drop once admin saves the base port.
+
+    Passive init configures nftables before skale-admin computes the mirrored
+    chain's base port, so the drop policy is deferred until the port is known.
+    """
+    start = time.monotonic()
+    while time.monotonic() - start < timeout:
+        if get_registered_base_port() is not None:
+            configure_nftables()
+            return
+        time.sleep(interval)
+    logger.warning(
+        'Node base port is not available after %d seconds - firewall default '
+        'drop is postponed until the next node update',
+        timeout,
+    )
+    print(
+        'Firewall default drop policy is postponed: the chain base port is not '
+        'known yet. It will be applied on the next < skale node update-passive >'
+    )
 
 
 @check_inited
@@ -523,5 +579,5 @@ def run_checks(
         print_failed_requirements_checks(failed_checks)
 
 
-def configure_firewall_rules(enable_monitoring: bool = False) -> None:
-    configure_nftables(enable_monitoring=enable_monitoring)
+def configure_firewall_rules() -> None:
+    configure_nftables()
