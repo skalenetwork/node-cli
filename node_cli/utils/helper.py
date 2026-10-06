@@ -58,6 +58,7 @@ from node_cli.configs.cli_logger import (
     STREAM_LOG_FORMAT,
 )
 from node_cli.configs.routes import get_route
+from node_cli.configs.ssl import SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
 from node_cli.utils.api_auth import APIAuthError, get_api_headers
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.global_config import get_system_user, read_g_config
@@ -482,6 +483,11 @@ def get_ssh_port(ssh_service_name='ssh') -> int:
     except OSError:
         logger.exception('Cannot get ssh service port')
         return DEFAULT_SSH_PORT
+
+
+def check_ssl_certs() -> bool:
+    """TLS is configured once the certificate and its key are in the node's ssl folder"""
+    return os.path.exists(SSL_CERT_FILEPATH) and os.path.exists(SSL_KEY_FILEPATH)
 
 
 def is_btrfs_subvolume(path: str) -> bool:

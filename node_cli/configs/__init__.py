@@ -65,7 +65,15 @@ STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'static_params.yaml
 FAIR_STATIC_PARAMS_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'fair_static_params.yaml')
 
 NGINX_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'nginx.conf.j2')
-NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
+NGINX_BASE_TEMPLATE_FILEPATH = os.path.join(CONTAINER_CONFIG_PATH, 'base.conf.j2')
+NGINX_NJS_SOURCE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'njs')
+NGINX_DIR = os.path.join(NODE_DATA_PATH, 'nginx')
+NGINX_CONFIG_FILEPATH = os.path.join(NGINX_DIR, 'nginx.conf')
+NGINX_CONF_D_PATH = os.path.join(NGINX_DIR, 'conf.d')
+NGINX_BASE_CONFIG_FILEPATH = os.path.join(NGINX_CONF_D_PATH, 'base.conf')
+NGINX_CHAINS_PATH = os.path.join(NGINX_CONF_D_PATH, 'chains')
+NGINX_NJS_PATH = os.path.join(NGINX_DIR, 'njs')
+LEGACY_NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
 NGINX_CONTAINER_NAME = 'sk_nginx'
 
 LOG_PATH = os.path.join(NODE_DATA_PATH, 'log')

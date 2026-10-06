@@ -312,6 +312,21 @@ Options:
 
 * `--yes` - Set without additional confirmation.
 
+#### RPC proxy
+
+Override, for this node only, whether sChain RPC ports are served by nginx while skaled moves to internal ports. Without an override the node follows `nginx.rpc_proxy` in the static params.
+
+```shell
+skale node rpc-proxy <on|off|default>
+```
+
+Arguments:
+
+* `on`, `off` - Force the proxy on or off on this node.
+* `default` - Follow the static params flag again.
+
+skale-admin applies the change at the next skaled check of each chain, which restarts skaled on the new ports.
+
 #### Skale Node Signature
 
 Get the node signature for a validator ID.
@@ -676,6 +691,21 @@ Options:
 
 > WARNING: This command removes all Passive node data.
 
+#### Passive node RPC proxy
+
+Override, for this node only, whether sChain RPC ports are served by nginx while skaled moves to internal ports. Without an override the node follows `nginx.rpc_proxy` in the static params.
+
+```shell
+skale passive-node rpc-proxy <on|off|default>
+```
+
+Arguments:
+
+* `on`, `off` - Force the proxy on or off on this node.
+* `default` - Follow the static params flag again.
+
+skale-admin applies the change at the next skaled check of each chain, which restarts skaled on the new ports.
+
 ***
 
 ## Fair Node Usage (`fair`)
@@ -1019,6 +1049,21 @@ Arguments:
 
 * `IP_ADDRESS` - New public IP address for the Fair node.
 
+#### Fair Node RPC proxy
+
+Override, for this node only, whether sChain RPC ports are served by nginx while skaled moves to internal ports. Without an override the node follows `nginx.rpc_proxy` in the static params.
+
+```shell
+fair node rpc-proxy <on|off|default>
+```
+
+Arguments:
+
+* `on`, `off` - Force the proxy on or off on this node.
+* `default` - Follow the static params flag again.
+
+skale-admin applies the change at the next skaled check of each chain, which restarts skaled on the new ports.
+
 ### Fair Chain commands
 
 > Prefix: `fair chain`
@@ -1358,6 +1403,21 @@ fair passive-node cleanup [--yes]
 Options:
 
 * `--yes` - Proceed without confirmation.
+
+#### Passive Fair Node RPC proxy
+
+Override, for this node only, whether sChain RPC ports are served by nginx while skaled moves to internal ports. Without an override the node follows `nginx.rpc_proxy` in the static params.
+
+```shell
+fair passive-node rpc-proxy <on|off|default>
+```
+
+Arguments:
+
+* `on`, `off` - Force the proxy on or off on this node.
+* `default` - Follow the static params flag again.
+
+skale-admin applies the change at the next skaled check of each chain, which restarts skaled on the new ports.
 
 ***
 

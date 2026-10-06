@@ -388,10 +388,36 @@ def compose_up(
             )
 
 
-def restart_nginx_container(dutils=None):
+class NginxConfigError(Exception):
+    pass
+
+
+def nginx_answer(url: str, dutils=None) -> Optional[str]:
+    """What nginx itself answers on url, asked from inside its container"""
+    dutils = dutils or docker_client()
+    try:
+        result = dutils.containers.get(NGINX_CONTAINER_NAME).exec_run(
+            ['curl', '-skf', '-m', '2', url]
+        )
+    except Exception:
+        logger.debug('Could not ask nginx for %s', url, exc_info=True)
+        return None
+    return result.output.decode(errors='replace').strip() if result.exit_code == 0 else None
+
+
+def reload_nginx_container(dutils=None) -> None:
+    """Test the config inside sk_nginx and reload it; restart the container if it is not running"""
     dutils = dutils or docker_client()
     nginx_container = dutils.containers.get(NGINX_CONTAINER_NAME)
-    nginx_container.restart()
+    if nginx_container.status != 'running':
+        logger.info('%s is not running, restarting it', NGINX_CONTAINER_NAME)
+        nginx_container.restart()
+        return
+    # a failed test leaves nginx on the old config, a restart would take it down
+    for cmd in (['nginx', '-t'], ['nginx', '-s', 'reload']):
+        result = nginx_container.exec_run(cmd)
+        if result.exit_code != 0:
+            raise NginxConfigError(result.output.decode(errors='replace'))
 
 
 def remove_images(images, dclient=None):

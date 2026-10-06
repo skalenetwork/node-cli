@@ -23,6 +23,7 @@ import click
 
 from skale_core.types import EnvType
 from node_cli.cli.info import TYPE
+from node_cli.cli.rpc_proxy import rpc_proxy
 from node_cli.core.node import (
     cleanup as cleanup_skale,
     configure_firewall_rules,
@@ -61,6 +62,9 @@ def node_cli():
 @node_cli.group(help='SKALE node commands')
 def node():
     pass
+
+
+node.add_command(rpc_proxy)
 
 
 @node.command('info', help='Get info about SKALE node')

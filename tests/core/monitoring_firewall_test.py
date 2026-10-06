@@ -78,3 +78,47 @@ def test_monitoring_cleanup_preserves_custom_ssh_port(monitoring_firewall, monke
         delete.assert_not_called()
     manager.verify_critical_accepts()
     assert manager.rule_exists(manager.chain, Rule(manager.chain, 'tcp', 9100).to_expr())
+
+
+def test_tls_ports_open_only_with_certificates(monitoring_firewall, monkeypatch):
+    manager = monitoring_firewall
+    expressions = [Rule(manager.chain, 'tcp', port).to_expr() for port in (443, 311)]
+    # a firewall set up before the ports depended on certificates accepts both
+    for expr in expressions * 2:
+        manager._execute_rule_with_op('add', manager.chain, expr)
+
+    monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: False)
+    manager.setup_firewall()
+    assert manager.get_chain_policy(manager.chain) == 'drop'
+    for expr in expressions:
+        assert not manager.rule_exists(manager.chain, expr)
+    manager.verify_critical_accepts()
+
+    monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: True)
+    manager.sync_tls_accepts()
+    for expr in expressions:
+        assert manager.rule_exists(manager.chain, expr)
+
+    firewall.save_nftables_base_rules(manager.get_base_ruleset())
+    manager.execute_cmd(
+        {'nftables': [{'delete': {'table': {'family': manager.family, 'name': manager.table}}}]}
+    )
+    rc, _, error = manager.nft.cmd(f'include "{firewall.NFTABLES_SKALE_BASE_CONFIG_PATH}"')
+    assert rc == 0, error
+    for expr in expressions:
+        assert manager.rule_exists(manager.chain, expr)
+
+    monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: False)
+    manager.setup_firewall()
+    for expr in expressions:
+        assert not manager.rule_exists(manager.chain, expr)
+
+
+def test_closing_tls_ports_preserves_ssh_on_443(monitoring_firewall, monkeypatch):
+    monkeypatch.setenv('SSH_PORT', '443')
+    monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: False)
+    manager = monitoring_firewall
+    manager.setup_firewall()
+    manager.verify_critical_accepts()
+    assert manager.rule_exists(manager.chain, Rule(manager.chain, 'tcp', 443).to_expr())
+    assert not manager.rule_exists(manager.chain, Rule(manager.chain, 'tcp', 311).to_expr())
