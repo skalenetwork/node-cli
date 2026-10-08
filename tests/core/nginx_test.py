@@ -33,6 +33,7 @@ from node_cli.utils.docker_utils import NginxConfigError, nginx_answer, reload_n
 from node_cli.utils.node_type import NodeType, NodeMode
 from node_cli.configs import (
     LEGACY_NGINX_CONFIG_FILEPATH,
+    LEGACY_NGINX_TEMPLATE_FILEPATH,
     NGINX_BASE_CONFIG_FILEPATH,
     NGINX_BASE_TEMPLATE_FILEPATH,
     NGINX_CHAINS_PATH,
@@ -41,6 +42,7 @@ from node_cli.configs import (
     NGINX_LOCK_PATH,
     NGINX_NJS_PATH,
     NGINX_NJS_SOURCE_PATH,
+    NGINX_TEMPLATE_DIR,
     NGINX_TEMPLATE_FILEPATH,
     NODE_CERTS_PATH,
 )
@@ -93,14 +95,21 @@ def nginx_template():
     try:
         yield
     finally:
-        for path in (NGINX_TEMPLATE_FILEPATH, NGINX_BASE_TEMPLATE_FILEPATH):
-            if os.path.isfile(path):
-                os.remove(path)
-        shutil.rmtree(NGINX_NJS_SOURCE_PATH, ignore_errors=True)
+        shutil.rmtree(NGINX_TEMPLATE_DIR, ignore_errors=True)
         shutil.rmtree(NGINX_DIR, ignore_errors=True)
         for path in (LEGACY_NGINX_CONFIG_FILEPATH, LEGACY_NGINX_BACKUP_FILEPATH):
             if os.path.isfile(path):
                 os.remove(path)
+
+
+@pytest.fixture
+def legacy_nginx_template(nginx_template):
+    shutil.rmtree(NGINX_TEMPLATE_DIR)
+    Path(LEGACY_NGINX_TEMPLATE_FILEPATH).write_text(TEST_NGINX_TEMPLATE)
+    try:
+        yield
+    finally:
+        Path(LEGACY_NGINX_TEMPLATE_FILEPATH).unlink()
 
 
 @pytest.mark.parametrize(
@@ -215,13 +224,19 @@ def test_generate_nginx_config_migrates_legacy_file(mock_check_ssl, nginx_templa
 
 
 @mock.patch('node_cli.core.nginx.check_ssl_certs', return_value=False)
-def test_generate_nginx_config_legacy_stream(mock_check_ssl, nginx_template):
-    # streams released before the directory layout have no base.conf.j2
-    os.remove(NGINX_BASE_TEMPLATE_FILEPATH)
+def test_generate_nginx_config_legacy_stream(mock_check_ssl, legacy_nginx_template):
     generate_nginx_config()
     assert os.path.isfile(LEGACY_NGINX_CONFIG_FILEPATH)
     assert not os.path.exists(NGINX_CONFIG_FILEPATH)
     assert is_node_inited()
+
+
+@mock.patch('node_cli.core.nginx.check_ssl_certs', return_value=False)
+def test_generate_nginx_config_missing_base_template(mock_check_ssl, nginx_template):
+    os.remove(NGINX_BASE_TEMPLATE_FILEPATH)
+    with pytest.raises(FileNotFoundError):
+        generate_nginx_config()
+    assert not os.path.exists(LEGACY_NGINX_CONFIG_FILEPATH)
 
 
 def test_is_node_inited_marker(nginx_template):
@@ -381,8 +396,7 @@ def test_reload_nginx_waits_for_nginx_to_serve_new_base(
 @mock.patch('node_cli.core.nginx.check_ssl_certs', return_value=False)
 @mock.patch('node_cli.core.nginx.docker_client')
 @mock.patch('node_cli.core.nginx.reload_nginx_container')
-def test_reload_nginx_legacy_stream(mock_reload, mock_client, mock_ssl, nginx_template):
-    os.remove(NGINX_BASE_TEMPLATE_FILEPATH)
+def test_reload_nginx_legacy_stream(mock_reload, mock_client, mock_ssl, legacy_nginx_template):
     with mock.patch('node_cli.core.nginx.nginx_answer') as answer:
         reload_nginx()
     mock_reload.assert_called_once()

@@ -34,6 +34,7 @@ from jinja2 import Environment
 from node_cli.cli.info import TYPE
 from node_cli.configs import (
     LEGACY_NGINX_CONFIG_FILEPATH,
+    LEGACY_NGINX_TEMPLATE_FILEPATH,
     NGINX_BASE_CONFIG_FILEPATH,
     NGINX_BASE_TEMPLATE_FILEPATH,
     NGINX_CHAINS_PATH,
@@ -42,6 +43,7 @@ from node_cli.configs import (
     NGINX_LOCK_PATH,
     NGINX_NJS_PATH,
     NGINX_NJS_SOURCE_PATH,
+    NGINX_TEMPLATE_DIR,
     NGINX_TEMPLATE_FILEPATH,
     NODE_CERTS_PATH,
 )
@@ -84,9 +86,11 @@ def generate_nginx_config() -> Optional[str]:
         'skale_node': skale_node,
     }
     logger.info(f'Processing nginx templates. ssl: {ssl_on}, skale_node: {skale_node}')
-    if not os.path.isfile(NGINX_BASE_TEMPLATE_FILEPATH):
+    if not os.path.isdir(NGINX_TEMPLATE_DIR):
         # a config stream from before node_data/nginx/ mounts one server file into conf.d
-        process_template(NGINX_TEMPLATE_FILEPATH, LEGACY_NGINX_CONFIG_FILEPATH, template_data)
+        process_template(
+            LEGACY_NGINX_TEMPLATE_FILEPATH, LEGACY_NGINX_CONFIG_FILEPATH, template_data
+        )
         return None
     # chains/ is filled by skale-admin, njs/ gets the static handlers from the config repo
     safe_mkdir(NGINX_CHAINS_PATH)
