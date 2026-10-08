@@ -1,5 +1,5 @@
-import json
-from uuid import uuid4
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
@@ -7,10 +7,25 @@ from node_cli.core import nftables as firewall
 
 
 @pytest.mark.parametrize('certificates', [False, True])
-def test_tls_ports_survive_ruleset_restore(tmp_path, monkeypatch, certificates):
-    pytest.importorskip('nftables')
-    table = f'tls_test_{uuid4().hex}'
-    manager = firewall.NFTablesManager(table=table)
+def test_tls_ports_are_saved_for_restore(tmp_path, monkeypatch, certificates):
+    nft = Mock()
+    nft.cmd.return_value = (0, '', '')
+    nft.json_cmd.return_value = (0, '', '')
+    monkeypatch.setattr(firewall, 'nftables', SimpleNamespace(Nftables=lambda: nft), raising=False)
+    manager = firewall.NFTablesManager()
+    monkeypatch.setattr(firewall, 'NFTablesManager', lambda: manager)
+    monkeypatch.setattr(manager, 'get_rules', lambda chain: [])
+    monkeypatch.setattr(
+        manager,
+        'get_base_ruleset',
+        lambda: (
+            'table inet firewall {\n'
+            '\tchain skale {\n'
+            '\t\ttcp dport @skale_tls_ports counter accept\n'
+            '\t}\n'
+            '}\n'
+        ),
+    )
     chains = tmp_path / 'chains'
     chains.mkdir()
     user_config = tmp_path / 'user.conf'
@@ -23,36 +38,22 @@ def test_tls_ports_survive_ruleset_restore(tmp_path, monkeypatch, certificates):
     monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: certificates)
     monkeypatch.setattr(firewall, 'get_ssh_ports', lambda: [22])
 
-    def command(text):
-        rc, output, error = manager.nft.cmd(text)
-        assert rc == 0, error
-        return output
-
-    def ports():
-        data = json.loads(command(f'list set inet {table} skale_tls_ports'))
-        return sorted(
-            next(item['set'].get('elem', []) for item in data['nftables'] if 'set' in item)
+    for certificates in (certificates, True, True, False):
+        firewall.sync_tls_ports()
+        elements = ' elements = { 443, 311 };' if certificates else ''
+        assert (chains / 'tls-ports.conf').read_text() == (
+            f'set skale_tls_ports {{ type inet_service;{elements} }}\n'
         )
+        commands = nft.cmd.call_args.args[0]
+        assert 'flush set inet firewall skale_tls_ports\n' in commands
+        if certificates:
+            assert 'add element inet firewall skale_tls_ports { 443, 311 }\n' in commands
+        else:
+            assert 'add element' not in commands
 
-    command(f'add table inet {table}\nadd chain inet {table} skale')
-    try:
-        manager.sync_tls_accepts()
-        manager.sync_tls_accepts()
-        assert len(manager.get_rules('skale')) == 1
-        firewall.save_nftables_base_rules(manager.get_base_ruleset())
-        command(f'delete table inet {table}\n' + base_config.read_text())
-        assert ports() == ([311, 443] if certificates else [])
-
-        command(f'add element inet {table} skale_tls_ports {{ 311, 443 }}')
-        command(f'add element inet {table} skale_tls_ports {{ 311, 443 }}')
-        (chains / 'tls-ports.conf').write_text(
-            'set skale_tls_ports { type inet_service; elements = { 311, 443 }; }\n'
-        )
-        command(f'delete table inet {table}\n' + base_config.read_text())
-        assert ports() == [311, 443]
-
-        certificates = False
-        manager.sync_tls_accepts()
-        assert ports() == []
-    finally:
-        command(f'delete table inet {table}')
+        saved = base_config.read_text()
+        include = f'include "{chains}/*.conf"'
+        assert saved.count(include) == 1
+        assert saved.index(include) < saved.index('tcp dport @skale_tls_ports')
+        assert f'include "{user_config}"' in saved
+        assert sorted(path.name for path in chains.glob('*.conf')) == ['tls-ports.conf']
