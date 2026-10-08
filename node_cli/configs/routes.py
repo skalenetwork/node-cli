@@ -37,7 +37,7 @@ ROUTES = {
             'update-safe',
         ],
         'health': ['containers', 'schains'],
-        'info': ['sgx'],
+        'info': ['sgx', 'sgx-options'],
         'schains': ['config', 'list', 'dkg-statuses', 'firewall-rules', 'repair', 'get'],
         'ssl': ['status', 'upload'],
         'wallet': ['info', 'send-eth'],

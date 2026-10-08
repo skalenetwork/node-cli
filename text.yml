@@ -102,3 +102,27 @@ fair:
     exit:
       help: Remove node from Fair manager
       prompt: Are you sure you want to remove the node from Fair manager?
+
+sgx:
+  help: SGX wallet options and client certificate commands
+  no_sgx: This node has no SGX server configured (passive nodes do not use SGX)
+  options:
+    help: Show SGX server options through the node API
+  status:
+    help: Show the SGX client certificate used by node services
+    check: Also verify that the SGX server accepts the certificate
+    missing: |-
+      SGX client certificate files are missing.
+      Node services create them on their first SGX request, or run < skale sgx renew >
+    expired: SGX client certificate has expired. Run < skale sgx renew >
+    expires_soon: "SGX client certificate expires in {days} days. Consider running < skale sgx renew >"
+    key_mismatch: Private key does not match the certificate. Run < skale sgx renew >
+  renew:
+    help: Issue a new SGX client certificate and install it for node services
+    prompt: Are you sure you want to replace the SGX client certificate of this node?
+    timeout: Seconds to wait for the SGX server to sign the request
+    skip_verify: Install the certificate without testing it against the SGX server first
+    backup: "Previous certificate files were copied to {path}"
+    done: |-
+      New SGX client certificate installed.
+      Node services use it on their next SGX request; no restart is needed.

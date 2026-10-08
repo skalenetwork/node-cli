@@ -31,6 +31,7 @@ from node_cli.cli.node import (
     _turn_on,
     backup_node,
     cleanup_node,
+    configure_firewall,
     node_info,
     register_node,
     remove_node_from_maintenance,
@@ -56,11 +57,29 @@ logger = logging.getLogger(__name__)
 init_default_logger()
 
 
+def test_configure_firewall_without_monitoring_option():
+    with mock.patch('node_cli.cli.node.configure_firewall_rules') as configure:
+        result = run_command(configure_firewall, ['--yes'])
+        assert result.exit_code == 0, result.output
+        configure.assert_called_once_with()
+
+        configure.reset_mock()
+        result = run_command(configure_firewall, ['--yes', '--monitoring'])
+        assert result.exit_code == 2
+        assert 'No such option: --monitoring' in result.output
+        configure.assert_not_called()
+
+
 def test_register_node(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
-    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+    with (
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.save_registered_base_port'),
+        mock.patch('node_cli.core.node.configure_nftables'),
+        mock.patch('node_cli.core.node.get_settings'),
+    ):
         result = run_command_mock(
-            'node_cli.utils.helper.requests.post',
+            'node_cli.utils.helper.api_session.post',
             resp_mock,
             register_node,
             ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080', '-d', 'skale.test'],
@@ -72,6 +91,37 @@ def test_register_node(inited_node, resource_alloc, mocked_g_config):
     )  # noqa
 
 
+def test_register_node_firewall_failure(inited_node, resource_alloc, mocked_g_config):
+    """Post-registration firewall errors fail the command but report the registration."""
+    resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
+    with (
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch(
+            'node_cli.core.node.save_registered_base_port',
+            side_effect=OSError('disk error'),
+        ),
+        mock.patch('node_cli.core.node.configure_nftables'),
+        mock.patch('node_cli.core.node.get_settings'),
+    ):
+        result = run_command_mock(
+            'node_cli.utils.helper.api_session.post',
+            resp_mock,
+            register_node,
+            ['--name', 'test-node', '--ip', '0.0.0.0', '--port', '8080', '-d', 'skale.test'],
+        )
+    assert result.exit_code == CLIExitCodes.OPERATION_EXECUTION_ERROR.value
+    assert result.output == (
+        'Node registered in SKALE manager.\nFor more info run < skale node info >\n'
+        'Command failed with following errors:\n'
+        '--------------------------------------------------\n'
+        'Node is successfully registered in SKALE manager, but firewall '
+        'reconfiguration failed. Run < skale node configure-firewall > '
+        'to complete the setup\n'
+        '--------------------------------------------------\n'
+        f'You can find more info in {G_CONF_HOME}.skale/.skale-cli-log/debug-node-cli.log\n'
+    )
+
+
 def test_register_node_with_error(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(
         requests.codes.ok,
@@ -79,7 +129,7 @@ def test_register_node_with_error(inited_node, resource_alloc, mocked_g_config):
     )
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
-            'node_cli.utils.helper.requests.post',
+            'node_cli.utils.helper.api_session.post',
             resp_mock,
             register_node,
             ['--name', 'test-node2', '--ip', '0.0.0.0', '--port', '80', '-d', 'skale.test'],
@@ -93,9 +143,14 @@ def test_register_node_with_error(inited_node, resource_alloc, mocked_g_config):
 
 def test_register_node_with_prompted_ip(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
-    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+    with (
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.save_registered_base_port'),
+        mock.patch('node_cli.core.node.configure_nftables'),
+        mock.patch('node_cli.core.node.get_settings'),
+    ):
         result = run_command_mock(
-            'node_cli.utils.helper.requests.post',
+            'node_cli.utils.helper.api_session.post',
             resp_mock,
             register_node,
             ['--name', 'test-node', '--port', '8080', '-d', 'skale.test'],
@@ -110,9 +165,14 @@ def test_register_node_with_prompted_ip(inited_node, resource_alloc, mocked_g_co
 
 def test_register_node_with_default_port(inited_node, resource_alloc, mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
-    with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
+    with (
+        mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
+        mock.patch('node_cli.core.node.save_registered_base_port'),
+        mock.patch('node_cli.core.node.configure_nftables'),
+        mock.patch('node_cli.core.node.get_settings'),
+    ):
         result = run_command_mock(
-            'node_cli.utils.helper.requests.post',
+            'node_cli.utils.helper.api_session.post',
             resp_mock,
             register_node,
             ['--name', 'test-node', '-d', 'skale.test'],
@@ -128,7 +188,7 @@ def test_register_node_with_default_port(inited_node, resource_alloc, mocked_g_c
 def test_register_with_no_alloc(mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     result = run_command_mock(
-        'node_cli.utils.helper.requests.post',
+        'node_cli.utils.helper.api_session.post',
         resp_mock,
         register_node,
         ['--name', 'test-node', '-d', 'skale.test'],
@@ -161,7 +221,7 @@ def test_node_info_node_info():
     }
 
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert (
         result.output
@@ -189,7 +249,7 @@ def test_node_info_node_info_not_created():
     }
 
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert result.output == 'This SKALE node is not registered on SKALE Manager yet\n'
 
@@ -214,7 +274,7 @@ def test_node_info_node_info_frozen():
     }
 
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert (
         result.output
@@ -242,7 +302,7 @@ def test_node_info_node_info_left():
     }
 
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert (
         result.output
@@ -270,7 +330,7 @@ def test_node_info_node_info_leaving():
     }
 
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert (
         result.output
@@ -298,7 +358,7 @@ def test_node_info_node_info_in_maintenance():
     }
 
     resp_mock = response_mock(requests.codes.ok, json_data={'payload': payload, 'status': 'ok'})
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, node_info)
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, node_info)
     assert result.exit_code == 0
     assert (
         result.output
@@ -310,7 +370,7 @@ def test_node_signature():
     signature_sample = '0x1231231231'
     response_data = {'status': 'ok', 'payload': {'signature': signature_sample}}
     resp_mock = response_mock(requests.codes.ok, json_data=response_data)
-    result = run_command_mock('node_cli.utils.helper.requests.get', resp_mock, signature, ['1'])
+    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, signature, ['1'])
     assert result.exit_code == 0
     assert result.output == f'Signature: {signature_sample}\n'
 
@@ -363,7 +423,7 @@ def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config,
 def test_maintenance_on():
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     result = run_command_mock(
-        'node_cli.utils.helper.requests.post', resp_mock, set_node_in_maintenance, ['--yes']
+        'node_cli.utils.helper.api_session.post', resp_mock, set_node_in_maintenance, ['--yes']
     )
     assert result.exit_code == 0
     assert (
@@ -375,7 +435,7 @@ def test_maintenance_on():
 def test_maintenance_off(mocked_g_config):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     result = run_command_mock(
-        'node_cli.utils.helper.requests.post', resp_mock, remove_node_from_maintenance
+        'node_cli.utils.helper.api_session.post', resp_mock, remove_node_from_maintenance
     )
     assert result.exit_code == 0
     assert (
@@ -384,7 +444,9 @@ def test_maintenance_off(mocked_g_config):
     )
 
 
-def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node_option, skale_active_settings):
+def test_turn_off_maintenance_on(
+    mocked_g_config, regular_user_conf, active_node_option, skale_active_settings
+):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -393,7 +455,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node
         mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
-            'node_cli.utils.helper.requests.post',
+            'node_cli.utils.helper.api_session.post',
             resp_mock,
             _turn_off,
             ['--maintenance-on', '--yes'],
@@ -406,7 +468,7 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node
         assert result.exit_code == 0
         with mock.patch('node_cli.utils.docker_utils.is_container_running', return_value=True):
             result = run_command_mock(
-                'node_cli.utils.helper.requests.post',
+                'node_cli.utils.helper.api_session.post',
                 resp_mock,
                 _turn_off,
                 ['--maintenance-on', '--yes'],
@@ -415,7 +477,9 @@ def test_turn_off_maintenance_on(mocked_g_config, regular_user_conf, active_node
             assert result.exit_code == CLIExitCodes.UNSAFE_UPDATE
 
 
-def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node_option, skale_active_settings):
+def test_turn_on_maintenance_off(
+    mocked_g_config, regular_user_conf, active_node_option, skale_active_settings
+):
     resp_mock = response_mock(requests.codes.ok, {'status': 'ok', 'payload': None})
     with (
         mock.patch('subprocess.run', new=subprocess_run_mock),
@@ -425,7 +489,7 @@ def test_turn_on_maintenance_off(mocked_g_config, regular_user_conf, active_node
         mock.patch('node_cli.cli.node.TYPE', NodeType.SKALE),
     ):
         result = run_command_mock(
-            'node_cli.utils.helper.requests.post',
+            'node_cli.utils.helper.api_session.post',
             resp_mock,
             _turn_on,
             [regular_user_conf.as_posix(), '--maintenance-off', '--sync-schains', '--yes'],
@@ -443,7 +507,7 @@ def test_set_domain_name():
 
     with mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True):
         result = run_command_mock(
-            'node_cli.utils.helper.requests.post',
+            'node_cli.utils.helper.api_session.post',
             resp_mock,
             _set_domain_name,
             ['-d', 'skale.test', '--yes'],

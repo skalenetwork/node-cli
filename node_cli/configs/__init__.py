@@ -40,6 +40,8 @@ VOLUME_GROUP = 'schains'
 
 SKALE_DIR = os.path.join(G_CONF_HOME, '.skale')
 SKALE_TMP_DIR = os.path.join(SKALE_DIR, '.tmp')
+AUTH_DIR = Path(SKALE_DIR) / 'auth'
+ADMIN_API_TOKEN_PATH = AUTH_DIR / 'admin-api.token'
 
 NODE_DATA_PATH = os.path.join(SKALE_DIR, 'node_data')
 SCHAIN_NODE_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')

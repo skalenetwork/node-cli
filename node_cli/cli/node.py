@@ -239,7 +239,6 @@ def check(network):
 
 
 @node.command(help='Reconfigure nftables rules')
-@click.option('--monitoring', is_flag=True)
 @click.option(
     '--yes',
     is_flag=True,
@@ -247,8 +246,8 @@ def check(network):
     expose_value=False,
     prompt='Are you sure you want to reconfigure firewall rules?',
 )
-def configure_firewall(monitoring):
-    configure_firewall_rules(enable_monitoring=monitoring)
+def configure_firewall():
+    configure_firewall_rules()
 
 
 @node.command(help='Show node version information')
