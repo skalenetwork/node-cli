@@ -51,9 +51,7 @@ from node_cli.configs import (
     UFW_CONFIG_PATH,
     UFW_IPV6_BEFORE_INPUT_CHAIN,
     LEGACY_NGINX_CONFIG_FILEPATH,
-    NGINX_CHAINS_PATH,
     NGINX_CONFIG_FILEPATH,
-    NGINX_NJS_PATH,
 )
 from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.core.nftables import NFTablesManager
@@ -113,8 +111,6 @@ def make_dirs():
         SKALE_RUN_DIR,
         SKALE_STATE_DIR,
         SKALE_TMP_DIR,
-        NGINX_CHAINS_PATH,
-        NGINX_NJS_PATH,
     ):
         safe_mkdir(dir_path)
 

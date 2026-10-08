@@ -23,9 +23,12 @@ import logging
 import os.path
 import shutil
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, Optional
 
+from filelock import FileLock, Timeout
 from jinja2 import Environment
 
 from node_cli.cli.info import TYPE
@@ -35,6 +38,8 @@ from node_cli.configs import (
     NGINX_BASE_TEMPLATE_FILEPATH,
     NGINX_CHAINS_PATH,
     NGINX_CONFIG_FILEPATH,
+    NGINX_DIR,
+    NGINX_LOCK_PATH,
     NGINX_NJS_PATH,
     NGINX_NJS_SOURCE_PATH,
     NGINX_TEMPLATE_FILEPATH,
@@ -62,9 +67,12 @@ SSL_CRT_NAME = 'ssl_cert'
 # loopback-only location in base.conf that answers with the file's fingerprint
 PROBE_PATH = '/.skale-proxy'
 BASE_HEADER = '# node base config, rendered by node-cli and skale-admin: fingerprint '
+# nginx binds all listeners of a new config or none, so one base.conf server speaks for all
+BASE_PROBE_URL = f'http://127.0.0.1:{ServicePort.WATCHDOG_HTTP}{PROBE_PATH}'
 # nginx retries a busy listener port five times, 500 ms apart, before it keeps the old config
 APPLY_TIMEOUT_SECONDS = 10
 POLL_INTERVAL_SECONDS = 0.5
+LOCK_TIMEOUT_SECONDS = 120
 
 
 def generate_nginx_config() -> Optional[str]:
@@ -85,8 +93,7 @@ def generate_nginx_config() -> Optional[str]:
     safe_mkdir(NGINX_NJS_PATH)
     process_template(NGINX_TEMPLATE_FILEPATH, NGINX_CONFIG_FILEPATH, template_data)
     base = render_base_config(ssl_on, skale_node)
-    with open(NGINX_BASE_CONFIG_FILEPATH, 'w') as f:
-        f.write(base)
+    write_atomic(NGINX_BASE_CONFIG_FILEPATH, base)
     for script in glob.glob(os.path.join(NGINX_NJS_SOURCE_PATH, '*.js')):
         shutil.copy(script, NGINX_NJS_PATH)
     migrate_nginx_layout()
@@ -104,16 +111,11 @@ def render_base_config(ssl_on: bool, skale_node: bool) -> str:
     return template.render(data, fingerprint=fingerprint)
 
 
-def base_probe_urls(ssl_on: bool, skale_node: bool) -> list[str]:
-    """Every listener in base.conf, each has to answer before a change counts"""
-    ports = [('http', ServicePort.WATCHDOG_HTTP)]
-    if ssl_on:
-        ports.append(('https', ServicePort.WATCHDOG_HTTPS))
-    if skale_node:
-        ports.append(('http', ServicePort.HTTP))
-        if ssl_on:
-            ports.append(('https', ServicePort.HTTPS))
-    return [f'{scheme}://127.0.0.1:{port}{PROBE_PATH}' for scheme, port in ports]
+def write_atomic(path: str, text: str) -> None:
+    """nginx never reads a half-written file: conf.d/*.conf does not match the temporary name"""
+    tmp_path = f'{path}.tmp'
+    Path(tmp_path).write_text(text)
+    os.replace(tmp_path, path)
 
 
 def base_fingerprint(text: str) -> Optional[str]:
@@ -134,28 +136,40 @@ def is_skale_node_nginx() -> bool:
     return TYPE == NodeType.SKALE
 
 
+@contextmanager
+def nginx_lock() -> Iterator[None]:
+    """Serialises with skale-admin, which reloads nginx for chain files and certificates"""
+    safe_mkdir(NGINX_DIR)
+    try:
+        with FileLock(NGINX_LOCK_PATH, timeout=LOCK_TIMEOUT_SECONDS):
+            yield
+    except Timeout as err:
+        raise NginxConfigError('skale-admin holds the nginx lock, try again later') from err
+
+
 def reload_nginx() -> None:
     """Re-render and reload; `nginx -s reload` exits 0 even when nginx keeps its old config"""
     dutils = docker_client()
     base_path = Path(NGINX_BASE_CONFIG_FILEPATH)
-    previous = base_path.read_text() if base_path.is_file() else None
-    base = generate_nginx_config()
-    try:
-        reload_nginx_container(dutils=dutils)
-        served = base is None or wait_for(lambda: base_served(base, dutils), APPLY_TIMEOUT_SECONDS)
-        if not served:
-            raise NginxConfigError('nginx kept its old configuration, see docker logs sk_nginx')
-    except Exception:
-        if previous is not None:
-            # a file nginx never ran could stop it at its next start
-            base_path.write_text(previous)
-        raise
+    with nginx_lock():
+        previous = base_path.read_text() if base_path.is_file() else None
+        base = generate_nginx_config()
+        try:
+            reload_nginx_container(dutils=dutils)
+            served = base is None or wait_for(
+                lambda: base_served(base, dutils), APPLY_TIMEOUT_SECONDS
+            )
+            if not served:
+                raise NginxConfigError('nginx kept its old configuration, see docker logs sk_nginx')
+        except Exception:
+            if previous is not None:
+                # a file nginx never ran could stop it at its next start
+                write_atomic(NGINX_BASE_CONFIG_FILEPATH, previous)
+            raise
 
 
 def base_served(base: str, dutils) -> bool:
-    answer = f'base {base_fingerprint(base)}'
-    urls = base_probe_urls(check_ssl_certs(), is_skale_node_nginx())
-    return all(nginx_answer(url, dutils=dutils) == answer for url in urls)
+    return nginx_answer(BASE_PROBE_URL, dutils=dutils) == f'base {base_fingerprint(base)}'
 
 
 @check_inited
@@ -163,6 +177,6 @@ def base_served(base: str, dutils) -> bool:
 def set_rpc_proxy(mode: str) -> None:
     set_rpc_proxy_override(mode)
     print(
-        f'RPC proxy override set to {mode}. '
-        'skale-admin moves each chain at its next skaled check, which restarts skaled.'
+        f'RPC proxy override set to {mode}. skale-admin restarts skaled on the new ports: '
+        'SKALE chains at their next check, FAIR at a random time within the next hour.'
     )

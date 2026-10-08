@@ -1062,7 +1062,7 @@ Arguments:
 * `on`, `off` - Force the proxy on or off on this node.
 * `default` - Follow the static params flag again.
 
-skale-admin applies the change at the next skaled check of each chain, which restarts skaled on the new ports.
+skale-admin restarts skaled on the new ports at a random time within the next hour, so committee nodes do not restart together.
 
 ### Fair Chain commands
 
@@ -1417,7 +1417,7 @@ Arguments:
 * `on`, `off` - Force the proxy on or off on this node.
 * `default` - Follow the static params flag again.
 
-skale-admin applies the change at the next skaled check of each chain, which restarts skaled on the new ports.
+skale-admin restarts skaled on the new ports at a random time within the next hour, so committee nodes do not restart together.
 
 ***
 

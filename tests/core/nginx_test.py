@@ -8,9 +8,11 @@ import mock
 
 from node_cli.core.host import is_node_inited
 from node_cli.core.nftables import NFTablesError
+from filelock import FileLock
+
 from node_cli.core.nginx import (
+    BASE_PROBE_URL,
     base_fingerprint,
-    base_probe_urls,
     generate_nginx_config,
     check_ssl_certs,
     is_skale_node_nginx,
@@ -36,6 +38,7 @@ from node_cli.configs import (
     NGINX_CHAINS_PATH,
     NGINX_CONFIG_FILEPATH,
     NGINX_DIR,
+    NGINX_LOCK_PATH,
     NGINX_NJS_PATH,
     NGINX_NJS_SOURCE_PATH,
     NGINX_TEMPLATE_FILEPATH,
@@ -348,16 +351,6 @@ def test_render_base_config_fingerprint(fingerprint_template, ssl_folder):
     )
 
 
-def test_base_probe_urls():
-    assert base_probe_urls(ssl_on=False, skale_node=False) == ['http://127.0.0.1:3009/.skale-proxy']
-    assert base_probe_urls(ssl_on=True, skale_node=True) == [
-        'http://127.0.0.1:3009/.skale-proxy',
-        'https://127.0.0.1:311/.skale-proxy',
-        'http://127.0.0.1:80/.skale-proxy',
-        'https://127.0.0.1:443/.skale-proxy',
-    ]
-
-
 def read_base() -> str:
     with open(NGINX_BASE_CONFIG_FILEPATH) as f:
         return f.read()
@@ -367,17 +360,22 @@ def serve_base_on_disk(url, dutils=None):
     return f'base {base_fingerprint(read_base())}'
 
 
+@mock.patch('node_cli.core.nginx.POLL_INTERVAL_SECONDS', 0)
 @mock.patch('node_cli.core.nginx.check_ssl_certs', return_value=False)
 @mock.patch('node_cli.core.nginx.docker_client')
 @mock.patch('node_cli.core.nginx.reload_nginx_container')
 def test_reload_nginx_waits_for_nginx_to_serve_new_base(
     mock_reload, mock_client, mock_ssl, fingerprint_template
 ):
-    with mock.patch('node_cli.core.nginx.nginx_answer', side_effect=serve_base_on_disk) as answer:
+    stale = ['base 0000000000000000']
+
+    def nginx_catches_up(url, dutils=None):
+        return stale.pop() if stale else serve_base_on_disk(url)
+
+    with mock.patch('node_cli.core.nginx.nginx_answer', side_effect=nginx_catches_up) as answer:
         reload_nginx()
     mock_reload.assert_called_once()
-    probed = {call.args[0] for call in answer.call_args_list}
-    assert probed == set(base_probe_urls(ssl_on=False, skale_node=is_skale_node_nginx()))
+    assert [call.args[0] for call in answer.call_args_list] == [BASE_PROBE_URL] * 2
 
 
 @mock.patch('node_cli.core.nginx.check_ssl_certs', return_value=False)
@@ -408,6 +406,33 @@ def test_reload_nginx_restores_base_nginx_did_not_take(
             reload_nginx()
     assert read_base() == '# the base.conf nginx still runs\n'
     mock_reload.assert_called_once()
+
+
+@pytest.mark.parametrize('previous', [None, '# the base.conf nginx still runs\n'])
+@mock.patch('node_cli.core.nginx.check_ssl_certs', return_value=False)
+@mock.patch('node_cli.core.nginx.docker_client')
+@mock.patch('node_cli.core.nginx.reload_nginx_container')
+def test_reload_nginx_with_config_nginx_rejects(
+    mock_reload, mock_client, mock_ssl, fingerprint_template, previous
+):
+    os.makedirs(os.path.dirname(NGINX_BASE_CONFIG_FILEPATH), exist_ok=True)
+    if previous is not None:
+        Path(NGINX_BASE_CONFIG_FILEPATH).write_text(previous)
+    mock_reload.side_effect = NginxConfigError('nginx -t failed')
+    with pytest.raises(NginxConfigError, match='nginx -t failed'):
+        reload_nginx()
+    # the earlier file comes back, a first render stays for the next attempt
+    assert read_base() == (previous or render_base_config(ssl_on=False, skale_node=True))
+
+
+@mock.patch('node_cli.core.nginx.LOCK_TIMEOUT_SECONDS', 0.1)
+@mock.patch('node_cli.core.nginx.docker_client')
+@mock.patch('node_cli.core.nginx.reload_nginx_container')
+def test_reload_nginx_waits_for_skale_admin_lock(mock_reload, mock_client, fingerprint_template):
+    os.makedirs(NGINX_DIR, exist_ok=True)
+    with FileLock(NGINX_LOCK_PATH), pytest.raises(NginxConfigError, match='nginx lock'):
+        reload_nginx()
+    mock_reload.assert_not_called()
 
 
 @mock.patch('node_cli.core.ssl.upload.copy_cert_key_pair')

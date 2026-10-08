@@ -73,6 +73,8 @@ NGINX_CONF_D_PATH = os.path.join(NGINX_DIR, 'conf.d')
 NGINX_BASE_CONFIG_FILEPATH = os.path.join(NGINX_CONF_D_PATH, 'base.conf')
 NGINX_CHAINS_PATH = os.path.join(NGINX_CONF_D_PATH, 'chains')
 NGINX_NJS_PATH = os.path.join(NGINX_DIR, 'njs')
+# skale-admin takes the same lock for its nginx changes
+NGINX_LOCK_PATH = os.path.join(NGINX_DIR, '.chains.lock')
 LEGACY_NGINX_CONFIG_FILEPATH = os.path.join(NODE_DATA_PATH, 'nginx.conf')
 NGINX_CONTAINER_NAME = 'sk_nginx'
 

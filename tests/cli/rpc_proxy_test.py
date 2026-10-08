@@ -1,6 +1,10 @@
 import mock
+import pytest
 
+from node_cli.cli.fair_node import node as fair_node
 from node_cli.cli.node import node
+from node_cli.cli.passive_fair_node import passive_node as passive_fair_node
+from node_cli.cli.passive_node import passive_node
 from node_cli.cli.rpc_proxy import rpc_proxy
 from node_cli.core.node_options import NodeOptions
 from tests.helper import run_command
@@ -20,5 +24,10 @@ def test_rpc_proxy_command(active_node_option, inited_node):
         assert result.exit_code == 2
 
 
-def test_rpc_proxy_command_registered():
-    assert node.commands['rpc-proxy'] is rpc_proxy
+@pytest.mark.parametrize(
+    'group',
+    [node, passive_node, fair_node, passive_fair_node],
+    ids=['node', 'passive_node', 'fair_node', 'passive_fair_node'],
+)
+def test_rpc_proxy_command_registered(group):
+    assert group.commands['rpc-proxy'] is rpc_proxy

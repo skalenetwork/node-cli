@@ -26,6 +26,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from filelock import FileLock
+
 from node_cli.configs import (
     DEFAULT_NODE_BASE_PORT,
     ENV,
@@ -654,11 +656,29 @@ class NFTablesManager:
 
     def sync_tls_accepts(self) -> None:
         """Open the TLS service ports with certificates, close them without."""
-        if not check_ssl_certs():
+        path = Path(NFTABLES_CHAIN_FOLDER_PATH) / 'tls-ports.conf'
+        with FileLock(path.with_suffix('.lock'), timeout=120):
+            ports = ', '.join(map(str, TLS_SERVICE_PORTS)) if check_ssl_certs() else ''
+            elements = f' elements = {{ {ports} }};' if ports else ''
+            declaration = f'set skale_tls_ports {{ type inet_service;{elements} }}'
+            commands = (
+                f'add set {self.family} {self.table} skale_tls_ports {{ type inet_service; }}\n'
+                f'flush set {self.family} {self.table} skale_tls_ports\n'
+            )
+            if ports:
+                commands += (
+                    f'add element {self.family} {self.table} skale_tls_ports {{ {ports} }}\n'
+                )
+            rc, _, error = self.nft.cmd(commands)
+            if rc != 0:
+                raise NFTablesError(f'Failed to sync TLS ports: {error}')
+            temporary = path.with_suffix('.tmp')
+            temporary.write_text(declaration + '\n')
+            temporary.replace(path)
+            expr = [dport_match('tcp', 0, 0), {'counter': None}, {'accept': None}]
+            expr[0]['match']['right'] = '@skale_tls_ports'
+            self._ensure_rule(self.chain, expr, label='TLS service ports')
             self._remove_tcp_accepts(TLS_SERVICE_PORTS)
-            return
-        for port in TLS_SERVICE_PORTS:
-            self.add_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
 
     def _add_icmp_accepts(self) -> None:
         self.remove_source_quench_rule()
@@ -897,8 +917,7 @@ def save_nftables_base_rules(ruleset: str) -> None:
         f'\t\tinclude "{NFTABLES_USER_CONFIG_PATH}"',
         '\t}',
     ]
-    ruleset_lines[1:1] = user_chain_lines
-    ruleset_lines.insert(-2, chain_include_line)
+    ruleset_lines[1:1] = [chain_include_line, *user_chain_lines]
     with open(NFTABLES_SKALE_BASE_CONFIG_PATH, 'w') as f:
         f.write('\n'.join(ruleset_lines))
     logger.info('Rules saved successfully to %s', NFTABLES_SKALE_BASE_CONFIG_PATH)
