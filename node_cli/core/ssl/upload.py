@@ -22,11 +22,16 @@ from node_cli.configs.ssl import CERTS_UPLOADED_ERR_MSG
 
 from node_cli.core.ssl.check import check_cert_openssl
 from node_cli.core.ssl.utils import is_ssl_folder_empty, copy_cert_key_pair
+from node_cli.utils.docker_utils import NginxConfigError
 from node_cli.utils.helper import ok_result, err_result
+from node_cli.core.nftables import sync_tls_ports
 from node_cli.core.nginx import reload_nginx
 
 
 logger = logging.getLogger(__name__)
+
+# the certificates are already in place, so a plain retry is refused as a second upload
+RETRY_HINT = 'Run the upload again with --force'
 
 
 def upload_cert(cert_path, key_path, force, no_client=False):
@@ -38,5 +43,19 @@ def upload_cert(cert_path, key_path, force, no_client=False):
     if not is_ssl_folder_empty() and not force:
         return err_result(CERTS_UPLOADED_ERR_MSG)
     copy_cert_key_pair(cert_path, key_path)
-    reload_nginx()
+    try:
+        reload_nginx()
+    except NginxConfigError as err:
+        logger.exception('nginx did not apply the new certificates')
+        return err_result(
+            f'Certificates are saved, but nginx is not serving them. {err}. {RETRY_HINT}'
+        )
+    try:
+        sync_tls_ports()
+    except Exception as err:
+        logger.exception('Firewall does not follow the new certificates')
+        return err_result(
+            f'Certificates are saved, but the firewall may still block the TLS ports. {err}. '
+            f'{RETRY_HINT}'
+        )
     return ok_result()

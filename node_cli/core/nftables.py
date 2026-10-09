@@ -26,6 +26,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from filelock import FileLock
+
 from node_cli.configs import (
     DEFAULT_NODE_BASE_PORT,
     ENV,
@@ -36,7 +38,13 @@ from node_cli.configs import (
     NFTABLES_USER_CONFIG_PATH,
     NODE_CONFIG_PATH,
 )
-from node_cli.utils.helper import cleanup_dir_content, get_ssh_ports, read_json, run_cmd
+from node_cli.utils.helper import (
+    check_ssl_certs,
+    cleanup_dir_content,
+    get_ssh_ports,
+    read_json,
+    run_cmd,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +79,9 @@ class SGXPort:
     INFO: int = 1030
     ZMQ: int = 1031
 
+
+# nginx listens on these only once the node has certificates, see base.conf.j2
+TLS_SERVICE_PORTS = (ServicePort.HTTPS, ServicePort.WATCHDOG_HTTPS)
 
 LEGACY_CHAIN = 'INPUT'
 LEGACY_FAMILY = 'ip'
@@ -609,36 +620,65 @@ class NFTablesManager:
         self.apply_user_rules()
         self.remove_user_rules_from_main_chain()
 
-    def remove_monitoring_accepts(self) -> None:
-        """Remove every legacy monitoring accept from the managed base chain."""
+    def _remove_tcp_accepts(self, ports: tuple[int, ...]) -> None:
+        """Remove every accept of the ports from the managed base chain, ssh ports stay open."""
         ssh_ports = get_ssh_ports()
-        monitoring_exprs = [
+        exprs = [
             Rule(chain=self.chain, protocol='tcp', first_port=port).to_expr()
-            for port in (ServicePort.EXPORTER, ServicePort.CADVISOR)
+            for port in ports
             if port not in ssh_ports
         ]
         for rule in self.get_rules(self.chain):
             if (
-                self._normalized_expr(rule.get('expr', [])) in monitoring_exprs
+                self._normalized_expr(rule.get('expr', [])) in exprs
                 and rule.get('handle') is not None
             ):
                 self.delete_rule_by_handle(rule['handle'])
+
+    def remove_monitoring_accepts(self) -> None:
+        """Remove every legacy monitoring accept from the managed base chain."""
+        self._remove_tcp_accepts((ServicePort.EXPORTER, ServicePort.CADVISOR))
 
     def _add_service_accepts(self) -> None:
         self._ensure_rule(self.chain, conntrack_accept_expr(), label='connection tracking rule')
         tcp_ports = [
             *get_ssh_ports(),
             ServicePort.DNS,
-            ServicePort.HTTPS,
             ServicePort.HTTP,
             ServicePort.WATCHDOG_HTTP,
-            ServicePort.WATCHDOG_HTTPS,
         ]
         for port in tcp_ports:
             self.add_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
+        self.sync_tls_accepts()
         self.remove_misordered_udp_drop()
         self.add_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
         self._ensure_rule(self.chain, loopback_accept_expr(), label='loopback rule')
+
+    def sync_tls_accepts(self) -> None:
+        """Open the TLS service ports with certificates, close them without."""
+        path = Path(NFTABLES_CHAIN_FOLDER_PATH) / 'tls-ports.conf'
+        with FileLock(path.with_suffix('.lock'), timeout=120):
+            ports = ', '.join(map(str, TLS_SERVICE_PORTS)) if check_ssl_certs() else ''
+            elements = f' elements = {{ {ports} }};' if ports else ''
+            declaration = f'set skale_tls_ports {{ type inet_service;{elements} }}'
+            commands = (
+                f'add set {self.family} {self.table} skale_tls_ports {{ type inet_service; }}\n'
+                f'flush set {self.family} {self.table} skale_tls_ports\n'
+            )
+            if ports:
+                commands += (
+                    f'add element {self.family} {self.table} skale_tls_ports {{ {ports} }}\n'
+                )
+            rc, _, error = self.nft.cmd(commands)
+            if rc != 0:
+                raise NFTablesError(f'Failed to sync TLS ports: {error}')
+            temporary = path.with_suffix('.tmp')
+            temporary.write_text(declaration + '\n')
+            temporary.replace(path)
+            expr = [dport_match('tcp', 0, 0), {'counter': None}, {'accept': None}]
+            expr[0]['match']['right'] = '@skale_tls_ports'
+            self._ensure_rule(self.chain, expr, label='TLS service ports')
+            self._remove_tcp_accepts(TLS_SERVICE_PORTS)
 
     def _add_icmp_accepts(self) -> None:
         self.remove_source_quench_rule()
@@ -840,6 +880,13 @@ def configure_nftables(keep_accept_policy: bool = False) -> None:
     remove_legacy_saved_rules()
 
 
+def sync_tls_ports() -> None:
+    """Make a configured firewall follow the certificates and save it for the next boot."""
+    nft_mgr = NFTablesManager()
+    nft_mgr.sync_tls_accepts()
+    save_nftables_base_rules(nft_mgr.get_base_ruleset())
+
+
 def cleanup_nftables() -> None:
     """Reset the firewall after node cleanup and persist the minimal state."""
     logger.info('Cleaning up firewall rules')
@@ -870,8 +917,7 @@ def save_nftables_base_rules(ruleset: str) -> None:
         f'\t\tinclude "{NFTABLES_USER_CONFIG_PATH}"',
         '\t}',
     ]
-    ruleset_lines[1:1] = user_chain_lines
-    ruleset_lines.insert(-2, chain_include_line)
+    ruleset_lines[1:1] = [chain_include_line, *user_chain_lines]
     with open(NFTABLES_SKALE_BASE_CONFIG_PATH, 'w') as f:
         f.write('\n'.join(ruleset_lines))
     logger.info('Rules saved successfully to %s', NFTABLES_SKALE_BASE_CONFIG_PATH)

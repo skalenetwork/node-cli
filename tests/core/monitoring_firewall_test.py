@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from unittest.mock import patch
 
@@ -16,6 +17,7 @@ def monitoring_firewall(monkeypatch, tmp_path):
     monkeypatch.setattr(firewall, 'NODE_CONFIG_PATH', str(tmp_path / 'node.json'))
     monkeypatch.setattr(firewall, 'NFTABLES_USER_CONFIG_PATH', str(tmp_path / 'user.conf'))
     monkeypatch.setattr(firewall, 'NFTABLES_SKALE_BASE_CONFIG_PATH', str(tmp_path / 'base.conf'))
+    monkeypatch.setattr(firewall, 'NFTABLES_CHAIN_FOLDER_PATH', str(tmp_path / 'chains'))
     monkeypatch.setattr(firewall, 'NFTABLES_CHAIN_CONFIG_WILDCARD', str(tmp_path / 'chains/*'))
     (tmp_path / 'chains').mkdir()
     (tmp_path / 'user.conf').touch()
@@ -78,3 +80,54 @@ def test_monitoring_cleanup_preserves_custom_ssh_port(monitoring_firewall, monke
         delete.assert_not_called()
     manager.verify_critical_accepts()
     assert manager.rule_exists(manager.chain, Rule(manager.chain, 'tcp', 9100).to_expr())
+
+
+def tls_ports(manager):
+    rc, output, error = manager.nft.cmd(
+        f'list set {manager.family} {manager.table} skale_tls_ports'
+    )
+    assert rc == 0, error
+    items = json.loads(output)['nftables']
+    return sorted(next(item['set'] for item in items if 'set' in item).get('elem', []))
+
+
+def test_tls_ports_open_only_with_certificates(monitoring_firewall, monkeypatch):
+    manager = monitoring_firewall
+    expressions = [Rule(manager.chain, 'tcp', port).to_expr() for port in (443, 311)]
+    # a firewall set up before the ports depended on certificates accepts both
+    for expr in expressions * 2:
+        manager._execute_rule_with_op('add', manager.chain, expr)
+
+    monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: False)
+    manager.setup_firewall()
+    assert manager.get_chain_policy(manager.chain) == 'drop'
+    for expr in expressions:
+        assert not manager.rule_exists(manager.chain, expr)
+    assert tls_ports(manager) == []
+    manager.verify_critical_accepts()
+
+    monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: True)
+    manager.sync_tls_accepts()
+    assert tls_ports(manager) == [311, 443]
+
+    firewall.save_nftables_base_rules(manager.get_base_ruleset())
+    manager.execute_cmd(
+        {'nftables': [{'delete': {'table': {'family': manager.family, 'name': manager.table}}}]}
+    )
+    rc, _, error = manager.nft.cmd(f'include "{firewall.NFTABLES_SKALE_BASE_CONFIG_PATH}"')
+    assert rc == 0, error
+    assert tls_ports(manager) == [311, 443]
+
+    monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: False)
+    manager.setup_firewall()
+    assert tls_ports(manager) == []
+
+
+def test_closing_tls_ports_preserves_ssh_on_443(monitoring_firewall, monkeypatch):
+    monkeypatch.setenv('SSH_PORT', '443')
+    monkeypatch.setattr(firewall, 'check_ssl_certs', lambda: False)
+    manager = monitoring_firewall
+    manager.setup_firewall()
+    manager.verify_critical_accepts()
+    assert manager.rule_exists(manager.chain, Rule(manager.chain, 'tcp', 443).to_expr())
+    assert not manager.rule_exists(manager.chain, Rule(manager.chain, 'tcp', 311).to_expr())
