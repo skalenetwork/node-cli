@@ -40,13 +40,7 @@ from node_cli.core.nftables import cleanup_nftables, configure_nftables
 from node_cli.core.nginx import generate_nginx_config
 from node_cli.core.schains import cleanup_no_lvm_datadir
 from node_cli.core.static_config import get_fair_chain_name
-from node_cli.core.node_options import (
-    hold_rpc_proxy_for_boot,
-    mark_active_node,
-    release_rpc_proxy_boot_hold,
-    set_passive_node_options,
-    upsert_node_mode,
-)
+from node_cli.core.node_options import mark_active_node, set_passive_node_options, upsert_node_mode
 from node_cli.fair.record.chain_record import (
     get_fair_chain_record,
     migrate_chain_record,
@@ -108,7 +102,6 @@ def init_fair_boot(
     prepare_host(env_type=settings.env_type)
     save_internal_settings(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
     mark_active_node()
-    hold_rpc_proxy_for_boot()
 
     configure_filebeat()
     generate_nginx_config()
@@ -226,7 +219,6 @@ def update_fair_boot(
 
     prepare_host(settings.env_type)
     save_internal_settings(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
-    hold_rpc_proxy_for_boot()
 
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
@@ -304,7 +296,6 @@ def update(
     fair_chain_name = get_fair_chain_name(settings.env_type)
     if update_type == FairUpdateType.FROM_BOOT:
         migrate_nftables_from_boot(chain_name=fair_chain_name)
-        release_rpc_proxy_boot_hold()
 
     update_images(
         compose_env=compose_env,

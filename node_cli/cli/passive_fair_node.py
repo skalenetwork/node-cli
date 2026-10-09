@@ -20,7 +20,6 @@
 import click
 
 from node_cli.cli.info import TYPE
-from node_cli.cli.rpc_proxy import rpc_proxy
 from node_cli.fair.common import cleanup as cleanup_fair
 from node_cli.fair.common import init as init_fair
 from node_cli.fair.common import turn_off as turn_off_fair
@@ -47,9 +46,6 @@ def passive_fair_node_cli():
 @passive_fair_node_cli.group(help='Commands for passive Fair Node operations.')
 def passive_node():
     pass
-
-
-passive_node.add_command(rpc_proxy)
 
 
 @passive_node.command('init', help='Initialize a passive Fair node')

@@ -30,6 +30,9 @@ from node_cli.core.nginx import reload_nginx
 
 logger = logging.getLogger(__name__)
 
+# the certificates are already in place, so a plain retry is refused as a second upload
+RETRY_HINT = 'Run the upload again with --force'
+
 
 def upload_cert(cert_path, key_path, force, no_client=False):
     try:
@@ -44,12 +47,15 @@ def upload_cert(cert_path, key_path, force, no_client=False):
         reload_nginx()
     except NginxConfigError as err:
         logger.exception('nginx did not apply the new certificates')
-        return err_result(f'Certificates are saved, but nginx is not serving them. {err}')
+        return err_result(
+            f'Certificates are saved, but nginx is not serving them. {err}. {RETRY_HINT}'
+        )
     try:
         sync_tls_ports()
     except Exception as err:
         logger.exception('Firewall does not follow the new certificates')
         return err_result(
-            f'Certificates are saved, but the firewall may still block the TLS ports. {err}'
+            f'Certificates are saved, but the firewall may still block the TLS ports. {err}. '
+            f'{RETRY_HINT}'
         )
     return ok_result()

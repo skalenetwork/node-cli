@@ -8,7 +8,7 @@ import mock
 
 from node_cli.core.host import is_node_inited
 from node_cli.core.nftables import NFTablesError
-from filelock import FileLock
+from filelock import FileLock, Timeout
 
 from node_cli.core.nginx import (
     BASE_PROBE_URL,
@@ -22,12 +22,6 @@ from node_cli.core.nginx import (
     SSL_CRT_NAME,
 )
 from node_cli.core.ssl.upload import upload_cert
-from node_cli.core.node_options import (
-    NodeOptions,
-    hold_rpc_proxy_for_boot,
-    release_rpc_proxy_boot_hold,
-    set_rpc_proxy_override,
-)
 from node_cli.migrations.nginx_layout import LEGACY_NGINX_BACKUP_FILEPATH
 from node_cli.utils.docker_utils import NginxConfigError, nginx_answer, reload_nginx_container
 from node_cli.utils.node_type import NodeType, NodeMode
@@ -304,33 +298,6 @@ def test_nginx_answer():
     assert nginx_answer('http://127.0.0.1:3009/.skale-proxy', dutils=dclient) is None
 
 
-def test_rpc_proxy_override(active_node_option):
-    node_options = NodeOptions()
-    assert node_options.rpc_proxy is None
-    set_rpc_proxy_override('on')
-    assert NodeOptions().rpc_proxy is True
-    set_rpc_proxy_override('off')
-    assert NodeOptions().rpc_proxy is False
-    set_rpc_proxy_override('default')
-    assert NodeOptions().rpc_proxy is None
-
-
-def test_rpc_proxy_boot_hold(active_node_option):
-    hold_rpc_proxy_for_boot()
-    assert NodeOptions().rpc_proxy is False
-    assert NodeOptions().rpc_proxy_boot_hold
-    release_rpc_proxy_boot_hold()
-    assert NodeOptions().rpc_proxy is None
-    assert not NodeOptions().rpc_proxy_boot_hold
-
-    # an operator choice survives the boot phase
-    set_rpc_proxy_override('on')
-    hold_rpc_proxy_for_boot()
-    assert NodeOptions().rpc_proxy is True
-    release_rpc_proxy_boot_hold()
-    assert NodeOptions().rpc_proxy is True
-
-
 FINGERPRINT_TEMPLATE = """# node base config, rendered by node-cli and skale-admin: fingerprint {{ fingerprint }}
 server {
     listen 3009;
@@ -385,6 +352,9 @@ def test_reload_nginx_waits_for_nginx_to_serve_new_base(
     stale = ['base 0000000000000000']
 
     def nginx_catches_up(url, dutils=None):
+        # skale-admin waits until the probe is over
+        with pytest.raises(Timeout):
+            FileLock(NGINX_LOCK_PATH, blocking=False).acquire()
         return stale.pop() if stale else serve_base_on_disk(url)
 
     with mock.patch('node_cli.core.nginx.nginx_answer', side_effect=nginx_catches_up) as answer:
@@ -443,7 +413,6 @@ def test_reload_nginx_with_config_nginx_rejects(
 @mock.patch('node_cli.core.nginx.docker_client')
 @mock.patch('node_cli.core.nginx.reload_nginx_container')
 def test_reload_nginx_waits_for_skale_admin_lock(mock_reload, mock_client, fingerprint_template):
-    os.makedirs(NGINX_DIR, exist_ok=True)
     with FileLock(NGINX_LOCK_PATH), pytest.raises(NginxConfigError, match='nginx lock'):
         reload_nginx()
     mock_reload.assert_not_called()
@@ -459,6 +428,7 @@ def test_upload_cert_reports_certificates_nginx_does_not_serve(mock_empty, mock_
         status, payload = upload_cert('cert.pem', 'key.pem', force=False)
     assert status == 'error'
     assert payload.startswith('Certificates are saved, but nginx is not serving them.')
+    assert payload.endswith('Run the upload again with --force')
     mock_copy.assert_called_once()
 
 
@@ -498,5 +468,6 @@ def test_upload_cert_reports_firewall_that_was_not_updated(
         status, payload = upload_cert('cert.pem', 'key.pem', force=False)
     assert status == 'error'
     assert payload == (
-        'Certificates are saved, but the firewall may still block the TLS ports. not permitted'
+        'Certificates are saved, but the firewall may still block the TLS ports. not permitted. '
+        'Run the upload again with --force'
     )

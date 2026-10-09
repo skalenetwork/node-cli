@@ -26,8 +26,6 @@ from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 
 logger = logging.getLogger(__name__)
 
-RPC_PROXY_MODES: dict[str, bool | None] = {'on': True, 'off': False, 'default': None}
-
 
 class NodeOptions:
     def __init__(self, filepath: str = NODE_OPTIONS_FILEPATH):
@@ -68,23 +66,6 @@ class NodeOptions:
         return self._set('historic_state', historic_state)
 
     @property
-    def rpc_proxy(self) -> bool | None:
-        """Per-node override of the static params rpc_proxy flag, None follows the flag"""
-        return self._get('rpc_proxy')
-
-    @rpc_proxy.setter
-    def rpc_proxy(self, rpc_proxy: bool | None) -> None:
-        return self._set('rpc_proxy', rpc_proxy)
-
-    @property
-    def rpc_proxy_boot_hold(self) -> bool:
-        return self._get('rpc_proxy_boot_hold') or False
-
-    @rpc_proxy_boot_hold.setter
-    def rpc_proxy_boot_hold(self, hold: bool) -> None:
-        return self._set('rpc_proxy_boot_hold', hold)
-
-    @property
     def node_mode(self) -> NodeMode:
         return NodeMode(self._get('node_mode'))
 
@@ -118,30 +99,6 @@ def set_passive_node_options(
     node_options.catchup = archive or indexer
     node_options.historic_state = archive
     logger.info('Node options set for passive mode.')
-
-
-def set_rpc_proxy_override(mode: str) -> None:
-    node_options = NodeOptions()
-    node_options.rpc_proxy = RPC_PROXY_MODES[mode]
-    node_options.rpc_proxy_boot_hold = False
-    logger.info('RPC proxy override set to %s', mode)
-
-
-def hold_rpc_proxy_for_boot() -> None:
-    """Keep the RPC proxy off during FAIR boot unless the operator set an override"""
-    node_options = NodeOptions()
-    if node_options.rpc_proxy is None:
-        node_options.rpc_proxy = False
-        node_options.rpc_proxy_boot_hold = True
-        logger.info('RPC proxy held off for the boot phase')
-
-
-def release_rpc_proxy_boot_hold() -> None:
-    node_options = NodeOptions()
-    if node_options.rpc_proxy_boot_hold:
-        node_options.rpc_proxy = None
-        node_options.rpc_proxy_boot_hold = False
-        logger.info('RPC proxy boot hold released')
 
 
 class NodeModeMismatchError(Exception):

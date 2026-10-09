@@ -20,7 +20,6 @@
 import click
 
 from node_cli.cli.info import TYPE
-from node_cli.cli.rpc_proxy import rpc_proxy
 from node_cli.core.node import backup
 from node_cli.fair.active import change_ip as change_ip_fair
 from node_cli.fair.active import exit as exit_fair
@@ -49,9 +48,6 @@ def fair_node_cli():
 @fair_node_cli.group(help='Commands for regular Fair Node operations.')
 def node():
     pass
-
-
-node.add_command(rpc_proxy)
 
 
 @node.command('info', help='Get info about Fair node.')

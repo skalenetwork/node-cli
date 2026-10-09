@@ -21,7 +21,6 @@ from typing import Optional
 
 import click
 
-from node_cli.cli.rpc_proxy import rpc_proxy
 from node_cli.core.node import init_passive, update_passive, cleanup as cleanup_skale
 from node_cli.utils.helper import abort_if_false, error_exit, streamed_cmd, URL_TYPE
 from node_cli.utils.node_type import NodeMode
@@ -40,9 +39,6 @@ def passive_node_cli():
 @passive_node_cli.group(help='SKALE passive node commands')
 def passive_node():
     pass
-
-
-passive_node.add_command(rpc_proxy)
 
 
 @passive_node.command('init', help=TEXTS['init']['help'])

@@ -39,7 +39,6 @@ from node_cli.configs import (
     NGINX_BASE_TEMPLATE_FILEPATH,
     NGINX_CHAINS_PATH,
     NGINX_CONFIG_FILEPATH,
-    NGINX_DIR,
     NGINX_LOCK_PATH,
     NGINX_NJS_PATH,
     NGINX_NJS_SOURCE_PATH,
@@ -48,9 +47,7 @@ from node_cli.configs import (
     NODE_CERTS_PATH,
 )
 from node_cli.core.nftables import ServicePort
-from node_cli.core.node_options import set_rpc_proxy_override
 from node_cli.migrations.nginx_layout import migrate_nginx_layout
-from node_cli.utils.decorators import check_inited, check_user
 from node_cli.utils.node_type import NodeType
 from node_cli.utils.docker_utils import (
     NginxConfigError,
@@ -143,12 +140,11 @@ def is_skale_node_nginx() -> bool:
 @contextmanager
 def nginx_lock() -> Iterator[None]:
     """Serialises with skale-admin, which reloads nginx for chain files and certificates"""
-    safe_mkdir(NGINX_DIR)
     try:
         with FileLock(NGINX_LOCK_PATH, timeout=LOCK_TIMEOUT_SECONDS):
             yield
     except Timeout as err:
-        raise NginxConfigError('skale-admin holds the nginx lock, try again later') from err
+        raise NginxConfigError('skale-admin holds the nginx lock') from err
 
 
 def reload_nginx() -> None:
@@ -174,13 +170,3 @@ def reload_nginx() -> None:
 
 def base_served(base: str, dutils) -> bool:
     return nginx_answer(BASE_PROBE_URL, dutils=dutils) == f'base {base_fingerprint(base)}'
-
-
-@check_inited
-@check_user
-def set_rpc_proxy(mode: str) -> None:
-    set_rpc_proxy_override(mode)
-    print(
-        f'RPC proxy override set to {mode}. skale-admin restarts skaled on the new ports: '
-        'SKALE chains at their next check, FAIR at a random time within the next hour.'
-    )
