@@ -81,7 +81,9 @@ def test_checks():
         == 'sChain Name   Config directory    DKG    Config file   Volume   Container    IMA    Firewall    RPC    Blocks\n-------------------------------------------------------------------------------------------------------------\ntest_schain   True               False   False         False    False       False   False      False   False \n'  # noqa
     )
 
-    result = run_command_mock('node_cli.utils.helper.api_session.get', resp_mock, schains, ['--json'])
+    result = run_command_mock(
+        'node_cli.utils.helper.api_session.get', resp_mock, schains, ['--json']
+    )
 
     assert result.exit_code == 0
     assert (
