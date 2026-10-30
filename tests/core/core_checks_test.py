@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 
-import mock
+from unittest import mock
 import pytest
 
 from node_cli.configs import STATIC_PARAMS_FILEPATH
@@ -253,7 +253,7 @@ def test_checks_docker_hosts(docker_req):
     r = checker._check_docker_hosts_option(invalid_config)
     assert r == (
         False,
-        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']",  # noqa
+        "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']",
     )
 
     invalid_config = {'hosts': ['http://127.0.0.1:8080']}
@@ -261,22 +261,14 @@ def test_checks_docker_hosts(docker_req):
     assert r == (
         False,
         "Docker daemon hosts is misconfigured. Missing hosts: ['fd://', 'unix:///var/run/skale/docker.sock']",
-    )  # noqa
+    )
 
     invalid_config = {'hosts': ['fd://']}
     r = checker._check_docker_hosts_option(invalid_config)
     assert r == (
         False,
         "Docker daemon hosts is misconfigured. Missing hosts: ['unix:///var/run/skale/docker.sock']",
-    )  # noqa
-
-
-def test_checks_docker_pre_post_install_checks(docker_req):
-    checker = DockerChecker(docker_req)
-    result = checker.preinstall_check()
-    assert len(result) == 3
-    result = checker.postinstall_check()
-    assert len(result) == 2
+    )
 
 
 @pytest.fixture

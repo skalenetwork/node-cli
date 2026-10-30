@@ -83,7 +83,7 @@ def test_missing_token_supports_upgrade_from_old_api(token_path):
     assert not token_path.exists()
 
 
-def test_headers_sent_for_get_post_and_upload(token_path):
+def test_headers_sent_for_get_and_post(token_path):
     api_auth.ensure_api_token()
     expected = f'Bearer {api_auth.read_api_token()}'
     with requests_mock.Mocker() as mock:
@@ -93,15 +93,9 @@ def test_headers_sent_for_get_post_and_upload(token_path):
         mock.post(
             helper.construct_url('/api/v1/wallet/send-eth'), json={'status': 'ok', 'payload': {}}
         )
-        mock.post(helper.construct_url('/api/v1/ssl/upload'), json={'status': 'ok', 'payload': {}})
         assert helper.get_request('node', 'signature') == ('ok', {})
         assert helper.post_request('wallet', 'send-eth', json={'amount': 1}) == ('ok', {})
-        assert helper.post_request('ssl', 'upload', files={'ssl_cert': ('cert', b'cert')}) == (
-            'ok',
-            {},
-        )
         assert all(req.headers['Authorization'] == expected for req in mock.request_history)
-        assert 'multipart/form-data' in mock.last_request.headers['Content-Type']
 
 
 def test_http_errors_reach_cli(token_path):

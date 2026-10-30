@@ -29,7 +29,6 @@ from typing import Optional, Tuple
 import docker
 from filelock import FileLock
 
-from node_cli.cli import __version__
 from node_cli.configs import (
     BACKUP_ARCHIVE_NAME,
     CONTAINER_CONFIG_PATH,
@@ -55,7 +54,6 @@ from node_cli.core.node_options import (
     passive_fair,
 )
 from node_cli.core.nftables import get_registered_base_port
-from node_cli.migrations.focal_to_jammy import migrate as migrate_2_6
 from node_cli.operations import (
     cleanup_skale_op,
     configure_nftables,
@@ -85,7 +83,6 @@ from node_cli.utils.helper import (
     read_json,
     save_json,
 )
-from node_cli.utils.meta import CliMetaManager
 from node_cli.utils.node_type import NodeType, NodeMode
 from node_cli.utils.print_formatters import (
     print_failed_requirements_checks,
@@ -133,11 +130,6 @@ def is_update_safe(node_mode: NodeMode) -> bool:
 @check_inited
 @check_user
 def register_node(name, p2p_ip, public_ip, port, domain_name):
-    if not is_node_inited():
-        print(TEXTS['node']['not_inited'])
-        return
-
-    # todo: add name, ips and port checks
     json_data = {
         'name': name,
         'ip': p2p_ip,
@@ -190,7 +182,8 @@ def init(config_file: str, node_type: NodeType) -> None:
     settings = validate_and_save_node_settings(config_file, node_type, node_mode)
     compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
-    init_op(settings=settings, compose_env=compose_env, node_mode=node_mode)
+    if not init_op(settings=settings, compose_env=compose_env, node_mode=node_mode):
+        error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Waiting for containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode):
@@ -280,9 +273,6 @@ def enable_firewall_default_drop_when_port_available(timeout: int = 300, interva
 @check_user
 def update_passive(config_file: str) -> None:
     logger.info('Node update started')
-    prev_version = CliMetaManager().get_meta_info().version
-    if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
-        migrate_2_6()
     save_internal_settings(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     settings = validate_and_save_node_settings(config_file, NodeType.SKALE, NodeMode.PASSIVE)
     compose_env = compose_node_env(node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
@@ -337,11 +327,10 @@ def update(
         error_msg = 'Cannot update safely'
         error_exit(error_msg, exit_code=CLIExitCodes.UNSAFE_UPDATE)
 
-    prev_version = CliMetaManager().get_meta_info().version
-    if (__version__ == 'test' or __version__.startswith('2.6')) and prev_version == '2.5.0':
-        migrate_2_6()
     logger.info('Node update started')
-    save_internal_settings(node_type=node_type, node_mode=node_mode)
+    save_internal_settings(
+        node_type=node_type, node_mode=node_mode, pull_config_for_schain=pull_config_for_schain
+    )
     settings = validate_and_save_node_settings(config_file, node_type, node_mode)
     compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
     update_ok = update_op(settings=settings, compose_env=compose_env, node_mode=node_mode)
@@ -361,8 +350,7 @@ def get_node_signature(validator_id):
     status, payload = get_request(blueprint=BLUEPRINT_NAME, method='signature', params=params)
     if status == 'ok':
         return payload['signature']
-    else:
-        return payload
+    error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 
 
 def backup(path):

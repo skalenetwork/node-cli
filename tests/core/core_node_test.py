@@ -6,7 +6,7 @@ from pathlib import Path
 
 import docker
 from docker import errors as docker_errors
-import mock
+from unittest import mock
 import pytest
 import requests
 
@@ -34,7 +34,7 @@ from tests.resources_test import BIG_DISK_SIZE
 
 dclient = docker.from_env()
 
-ALPINE_IMAGE_NAME = 'alpine:3.12'
+ALPINE_IMAGE_NAME = 'alpine'
 CMD = 'sleep 60'
 
 WRONG_CONTAINERS = [
@@ -271,7 +271,6 @@ def test_init_node(regular_user_conf, no_resource_file):  # todo: write new init
         mock.patch('subprocess.run', new=subprocess_run_mock),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         mock.patch('node_cli.core.host.prepare_host'),
-        mock.patch('node_cli.core.host.init_data_dir'),
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.core.node.init_op'),
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
@@ -292,15 +291,14 @@ def test_update_node(regular_user_conf, mocked_g_config, resource_file, inited_n
         mock.patch('node_cli.core.node.is_base_containers_alive', return_value=True),
         mock.patch('node_cli.utils.helper.post_request', resp_mock),
         mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
-        mock.patch('node_cli.core.host.init_data_dir'),
         mock.patch(
-            'node_cli.core.node.CliMetaManager.get_meta_info',
+            'node_cli.utils.meta.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):
         with mock.patch(
             'node_cli.utils.helper.api_session.get', return_value=safe_update_api_response()
-        ):  # noqa
+        ):
             result = update(
                 regular_user_conf.as_posix(),
                 pull_config_for_schain=None,

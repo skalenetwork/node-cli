@@ -20,16 +20,11 @@
 import glob
 import logging
 import os
-import shutil
 import tempfile
 
 from node_cli.utils.helper import run_cmd
-from node_cli.utils.git_utils import sync_repo
 from node_cli.configs import (
-    DOCKER_LVMPY_PATH,
-    DOCKER_LVMPY_REPO_URL,
     FILESTORAGE_MAPPING,
-    SCHAINS_MNT_DIR_REGULAR,
     SCHAINS_MNT_DIR_SINGLE_CHAIN,
     SKALE_STATE_DIR,
 )
@@ -37,45 +32,8 @@ from node_cli.configs import (
 logger = logging.getLogger(__name__)
 
 
-class FilesystemExistsError(Exception):
-    pass
-
-
-def update_docker_lvmpy_env(env):
-    env['PHYSICAL_VOLUME'] = env['BLOCK_DEVICE']
-    env['VOLUME_GROUP'] = 'schains'
-    env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
-    env['SCHAINS_MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
-    env['PATH'] = os.environ.get('PATH', None)
-    return env
-
-
-def ensure_filestorage_mapping(mapping_dir=FILESTORAGE_MAPPING):
-    if not os.path.isdir(FILESTORAGE_MAPPING):
-        os.makedirs(FILESTORAGE_MAPPING)
-
-
-def sync_docker_lvmpy_repo(env):
-    if os.path.isdir(DOCKER_LVMPY_PATH):
-        shutil.rmtree(DOCKER_LVMPY_PATH)
-    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_VERSION'])
-
-
-def docker_lvmpy_update(env):
-    sync_docker_lvmpy_repo(env)
-    ensure_filestorage_mapping()
-    logger.info('Running docker-lvmpy update script')
-    update_docker_lvmpy_env(env)
-    run_cmd(cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/update.sh'.split(), env=env)
-    logger.info('docker-lvmpy update done')
-
-
-def docker_lvmpy_install(env):
-    sync_docker_lvmpy_repo(env)
-    ensure_filestorage_mapping()
-    update_docker_lvmpy_env(env)
-    run_cmd(cmd=f'sudo -H -E {DOCKER_LVMPY_PATH}/scripts/install.sh'.split(), env=env)
-    logger.info('docker-lvmpy installed')
+def ensure_filestorage_mapping():
+    os.makedirs(FILESTORAGE_MAPPING, exist_ok=True)
 
 
 def block_device_mounted(block_device):

@@ -18,9 +18,9 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-from dateutil import parser
 
-from OpenSSL import crypto
+from cryptography import x509
+from cryptography.x509.oid import NameOID
 
 from node_cli.core.ssl.utils import is_ssl_folder_empty, cert_from_file
 from node_cli.configs.ssl import SSL_CERT_FILEPATH, CERTS_INVALID_FORMAT
@@ -45,14 +45,11 @@ def cert_status():
 
 def get_cert_info(cert):
     try:
-        crypto_cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
-        subject = crypto_cert.get_subject()
-        issued_to = subject.CN
-        expiration_date_raw = crypto_cert.get_notAfter()
-        expiration_date = parser.parse(expiration_date_raw).strftime('%Y-%m-%dT%H:%M:%S')
+        crypto_cert = x509.load_pem_x509_certificate(cert)
+        common_names = crypto_cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
+        issued_to = common_names[0].value if common_names else None
+        expiration_date = crypto_cert.not_valid_after_utc.strftime('%Y-%m-%dT%H:%M:%S')
     except Exception as err:
         logger.exception('Error during parsing certs')
         return err_result(str(err))
-    return ok_result(
-        {'subject': subject, 'issued_to': issued_to, 'expiration_date': expiration_date}
-    )
+    return ok_result({'issued_to': issued_to, 'expiration_date': expiration_date})

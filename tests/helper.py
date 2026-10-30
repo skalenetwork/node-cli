@@ -26,7 +26,7 @@ import requests
 from click.testing import CliRunner
 
 CURRENT_TIMESTAMP = 1594903080
-CURRENT_DATETIME = datetime.datetime.utcfromtimestamp(CURRENT_TIMESTAMP)
+CURRENT_DATETIME = datetime.datetime.fromtimestamp(CURRENT_TIMESTAMP, datetime.UTC)
 
 BLOCK_DEVICE = os.getenv('BLOCK_DEVICE')
 

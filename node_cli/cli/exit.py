@@ -71,8 +71,3 @@ def status(format):
             print_exit_status(exit_status)
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
-
-
-@node_exit.command('finalize', help='Finalize exit process')
-def finalize():
-    pass

@@ -16,5 +16,3 @@
 - tests should be placed in `tests/` directory, follow the existing structure and code style
 - always use `uv` to run all commands in the repo (e.g., `uv run ruff`, `uv run pytest`, etc.)
 - for running tests, export environment variables in the terminal before running the tests: `. ./scripts/export_env.sh`
-
-- additional external context is located in context directory

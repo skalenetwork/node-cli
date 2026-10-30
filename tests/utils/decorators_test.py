@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 import pytest
 
 from node_cli.utils.global_config import generate_g_config_file

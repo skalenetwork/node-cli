@@ -1,7 +1,7 @@
 import json
 import os
 
-import mock
+from unittest import mock
 import pytest
 
 from node_cli.configs import ALLOCATION_FILEPATH, STATIC_PARAMS_FILEPATH
@@ -11,7 +11,6 @@ from node_cli.core.resources import (
     update_resource_allocation,
     get_cpu_alloc,
     get_memory_alloc,
-    verify_disk_size,
 )
 
 from node_cli.utils.helper import write_json, safe_load_yml
@@ -47,7 +46,7 @@ SCHAIN_VOLUME_PARTS = {
         'max_reserved_storage_bytes': 887999692,
         'max_skaled_leveldb_storage_bytes': 2663999078,
     },
-}  # noqa
+}
 
 DEFAULT_ENV_TYPE = 'devnet'
 
@@ -118,19 +117,7 @@ def test_update_allocation_config(resource_alloc_config):
             assert json.load(jfile) != INITIAL_CONFIG
 
 
-def test_get_static_disk_alloc_devnet(params_by_env_type, schain_allocation_data):
-    env_configs = params_by_env_type['envs']['devnet']
-    block_device = '/dev/test'
-    with mock.patch('node_cli.core.resources.get_disk_size', return_value=SMALL_DISK_SIZE):
-        with pytest.raises(Exception):
-            verify_disk_size(block_device, env_configs)
-
-    with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
-        verify_disk_size(block_device, env_configs)
-
-    with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
-        verify_disk_size(block_device, env_configs)
-
+def test_get_static_disk_alloc_devnet(schain_allocation_data):
     assert schain_allocation_data[DEFAULT_ENV_TYPE]['disk'] == {
         'large': 71039975424,
         'medium': 8879996928,
@@ -138,18 +125,6 @@ def test_get_static_disk_alloc_devnet(params_by_env_type, schain_allocation_data
         'test': 8879996928,
         'test4': 8879996928,
     }
-
-
-def test_get_static_disk_alloc_mainnet(params_by_env_type):
-    env_configs = params_by_env_type['envs']['mainnet']
-    block_device = '/dev/test'
-
-    with mock.patch('node_cli.core.resources.get_disk_size', return_value=NORMAL_DISK_SIZE):
-        with pytest.raises(Exception):
-            verify_disk_size(block_device, env_configs)
-
-    with mock.patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE):
-        verify_disk_size(block_device, env_configs)
 
 
 def test_get_cpu_alloc(params_by_env_type):

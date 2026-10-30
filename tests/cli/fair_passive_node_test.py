@@ -1,7 +1,7 @@
 import logging
 import pathlib
 
-import mock
+from unittest import mock
 
 from node_cli.cli.passive_fair_node import cleanup_node, init_passive_node, update_node
 from node_cli.configs import NODE_DATA_PATH, SKALE_DIR
@@ -96,7 +96,7 @@ def test_cleanup_node(mocked_g_config):
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.fair.common.compose_node_env', return_value={'SCHAIN_NAME': 'test'}),
         mock.patch(
-            'node_cli.core.node.CliMetaManager.get_meta_info',
+            'node_cli.utils.meta.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):
