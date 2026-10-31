@@ -57,7 +57,7 @@ dev = [
   "bumpversion==0.6.0",
   "pytest==9.0.1",
   "pytest-cov==7.0.0",
-  "twine==6.2.0",
+  "twine==7.0.0",
   "mock==5.2.0",
   "freezegun==1.5.5",
 ]
