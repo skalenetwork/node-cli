@@ -30,7 +30,7 @@ dependencies = [
   "python-dotenv==1.2.1",
   "terminaltables==3.1.10",
   "requests==2.32.5",
-  "GitPython==3.1.45",
+  "GitPython==3.2.1",
   "packaging==25.0",
   "python-debian==1.0.1",
   "PyYAML==6.0.3",
