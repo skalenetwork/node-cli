@@ -43,7 +43,7 @@ dependencies = [
   "sh==2.2.2",
   "python-crontab==3.3.0",
   "requests-mock==1.12.1",
-  "redis==7.1.1",
+  "redis==8.1.0",
   "PyInstaller==6.18.0",
   "skale.py-core==7.14.dev2",
 ]
