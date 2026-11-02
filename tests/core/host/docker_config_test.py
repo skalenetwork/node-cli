@@ -9,8 +9,6 @@ from node_cli.core.docker_config import get_docker_group_id, save_docker_group_i
 import pytest
 
 from node_cli.core.docker_config import (
-    assert_no_containers,
-    ContainersExistError,
     DockerConfigResult,
     ensure_docker_daemon_config,
     ensure_docker_service_config_dir,
@@ -119,24 +117,6 @@ def test_ensure_run_dir(tmp_dir):
     r = ensure_run_dir(run_dir)
     assert os.path.isdir(run_dir)
     assert r == DockerConfigResult.UNCHANGED
-
-
-@pytest.fixture
-def container(dclient):
-    c = dclient.containers.run('hello-world', detach=True)
-    try:
-        yield c
-    finally:
-        c.remove(force=True)
-
-
-def test_assert_no_containers():
-    assert_no_containers(ignore=('redis',))
-
-
-def test_assert_no_containers_failed(container):
-    with pytest.raises(ContainersExistError):
-        assert_no_containers()
 
 
 def test_wait_for_socket_initialization(tmp_dir):

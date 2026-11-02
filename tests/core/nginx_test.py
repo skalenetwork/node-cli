@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
-import mock
+from unittest import mock
 
 from node_cli.core.nginx import (
     generate_nginx_config,

@@ -21,7 +21,7 @@ import logging
 import pathlib
 from unittest.mock import MagicMock, patch
 
-import mock
+from unittest import mock
 import pytest
 import requests
 
@@ -66,7 +66,7 @@ def test_configure_firewall_without_monitoring_option():
         configure.reset_mock()
         result = run_command(configure_firewall, ['--yes', '--monitoring'])
         assert result.exit_code == 2
-        assert 'No such option: --monitoring' in result.output
+        assert "No such option '--monitoring'" in result.output
         configure.assert_not_called()
 
 
@@ -88,7 +88,7 @@ def test_register_node(inited_node, resource_alloc, mocked_g_config):
     assert (
         result.output
         == 'Node registered in SKALE manager.\nFor more info run < skale node info >\n'
-    )  # noqa
+    )
 
 
 def test_register_node_firewall_failure(inited_node, resource_alloc, mocked_g_config):
@@ -403,7 +403,7 @@ def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config,
         patch('node_cli.core.resources.get_disk_size', return_value=BIG_DISK_SIZE),
         patch('node_cli.utils.decorators.is_node_inited', return_value=False),
         patch(
-            'node_cli.core.node.CliMetaManager.get_meta_info',
+            'node_cli.utils.meta.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.4.0', config_stream='3.0.2'),
         ),
         patch('node_cli.operations.base.configure_nftables'),
@@ -411,12 +411,12 @@ def test_restore(request, node_type, node_mode, test_user_conf, mocked_g_config,
         user_conf_path = request.getfixturevalue(test_user_conf).as_posix()
         result = run_command(restore_node, [backup_path, user_conf_path])
         assert result.exit_code == 0
-        assert 'Node is restored from backup\n' in result.output  # noqa
+        assert 'Node is restored from backup\n' in result.output
         assert mock_restore_op.call_args.kwargs.get('backup_run') is True
 
         result = run_command(restore_node, [backup_path, user_conf_path, '--no-snapshot'])
         assert result.exit_code == 0
-        assert 'Node is restored from backup\n' in result.output  # noqa
+        assert 'Node is restored from backup\n' in result.output
         assert mock_restore_op.call_args.kwargs.get('backup_run') is False
 
 
@@ -547,7 +547,7 @@ def test_cleanup_node(mocked_g_config):
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.core.node.compose_node_env', return_value={}),
         mock.patch(
-            'node_cli.core.node.CliMetaManager.get_meta_info',
+            'node_cli.utils.meta.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):

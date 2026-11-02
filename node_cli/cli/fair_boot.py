@@ -23,7 +23,7 @@ from node_cli.configs import DEFAULT_NODE_BASE_PORT
 from node_cli.core.node import get_node_info, get_node_signature
 from node_cli.core.node import register_node as register
 from node_cli.fair.boot import init, update
-from node_cli.utils.helper import IP_TYPE, abort_if_false, error_exit, streamed_cmd
+from node_cli.utils.helper import IP_TYPE, abort_if_false, streamed_cmd
 
 
 @click.group()
@@ -69,10 +69,7 @@ def register_boot(name, ip, port, domain):
 @boot.command('signature', help='Get fair node signature for a validator ID (during Boot Phase).')
 @click.argument('validator_id')
 def signature_boot(validator_id):
-    res = get_node_signature(validator_id)
-    if isinstance(res, dict) and 'error' in res:
-        error_exit(f'Error getting signature: {res.get("message", res)}')
-    print(f'Signature: {res}')
+    print(f'Signature: {get_node_signature(validator_id)}')
 
 
 @boot.command('update', help='Update Fair node from .env file')

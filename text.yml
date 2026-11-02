@@ -11,8 +11,6 @@ common:
   json: Show data in JSON format
 
 node:
-  base: "SKALE node commands"
-  info: "Info about SKALE node"
   registered: |-
     Node registered in SKALE manager.
     For more info run < skale node info >
@@ -80,10 +78,8 @@ lvmpy:
 fair:
   node:
     repair:
-      help: Repair Fair chain node
       warning: Are you sure you want to repair Fair chain node? In rare cases may cause data loss and require additional maintenance
       snapshot: IP of the node to take snapshot from (put "any" to use any available node)
-      repair_requested: Repair mode is requested
     not_inited: Node should be initialized to proceed with operation
 
     setup:

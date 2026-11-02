@@ -20,7 +20,7 @@
 import logging
 import pathlib
 
-import mock
+from unittest import mock
 
 from node_cli.cli.passive_node import cleanup_node, _init_passive, _update_passive
 from node_cli.configs import NODE_DATA_PATH, SKALE_DIR
@@ -120,7 +120,7 @@ def test_update_passive(passive_user_conf, mocked_g_config):
         mock.patch('node_cli.operations.base.configure_nftables'),
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch(
-            'node_cli.core.node.CliMetaManager.get_meta_info',
+            'node_cli.utils.meta.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):
@@ -140,7 +140,7 @@ def test_cleanup_node(mocked_g_config):
         mock.patch('node_cli.utils.decorators.is_node_inited', return_value=True),
         mock.patch('node_cli.core.node.compose_node_env', return_value={'SCHAIN_NAME': 'test'}),
         mock.patch(
-            'node_cli.core.node.CliMetaManager.get_meta_info',
+            'node_cli.utils.meta.CliMetaManager.get_meta_info',
             return_value=CliMeta(version='2.6.0', config_stream='3.0.2'),
         ),
     ):

@@ -102,7 +102,9 @@ def update(
     )
     node_mode = upsert_node_mode(node_mode=node_mode)
 
-    save_internal_settings(node_type=NodeType.FAIR, node_mode=node_mode)
+    save_internal_settings(
+        node_type=NodeType.FAIR, node_mode=node_mode, pull_config_for_schain=pull_config_for_schain
+    )
     settings = validate_and_save_node_settings(config_file, NodeType.FAIR, node_mode)
     compose_env = compose_node_env(node_type=NodeType.FAIR, node_mode=node_mode)
     update_ok = update_fair_op(

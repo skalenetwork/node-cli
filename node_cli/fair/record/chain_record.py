@@ -67,14 +67,8 @@ class ChainRecord(FlatRedisRecord):
     def set_config_version(self, version: str) -> None:
         self._set_field('config_version', version)
 
-    def set_repair_date(self, date: datetime) -> None:
-        self._set_field('repair_date', date)
-
     def set_snapshot_from(self, value: str | None) -> None:
         self._set_field('snapshot_from', value)
-
-    def set_repair_ts(self, value: int | None) -> None:
-        self._set_field('repair_ts', value)
 
     def set_force_skaled_start(self, value: bool) -> None:
         self._set_field('force_skaled_start', value)

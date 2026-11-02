@@ -4,16 +4,15 @@
 ![Test](https://github.com/skalenetwork/node-cli/workflows/Test/badge.svg)
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
-SKALE Node CLI, part of the SKALE suite of validator tools, is the command line interface to setup, register and maintain your SKALE node. It comes in three distinct build types: Standard (for validator nodes), Passive (for dedicated sChain synchronization), and Fair.
+SKALE Node CLI, part of the SKALE suite of validator tools, is the command line interface to setup, register and maintain your SKALE node. It comes in two binaries: `skale` (validator and passive SKALE nodes) and `fair` (Fair network nodes).
 
 ## Table of Contents
 
 1. [Installation](#installation)
-   1. [Standard Node Binary](#standard-node-binary)
-   2. [Passive Node Binary](#passive-node-binary)
-   3. [Fair Node Binary](#fair-node-binary)
-   4. [Permissions and Testing](#permissions-and-testing)
-2. [Standard Node Usage (`skale` - Normal Build)](#standard-node-usage-skale---normal-build)
+   1. [SKALE Node Binary](#skale-node-binary)
+   2. [Fair Node Binary](#fair-node-binary)
+   3. [Permissions and Testing](#permissions-and-testing)
+2. [Standard Node Usage (`skale`)](#standard-node-usage-skale)
    1. [Top level commands (Standard)](#top-level-commands-standard)
    2. [Node commands (Standard)](#node-commands-standard)
    3. [Wallet commands (Standard)](#wallet-commands-standard)
@@ -22,9 +21,8 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
    6. [SSL commands (Standard)](#ssl-commands-standard)
    7. [SGX commands (Standard)](#sgx-commands-standard)
    8. [Logs commands (Standard)](#logs-commands-standard)
-3. [Passive Node Usage (`skale` - Passive Build)](#passive-node-usage-skale---passive-build)
-   1. [Top level commands (Passive)](#top-level-commands-passive)
-   2. [Passive node commands](#passive-node-commands)
+3. [Passive Node Usage (`skale passive-node`)](#passive-node-usage-skale-passive-node)
+   1. [Passive node commands](#passive-node-commands)
 4. [Fair Node Usage (`fair`)](#fair-node-usage-fair)
    1. [Top level commands (Fair)](#top-level-commands-fair)
    2. [Fair Boot commands](#fair-boot-commands)
@@ -45,7 +43,7 @@ SKALE Node CLI, part of the SKALE suite of validator tools, is the command line 
 
 ### Prerequisites
 
-Ensure that the following packages are installed: **docker**, **docker-compose** (1.27.4+)
+Ensure that **docker** with the **compose** plugin and **git** are installed.
 
 ### SKALE Node Binary
 
@@ -72,7 +70,7 @@ sudo -E bash -c "curl -L https://github.com/skalenetwork/node-cli/releases/downl
 Apply executable permissions to the downloaded binary (adjust name accordingly):
 
 ```shell
-# For Standard or Passive binary
+# For SKALE binary
 sudo chmod +x /usr/local/bin/skale
 
 # For Fair binary
@@ -82,7 +80,7 @@ sudo chmod +x /usr/local/bin/fair
 Test the installation:
 
 ```shell
-# Standard or Passive build
+# SKALE binary
 skale --help
 
 # Fair build
@@ -91,7 +89,7 @@ fair --help
 
 ***
 
-## Standard Node Usage (`skale` - Normal Build)
+## Standard Node Usage (`skale`)
 
 Commands available in the **standard `skale` binary** for managing nodes.
 
@@ -579,32 +577,9 @@ Options:
 
 ***
 
-## Passive Node Usage (`skale` - Passive Build)
+## Passive Node Usage (`skale passive-node`)
 
-Commands available in the **passive `skale` binary** for managing dedicated Passive nodes.
-Note that this binary contains a **different set of commands** compared to the standard build.
-
-### Top level commands (Passive)
-
-#### Info (Passive)
-
-Print build info for the `skale` (passive) binary.
-
-```shell
-skale info
-```
-
-#### Version (Passive)
-
-Print version number for the `skale` (passive) binary.
-
-```shell
-skale version
-```
-
-Options:
-
-* `--short` - prints version only, without additional text.
+Commands of the `skale` binary for managing dedicated Passive nodes.
 
 ### Passive node commands
 
@@ -1278,7 +1253,7 @@ Arguments:
 
 ### Passive Fair Node commands
 
-> Prefix: `fair passive-node` (passive Fair build)
+> Prefix: `fair passive-node`
 
 Commands for operating a passive Fair node (sync/indexer/archive).
 
@@ -1385,49 +1360,27 @@ Exit codes conventions for SKALE CLI tools
 
 #### Dependencies
 
-* Python 3.11
+* [uv](https://docs.astral.sh/uv/) 0.13.6+ (installs Python 3.14 from `.python-version`)
 * Git
 
 #### Clone the repository
 
-Clone with HTTPS:
-
 ```shell
-git clone https://github.com/skalenetwork/node-cli.git
-```
-
-Or with SSH:
-
-```shell
-git clone git@github.com:skalenetwork/node-cli.git
-```
-
-#### Create and source virtual environment
-
-```shell
-python3.11 -m venv venv
-source venv/bin/activate
+git clone --recurse-submodules https://github.com/skalenetwork/node-cli.git
 ```
 
 #### Install development dependencies
 
 ```shell
-pip install -e ".[dev]"
+uv sync --all-extras
 ```
 
 #### Generate info.py locally
 
-Specify the build type (`normal`, `passive`, or `fair`):
+Specify the build type (`skale` or `fair`):
 
 ```shell
-# Example for Standard build
-./scripts/generate_info.sh 1.0.0 my-branch normal
-
-# Example for Passive build
-./scripts/generate_info.sh 1.0.0 my-branch passive
-
-# Example for Fair build
-./scripts/generate_info.sh 1.0.0 my-branch fair
+bash scripts/generate_info.sh 1.0.0 my-branch skale
 ```
 
 #### Add linting git hook
@@ -1436,10 +1389,8 @@ In file `.git/hooks/pre-commit` add:
 
 ```shell
 #!/bin/sh
-./venv/bin/ruff check .
+uv run ruff check
 ```
-
-> **Note:** This hook assumes your virtual environment is named 'venv' and is located at the root of the repository.
 
 Make the hook executable:
 

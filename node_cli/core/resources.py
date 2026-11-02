@@ -17,7 +17,6 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import logging
 from time import sleep
 from typing import Dict
@@ -26,11 +25,8 @@ import psutil
 
 from skale_core.types import EnvType
 
-from node_cli.utils.settings import validate_and_save_node_settings
 from node_cli.utils.docker_utils import ensure_volume
-from node_cli.utils.schain_types import SchainTypes
-from node_cli.utils.helper import write_json, read_json, run_cmd, safe_load_yml
-from node_cli.utils.node_type import NodeType, NodeMode
+from node_cli.utils.helper import write_json, run_cmd, safe_load_yml
 from node_cli.configs import ALLOCATION_FILEPATH, STATIC_PARAMS_FILEPATH, SNAPSHOTS_SHARED_VOLUME
 from node_cli.configs.resource_allocation import (
     RESOURCE_ALLOCATION_FILEPATH,
@@ -45,10 +41,6 @@ from node_cli.configs.resource_allocation import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-class NotEnoughDiskSpaceError(Exception):
-    pass
 
 
 class ResourceAlloc:
@@ -68,13 +60,6 @@ class ResourceAlloc:
         return self.values
 
 
-def get_resource_allocation_info():
-    try:
-        return read_json(RESOURCE_ALLOCATION_FILEPATH)
-    except FileNotFoundError:
-        return None
-
-
 def compose_resource_allocation_config(env_type: EnvType, params_by_env_type: Dict = None) -> Dict:
     params_by_env_type = params_by_env_type or safe_load_yml(STATIC_PARAMS_FILEPATH)
     common_config = params_by_env_type['common']
@@ -87,47 +72,16 @@ def compose_resource_allocation_config(env_type: EnvType, params_by_env_type: Di
             'cpu_shares': schain_cpu_alloc.dict(),
             'mem': schain_mem_alloc.dict(),
             'disk': schain_allocation_data[env_type]['disk'],
-            'volume_limits': schain_allocation_data[env_type]['volume_limits'],  # noqa
-            'leveldb_limits': schain_allocation_data[env_type]['leveldb_limits'],  # noqa
+            'volume_limits': schain_allocation_data[env_type]['volume_limits'],
+            'leveldb_limits': schain_allocation_data[env_type]['leveldb_limits'],
         },
         'ima': {'cpu_shares': ima_cpu_alloc.dict(), 'mem': ima_mem_alloc.dict()},
     }
 
 
-def generate_resource_allocation_config(
-    env_file: str,
-    node_type: NodeType,
-    node_mode: NodeMode,
-    force: bool = False,
-) -> None:
-    if not force and os.path.isfile(RESOURCE_ALLOCATION_FILEPATH):
-        msg = 'Resource allocation file already exists'
-        logger.debug(msg)
-        print(msg)
-        return
-    settings = validate_and_save_node_settings(env_file, node_type, node_mode)
-    logger.info('Generating resource allocation file ...')
-    try:
-        update_resource_allocation(settings.env_type)
-    except Exception as e:
-        logger.exception(e)
-        print("Can't generate resource allocation file, check out CLI logs")
-    else:
-        print(f'Resource allocation file generated: {RESOURCE_ALLOCATION_FILEPATH}')
-
-
 def update_resource_allocation(env_type: EnvType) -> None:
     resource_allocation_config = compose_resource_allocation_config(env_type)
     write_json(RESOURCE_ALLOCATION_FILEPATH, resource_allocation_config)
-
-
-def get_available_memory():
-    memory = []
-    for _ in range(0, TIMES):
-        mem_info = psutil.virtual_memory()
-        memory.append(mem_info.available)
-        sleep(TIMEOUT)
-    return sum(memory) / TIMES * MEMORY_FACTOR
 
 
 def get_total_memory():
@@ -154,19 +108,6 @@ def get_cpu_alloc(common_config: Dict) -> ResourceAlloc:
     return ResourceAlloc(schain_max_cpu_shares), ResourceAlloc(ima_max_cpu_shares)
 
 
-def verify_disk_size(disk_device: str, env_configs: dict):
-    disk_size = get_disk_size(disk_device)
-    env_disk_size = env_configs['server']['disk']
-    check_disk_size(disk_size, env_disk_size)
-
-
-def check_disk_size(disk_size: int, env_disk_size: int):
-    if env_disk_size > disk_size:
-        raise NotEnoughDiskSpaceError(
-            f'Disk size: {disk_size}, required disk size: {env_disk_size}'
-        )
-
-
 def get_disk_size(disk_device: str) -> int:
     disk_size_cmd = construct_disk_size_cmd(disk_device)
     output = run_cmd(disk_size_cmd).stdout.decode('utf-8')
@@ -175,19 +116,6 @@ def get_disk_size(disk_device: str) -> int:
 
 def construct_disk_size_cmd(disk_path: str) -> list:
     return ['blockdev', '--getsize64', disk_path]
-
-
-def check_is_partition(disk_path):
-    res = run_cmd(['blkid', disk_path])
-    output = str(res.stdout)
-    if 'PARTUUID' in output:
-        return True
-    return False
-
-
-def get_allocation_option_name(schain):
-    part_of_node = int(schain['partOfNode'])
-    return SchainTypes(part_of_node).name
 
 
 def init_shared_space_volume(env_type):

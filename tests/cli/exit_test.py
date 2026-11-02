@@ -15,4 +15,4 @@ def test_exit_status():
     assert (
         result.output
         == "{'status': 'ACTIVE', 'data': [{'name': 'test', 'status': 'ACTIVE'}], 'exit_time': 0}\n"
-    )  # noqa
+    )
