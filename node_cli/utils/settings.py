@@ -35,6 +35,7 @@ from skale_core.settings import (
 )
 
 from node_cli.configs import INTERNAL_SETTINGS_PATH, NODE_SETTINGS_PATH, SKALE_DIR
+from node_cli.utils.helper import error_exit
 from node_cli.utils.node_type import NodeMode, NodeType
 
 InternalSettings.model_config['toml_file'] = INTERNAL_SETTINGS_PATH
@@ -58,6 +59,8 @@ def validate_and_save_node_settings(
 ) -> BaseNodeSettings:
     data = load_config_file(config_filepath)
     settings_type = SETTINGS_MAP[(node_type.value, node_mode.value)]
+    if settings_type.model_validate(data).endpoint.scheme not in ('http', 'https'):
+        error_exit('Endpoint must be an http or https URL')
     write_node_settings_file(path=NODE_SETTINGS_PATH, settings_type=settings_type, data=data)
     return settings_type()
 
