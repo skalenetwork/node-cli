@@ -56,7 +56,6 @@ CONTAINER_CONFIG_PATH = os.path.join(SKALE_DIR, 'config')
 CONTAINER_CONFIG_TMP_PATH = os.path.join(SKALE_TMP_DIR, 'config')
 CONTRACTS_PATH = os.path.join(SKALE_DIR, 'contracts_info')
 REPORTS_PATH = os.path.join(SKALE_DIR, 'reports')
-BACKUP_CONTRACTS_PATH = os.path.join(SKALE_DIR, '.old_contracts_info')
 SKALE_RUN_DIR = '/var/run/skale'
 
 COMPOSE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'docker-compose.yml')
@@ -93,7 +92,6 @@ SCHAINS_DATA_PATH = os.path.join(NODE_DATA_PATH, 'schains')
 SRC_FILEBEAT_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'filebeat.yml')
 FILEBEAT_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'filebeat.yml')
 
-DOCKER_LVMPY_PATH = os.path.join(SKALE_DIR, 'docker-lvmpy')
 DOCKER_LVMPY_BIN_PATH = '/usr/local/bin/skale'
 
 LVMPY_CMD = f'{DOCKER_LVMPY_BIN_PATH} lvmpy'
@@ -103,19 +101,13 @@ LVMPY_HEAL_CMD = f'{LVMPY_CMD} heal --yes'
 LVMPY_CRON_LOG_PATH = '/var/log/docker-lvmpy/cron.log'
 LVMPY_CRON_SCHEDULE_MINUTES = 3
 
-LVMPY_LOG_DIR = '/var/log/docker-lvmpy'
-
-IPTABLES_DIR = '/etc/iptables/'
-IPTABLES_RULES_STATE_FILEPATH = os.path.join(IPTABLES_DIR, 'rules.v4')
-DEFAULT_SSH_PORT = 22
-
 DOCKER_CONFIG_FILEPATH = '/etc/docker/daemon.json'
 HIDE_STREAM_LOG = os.getenv('HIDE_STREAM_LOG')
 
 
 def _get_env():
     try:
-        sys._MEIPASS  # type: ignore
+        sys._MEIPASS
     except AttributeError:
         return 'dev'
     return 'prod'
@@ -128,7 +120,7 @@ if ENV == 'dev':
     PARDIR = os.path.join(CURRENT_FILE_LOCATION, os.pardir)
     PROJECT_DIR = os.path.join(PARDIR, os.pardir)
 else:
-    PARDIR = os.path.join(sys._MEIPASS, 'data')  # type: ignore
+    PARDIR = os.path.join(sys._MEIPASS, 'data')
     PROJECT_DIR = PARDIR
 
 TEXT_FILE = os.path.join(PROJECT_DIR, 'text.yml')
@@ -142,7 +134,6 @@ LONG_LINE = '-' * 50
 
 ADMIN_PORT = 3007
 ADMIN_HOST = 'localhost'
-DEFAULT_URL_SCHEME = 'http://'
 
 DEFAULT_NODE_BASE_PORT = 10000
 
@@ -155,7 +146,6 @@ INIT_TIMEOUT = 20
 META_FILEPATH = os.path.join(NODE_DATA_PATH, 'meta.json')
 
 SKALE_NODE_REPO_URL = 'https://github.com/skalenetwork/skale-node.git'
-DOCKER_LVMPY_REPO_URL = 'https://github.com/skalenetwork/docker-lvmpy.git'
 
 DOCKER_DAEMON_CONFIG_PATH = '/etc/docker/daemon.json'
 DOCKER_DAEMON_HOSTS = ('fd://', 'unix:///var/run/skale/docker.sock')
@@ -168,8 +158,6 @@ CHECK_REPORT_PATH = os.path.join(REPORTS_PATH, 'checks.json')
 AUTOLOAD_KERNEL_MODULES_PATH = '/etc/modules'
 BTRFS_KERNEL_MODULE = 'btrfs'
 
-TELEGRAF_TEMPLATE_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'telegraf.conf.j2')
-TELEGRAF_CONFIG_PATH = os.path.join(CONTAINER_CONFIG_PATH, 'telegraf.conf')
 NODE_DOCKER_CONFIG_PATH = os.path.join(NODE_DATA_PATH, 'docker.json')
 
 NFTABLES_CHAIN_FOLDER_PATH = '/etc/nft.conf.d/skale/chains'

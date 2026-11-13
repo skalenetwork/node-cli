@@ -98,7 +98,7 @@ def info():
 
 def get_command_groups() -> List[click.Group]:
     if TYPE == NodeType.FAIR:
-        return [  # type: ignore
+        return [
             logs_cli,
             fair_boot_cli,
             fair_node_cli,
@@ -110,7 +110,7 @@ def get_command_groups() -> List[click.Group]:
             sgx_cli,
         ]
     else:
-        return [  # type: ignore
+        return [
             health_cli,
             schains_cli,
             logs_cli,

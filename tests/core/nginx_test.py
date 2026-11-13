@@ -4,7 +4,7 @@ from pathlib import Path
 
 import docker
 import pytest
-import mock
+from unittest import mock
 
 from node_cli.core.host import is_node_inited
 from node_cli.core.nftables import NFTablesError

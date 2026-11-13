@@ -21,7 +21,6 @@ import json
 import logging
 import os
 import shutil
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -30,7 +29,6 @@ from filelock import FileLock
 
 from node_cli.configs import (
     DEFAULT_NODE_BASE_PORT,
-    ENV,
     NFTABLES_CHAIN_CONFIG_WILDCARD,
     NFTABLES_CHAIN_FOLDER_PATH,
     NFTABLES_MAIN_CONFIG_PATH,
@@ -47,16 +45,6 @@ from node_cli.utils.helper import (
 )
 
 logger = logging.getLogger(__name__)
-
-try:
-    import nftables
-except (FileNotFoundError, AttributeError, ModuleNotFoundError) as err:
-    if 'pytest' in sys.modules or ENV == 'dev':
-        from collections import namedtuple  # hotfix for tests
-
-        iptc = namedtuple('nftables', ['Chain', 'Rule'])
-    else:
-        logger.error(f'Unable to import nftables due to an error {err}')
 
 
 @dataclass
@@ -214,6 +202,8 @@ class Rule:
 
 class NFTablesManager:
     def __init__(self, family: str = 'inet', table: str = 'firewall', chain: str = 'skale') -> None:
+        import nftables
+
         self.nft = nftables.Nftables()
         self.nft.set_json_output(True)
         self.nft.set_stateless_output(True)
@@ -415,25 +405,12 @@ class NFTablesManager:
             label=f'{rule.protocol} drop rule',
         )
 
-    def remove_drop_rule(self, protocol: str) -> None:
-        expr = [ip_protocol_match(protocol), {'counter': None}, {'drop': None}]
-        if self._remove_rule_by_expr(self.chain, expr):
-            logger.info('Removed drop rule for %s', protocol)
-        else:
-            logger.info('Drop rule does not exist for %s', protocol)
-
     def add_rule(self, rule: Rule) -> None:
         self._ensure_rule(
             rule.chain,
             rule.to_expr(),
             label=f'{rule.protocol} {rule.icmp_type or rule.first_port} {rule.action} rule',
         )
-
-    def remove_rule(self, rule: Rule) -> None:
-        if self._remove_rule_by_expr(rule.chain, rule.to_expr()):
-            logger.info('Removed %s rule for %s', rule.protocol, rule.first_port)
-        else:
-            logger.info('No %s rule for %s to remove', rule.protocol, rule.first_port)
 
     def _table_listing(self) -> dict:
         """Parsed json listing of the managed table; empty when absent."""
@@ -749,41 +726,6 @@ class NFTablesManager:
             'Firewall rules are configured, default policy: %s',
             POLICY_DROP if default_drop else POLICY_ACCEPT,
         )
-
-    def cleanup_legacy_rules(self, ssh: bool = False, dns: bool = False) -> None:
-        """Cleans up all node-cli generated rules."""
-        self.remove_drop_rule('tcp')
-        self.remove_drop_rule('udp')
-        tcp_ports = [
-            ServicePort.HTTPS,
-            ServicePort.WATCHDOG_HTTP,
-            ServicePort.WATCHDOG_HTTPS,
-            ServicePort.EXPORTER,
-            ServicePort.CADVISOR,
-            ServicePort.DNS,  # tcp is redundant, making sure it's removed
-        ]
-        if ssh:
-            tcp_ports.extend(get_ssh_ports())
-        for port in tcp_ports:
-            self.remove_rule(Rule(chain=self.chain, protocol='tcp', first_port=port))
-        if dns:
-            self.remove_rule(Rule(chain=self.chain, protocol='udp', first_port=ServicePort.DNS))
-
-    def flush_chain(self, chain: str) -> None:
-        """Remove all rules from a specific chain."""
-        json_cmd = {
-            'nftables': [
-                {'flush': {'chain': {'family': self.family, 'table': self.table, 'name': chain}}}
-            ]
-        }
-
-        try:
-            rc, output, error = self.nft.json_cmd(json_cmd)
-            if rc != 0:
-                raise NFTablesError(f'Failed to flush chain: {error}')
-        except Exception as e:
-            logger.error(f'Failed to flush chain: {str(e)}')
-            raise NFTablesError('Flushing chain errored')
 
     def delete_chain(self, chain: str) -> None:
         chain_spec = {'family': self.family, 'table': self.table, 'name': chain}

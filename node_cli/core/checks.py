@@ -43,8 +43,8 @@ from typing import (
     Union,
 )
 
-import docker  # type: ignore
-import psutil  # type: ignore
+import docker
+import psutil
 from debian import debian_support
 from packaging.version import parse as version_parse
 
@@ -60,9 +60,8 @@ from node_cli.configs import (
 from node_cli.core.host import is_ufw_ipv6_chain_exists, is_ufw_ipv6_option_enabled
 from node_cli.core.resources import get_disk_size
 from node_cli.core.static_config import get_static_params
-from node_cli.utils.docker_utils import NodeType
 from node_cli.utils.helper import run_cmd, safe_mkdir
-from node_cli.utils.node_type import NodeMode
+from node_cli.utils.node_type import NodeMode, NodeType
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +82,7 @@ def check_quietly(check: Func, *args, **kwargs) -> CheckResult:
     try:
         return check(*args, **kwargs)
     except Exception as err:
-        logger.exception('%s check errored')
+        logger.exception('%s check errored', check.__name__)
         return CheckResult(name=check.__name__, status='error', info=repr(err))
 
 
@@ -166,19 +165,13 @@ class BaseChecker:
 
         methods = inspect.getmembers(
             type(self),
-            predicate=lambda m: inspect.isfunction(m)
-            and getattr(m, '_check_type', None) in allowed_types
-            and self.requirements.get(m.__name__, None) != 'disabled',
+            predicate=lambda m: (
+                inspect.isfunction(m)
+                and getattr(m, '_check_type', None) in allowed_types
+                and self.requirements.get(m.__name__, None) != 'disabled'
+            ),
         )
         return [functools.partial(m[1], self) for m in methods]
-
-    def preinstall_check(self) -> ResultList:
-        check_methods = self.get_checks(check_type=CheckType.PREINSTALL)
-        return [cm() for cm in check_methods]
-
-    def postinstall_check(self) -> ResultList:
-        check_methods = self.get_checks(check_type=CheckType.POSTINSTALL)
-        return [cm() for cm in check_methods]
 
     def check(self) -> ResultList:
         check_methods = self.get_checks()
@@ -261,12 +254,11 @@ class MachineChecker(BaseChecker):
     def network(self) -> CheckResult:
         name = 'network'
         try:
-            socket.setdefaulttimeout(self.network_timeout)
-            socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
-                (CLOUDFLARE_DNS_HOST, CLOUDFLARE_DNS_HOST_PORT)
-            )
-            return self._ok(name=name)
-        except socket.error as err:
+            with socket.create_connection(
+                (CLOUDFLARE_DNS_HOST, CLOUDFLARE_DNS_HOST_PORT), timeout=self.network_timeout
+            ):
+                return self._ok(name=name)
+        except OSError as err:
             info = f'Network checking returned error: {err}'
             return self._failed(name=name, info=info)
 
@@ -275,8 +267,7 @@ class PackageChecker(BaseChecker):
     def __init__(self, requirements: Dict) -> None:
         super().__init__(requirements=requirements)
 
-    def _check_apt_package(self, package_name: str, version: str | None = None) -> CheckResult:
-        # TODO: check versions
+    def _check_apt_package(self, package_name: str) -> CheckResult:
         dpkg_cmd_result = run_cmd(['dpkg', '-s', package_name], check_code=False)
         output = dpkg_cmd_result.stdout.decode('utf-8').strip()
         if dpkg_cmd_result.returncode != 0:
@@ -348,7 +339,7 @@ class DockerChecker(BaseChecker):
         if not version_info:
             return self._failed(name=name, info='Docker api request failed. Is docker installed?')
         logger.debug('Docker version info %s', version_info)
-        actual_version = self.docker_client.version()['Version']
+        actual_version = version_info['Version']
         expected_version = self.requirements['docker-engine']
         info = {'expected_version': expected_version, 'actual_version': actual_version}
         if version_parse(actual_version) < version_parse(expected_version):
@@ -392,7 +383,7 @@ class DockerChecker(BaseChecker):
         actual_version = output.split(',')[0].split()[-1].strip()
         expected_version = self.requirements['docker-compose']
 
-        info = f'Expected docker compose version {expected_version}, actual {actual_version}'  # noqa
+        info = f'Expected docker compose version {expected_version}, actual {actual_version}'
         if version_parse(actual_version) < version_parse(expected_version):
             return self._failed(name=name, info=info)
         else:
@@ -424,7 +415,7 @@ class DockerChecker(BaseChecker):
         sactual, sexpected = set(actual_value), set(DOCKER_DAEMON_HOSTS)
         if sactual & sexpected != sexpected:
             missing = sorted(sexpected - sactual)
-            info = f'Docker daemon hosts is misconfigured. Missing hosts: {missing}'  # noqa
+            info = f'Docker daemon hosts is misconfigured. Missing hosts: {missing}'
             return False, info
         else:
             info = 'Hosts is properly configured'

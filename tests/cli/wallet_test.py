@@ -20,7 +20,7 @@
 
 import requests
 
-from mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock
 
 from node_cli.configs import G_CONF_HOME
 from node_cli.cli.wallet import wallet_info, send
@@ -63,7 +63,7 @@ def test_wallet_send():
         ['0x00000000000000000000000000000000', '10', '--yes'],
     )
     assert result.exit_code == 0
-    assert result.output == 'Funds were successfully transferred\n'  # noqa
+    assert result.output == 'Funds were successfully transferred\n'
 
 
 def test_wallet_send_with_error():

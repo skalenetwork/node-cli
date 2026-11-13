@@ -1,46 +1,27 @@
 name: Test
 on: [push]
 
+permissions:
+  contents: read
+
 jobs:
   test:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        python-version: ['3.13']
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         submodules: true
 
-    - name: Checkout submodules
-      run: git submodule update --init
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
     - name: Install uv
-      run: curl -LsSf https://astral.sh/uv/install.sh | sh
-
-    - name: Cache uv
-      uses: actions/cache@v4
+      uses: astral-sh/setup-uv@v10.3.3
       with:
-        path: ~/.cache/uv
-        key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-    - name: Install ubuntu dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install iptables nftables python3-nftables
+        version: "0.13.6"
 
     - name: Install python dependencies
-      run: |
-        uv venv
-        uv pip install -e ".[dev]"
+      run: uv sync --all-extras
 
     - name: Generate info
-      run: bash ./scripts/generate_info.sh 1.0.0 my-branch skale
+      run: bash ./scripts/generate_info.sh test test skale
 
     - name: Check with ruff
       run: |
@@ -52,34 +33,22 @@ jobs:
     - name: Build binary - skale
       run: |
         mkdir -p ./dist
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test skale
-        docker rm -f $(docker ps -aq)
+        docker run --rm -v "$PWD/dist":/app/dist node-cli-builder bash scripts/build.sh test test skale
 
     - name: Check build - skale
-      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64
+      run: sudo ./dist/skale-test-Linux-x86_64
 
     - name: Build binary - fair
       run: |
-        mkdir -p ./dist
-        docker run  -v /home/ubuntu/dist:/app/dist node-cli-builder bash scripts/build.sh test test fair
-        docker rm -f $(docker ps -aq)
+        docker run --rm -v "$PWD/dist":/app/dist node-cli-builder bash scripts/build.sh test test fair
 
     - name: Check build - fair
-      run: sudo /home/ubuntu/dist/skale-test-Linux-x86_64-fair
-
-    - name: Run prepare test build
-      run: |
-        uv run bash scripts/build.sh test test skale
-
-    - name: Run redis
-      run: |
-        bash ./helper-scripts/redis/run.sh
-
-    - name: Run tests
-      run: |
-        export PYTHONPATH=${PYTHONPATH}:/usr/lib/python3/dist-packages/
-        uv run bash ./scripts/run_tests.sh
+      run: sudo ./dist/skale-test-Linux-x86_64-fair
 
     - name: Run nftables tests
       run: |
-        uv run scripts/run_nftables_test.sh
+        bash ./scripts/run_nftables_test.sh
+
+    - name: Run tests
+      run: |
+        uv run bash ./scripts/run_tests.sh

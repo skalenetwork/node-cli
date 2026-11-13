@@ -13,67 +13,42 @@ jobs:
   build_and_release:
     if: github.event.pull_request.merged
     name: Build and create release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
+    env:
+      BRANCH: ${{ github.base_ref }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: true
 
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.13
-
       - name: Calculate version
-        id: versioning
         run: |
-          bash ./scripts/set_versions_ga.sh
-          
-      - name: Determine prerelease status
-        id: release_info
-        run: |
-          if [[ "${{ env.BRANCH }}" == "stable" ]]; then
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-          else
-            echo "prerelease=true" >> $GITHUB_OUTPUT
-          fi
+          export VERSION=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)
+          echo "VERSION=$(bash ./helper-scripts/calculate_version.sh)" >> "$GITHUB_ENV"
 
       - name: Build binaries
-        id: build
         run: |
-          mkdir -p ${{ github.workspace }}/dist
+          mkdir -p ./dist
           docker build . -t node-cli-builder
-          
-          docker run --rm -v ${{ github.workspace }}/dist:/app/dist node-cli-builder \
-            bash scripts/build.sh ${{ env.VERSION }} ${{ env.BRANCH }} skale
-            
-          docker run --rm -v ${{ github.workspace }}/dist:/app/dist node-cli-builder \
-            bash scripts/build.sh ${{ env.VERSION }} ${{ env.BRANCH }} fair
-            
-          echo "dist_path=${{ github.workspace }}/dist" >> $GITHUB_OUTPUT
-          
+          docker run --rm -v "$PWD/dist":/app/dist node-cli-builder bash scripts/build.sh "$VERSION" "$BRANCH" skale
+          docker run --rm -v "$PWD/dist":/app/dist node-cli-builder bash scripts/build.sh "$VERSION" "$BRANCH" fair
+
       - name: Generate checksums
+        working-directory: dist
         run: |
-          cd ${{ steps.build.outputs.dist_path }}
           for file in skale-*; do
             sha512sum "$file" > "$file.sha512"
           done
-          echo "Checksums generated:"
-          ls -l *.sha512
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.VERSION }}
           target_commitish: ${{ github.sha }}
           name: Release ${{ env.VERSION }}
-          draft: false
-          prerelease: ${{ steps.release_info.outputs.prerelease }}
+          prerelease: ${{ github.base_ref != 'stable' }}
           generate_release_notes: true
-          files: |
-            ${{ steps.build.outputs.dist_path }}/skale-*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: dist/skale-*

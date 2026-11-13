@@ -80,7 +80,6 @@ logger = logging.getLogger(__name__)
 
 class FairUpdateType(Enum):
     REGULAR = 'regular'
-    INFRA_ONLY = 'infra_only'
     FROM_BOOT = 'from_boot'
 
 
@@ -89,7 +88,7 @@ def init_fair_boot(
     settings: BaseNodeSettings,
     compose_env: dict,
     node_mode: NodeMode,
-) -> None:
+) -> bool:
     sync_skale_node()
     cleanup_volume_artifacts(settings.block_device)
 
@@ -129,6 +128,7 @@ def init_fair_boot(
         node_mode=NodeMode.ACTIVE,
         is_fair_boot=True,
     )
+    return True
 
 
 @checked_host
@@ -218,7 +218,6 @@ def update_fair_boot(
     prepare_block_device(settings.block_device, force=fair_settings.enforce_btrfs)
 
     prepare_host(settings.env_type)
-    save_internal_settings(node_type=NodeType.FAIR, node_mode=NodeMode.ACTIVE)
 
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
@@ -262,7 +261,7 @@ def update(
 ) -> bool:
     compose_rm(node_type=NodeType.FAIR, node_mode=node_mode, env=compose_env)
     rm_legacy_containers()
-    if update_type not in (FairUpdateType.INFRA_ONLY, FairUpdateType.FROM_BOOT):
+    if update_type != FairUpdateType.FROM_BOOT:
         remove_dynamic_containers()
 
     sync_skale_node()
@@ -275,7 +274,6 @@ def update(
     generate_nginx_config()
 
     prepare_host(settings.env_type, allocation=True)
-    save_internal_settings(node_type=NodeType.FAIR, node_mode=node_mode)
     meta_manager = FairCliMetaManager()
     current_stream = meta_manager.get_meta_info().config_stream
     if not settings.skip_docker_cleanup and current_stream != settings.node_version:

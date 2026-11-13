@@ -1,32 +1,37 @@
-FROM python:3.13-slim-bookworm AS builder
+FROM ubuntu:24.04 AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+ENV UV_PYTHON_INSTALL_DIR=/opt/python
+
+COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /usr/local/bin/uv
 
 WORKDIR /app
 
 COPY pyproject.toml ./
 
-RUN uv pip install --system --no-cache ".[dev]"
+RUN uv venv --python 3.14.10 /opt/venv && \
+    uv pip install --python /opt/venv --no-cache ".[dev]"
 
-FROM python:3.13-slim-bookworm
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    binutils \
     git \
-    iptables \
-    nftables \
-    python3-nftables \
-    kmod \
-    wget \
-    binutils && \
+    patchelf \
+    python3-nftables && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /opt/python /opt/python
+COPY --from=builder /opt/venv /opt/venv
+
+RUN ln -s /usr/lib/python3/dist-packages/nftables /opt/venv/lib/python3.14/site-packages/
 
 COPY . .
 
-ENV PYTHONPATH="/app:/usr/lib/python3/dist-packages"
-ENV COLUMNS=80
+RUN patchelf --remove-needed libSegFault.so datafiles/skaled-ssl-test
+
+ENV PATH="/opt/venv/bin:$PATH"

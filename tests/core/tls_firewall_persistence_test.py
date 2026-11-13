@@ -1,3 +1,4 @@
+import sys
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -11,7 +12,7 @@ def test_tls_ports_are_saved_for_restore(tmp_path, monkeypatch, certificates):
     nft = Mock()
     nft.cmd.return_value = (0, '', '')
     nft.json_cmd.return_value = (0, '', '')
-    monkeypatch.setattr(firewall, 'nftables', SimpleNamespace(Nftables=lambda: nft), raising=False)
+    monkeypatch.setitem(sys.modules, 'nftables', SimpleNamespace(Nftables=lambda: nft))
     manager = firewall.NFTablesManager()
     monkeypatch.setattr(firewall, 'NFTablesManager', lambda: manager)
     monkeypatch.setattr(manager, 'get_rules', lambda chain: [])

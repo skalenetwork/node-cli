@@ -43,7 +43,8 @@ def init(config_file: str) -> None:
     settings = validate_and_save_node_settings(config_file, node_type, node_mode)
     compose_env = compose_node_env(node_type=node_type, node_mode=node_mode)
 
-    init_fair_boot_op(settings=settings, compose_env=compose_env, node_mode=node_mode)
+    if not init_fair_boot_op(settings=settings, compose_env=compose_env, node_mode=node_mode):
+        error_exit('Init operation failed', exit_code=CLIExitCodes.OPERATION_EXECUTION_ERROR)
     logger.info('Waiting for fair containers initialization')
     time.sleep(TM_INIT_TIMEOUT)
     if not is_base_containers_alive(node_type=node_type, node_mode=node_mode, is_fair_boot=True):
@@ -56,7 +57,9 @@ def init(config_file: str) -> None:
 def update(config_file: str, pull_config_for_schain: str) -> None:
     logger.info('Fair boot node update started')
     node_mode = upsert_node_mode(node_mode=NodeMode.ACTIVE)
-    save_internal_settings(node_type=NodeType.FAIR, node_mode=node_mode)
+    save_internal_settings(
+        node_type=NodeType.FAIR, node_mode=node_mode, pull_config_for_schain=pull_config_for_schain
+    )
     settings = validate_and_save_node_settings(config_file, NodeType.FAIR, node_mode)
     compose_env = compose_node_env(node_type=NodeType.FAIR, node_mode=node_mode)
     migrate_ok = update_fair_boot_op(

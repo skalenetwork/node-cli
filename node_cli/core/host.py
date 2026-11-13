@@ -20,7 +20,6 @@
 import logging
 import os
 from shutil import chown
-from urllib.parse import urlparse
 
 from skale_core.types import EnvType
 
@@ -28,10 +27,8 @@ from node_cli.core.resources import update_resource_allocation
 from node_cli.utils.helper import error_exit
 
 from node_cli.configs import (
-    ADMIN_PORT,
     AUTOLOAD_KERNEL_MODULES_PATH,
     BTRFS_KERNEL_MODULE,
-    DEFAULT_URL_SCHEME,
     NODE_DATA_PATH,
     SKALE_DIR,
     CONTAINER_CONFIG_PATH,
@@ -57,23 +54,7 @@ from node_cli.configs.cli_logger import LOG_DATA_PATH
 from node_cli.core.nftables import NFTablesManager
 from node_cli.utils.helper import safe_mkdir
 
-from node_cli.utils.texts import safe_load_texts
-
-TEXTS = safe_load_texts()
-
 logger = logging.getLogger(__name__)
-
-
-def fix_url(url):
-    try:
-        result = urlparse(url)
-        if not result.scheme:
-            url = f'{DEFAULT_URL_SCHEME}{url}'
-        if not url.endswith(str(ADMIN_PORT)):
-            return f'{url}:{ADMIN_PORT}'
-        return url
-    except ValueError:
-        return False
 
 
 def prepare_host(env_type: EnvType, allocation: bool = False) -> None:
@@ -118,10 +99,6 @@ def make_dirs():
 def init_logs_dir():
     safe_mkdir(LOG_DATA_PATH)
     safe_mkdir(REMOVED_CONTAINERS_FOLDER_PATH)
-
-
-def init_data_dir():
-    safe_mkdir(NODE_DATA_PATH)
 
 
 def is_btrfs_module_autoloaded(modules_filepath=AUTOLOAD_KERNEL_MODULES_PATH):

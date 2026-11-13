@@ -71,7 +71,7 @@ def test_create_logs_dump(backup_func, skale_container, removed_containers_folde
         content = data_file.readlines()
     assert content == [
         'Hello, SKALE!\n',
-        '================================================================================\n',  # noqa
+        '================================================================================\n',
         'Hello, SKALE!\n',
     ]
 
