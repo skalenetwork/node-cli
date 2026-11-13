@@ -139,8 +139,7 @@ def test_provisions_before_compose_starts(token_path, monkeypatch):
 
     start = Mock(side_effect=run)
     monkeypatch.setattr(docker_utils, 'run_cmd', start)
-    settings = Mock(tg_api_key=None)
-    docker_utils.compose_up({}, settings, NodeType.SKALE, NodeMode.ACTIVE)
+    docker_utils.compose_up({}, NodeType.SKALE, NodeMode.ACTIVE)
     start.assert_called_once()
 
 
@@ -153,5 +152,5 @@ def test_invalid_token_prevents_starting_services(token_path, monkeypatch):
     start = Mock()
     monkeypatch.setattr(docker_utils, 'run_cmd', start)
     with pytest.raises(api_auth.APIAuthError):
-        docker_utils.compose_up({}, Mock(), NodeType.SKALE, NodeMode.ACTIVE)
+        docker_utils.compose_up({}, NodeType.SKALE, NodeMode.ACTIVE)
     start.assert_not_called()
