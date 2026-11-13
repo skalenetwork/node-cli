@@ -94,7 +94,7 @@ def tls_ports(manager):
 def test_tls_ports_open_only_with_certificates(monitoring_firewall, monkeypatch):
     manager = monitoring_firewall
     expressions = [Rule(manager.chain, 'tcp', port).to_expr() for port in (443, 311)]
-    # a firewall set up before the ports depended on certificates accepts both
+    # unconditional accepts of both ports, each of them twice
     for expr in expressions * 2:
         manager._execute_rule_with_op('add', manager.chain, expr)
 

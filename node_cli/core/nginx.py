@@ -84,7 +84,7 @@ def generate_nginx_config() -> Optional[str]:
     }
     logger.info(f'Processing nginx templates. ssl: {ssl_on}, skale_node: {skale_node}')
     if not os.path.isdir(NGINX_TEMPLATE_DIR):
-        # a config stream from before node_data/nginx/ mounts one server file into conf.d
+        # a config stream without nginx/ mounts one server file into conf.d
         process_template(
             LEGACY_NGINX_TEMPLATE_FILEPATH, LEGACY_NGINX_CONFIG_FILEPATH, template_data
         )

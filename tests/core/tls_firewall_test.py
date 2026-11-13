@@ -49,7 +49,7 @@ def test_tls_ports_open_with_certificates(manager, tmp_path):
 
 
 def test_tls_ports_closed_without_certificates(manager, tmp_path):
-    # a setup that opened the ports unconditionally left accepts behind, some of them twice
+    # unconditional accepts of the TLS ports, one of them twice
     installed = [Rule('skale', 'tcp', 22), *TLS_RULES, Rule('skale', 'tcp', 80), TLS_RULES[0]]
     added, deleted = service_accepts(manager, certs=False, ssh_ports=[22], installed=installed)
     assert not any(rule in added for rule in TLS_RULES)

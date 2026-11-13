@@ -89,7 +89,7 @@ def prepare_host(env_type: EnvType, allocation: bool = False) -> None:
 
 
 def is_node_inited() -> bool:
-    # the single-file config marks nodes that were not updated to node_data/nginx/ yet
+    # config streams without nginx/ keep the single-file config
     return os.path.isfile(NGINX_CONFIG_FILEPATH) or os.path.isfile(LEGACY_NGINX_CONFIG_FILEPATH)
 
 

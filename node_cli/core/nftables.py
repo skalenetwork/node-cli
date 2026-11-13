@@ -82,6 +82,7 @@ class SGXPort:
 
 # nginx listens on these only once the node has certificates, see base.conf.j2
 TLS_SERVICE_PORTS = (ServicePort.HTTPS, ServicePort.WATCHDOG_HTTPS)
+TLS_PORTS_SET = 'skale_tls_ports'
 
 LEGACY_CHAIN = 'INPUT'
 LEGACY_FAMILY = 'ip'
@@ -168,6 +169,20 @@ def conntrack_accept_expr() -> list[dict]:
 def loopback_accept_expr() -> list[dict]:
     return [
         {'match': {'left': {'meta': {'key': 'iifname'}}, 'op': '==', 'right': 'lo'}},
+        {'counter': None},
+        {'accept': None},
+    ]
+
+
+def tls_ports_accept_expr() -> list[dict]:
+    return [
+        {
+            'match': {
+                'op': '==',
+                'left': {'payload': {'protocol': 'tcp', 'field': 'dport'}},
+                'right': f'@{TLS_PORTS_SET}',
+            }
+        },
         {'counter': None},
         {'accept': None},
     ]
@@ -657,27 +672,20 @@ class NFTablesManager:
     def sync_tls_accepts(self) -> None:
         """Open the TLS service ports with certificates, close them without."""
         path = Path(NFTABLES_CHAIN_FOLDER_PATH) / 'tls-ports.conf'
+        tls_set = f'{self.family} {self.table} {TLS_PORTS_SET}'
         with FileLock(path.with_suffix('.lock'), timeout=120):
             ports = ', '.join(map(str, TLS_SERVICE_PORTS)) if check_ssl_certs() else ''
             elements = f' elements = {{ {ports} }};' if ports else ''
-            declaration = f'set skale_tls_ports {{ type inet_service;{elements} }}'
-            commands = (
-                f'add set {self.family} {self.table} skale_tls_ports {{ type inet_service; }}\n'
-                f'flush set {self.family} {self.table} skale_tls_ports\n'
-            )
+            commands = f'add set {tls_set} {{ type inet_service; }}\nflush set {tls_set}\n'
             if ports:
-                commands += (
-                    f'add element {self.family} {self.table} skale_tls_ports {{ {ports} }}\n'
-                )
+                commands += f'add element {tls_set} {{ {ports} }}\n'
             rc, _, error = self.nft.cmd(commands)
             if rc != 0:
                 raise NFTablesError(f'Failed to sync TLS ports: {error}')
             temporary = path.with_suffix('.tmp')
-            temporary.write_text(declaration + '\n')
+            temporary.write_text(f'set {TLS_PORTS_SET} {{ type inet_service;{elements} }}\n')
             temporary.replace(path)
-            expr = [dport_match('tcp', 0, 0), {'counter': None}, {'accept': None}]
-            expr[0]['match']['right'] = '@skale_tls_ports'
-            self._ensure_rule(self.chain, expr, label='TLS service ports')
+            self._ensure_rule(self.chain, tls_ports_accept_expr(), label='TLS service ports')
             self._remove_tcp_accepts(TLS_SERVICE_PORTS)
 
     def _add_icmp_accepts(self) -> None:
