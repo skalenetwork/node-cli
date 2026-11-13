@@ -19,6 +19,7 @@ def test_allow_all_ssh_ports(manager):
         patch('node_cli.core.nftables.get_ssh_ports', return_value=[2200, 2222]),
         patch.object(manager, '_ensure_rule'),
         patch.object(manager, 'remove_misordered_udp_drop'),
+        patch.object(manager, 'sync_tls_accepts'),
         patch.object(manager, 'add_rule', side_effect=rules.append),
     ):
         manager._add_service_accepts()

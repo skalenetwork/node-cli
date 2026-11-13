@@ -364,6 +364,7 @@ def turn_on(
         configure_docker()
 
     configure_nftables()
+    generate_nginx_config()
 
     save_internal_settings(node_type=node_type, node_mode=node_mode, backup_run=backup_run)
     logger.info('Launching containers on the node...')
