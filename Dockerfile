@@ -2,7 +2,7 @@ FROM ubuntu:24.04 AS builder
 
 ENV UV_PYTHON_INSTALL_DIR=/opt/python
 
-COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.13.8 /uv /usr/local/bin/uv
 
 WORKDIR /app
 
