@@ -25,7 +25,7 @@ dependencies = [
   "python-crontab==3.4.0",
   "redis==8.1.0",
   "PyInstaller==6.22.3",
-  "skale.py-core==8.0dev0",
+  "skale.py-core==8.0dev3",
 ]
 
 [project.optional-dependencies]
