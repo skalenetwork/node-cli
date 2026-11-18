@@ -185,8 +185,6 @@ Required environment variables in `ENV_FILE`:
 
 Optional variables:
 
-* `TG_API_KEY` - Telegram API key
-* `TG_CHAT_ID` - Telegram chat ID
 * `MONITORING_CONTAINERS` - Enable monitoring containers (`cadvisor`, `node-exporter`).
 
 #### Node initialization from backup

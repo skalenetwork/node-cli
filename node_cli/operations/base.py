@@ -164,7 +164,7 @@ def update(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -
         node_type=NodeType.SKALE,
         node_mode=node_mode,
     )
-    compose_up(env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=node_mode)
+    compose_up(env=compose_env, node_type=NodeType.SKALE, node_mode=node_mode)
     return True
 
 
@@ -203,7 +203,7 @@ def init(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> 
         node_type=NodeType.SKALE,
         node_mode=node_mode,
     )
-    compose_up(env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=node_mode)
+    compose_up(env=compose_env, node_type=NodeType.SKALE, node_mode=node_mode)
     return True
 
 
@@ -267,9 +267,7 @@ def init_passive(
         node_type=NodeType.SKALE,
         node_mode=NodeMode.PASSIVE,
     )
-    compose_up(
-        env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
-    )
+    compose_up(env=compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
 
 
 def update_passive(settings: BaseNodeSettings, compose_env: dict) -> bool:
@@ -319,9 +317,7 @@ def update_passive(settings: BaseNodeSettings, compose_env: dict) -> bool:
         node_type=NodeType.SKALE,
         node_mode=NodeMode.PASSIVE,
     )
-    compose_up(
-        env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
-    )
+    compose_up(env=compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     return True
 
 
@@ -367,7 +363,7 @@ def turn_on(
 
     save_internal_settings(node_type=node_type, node_mode=node_mode, backup_run=backup_run)
     logger.info('Launching containers on the node...')
-    compose_up(env=compose_env, settings=settings, node_type=node_type, node_mode=node_mode)
+    compose_up(env=compose_env, node_type=node_type, node_mode=node_mode)
 
 
 def restore(
@@ -413,7 +409,7 @@ def restore(
     )
     save_internal_settings(node_type=node_type, node_mode=node_mode, backup_run=backup_run)
     if not config_only:
-        compose_up(env=compose_env, settings=settings, node_type=node_type, node_mode=node_mode)
+        compose_up(env=compose_env, node_type=node_type, node_mode=node_mode)
 
     failed_checks = run_host_checks(
         settings.block_device,

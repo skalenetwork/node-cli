@@ -29,8 +29,6 @@ from docker.client import DockerClient
 from docker.errors import NotFound
 from docker.models.containers import Container
 
-from skale_core.settings import BaseNodeSettings
-
 from node_cli.configs import (
     COMPOSE_PATH,
     FAIR_COMPOSE_PATH,
@@ -94,8 +92,6 @@ BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
     'filebeat': 'sk_filebeat',
     **REDIS_SERVICE_DICT,
 }
-
-NOTIFICATION_COMPOSE_SERVICES = ('celery',)
 
 DOCKER_DEFAULT_STOP_TIMEOUT = 20
 
@@ -311,7 +307,6 @@ def get_up_compose_cmd(
 
 def compose_up(
     env,
-    settings: BaseNodeSettings,
     node_type: NodeType,
     node_mode: NodeMode,
     is_fair_boot: bool = False,
@@ -350,17 +345,6 @@ def compose_up(
         logger.info('Running skale node base set of containers')
         logger.debug('Launching skale node containers with env %s', env)
         run_cmd(cmd=get_up_compose_cmd(node_type=node_type, node_mode=node_mode), env=env)
-
-        if settings.tg_api_key and settings.tg_chat_id:
-            logger.info('Running containers for Telegram notifications')
-            run_cmd(
-                cmd=get_up_compose_cmd(
-                    node_type=NodeType.SKALE,
-                    node_mode=node_mode,
-                    services=list(NOTIFICATION_COMPOSE_SERVICES),
-                ),
-                env=env,
-            )
 
 
 def restart_nginx_container(dutils=None):

@@ -123,7 +123,6 @@ def init_fair_boot(
 
     compose_up(
         env=compose_env,
-        settings=settings,
         node_type=NodeType.FAIR,
         node_mode=NodeMode.ACTIVE,
         is_fair_boot=True,
@@ -165,7 +164,6 @@ def init(
     )
     compose_up(
         env=compose_env,
-        settings=settings,
         node_type=NodeType.FAIR,
         node_mode=node_mode,
         services=list(REDIS_SERVICE_DICT),
@@ -188,7 +186,7 @@ def init(
         distro.version(),
     )
 
-    compose_up(env=compose_env, settings=settings, node_type=NodeType.FAIR, node_mode=node_mode)
+    compose_up(env=compose_env, node_type=NodeType.FAIR, node_mode=node_mode)
     wait_for_container(BASE_PASSIVE_FAIR_COMPOSE_SERVICES['api'])
     time.sleep(REDIS_START_TIMEOUT)
     return True
@@ -243,7 +241,6 @@ def update_fair_boot(
     )
     compose_up(
         env=compose_env,
-        settings=settings,
         node_type=NodeType.FAIR,
         node_mode=NodeMode.ACTIVE,
         is_fair_boot=True,
@@ -304,7 +301,6 @@ def update(
 
     compose_up(
         env=compose_env,
-        settings=settings,
         node_type=NodeType.FAIR,
         node_mode=node_mode,
         services=list(REDIS_SERVICE_DICT),
@@ -314,7 +310,7 @@ def update(
     if update_type == FairUpdateType.FROM_BOOT:
         migrate_chain_record(settings.env_type, settings.node_version)
     update_chain_record(settings.env_type, force_skaled_start=force_skaled_start)
-    compose_up(env=compose_env, settings=settings, node_type=NodeType.FAIR, node_mode=node_mode)
+    compose_up(env=compose_env, node_type=NodeType.FAIR, node_mode=node_mode)
     return True
 
 
@@ -354,7 +350,7 @@ def restore(
     )
 
     if not config_only:
-        compose_up(env=compose_env, settings=settings, node_type=NodeType.FAIR, node_mode=node_mode)
+        compose_up(env=compose_env, node_type=NodeType.FAIR, node_mode=node_mode)
 
     failed_checks = run_host_checks(
         settings.block_device,
