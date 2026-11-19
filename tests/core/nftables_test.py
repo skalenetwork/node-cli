@@ -522,10 +522,12 @@ def test_setup_firewall(mock_execute, nft_manager, monkeypatch, tmp_path):
         get_chain_policy=Mock(return_value='accept'),
         update_chain_policy=Mock(),
         apply_user_rules=Mock(),
+        sync_tls_accepts=Mock(),
     ):
         nft_manager.setup_firewall()
         assert mock_execute.called
         NFTablesManager.apply_user_rules.assert_called_once()
+        NFTablesManager.sync_tls_accepts.assert_called_once_with()
 
         added_exprs = [
             call.args[0]['nftables'][0]['add']['rule']['expr']
@@ -575,6 +577,7 @@ def test_setup_firewall_default_drop_disabled(mock_execute, nft_manager, monkeyp
         ensure_default_accept=Mock(),
         update_chain_policy=Mock(),
         apply_user_rules=Mock(),
+        sync_tls_accepts=Mock(),
     ):
         nft_manager.setup_firewall()
         NFTablesManager.validate_dynamic_ranges.assert_not_called()
@@ -597,6 +600,7 @@ def test_setup_firewall_keep_accept_policy(mock_execute, nft_manager, monkeypatc
         ensure_default_accept=Mock(),
         update_chain_policy=Mock(),
         apply_user_rules=Mock(),
+        sync_tls_accepts=Mock(),
     ):
         nft_manager.setup_firewall(keep_accept_policy=True)
         NFTablesManager.ensure_default_drop.assert_not_called()

@@ -47,6 +47,7 @@ from node_cli.configs import (
     SKALE_TMP_DIR,
     UFW_CONFIG_PATH,
     UFW_IPV6_BEFORE_INPUT_CHAIN,
+    LEGACY_NGINX_CONFIG_FILEPATH,
     NGINX_CONFIG_FILEPATH,
 )
 from node_cli.configs.cli_logger import LOG_DATA_PATH
@@ -69,7 +70,8 @@ def prepare_host(env_type: EnvType, allocation: bool = False) -> None:
 
 
 def is_node_inited() -> bool:
-    return os.path.isfile(NGINX_CONFIG_FILEPATH)
+    # config streams without nginx/ keep the single-file config
+    return os.path.isfile(NGINX_CONFIG_FILEPATH) or os.path.isfile(LEGACY_NGINX_CONFIG_FILEPATH)
 
 
 def make_dirs():
