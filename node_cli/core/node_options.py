@@ -83,12 +83,6 @@ def mark_active_node() -> None:
     logger.info('Node marked as active.')
 
 
-def mark_passive_node() -> None:
-    node_options = NodeOptions()
-    node_options.node_mode = NodeMode.PASSIVE
-    logger.info('Node marked as passive.')
-
-
 def set_passive_node_options(
     archive: bool,
     indexer: bool,

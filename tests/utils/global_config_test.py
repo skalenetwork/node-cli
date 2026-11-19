@@ -1,5 +1,5 @@
 import os
-import mock
+from unittest import mock
 from node_cli.utils.global_config import read_g_config, generate_g_config_file
 from node_cli.utils.helper import write_json, get_system_user, is_user_valid, get_g_conf_user
 from node_cli.configs import GLOBAL_SKALE_DIR, GLOBAL_SKALE_CONF_FILEPATH

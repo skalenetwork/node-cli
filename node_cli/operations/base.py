@@ -138,7 +138,6 @@ def update(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -
     generate_nginx_config()
 
     prepare_host(settings.env_type, allocation=True)
-    save_internal_settings(node_type=NodeType.SKALE, node_mode=node_mode)
     init_shared_space_volume(settings.env_type)
 
     meta_manager = CliMetaManager()
@@ -165,12 +164,12 @@ def update(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -
         node_type=NodeType.SKALE,
         node_mode=node_mode,
     )
-    compose_up(env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=node_mode)
+    compose_up(env=compose_env, node_type=NodeType.SKALE, node_mode=node_mode)
     return True
 
 
 @checked_host
-def init(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> None:
+def init(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> bool:
     sync_skale_node()
     ensure_btrfs_kernel_module_autoloaded()
     if not settings.skip_docker_config:
@@ -204,7 +203,8 @@ def init(settings: BaseNodeSettings, compose_env: dict, node_mode: NodeMode) -> 
         node_type=NodeType.SKALE,
         node_mode=node_mode,
     )
-    compose_up(env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=node_mode)
+    compose_up(env=compose_env, node_type=NodeType.SKALE, node_mode=node_mode)
+    return True
 
 
 def init_passive(
@@ -267,9 +267,7 @@ def init_passive(
         node_type=NodeType.SKALE,
         node_mode=NodeMode.PASSIVE,
     )
-    compose_up(
-        env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
-    )
+    compose_up(env=compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
 
 
 def update_passive(settings: BaseNodeSettings, compose_env: dict) -> bool:
@@ -319,9 +317,7 @@ def update_passive(settings: BaseNodeSettings, compose_env: dict) -> bool:
         node_type=NodeType.SKALE,
         node_mode=NodeMode.PASSIVE,
     )
-    compose_up(
-        env=compose_env, settings=settings, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE
-    )
+    compose_up(env=compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
     return True
 
 
@@ -367,7 +363,7 @@ def turn_on(
 
     save_internal_settings(node_type=node_type, node_mode=node_mode, backup_run=backup_run)
     logger.info('Launching containers on the node...')
-    compose_up(env=compose_env, settings=settings, node_type=node_type, node_mode=node_mode)
+    compose_up(env=compose_env, node_type=node_type, node_mode=node_mode)
 
 
 def restore(
@@ -413,7 +409,7 @@ def restore(
     )
     save_internal_settings(node_type=node_type, node_mode=node_mode, backup_run=backup_run)
     if not config_only:
-        compose_up(env=compose_env, settings=settings, node_type=node_type, node_mode=node_mode)
+        compose_up(env=compose_env, node_type=node_type, node_mode=node_mode)
 
     failed_checks = run_host_checks(
         settings.block_device,
@@ -427,14 +423,6 @@ def restore(
         print_failed_requirements_checks(failed_checks)
         return False
     return True
-
-
-def cleanup_passive(compose_env: dict, schain_name: str) -> None:
-    turn_off(compose_env, node_type=NodeType.SKALE, node_mode=NodeMode.PASSIVE)
-    cleanup_nftables()
-    cleanup_no_lvm_datadir(chain_name=schain_name)
-    rm_dir(GLOBAL_SKALE_DIR)
-    rm_dir(SKALE_DIR)
 
 
 def cleanup(

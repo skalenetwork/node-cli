@@ -22,13 +22,10 @@ import json
 import logging
 import logging.handlers as py_handlers
 import os
-import re
 import shutil
-import socket
 import subprocess
 import sys
 import urllib.parse
-import urllib.request
 import uuid
 from pathlib import Path
 from functools import wraps
@@ -44,7 +41,6 @@ from jinja2 import Environment
 from node_cli.configs import (
     ADMIN_HOST,
     ADMIN_PORT,
-    DEFAULT_SSH_PORT,
     GLOBAL_SKALE_CONF_FILEPATH,
     GLOBAL_SKALE_DIR,
     HIDE_STREAM_LOG,
@@ -76,10 +72,6 @@ DEFAULT_ERROR_DATA = {
     'status': 'error',
     'payload': 'Request failed. Check API container logs',
 }
-
-
-class InvalidEnvFileError(Exception):
-    pass
 
 
 def read_json(path: str) -> dict:
@@ -125,14 +117,6 @@ def run_cmd(cmd, env={}, shell=False, secure=False, check_code=True, separate_st
     return res
 
 
-def format_output(res: subprocess.CompletedProcess) -> str:
-    return res.stdout.decode('UTF-8').rstrip()
-
-
-def download_file(url, filepath):
-    return urllib.request.urlretrieve(url, filepath)
-
-
 def process_template(source, destination, data):
     """
     :param source: j2 template source path
@@ -144,10 +128,6 @@ def process_template(source, destination, data):
     processed_template = Environment().from_string(template).render(data)
     with open(destination, 'w') as f:
         f.write(processed_template)
-
-
-def get_username():
-    return os.environ.get('USERNAME') or os.environ.get('USER')
 
 
 def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILURE) -> NoReturn:
@@ -172,14 +152,6 @@ def error_exit(error_payload: Any, exit_code: CLIExitCodes = CLIExitCodes.FAILUR
     sys.exit(exit_code.value)
 
 
-def safe_get_config(config, key):
-    try:
-        return config[key]
-    except KeyError as e:
-        logger.error(e)
-        return None
-
-
 def safe_load_yml(filepath):
     with open(filepath, 'r') as stream:
         try:
@@ -197,12 +169,12 @@ def abort_if_false(ctx, param, value):
         ctx.abort()
 
 
-def post_request(blueprint, method, json=None, files=None):
+def post_request(blueprint, method, json=None):
     route = get_route(blueprint, method)
     url = construct_url(route)
     try:
         response = api_session.post(
-            url, json=json, files=files, headers=get_api_headers(), allow_redirects=False
+            url, json=json, headers=get_api_headers(), allow_redirects=False
         )
         data = response.json()
     except APIAuthError as err:
@@ -236,28 +208,6 @@ def get_request(
     return status, payload
 
 
-def download_dump(path, container_name=None):
-    route = get_route('logs', 'dump')
-    url = construct_url(route)
-    params = {}
-    if container_name:
-        params['container_name'] = container_name
-    with requests.get(url, params=params, stream=True) as r:
-        if r is None:
-            return None
-        if r.status_code != requests.codes.ok:  # pylint: disable=no-member
-            print('Request failed, status code:', r.status_code)
-            error_exit(r.json())
-            return None
-        d = r.headers['Content-Disposition']
-        fname_q = re.findall('filename=(.+)', d)[0]
-        fname = fname_q.replace('"', '')
-        filepath = os.path.join(path, fname)
-        with open(filepath, 'wb') as f:
-            shutil.copyfileobj(r.raw, f)
-    return fname
-
-
 def init_default_logger():
     f_handler = get_file_handler(LOG_FILEPATH, logging.INFO)
     debug_f_handler = get_file_handler(DEBUG_LOG_FILEPATH, logging.DEBUG)
@@ -288,11 +238,6 @@ def read_file(path):
         return file.read()
 
 
-def to_camel_case(snake_str):
-    components = snake_str.split('_')
-    return components[0] + ''.join(x.title() for x in components[1:])
-
-
 def streamed_cmd(func):
     """Decorator that allows function to print logs into stderr."""
 
@@ -319,10 +264,6 @@ def get_g_conf():
 
 def get_g_conf_user():
     return get_g_conf()['user']
-
-
-def get_g_conf_home():
-    return get_g_conf()['home_dir']
 
 
 def rm_dir(folder: str) -> None:
@@ -471,17 +412,6 @@ def get_ssh_ports() -> list[int]:
     override = os.getenv('SSH_PORT')
     values = [override] if override is not None else _effective_sshd_config_ports()
     return _validated_ssh_ports(values)
-
-
-def get_ssh_port(ssh_service_name='ssh') -> int:
-    """Return the first SSH port; firewall callers must use get_ssh_ports()."""
-    if ssh_service_name == 'ssh':
-        return get_ssh_ports()[0]
-    try:
-        return socket.getservbyname(ssh_service_name)
-    except OSError:
-        logger.exception('Cannot get ssh service port')
-        return DEFAULT_SSH_PORT
 
 
 def is_btrfs_subvolume(path: str) -> bool:

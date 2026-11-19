@@ -24,7 +24,6 @@ import os
 from typing import Any
 
 import texttable
-from dateutil import parser
 
 from node_cli.configs import LONG_LINE
 from node_cli.configs.cli_logger import DEBUG_LOG_FILEPATH
@@ -85,11 +84,11 @@ def print_containers(containers):
     headers = ['Name', 'Status', 'Started At', 'Image']
     rows = []
     for container in containers:
-        date = parser.parse(container['state']['StartedAt'])
+        date = datetime.datetime.fromisoformat(container['state']['StartedAt'])
         status = container['state']['Status'].capitalize()
 
         if not container['state']['Running']:
-            finished_date = parser.parse(container['state']['FinishedAt'])
+            finished_date = datetime.datetime.fromisoformat(container['state']['FinishedAt'])
             status = f'{status} ({format_date(finished_date)})'
 
         rows.append([container['name'], status, format_date(date), container['image']])
@@ -170,34 +169,6 @@ def print_schains_healthchecks(schains):
     print(Formatter().table(headers, rows))
 
 
-def print_logs(logs):
-    print('Base logs\n')
-    print_log_list(logs['base'])
-    print(f'\n{LONG_LINE}')
-    print('\nsChains logs\n')
-    print_schains_logs(logs['schains'])
-
-
-def print_schains_logs(schains_logs):
-    for name in schains_logs:
-        print(f'\n{name} \n')
-        print_log_list(schains_logs[name]['logs'])
-
-
-def print_log_list(logs):
-    headers = ['Name', 'Size', 'Created At']
-    rows = []
-    for log in logs:
-        date = datetime.datetime.fromtimestamp(log['created_at'])
-        rows.append([log['name'], log['size'], format_date(date)])
-    print(Formatter().table(headers, rows))
-
-
-def print_dict(title, rows, headers=['Key', 'Value']):
-    print(title)
-    print(Formatter().table(headers, rows))
-
-
 def print_exit_status(exit_status_info):
     headers = ['Schain name', 'Status']
     logs = exit_status_info['data']
@@ -208,7 +179,7 @@ def print_exit_status(exit_status_info):
     print(f'\n{status_info}\n')
     if node_exit_status == 'wait_for_rotations':
         exit_time = exit_status_info['exit_time']
-        exit_time_utc = datetime.datetime.utcfromtimestamp(exit_time)
+        exit_time_utc = datetime.datetime.fromtimestamp(exit_time, datetime.UTC)
         print(f'Rotation finish time: {exit_time_utc}')
 
 

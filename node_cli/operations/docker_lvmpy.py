@@ -18,21 +18,14 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import os
-import shutil
 
 import crontab
 
-from node_cli.utils.git_utils import sync_repo
 from node_cli.configs import (
-    DOCKER_LVMPY_PATH,
-    DOCKER_LVMPY_REPO_URL,
-    FILESTORAGE_MAPPING,
     LVMPY_RUN_CMD,
     LVMPY_HEAL_CMD,
     LVMPY_CRON_LOG_PATH,
     LVMPY_CRON_SCHEDULE_MINUTES,
-    SCHAINS_MNT_DIR_REGULAR,
     VOLUME_GROUP,
 )
 from node_cli.operations.volume import ensure_filestorage_mapping
@@ -41,24 +34,9 @@ from lvmpy.src.install import setup as setup_lvmpy
 logger = logging.getLogger(__name__)
 
 
-def update_docker_lvmpy_env(env):
-    env['PHYSICAL_VOLUME'] = env['BLOCK_DEVICE']
-    env['VOLUME_GROUP'] = 'schains'
-    env['FILESTORAGE_MAPPING'] = FILESTORAGE_MAPPING
-    env['MNT_DIR'] = SCHAINS_MNT_DIR_REGULAR
-    env['PATH'] = os.environ.get('PATH', None)
-    return env
-
-
-def sync_docker_lvmpy_repo(env):
-    if os.path.isdir(DOCKER_LVMPY_PATH):
-        shutil.rmtree(DOCKER_LVMPY_PATH)
-    sync_repo(DOCKER_LVMPY_REPO_URL, DOCKER_LVMPY_PATH, env['DOCKER_LVMPY_VERSION'])
-
-
 def lvmpy_install(block_device: str) -> None:
     ensure_filestorage_mapping()
-    logging.info('Configuring and starting lvmpy')
+    logger.info('Configuring and starting lvmpy')
     setup_lvmpy(block_device=block_device, volume_group=VOLUME_GROUP, exec_start=LVMPY_RUN_CMD)
     init_healing_cron()
     logger.info('docker-lvmpy is configured and started')

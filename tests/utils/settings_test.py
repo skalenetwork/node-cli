@@ -17,3 +17,22 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import pytest
+
+from node_cli.configs import NODE_SETTINGS_PATH
+from node_cli.utils.node_type import NodeMode, NodeType
+from node_cli.utils.settings import validate_and_save_node_settings
+
+
+@pytest.mark.parametrize('endpoint', ['ws://localhost:8545', 'wss://localhost:8545'])
+def test_validate_and_save_node_settings_non_http_endpoint(regular_user_conf, endpoint, capsys):
+    regular_user_conf.write_text(
+        regular_user_conf.read_text().replace('http://localhost:8545', endpoint)
+    )
+    node_settings = NODE_SETTINGS_PATH.read_bytes()
+    with pytest.raises(SystemExit):
+        validate_and_save_node_settings(
+            regular_user_conf.as_posix(), NodeType.SKALE, NodeMode.ACTIVE
+        )
+    assert 'Endpoint must be an http or https URL' in capsys.readouterr().out
+    assert NODE_SETTINGS_PATH.read_bytes() == node_settings

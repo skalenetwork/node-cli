@@ -47,9 +47,6 @@ class FlatRedisRecord:
             self._set_defaults()
             self._save()
 
-    def to_dict(self) -> dict:
-        return self.mget(*self._record_fields().keys())
-
     def mget(self, *args) -> dict[str, Any]:
         key_names = [self._get_field_key(field_name) for field_name in args]
         raw_res = rs.mget(*key_names)
@@ -134,19 +131,6 @@ class FlatRedisRecord:
     @abc.abstractmethod
     def _record_fields(self) -> dict[str, FieldInfo]:
         """Return a list of FieldInfo objects representing the fields of the record."""
-
-    @classmethod
-    def _redis_key_to_field_name(cls, key: bytes) -> str:
-        return key[:-5].decode('utf-8')
-
-    @classmethod
-    def find_all(cls) -> list['FlatRedisRecord']:
-        name_keys = rs.keys('*_name')
-        records = []
-        for key in name_keys:
-            chain_name = cls._redis_key_to_field_name(key)
-            records.append(cls(chain_name))
-        return records
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, FlatRedisRecord):

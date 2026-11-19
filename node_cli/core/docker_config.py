@@ -7,7 +7,7 @@ import pathlib
 import shutil
 import time
 import typing
-from typing import Optional, Tuple
+from typing import Optional
 
 from node_cli.configs import (
     DOCKER_DAEMON_CONFIG_PATH,
@@ -18,7 +18,6 @@ from node_cli.configs import (
     NODE_DOCKER_CONFIG_PATH,
     SKALE_RUN_DIR,
 )
-from node_cli.utils.docker_utils import docker_client, get_containers
 from node_cli.utils.helper import run_cmd
 
 logger = logging.getLogger(__name__)
@@ -43,22 +42,11 @@ def get_content(filename: Path) -> Optional[str]:
         return f.read()
 
 
-gdclient = docker_client()
-
-
 class DockerConfigError(Exception):
     pass
 
 
 class OverridenConfigExsitsError(DockerConfigError):
-    pass
-
-
-class NoSocketFileError(DockerConfigError):
-    pass
-
-
-class ContainersExistError(DockerConfigError):
     pass
 
 
@@ -154,13 +142,6 @@ def ensure_run_dir(run_dir: Path = SKALE_RUN_DIR) -> DockerConfigResult:
         os.makedirs(run_dir)
         return DockerConfigResult.CHANGED
     return DockerConfigResult.UNCHANGED
-
-
-def assert_no_containers(ignore: Tuple[str] = ()):
-    containers = [c.name for c in get_containers() if c.name not in ignore]
-    if len(containers) > 0:
-        logger.fatal('%s containers exist', ' '.join(containers))
-        raise ContainersExistError(f'Existed containers amount {len(containers)}')
 
 
 def configure_docker() -> None:

@@ -22,12 +22,11 @@ import os
 import pathlib
 import shutil
 import tempfile
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 
 import docker
-import mock
+from unittest import mock
 import pytest
-import redis
 
 from node_cli.configs import (
     CONTAINER_CONFIG_TMP_PATH,
@@ -35,9 +34,7 @@ from node_cli.configs import (
     GLOBAL_SKALE_DIR,
     META_FILEPATH,
     NGINX_CONFIG_FILEPATH,
-    NGINX_CONTAINER_NAME,
     NODE_DATA_PATH,
-    REDIS_URI,
     REMOVED_CONTAINERS_FOLDER_PATH,
     SCHAIN_NODE_DATA_PATH,
 )
@@ -45,7 +42,6 @@ from node_cli.configs.node_options import NODE_OPTIONS_FILEPATH
 from node_cli.configs.resource_allocation import RESOURCE_ALLOCATION_FILEPATH
 from node_cli.configs.ssl import SSL_FOLDER_PATH
 from node_cli.core.node_options import NodeOptions
-from node_cli.utils.docker_utils import docker_client
 from node_cli.utils.global_config import generate_g_config_file
 from node_cli.utils.node_type import NodeMode
 from tests.fixtures.settings import (  # noqa: F401
@@ -116,16 +112,12 @@ def simple_image(dclient):
         dclient.images.build(tag=name, rm=True, nocache=True, path='tests/simple_container')
         yield name
     finally:
-        try:
-            dclient.images.get(name)
-        except docker.errors.ImageNotFound:
-            return
-        dclient.images.remove(name, force=True)
+        with suppress(docker.errors.ImageNotFound):
+            dclient.images.remove(name, force=True)
 
 
 @pytest.fixture()
 def docker_hc(dclient):
-    dclient = docker.from_env()
     return dclient.api.create_host_config(
         log_config=docker.types.LogConfig(type=docker.types.LogConfig.types.JSON)
     )
@@ -226,30 +218,6 @@ def passive_node_option():
 
 
 @pytest.fixture
-def dutils():
-    return docker_client()
-
-
-@pytest.fixture
-def nginx_container(dutils, ssl_folder):
-    c = None
-    try:
-        c = dutils.containers.run(
-            'nginx:1.20.2',
-            name=NGINX_CONTAINER_NAME,
-            detach=True,
-            volumes={ssl_folder: {'bind': '/ssl', 'mode': 'ro', 'propagation': 'slave'}},
-        )
-        yield c
-    finally:
-        if c is not None:
-            try:
-                c.remove(force=True)
-            except Exception:
-                pass
-
-
-@pytest.fixture
 def meta_file_v1():
     with open(META_FILEPATH, 'w') as f:
         json.dump(TEST_META_V1, f)
@@ -347,25 +315,6 @@ def valid_env_file(valid_env_params):
         _cleanup_settings()
 
 
-@pytest.fixture
-def mock_chain_response():
-    return {
-        'jsonrpc': '2.0',
-        'id': 1,
-        'result': '0x1',
-    }
-
-
-@pytest.fixture
-def mock_networks_metadata():
-    return {
-        'networks': [
-            {'chainId': 1, 'name': 'Mainnet', 'path': 'mainnet'},
-            {'chainId': 2, 'name': 'Testnet', 'path': 'testnet'},
-        ]
-    }
-
-
 @contextmanager
 def set_env_var(name, value):
     old_value = os.environ.get(name)
@@ -427,28 +376,6 @@ def fair_user_conf(tmp_path):
 
 
 @pytest.fixture
-def fair_boot_user_conf(tmp_path):
-    test_env_path = pathlib.Path(tmp_path / 'test-env')
-    _write_settings(INTERNAL_FAIR_ACTIVE, NODE_FAIR_ACTIVE)
-    try:
-        test_env = """
-        ENDPOINT=http://localhost:8545
-        NODE_VERSION='main'
-        FILEBEAT_HOST=127.0.0.1:3010
-        SGX_URL=http://127.0.0.1
-        BLOCK_DEVICE=/dev/sss
-        ENV_TYPE='devnet'
-        FAIR_CONTRACTS='test-fair'
-        """
-        with open(test_env_path, 'w') as env_file:
-            env_file.write(test_env)
-        yield test_env_path
-    finally:
-        test_env_path.unlink()
-        _cleanup_settings()
-
-
-@pytest.fixture
 def fair_passive_user_conf(tmp_path):
     test_env_path = pathlib.Path(tmp_path / 'test-env')
     _write_settings(INTERNAL_FAIR_PASSIVE, NODE_FAIR_PASSIVE)
@@ -492,9 +419,3 @@ def passive_user_conf(tmp_path):
     finally:
         test_env_path.unlink()
         _cleanup_settings()
-
-
-@pytest.fixture
-def redis_client():
-    cpool = redis.ConnectionPool.from_url(REDIS_URI)
-    return redis.Redis(connection_pool=cpool)

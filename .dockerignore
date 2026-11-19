@@ -3,3 +3,5 @@ dist
 build
 .github
 .gitmodules
+.venv
+*.egg-info

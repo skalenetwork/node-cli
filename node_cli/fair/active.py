@@ -23,7 +23,6 @@ import time
 from typing import cast
 
 from node_cli.configs import DEFAULT_SKALED_BASE_PORT, RESTORE_SLEEP_TIMEOUT
-from node_cli.core.host import is_node_inited
 from node_cli.core.node import compose_node_env, is_base_containers_alive
 from node_cli.operations import (
     FairUpdateType,
@@ -88,10 +87,6 @@ def migrate_from_boot(
 @check_inited
 @check_user
 def register(ip: str) -> None:
-    if not is_node_inited():
-        print(TEXTS['fair']['node']['not_inited'])
-        return
-
     json_data = {'ip': ip, 'port': DEFAULT_SKALED_BASE_PORT}
     status, payload = post_request(blueprint=BLUEPRINT_NAME, method='register', json=json_data)
     if status == 'ok':
@@ -107,10 +102,6 @@ def register(ip: str) -> None:
 @check_inited
 @check_user
 def change_ip(ip: str) -> None:
-    if not is_node_inited():
-        print(TEXTS['fair']['node']['not_inited'])
-        return
-
     json_data = {'ip': ip, 'port': DEFAULT_SKALED_BASE_PORT}
     status, payload = post_request(blueprint=BLUEPRINT_NAME, method='change-ip', json=json_data)
     if status == 'ok':
@@ -126,10 +117,6 @@ def change_ip(ip: str) -> None:
 @check_inited
 @check_user
 def exit() -> None:
-    if not is_node_inited():
-        print(TEXTS['fair']['node']['not_inited'])
-        return
-
     status, payload = post_request(blueprint=BLUEPRINT_NAME, method='exit', json={})
     if status == 'ok':
         msg = TEXTS['fair']['node']['exited']
@@ -164,10 +151,6 @@ def restore(backup_path: str, config_file: str, config_only: bool = False):
 @check_inited
 @check_user
 def set_domain_name(domain_name):
-    if not is_node_inited():
-        print(TEXTS['fair']['node']['not_inited'])
-        return
-
     status, payload = post_request(
         blueprint=BLUEPRINT_NAME, method='set-domain-name', json={'domain_name': domain_name}
     )

@@ -131,7 +131,7 @@ def get_exit_requests(raw: bool = False) -> None:
                     f'unlock_date: {unlock_date}'
                 )
                 print(base + (f' ({unlock_iso})' if unlock_iso else ''))
-            except Exception:  # noqa: BLE001
+            except Exception:
                 print(req)
         return
     error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)

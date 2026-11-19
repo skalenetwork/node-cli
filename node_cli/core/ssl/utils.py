@@ -37,7 +37,7 @@ def cert_from_file(cert_filepath):
     if not os.path.isfile(cert_filepath):
         logger.warning(f'Trying to read cert that does not exist: {cert_filepath}')
         return None
-    with open(cert_filepath) as cert_file:
+    with open(cert_filepath, 'rb') as cert_file:
         return cert_file.read()
 
 

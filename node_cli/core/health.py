@@ -18,9 +18,8 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-from terminaltables import SingleTable
 
-from node_cli.utils.print_formatters import print_containers, print_schains_healthchecks
+from node_cli.utils.print_formatters import Formatter, print_containers, print_schains_healthchecks
 from node_cli.utils.helper import error_exit, get_request
 from node_cli.utils.exit_codes import CLIExitCodes
 
@@ -31,7 +30,7 @@ INFO_BLUEPRINT_NAME = 'info'
 
 def get_containers(_all):
     status, payload = get_request(
-        blueprint=BLUEPRINT_NAME, method='containers', params={'all': _all}
+        blueprint=INFO_BLUEPRINT_NAME, method='containers', params={'all': _all}
     )
     if status == 'ok':
         print_containers(payload)
@@ -57,15 +56,13 @@ def get_sgx_info():
     status, payload = get_request(blueprint=INFO_BLUEPRINT_NAME, method='sgx')
     if status == 'ok':
         data = payload
-        table_data = [
-            ['SGX info', ''],
+        rows = [
             ['Server URL', data['sgx_server_url']],
             ['SGXWallet Version', data['sgx_wallet_version']],
             ['Node SGX keyname', data['sgx_keyname']],
             ['Status HTTPS', data['status_https']],
             ['Status ZMQ', data['status_zmq']],
         ]
-        table = SingleTable(table_data)
-        print(table.table)
+        print(Formatter().table(['SGX info', ''], rows))
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)

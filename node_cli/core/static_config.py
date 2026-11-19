@@ -44,8 +44,7 @@ def get_static_params(
     static_params_filename = os.path.basename(static_params_base_filepath)
     static_params_filepath = os.path.join(config_path, static_params_filename)
     with open(static_params_filepath) as requirements_file:
-        ydata = yaml.load(requirements_file, Loader=yaml.Loader)
-        return ydata['envs'][env_type]
+        return yaml.safe_load(requirements_file)['envs'][env_type]
 
 
 def get_fair_chain_name(env_type: EnvType) -> str:

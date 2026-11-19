@@ -18,17 +18,16 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import click
-from terminaltables import SingleTable
 
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import error_exit
+from node_cli.utils.print_formatters import Formatter
 from node_cli.utils.texts import safe_load_texts
 from node_cli.configs.ssl import DEFAULT_SSL_CHECK_PORT, SSL_CERT_FILEPATH, SSL_KEY_FILEPATH
 from node_cli.core.ssl import check_cert, upload_cert, cert_status
 
 
 TEXTS = safe_load_texts()
-BLUEPRINT_NAME = 'ssl'
 
 
 @click.group()
@@ -48,13 +47,13 @@ def status():
         if payload.get('is_empty'):
             print(TEXTS['ssl']['no_cert'])
         else:
-            table_data = [
-                ['Issued to', payload['issued_to']],
-                ['Expiration date', payload['expiration_date']],
-            ]
-            table = SingleTable(table_data)
             print('SSL certificates status:')
-            print(table.table)
+            print(
+                Formatter().table(
+                    ['Issued to', 'Expiration date'],
+                    [[payload['issued_to'], payload['expiration_date']]],
+                )
+            )
     else:
         error_exit(payload, exit_code=CLIExitCodes.BAD_API_RESPONSE)
 

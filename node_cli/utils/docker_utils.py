@@ -29,8 +29,6 @@ from docker.client import DockerClient
 from docker.errors import NotFound
 from docker.models.containers import Container
 
-from skale_core.settings import BaseNodeSettings
-
 from node_cli.configs import (
     COMPOSE_PATH,
     FAIR_COMPOSE_PATH,
@@ -95,10 +93,6 @@ BASE_PASSIVE_FAIR_COMPOSE_SERVICES = {
     **REDIS_SERVICE_DICT,
 }
 
-TELEGRAF_SERVICES = ('telegraf',)
-NOTIFICATION_COMPOSE_SERVICES = ('celery',)
-COMPOSE_TIMEOUT = 10
-
 DOCKER_DEFAULT_STOP_TIMEOUT = 20
 
 DOCKER_DEFAULT_HEAD_LINES = 400
@@ -109,10 +103,6 @@ COMPOSE_SHUTDOWN_TIMEOUT = 40
 
 def docker_client() -> DockerClient:
     return docker.from_env()
-
-
-def get_sanitized_container_name(container_info: dict) -> str:
-    return container_info['Names'][0].replace('/', '', 1)
 
 
 def get_containers(container_name_filter=None, _all=True) -> list:
@@ -195,30 +185,11 @@ def stop_container_by_name(
     container.stop(timeout=timeout)
 
 
-def remove_container_by_name(
-    container_name: str,
-    timeout: int = DOCKER_DEFAULT_STOP_TIMEOUT,
-    dclient: Optional[DockerClient] = None,
-) -> None:
-    dc = dclient or docker_client()
-    container_names = [container.name for container in get_containers()]
-    if container_name in container_names:
-        container = dc.containers.get(container_name)
-        safe_rm(container, timeout=timeout)
-
-
 def start_container_by_name(container_name: str, dclient: Optional[DockerClient] = None) -> None:
     dc = dclient or docker_client()
     container = dc.containers.get(container_name)
     logger.info('Starting container %s', container_name)
     container.start()
-
-
-def remove_schain_container_by_name(
-    schain_name: str, dclient: Optional[DockerClient] = None
-) -> None:
-    container_name = f'sk_skaled_{schain_name}'
-    remove_container_by_name(container_name, timeout=SCHAIN_REMOVE_TIMEOUT, dclient=dclient)
 
 
 def backup_container_logs(
@@ -336,7 +307,6 @@ def get_up_compose_cmd(
 
 def compose_up(
     env,
-    settings: BaseNodeSettings,
     node_type: NodeType,
     node_mode: NodeMode,
     is_fair_boot: bool = False,
@@ -375,17 +345,6 @@ def compose_up(
         logger.info('Running skale node base set of containers')
         logger.debug('Launching skale node containers with env %s', env)
         run_cmd(cmd=get_up_compose_cmd(node_type=node_type, node_mode=node_mode), env=env)
-
-        if settings.tg_api_key and settings.tg_chat_id:
-            logger.info('Running containers for Telegram notifications')
-            run_cmd(
-                cmd=get_up_compose_cmd(
-                    node_type=NodeType.SKALE,
-                    node_mode=node_mode,
-                    services=list(NOTIFICATION_COMPOSE_SERVICES),
-                ),
-                env=env,
-            )
 
 
 def restart_nginx_container(dutils=None):

@@ -35,18 +35,6 @@ def clone_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
     fetch_pull_repo(repo_path, ref_name)
 
 
-def sync_repo(repo_url: str, repo_path: str, ref_name: str) -> None:
-    """
-    Sync Git repository by cloning if it doesn't exist locally. If it exists, fetch latest changes.
-    """
-
-    logger.info(f'Sync repo {repo_url} → {repo_path}')
-    if not os.path.isdir(os.path.join(repo_path, '.git')):
-        clone_repo(repo_url, repo_path, ref_name)
-    else:
-        fetch_pull_repo(repo_path, ref_name)
-
-
 def fetch_pull_repo(repo_path: str, ref_name: str) -> None:
     """Fetch latest changes and checkout/pull specific git reference."""
 

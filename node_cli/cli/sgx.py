@@ -20,7 +20,6 @@
 import json
 
 import click
-from terminaltables import SingleTable
 
 from node_cli.configs.sgx import SGX_SIGN_TIMEOUT
 from node_cli.core.sgx import (
@@ -33,6 +32,7 @@ from node_cli.core.sgx import (
 from node_cli.utils.decorators import check_inited, check_user
 from node_cli.utils.exit_codes import CLIExitCodes
 from node_cli.utils.helper import abort_if_false, error_exit
+from node_cli.utils.print_formatters import Formatter
 from node_cli.utils.settings import get_sgx_url
 from node_cli.utils.texts import safe_load_texts
 
@@ -62,7 +62,7 @@ def options(json_format: bool) -> None:
     if json_format:
         print(json.dumps(payload))
     else:
-        rows = [['SGX option', 'Value']]
+        rows = []
         for group, values in payload.items():
             entries = (
                 [(f'{group}.{key}', value) for key, value in values.items()]
@@ -73,7 +73,7 @@ def options(json_format: bool) -> None:
                 [key, value if isinstance(value, str) else json.dumps(value)]
                 for key, value in entries
             )
-        print(SingleTable(rows).table)
+        print(Formatter().table(['SGX option', 'Value'], rows))
 
 
 @sgx.command('cert-status', help=TEXTS['status']['help'])
@@ -143,7 +143,6 @@ def _configured_sgx_url() -> str:
 def print_certificate_status(info: dict) -> None:
     present = info['present']
     rows = [
-        ['SGX client certificate', ''],
         ['Directory', info['directory']],
         ['Private key', _presence(present['key'])],
         ['Signing request', _presence(present['csr'])],
@@ -163,7 +162,7 @@ def print_certificate_status(info: dict) -> None:
         )
     if info.get('server_version'):
         rows.append(['SGX server', f'accepted the certificate, version {info["server_version"]}'])
-    print(SingleTable(rows).table)
+    print(Formatter().table(['SGX client certificate', ''], rows))
     for notice in _notices(info):
         print(notice)
 

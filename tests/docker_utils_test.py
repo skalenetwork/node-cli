@@ -3,7 +3,7 @@ import time
 from time import sleep
 from unittest.mock import MagicMock
 
-import mock
+from unittest import mock
 import pytest
 
 from node_cli.utils.docker_utils import (
@@ -69,7 +69,7 @@ def test_save_container_logs(simple_container, tmp_dir_path):
         'INFO:__main__:Test 2\n',
         'INFO:__main__:Test 3\n',
         'INFO:__main__:Test 4\n',
-        '================================================================================\n',  # noqa
+        '================================================================================\n',
         'INFO:__main__:Test 6\n',
         'INFO:__main__:Test 7\n',
         'INFO:__main__:Test 8\n',

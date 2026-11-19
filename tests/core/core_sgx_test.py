@@ -91,7 +91,7 @@ def test_status_describes_certificate(certs_dir, rpc):
         (-1, 1, False, False, True),
     ],
 )
-def test_status_with_legacy_certificate_dates(
+def test_status_certificate_dates(
     certs_dir, rpc, monkeypatch, starts_in, ends_in, expired, not_yet_valid, expires_soon
 ):
     wallet = FakeSgxWallet(rpc)
@@ -100,16 +100,14 @@ def test_status_with_legacy_certificate_dates(
     start = now + datetime.timedelta(days=starts_in)
     end = now + datetime.timedelta(days=ends_in)
 
-    class LegacyCertificate:
-        not_valid_before = start.replace(tzinfo=None)
-        not_valid_after = end.replace(tzinfo=None)
+    class DatedCertificate:
+        not_valid_before_utc = start
+        not_valid_after_utc = end
 
         def __getattr__(self, name):
-            if name in ('not_valid_before_utc', 'not_valid_after_utc'):
-                raise AttributeError(name)
             return getattr(wallet.last_issued, name)
 
-    monkeypatch.setattr(sgx, '_load_certificate', lambda _: LegacyCertificate())
+    monkeypatch.setattr(sgx, '_load_certificate', lambda _: DatedCertificate())
     status = sgx.get_certificate_status(certs_dir)
     assert status['not_valid_before'] == start.isoformat(timespec='seconds')
     assert status['not_valid_after'] == end.isoformat(timespec='seconds')

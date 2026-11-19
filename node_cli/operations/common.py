@@ -44,4 +44,4 @@ def configure_filebeat():
 def unpack_backup_archive(backup_path: str) -> None:
     logger.info('Unpacking backup archive...')
     with tarfile.open(backup_path) as tar:
-        tar.extractall(path=G_CONF_HOME)
+        tar.extractall(path=G_CONF_HOME, filter='tar')
