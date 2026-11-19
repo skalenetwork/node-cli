@@ -185,8 +185,6 @@ Required environment variables in `ENV_FILE`:
 
 Optional variables:
 
-* `TG_API_KEY` - Telegram API key
-* `TG_CHAT_ID` - Telegram chat ID
 * `MONITORING_CONTAINERS` - Enable monitoring containers (`cadvisor`, `node-exporter`).
 
 #### Node initialization from backup
@@ -1360,7 +1358,7 @@ Exit codes conventions for SKALE CLI tools
 
 #### Dependencies
 
-* [uv](https://docs.astral.sh/uv/) 0.13.6+ (installs Python 3.14 from `.python-version`)
+* [uv](https://docs.astral.sh/uv/) 0.13.8+ (installs Python 3.14 from `.python-version`)
 * Git
 
 #### Clone the repository
